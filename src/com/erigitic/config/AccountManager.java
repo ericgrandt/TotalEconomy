@@ -12,6 +12,7 @@ import org.spongepowered.api.service.config.DefaultConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 /**
  * Created by Erigitic on 5/2/2015.
@@ -102,13 +103,31 @@ public class AccountManager {
             try {
                 config = configManager.load();
 
-                balance = (float) config.getNode(player.getName(), "balance").getValue();
+                balance = Float.parseFloat((String) config.getNode(player.getName(), "balance").getValue());
             } catch (IOException e) {
                 logger.warn("Error: Could not get player balance from config!");
             }
         }
 
         return balance;
+    }
+
+    public String getStringBalance(Player player) {
+        float balance = 0;
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+
+        if (hasAccount(player)) {
+            try {
+                config = configManager.load();
+
+                balance = Float.parseFloat((String) config.getNode(player.getName(), "balance").getValue());
+            } catch (IOException e) {
+                logger.warn("Error: Could not get player balance from config!");
+            }
+        }
+
+        return df.format(balance);
     }
 
 }
