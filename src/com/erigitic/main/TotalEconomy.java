@@ -6,12 +6,14 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
 import org.spongepowered.api.event.state.ServerStartedEvent;
 import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
+import org.spongepowered.api.text.Texts;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +56,7 @@ public class TotalEconomy {
 
             config = configManager.load();
         } catch (IOException e) {
-            logger.warn("Default Config could not be loaded/created!");
+            logger.warn("Error: Default Config could not be loaded/created!");
         }
 
         accountManager.setupConfig();
@@ -69,6 +71,11 @@ public class TotalEconomy {
 
     @Subscribe
     public void onPlayerJoin(PlayerJoinEvent event) {
-        accountManager.createAccount(event.getPlayer());
+        Player player = event.getPlayer();
+
+        accountManager.createAccount(player);
+
+        //TODO: REMOVE
+        player.sendMessage(Texts.builder(accountManager.getStringBalance(player)).build());
     }
 }
