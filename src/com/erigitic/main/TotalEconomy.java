@@ -1,5 +1,6 @@
 package com.erigitic.main;
 
+import com.erigitic.config.AccountManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -30,8 +31,12 @@ public class TotalEconomy {
 
     private ConfigurationNode config = null;
 
+    private AccountManager accountManager;
+
     @Subscribe
     public void onServerStart(ServerStartedEvent event) {
+        accountManager = new AccountManager();
+
         //Checks for folder and file existence and creates them if need be.
         try {
             if (!defaultConf.getParentFile().exists()) {
@@ -50,6 +55,8 @@ public class TotalEconomy {
         } catch (IOException e) {
             logger.warn("Default Config could not be loaded/created!");
         }
+
+        accountManager.setupConfig();
 
         logger.info("Total Economy Started");
     }
