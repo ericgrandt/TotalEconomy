@@ -31,16 +31,14 @@ public class AccountManager {
      * Default Constructor so we can access this class from elsewhere
      */
     public AccountManager() {
-
+        accountsConfig = new File("config/TotalEconomy/accounts.conf");
+        configManager = HoconConfigurationLoader.builder().setFile(accountsConfig).build();
     }
 
     /**
      * Setup the config file that will contain the user accounts. These accounts will contain the users money amount.
      */
     public void setupConfig() {
-        accountsConfig = new File("config/TotalEconomy/accounts.conf");
-        configManager = HoconConfigurationLoader.builder().setFile(accountsConfig).build();
-
         try {
             if (!accountsConfig.exists()) {
                 accountsConfig.createNewFile();
@@ -50,6 +48,11 @@ public class AccountManager {
         }
     }
 
+    /**
+     * Creates a new account for the player.
+     *
+     * @param player
+     */
     public void createAccount(Player player) {
         try {
             config = configManager.load();
@@ -62,6 +65,25 @@ public class AccountManager {
             configManager.save(config);
         } catch (IOException e) {
             logger.warn("ERROR: Could not create account!");
+        }
+    }
+
+    /**
+     * Checks if the specified player has an account
+     *
+     * @param player
+     * @return weather or not the player has an account
+     */
+    public boolean hasAccount(Player player) {
+        try {
+            config = configManager.load();
+
+            if (config.getNode(player.getName()).getValue() != null)
+                return true;
+
+            return false;
+        } catch (IOException e) {
+            logger.warn("Error: Could not determine if player has an account or not!");
         }
     }
 }
