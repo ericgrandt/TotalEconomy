@@ -7,6 +7,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.event.Subscribe;
+import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
 import org.spongepowered.api.event.state.ServerStartedEvent;
 import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
@@ -64,5 +65,10 @@ public class TotalEconomy {
     @Subscribe
     public void onServerStop(ServerStoppingEvent event) {
         logger.info("Total Economy Stopped");
+    }
+
+    @Subscribe
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        accountManager.createAccount(event.getPlayer());
     }
 }
