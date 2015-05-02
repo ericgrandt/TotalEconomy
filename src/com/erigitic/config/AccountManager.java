@@ -44,14 +44,14 @@ public class AccountManager {
                 accountsConfig.createNewFile();
             }
         } catch (IOException e) {
-            logger.warn("ERROR: Could not load/create accounts config file!");
+            logger.warn("Error: Could not load/create accounts config file!");
         }
     }
 
     /**
      * Creates a new account for the player.
      *
-     * @param player
+     * @param player Object representing a Player
      */
     public void createAccount(Player player) {
         try {
@@ -64,14 +64,14 @@ public class AccountManager {
 
             configManager.save(config);
         } catch (IOException e) {
-            logger.warn("ERROR: Could not create account!");
+            logger.warn("Error: Could not create account!");
         }
     }
 
     /**
-     * Checks if the specified player has an account
+     * Checks if the specified player has an account. If not, one will be created.
      *
-     * @param player
+     * @param player Object representing a Player
      * @return weather or not the player has an account
      */
     public boolean hasAccount(Player player) {
@@ -80,10 +80,35 @@ public class AccountManager {
 
             if (config.getNode(player.getName()).getValue() != null)
                 return true;
-
-            return false;
+            else
+                createAccount(player);
         } catch (IOException e) {
             logger.warn("Error: Could not determine if player has an account or not!");
         }
+
+        return false;
     }
+
+    /**
+     * Get the balance for the specified player.
+     *
+     * @param player Object representing a Player
+     * @return
+     */
+    public float getBalance(Player player) {
+        float balance = 0;
+
+        if (hasAccount(player)) {
+            try {
+                config = configManager.load();
+
+                balance = (float) config.getNode(player.getName(), "balance").getValue();
+            } catch (IOException e) {
+                logger.warn("Error: Could not get player balance from config!");
+            }
+        }
+
+        return balance;
+    }
+
 }
