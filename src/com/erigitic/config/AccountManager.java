@@ -131,6 +131,12 @@ public class AccountManager {
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 
+    /**
+     * Get the balance in string form in order to more easily print in game.
+     *
+     * @param player
+     * @return String represents the balance in string form
+     */
     public String getStringBalance(Player player) {
         BigDecimal balance = new BigDecimal(0);
 
