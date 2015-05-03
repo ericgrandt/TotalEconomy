@@ -1,5 +1,6 @@
 package com.erigitic.main;
 
+import com.erigitic.commands.PayCommand;
 import com.erigitic.commands.TestCommand;
 import com.erigitic.config.AccountManager;
 import com.google.inject.Inject;
@@ -16,6 +17,7 @@ import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.util.command.args.GenericArguments;
 import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import java.io.File;
@@ -46,10 +48,7 @@ public class TotalEconomy {
     public void onServerStart(ServerStartedEvent event) {
         accountManager = new AccountManager(this);
 
-        CommandSpec testCommand = CommandSpec.builder().setDescription(Texts.of("Test Command")).setExtendedDescription(Texts.of("Test Command Extended"))
-                .setExecutor(new TestCommand(this)).build();
-
-        game.getCommandDispatcher().register(this, testCommand, "test");
+        createAndRegisterCommands();
 
         //Checks for folder and file existence and creates them if need be.
         try {
@@ -96,5 +95,22 @@ public class TotalEconomy {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    /**
+     * Creates and registers commands
+     */
+    private void createAndRegisterCommands() {
+        CommandSpec payCommand = CommandSpec.builder()
+                .setDescription(Texts.of("Pay another player"))
+                .setExtendedDescription(Texts.of("Pay another player"))
+                .setExecutor(new PayCommand(this))
+                //.setArguments(GenericArguments.seq( // <-- command arguments
+                //        GenericArguments.player(Texts.of("player"), game),
+                //        GenericArguments.remainingJoinedStrings(Texts.of("msg"))))
+                .build();
+
+
+        game.getCommandDispatcher().register(this, payCommand, "pay");
     }
 }

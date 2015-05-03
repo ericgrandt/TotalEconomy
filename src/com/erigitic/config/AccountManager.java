@@ -119,8 +119,13 @@ public class AccountManager {
      */
     public void removeFromBalance(Player player, BigDecimal amount) {
         if (hasAccount(player)) {
+            logger.info("1234");
+
+
             if (hasMoney(player, amount)) {
                 BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
+
+                logger.info("Blasdf");
 
                 try {
                     config = configManager.load();
@@ -147,7 +152,9 @@ public class AccountManager {
 
         int result = amount.compareTo(balance);
 
-        if (result == 0 || result == 1)
+        logger.info("" + result);
+
+        if (result == -1 || result == 0)
             return true;
 
         return false;
