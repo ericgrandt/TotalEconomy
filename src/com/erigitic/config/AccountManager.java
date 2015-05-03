@@ -49,7 +49,7 @@ public class AccountManager {
     /**
      * Creates a new account for the player.
      *
-     * @param player Object representing a Player
+     * @param player object representing a Player
      */
     public void createAccount(Player player) {
         try {
@@ -70,7 +70,8 @@ public class AccountManager {
     /**
      * Checks if the specified player has an account. If not, one will be created.
      *
-     * @param player Object representing a Player
+     * @param player object representing a Player
+     *
      * @return weather or not the player has an account
      */
     public boolean hasAccount(Player player) {
@@ -91,8 +92,8 @@ public class AccountManager {
     /**
      * Add currency to player's balance.
      *
-     * @param player
-     * @param amount
+     * @param player object representing a Player
+     * @param amount amount to be added to balance
      */
     public void addToBalance(Player player, BigDecimal amount) {
         BigDecimal newBalance = new BigDecimal(getStringBalance(player)).add(new BigDecimal(amount.toString()));
@@ -110,10 +111,54 @@ public class AccountManager {
     }
 
     /**
+     * Removes an amount from the specified player's balance. Checks if the player has a balance greater then or equal to
+     * the amount being removed.
+     *
+     * @param player object representing a Player
+     * @param amount amount to be removed from balance
+     */
+    public void removeFromBalance(Player player, BigDecimal amount) {
+        if (hasAccount(player)) {
+            if (hasMoney(player, amount)) {
+                BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
+
+                try {
+                    config = configManager.load();
+
+                    config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                    configManager.save(config);
+                } catch (IOException e) {
+                    logger.warn("Error: Could not add to player balance!");
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if the player has enough money in there balance to remove from.
+     *
+     * @param player object representing a Player
+     * @param amount amount to be checked
+     *
+     * @return boolean weather or not the player has enough money in balance
+     */
+    public boolean hasMoney(Player player, BigDecimal amount) {
+        BigDecimal balance = getBalance(player);
+
+        int result = amount.compareTo(balance);
+
+        if (result == 0 || result == 1)
+            return true;
+
+        return false;
+    }
+
+    /**
      * Get the balance for the specified player.
      *
-     * @param player Object representing a Player
-     * @return
+     * @param player object representing a Player
+     *
+     * @return BigDecimal the balance
      */
     public BigDecimal getBalance(Player player) {
         BigDecimal balance = new BigDecimal(0);
@@ -134,7 +179,8 @@ public class AccountManager {
     /**
      * Get the balance in string form in order to more easily print in game.
      *
-     * @param player
+     * @param player object representing a Player
+     *
      * @return String represents the balance in string form
      */
     public String getStringBalance(Player player) {
