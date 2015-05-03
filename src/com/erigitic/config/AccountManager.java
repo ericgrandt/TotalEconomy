@@ -1,5 +1,6 @@
 package com.erigitic.config;
 
+import com.erigitic.main.TotalEconomy;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -8,22 +9,20 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
+import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 /**
  * Created by Erigitic on 5/2/2015.
  */
 public class AccountManager {
-
-    @Inject
+    private TotalEconomy totalEconomy;
     private Logger logger;
-
-    //Load the default config so we grab the parent directory.
-
     private File accountsConfig;
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
     private ConfigurationNode config = null;
@@ -31,7 +30,10 @@ public class AccountManager {
     /**
      * Default Constructor so we can access this class from elsewhere
      */
-    public AccountManager() {
+    public AccountManager(TotalEconomy totalEconomy) {
+        this.totalEconomy = totalEconomy;
+        logger = totalEconomy.getLogger();
+
         accountsConfig = new File("config/TotalEconomy/accounts.conf");
         configManager = HoconConfigurationLoader.builder().setFile(accountsConfig).build();
     }
@@ -60,7 +62,8 @@ public class AccountManager {
 
             if (config.getNode(player.getName(), "balance").getValue() == null) {
                 //TODO: Set balance to the default config defined starting balance
-                config.getNode(player.getName(), "balance").setValue("0");
+                BigDecimal startBalance = new BigDecimal("10.00");
+                config.getNode(player.getName(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
             }
 
             configManager.save(config);
@@ -91,43 +94,62 @@ public class AccountManager {
     }
 
     /**
+     * Add currency to player's balance.
+     *
+     * @param player
+     * @param amount
+     */
+    public void addToBalance(Player player, BigDecimal amount) {
+        BigDecimal newBalance = new BigDecimal(getStringBalance(player)).add(new BigDecimal(amount.toString()));
+
+        if (hasAccount(player)) {
+            try {
+                config = configManager.load();
+
+                config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                configManager.save(config);
+            } catch (IOException e) {
+                logger.warn("Error: Could not add to player balance!");
+            }
+        }
+    }
+
+    /**
      * Get the balance for the specified player.
      *
      * @param player Object representing a Player
      * @return
      */
-    public float getBalance(Player player) {
-        float balance = 0;
+    public BigDecimal getBalance(Player player) {
+        BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
             try {
                 config = configManager.load();
 
-                balance = Float.parseFloat((String) config.getNode(player.getName(), "balance").getValue());
+                balance = new BigDecimal((String) config.getNode(player.getName(), "balance").getValue());
             } catch (IOException e) {
                 logger.warn("Error: Could not get player balance from config!");
             }
         }
 
-        return balance;
+        return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 
     public String getStringBalance(Player player) {
-        float balance = 0;
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(2);
+        BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
             try {
                 config = configManager.load();
 
-                balance = Float.parseFloat((String) config.getNode(player.getName(), "balance").getValue());
+                balance = new BigDecimal((String) config.getNode(player.getName(), "balance").getValue());
             } catch (IOException e) {
                 logger.warn("Error: Could not get player balance from config!");
             }
         }
 
-        return df.format(balance);
+        return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString();
     }
 
 }

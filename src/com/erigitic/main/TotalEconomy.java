@@ -1,11 +1,13 @@
 package com.erigitic.main;
 
+import com.erigitic.commands.TestCommand;
 import com.erigitic.config.AccountManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.Game;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
@@ -14,6 +16,7 @@ import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,13 +35,21 @@ public class TotalEconomy {
     @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
 
+    @Inject
+    private Game game;
+
     private ConfigurationNode config = null;
 
     private AccountManager accountManager;
 
     @Subscribe
     public void onServerStart(ServerStartedEvent event) {
-        accountManager = new AccountManager();
+        accountManager = new AccountManager(this);
+
+        CommandSpec testCommand = CommandSpec.builder().setDescription(Texts.of("Test Command")).setExtendedDescription(Texts.of("Test Command Extended"))
+                .setExecutor(new TestCommand(this)).build();
+
+        game.getCommandDispatcher().register(this, testCommand, "test");
 
         //Checks for folder and file existence and creates them if need be.
         try {
@@ -77,5 +88,13 @@ public class TotalEconomy {
 
         //TODO: REMOVE
         player.sendMessage(Texts.builder(accountManager.getStringBalance(player)).build());
+    }
+
+    public AccountManager getAccountManager() {
+        return accountManager;
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 }
