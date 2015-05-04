@@ -148,8 +148,6 @@ public class AccountManager {
 
         int result = amount.compareTo(balance);
 
-        logger.info("" + result);
-
         if (result == -1 || result == 0)
             return true;
         else
