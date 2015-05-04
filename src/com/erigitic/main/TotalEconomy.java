@@ -22,7 +22,7 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "0.0.1")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "0.1.0")
 public class TotalEconomy {
 
     @Inject
