@@ -1,7 +1,6 @@
 package com.erigitic.main;
 
 import com.erigitic.commands.PayCommand;
-import com.erigitic.commands.TestCommand;
 import com.erigitic.config.AccountManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -12,8 +11,7 @@ import org.spongepowered.api.Game;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
-import org.spongepowered.api.event.state.ServerStartedEvent;
-import org.spongepowered.api.event.state.ServerStoppingEvent;
+import org.spongepowered.api.event.state.*;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
@@ -44,11 +42,14 @@ public class TotalEconomy {
 
     private AccountManager accountManager;
 
+    /**
+     * Setup all config files
+     *
+     * @param event
+     */
     @Subscribe
-    public void onServerStart(ServerStartedEvent event) {
+    public void preInit(PreInitializationEvent event) {
         accountManager = new AccountManager(this);
-
-        createAndRegisterCommands();
 
         //Checks for folder and file existence and creates them if need be.
         try {
@@ -70,7 +71,26 @@ public class TotalEconomy {
         }
 
         accountManager.setupConfig();
+    }
 
+    /**
+     * Create and register all commands
+     *
+     * @param event
+     */
+    @Subscribe
+    public void init(InitializationEvent event) {
+        createAndRegisterCommands();
+    }
+
+    //TODO: Might not need this
+    @Subscribe
+    public void postInit(PostInitializationEvent event) {
+
+    }
+
+    @Subscribe
+    public void onServerStart(ServerStartedEvent event) {
         logger.info("Total Economy Started");
     }
 
