@@ -38,8 +38,6 @@ public class PayCommand implements CommandExecutor {
             if (accountManager.hasMoney(sender, amount)) {
                 accountManager.removeFromBalance(sender, amount);
                 accountManager.addToBalance(recipitent, amount);
-
-                logger.info("" + accountManager.getBalance(sender));
             }
         } else {
             sender.sendMessage(Texts.of("Player is not online."));
