@@ -105,9 +105,9 @@ public class TotalEconomy {
                 .setDescription(Texts.of("Pay another player"))
                 .setExtendedDescription(Texts.of("Pay another player"))
                 .setExecutor(new PayCommand(this))
-                //.setArguments(GenericArguments.seq( // <-- command arguments
-                //        GenericArguments.player(Texts.of("player"), game),
-                //        GenericArguments.remainingJoinedStrings(Texts.of("msg"))))
+                .setArguments(GenericArguments.seq(
+                        GenericArguments.player(Texts.of("player"), game),
+                        GenericArguments.string(Texts.of("amount"))))
                 .build();
 
 
