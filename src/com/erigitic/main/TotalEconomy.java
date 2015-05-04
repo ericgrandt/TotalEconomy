@@ -1,5 +1,6 @@
 package com.erigitic.main;
 
+import com.erigitic.commands.BalanceCommand;
 import com.erigitic.commands.PayCommand;
 import com.erigitic.config.AccountManager;
 import com.google.inject.Inject;
@@ -104,9 +105,6 @@ public class TotalEconomy {
         Player player = event.getPlayer();
 
         accountManager.createAccount(player);
-
-        //TODO: REMOVE
-        player.sendMessage(Texts.builder(accountManager.getStringBalance(player)).build());
     }
 
     public AccountManager getAccountManager() {
@@ -130,7 +128,13 @@ public class TotalEconomy {
                         GenericArguments.string(Texts.of("amount"))))
                 .build();
 
+        CommandSpec balanceCommand = CommandSpec.builder()
+                .setDescription(Texts.of("Display your balance"))
+                .setExtendedDescription(Texts.of("Display your balance"))
+                .setExecutor(new BalanceCommand(this))
+                .build();
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
+        game.getCommandDispatcher().register(this, balanceCommand, "balance");
     }
 }
