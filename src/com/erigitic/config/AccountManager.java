@@ -7,6 +7,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.text.Texts;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,8 @@ public class AccountManager {
 
                 config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(config);
+
+                player.sendMessage(Texts.of(amount + " has been added to your balance!"));
             } catch (IOException e) {
                 logger.warn("Error: Could not add to player balance!");
             }
@@ -119,22 +122,15 @@ public class AccountManager {
      */
     public void removeFromBalance(Player player, BigDecimal amount) {
         if (hasAccount(player)) {
-            logger.info("1234");
+            BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
 
+            try {
+                config = configManager.load();
 
-            if (hasMoney(player, amount)) {
-                BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
-
-                logger.info("Blasdf");
-
-                try {
-                    config = configManager.load();
-
-                    config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
-                    configManager.save(config);
-                } catch (IOException e) {
-                    logger.warn("Error: Could not add to player balance!");
-                }
+                config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                configManager.save(config);
+            } catch (IOException e) {
+                logger.warn("Error: Could not add to player balance!");
             }
         }
     }
@@ -156,6 +152,8 @@ public class AccountManager {
 
         if (result == -1 || result == 0)
             return true;
+        else
+            player.sendMessage(Texts.of("Insufficient funds."));
 
         return false;
     }
