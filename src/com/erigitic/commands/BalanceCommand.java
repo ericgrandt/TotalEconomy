@@ -11,8 +11,6 @@ import org.spongepowered.api.util.command.CommandSource;
 import org.spongepowered.api.util.command.args.CommandContext;
 import org.spongepowered.api.util.command.spec.CommandExecutor;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Erigitic on 5/4/2015.
  */
