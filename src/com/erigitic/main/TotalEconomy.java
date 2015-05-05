@@ -24,7 +24,7 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(id = "totalEconomy", name = "Total Economy", version = "0.1.0")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "0.2.0")
 public class TotalEconomy {
 
     @Inject
@@ -63,7 +63,7 @@ public class TotalEconomy {
                     defaultConf.createNewFile();
                     config = configManager.load();
 
-                    config.getNode("version").setValue("0.0.1");
+                    config.getNode("version").setValue("0.2.0");
                     configManager.save(config);
                 }
             }
