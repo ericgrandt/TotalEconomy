@@ -15,4 +15,15 @@ All in one economy plugin for Minecraft and Sponge.
  service = game.getServiceManager().provide(TEService.class).get();
  ```
  
- NOTE: You should do a check in your code to make sure that TotalEconomy.jar is present in the mods folder before running the code.
+ NOTE: You should do a check in your code to make sure that TotalEconomy.jar is present in the mods folder before running the  code.
+ 
+ <br>
+ 
+ #### Functions
+ ```
+ boolean hasAccount(Player player) - Checks if the specified player has an account.
+ void addToBalance(Player player, BigDecimal amount) - Add the specified amount to a player's balance.
+ void removeFromBalance(Player player, BigDecimal amount) - Remove the specified amount from a player's balance.
+ boolean hasMoney(Player player, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
+ BigDecimal getBalance(Player player) - Get the passed in player's balance.
+ ```
