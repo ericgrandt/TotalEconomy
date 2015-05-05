@@ -3,6 +3,7 @@ package com.erigitic.main;
 import com.erigitic.commands.BalanceCommand;
 import com.erigitic.commands.PayCommand;
 import com.erigitic.config.AccountManager;
+import com.erigitic.service.TEService;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -14,6 +15,7 @@ import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
 import org.spongepowered.api.event.state.*;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.service.ProviderExistsException;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.args.GenericArguments;
@@ -22,7 +24,7 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "0.1.0")
+@Plugin(id = "totalEconomy", name = "Total Economy", version = "0.1.0")
 public class TotalEconomy {
 
     @Inject
@@ -75,13 +77,21 @@ public class TotalEconomy {
     }
 
     /**
-     * Create and register all commands
+     * Create and register all commands.
      *
      * @param event
      */
     @Subscribe
     public void init(InitializationEvent event) {
         createAndRegisterCommands();
+
+        if (!game.getServiceManager().provide(TEService.class).isPresent()) {
+            try {
+                game.getServiceManager().setProvider(this, TEService.class, new AccountManager(this));
+            } catch (ProviderExistsException e) {
+
+            }
+        }
     }
 
     //TODO: Might not need this
