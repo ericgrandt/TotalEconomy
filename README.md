@@ -7,7 +7,7 @@ All in one economy plugin for Minecraft and Sponge.
 * Add TotalEconomy.jar as a library in your project.
 * In your PostInitializationEvent add this code:
 
- ```
+ ```java
  //THIS GOES AT THE TOP OF YOUR FILE
  private TEService service;
  
