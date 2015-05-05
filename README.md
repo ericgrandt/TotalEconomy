@@ -14,3 +14,5 @@ All in one economy plugin for Minecraft and Sponge.
  //THIS GOES IN YOUR POSTINITIALIZATIONEVENT
  service = game.getServiceManager().provide(TEService.class).get();
  ```
+ 
+ NOTE: You should do a check in your code to make sure that TotalEconomy.jar is present in the mods folder before running the code.
