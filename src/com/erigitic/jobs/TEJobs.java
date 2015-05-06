@@ -36,7 +36,7 @@ public class TEJobs {
         accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
 
-        jobsFile = new File("config/TotalEconomy/jobs.conf");
+        jobsFile = new File(totalEconomy.getConfigDir(), "jobs.conf");
         configManager = HoconConfigurationLoader.builder().setFile(jobsFile).build();
 
         try {

@@ -31,7 +31,7 @@ public class AccountManager implements TEService {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
 
-        accountsFile = new File("config/TotalEconomy/accounts.conf");
+        accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
         configManager = HoconConfigurationLoader.builder().setFile(accountsFile).build();
 
         try {
