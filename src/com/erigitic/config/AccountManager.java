@@ -190,4 +190,8 @@ public class AccountManager implements TEService {
         return accountConfig;
     }
 
+    public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
+        return configManager;
+    }
+
 }
