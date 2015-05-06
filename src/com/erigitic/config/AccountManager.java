@@ -61,11 +61,11 @@ public class AccountManager implements TEService {
      */
     public void createAccount(Player player) {
         try {
-            if (accountConfig.getNode(player.getUniqueId(), "balance").getValue() == null) {
+            if (accountConfig.getNode(player.getUniqueId().toString(), "balance").getValue() == null) {
                 //TODO: Set balance to the default config defined starting balance
                 BigDecimal startBalance = new BigDecimal("10.00");
-                accountConfig.getNode(player.getUniqueId(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
-                accountConfig.getNode(player.getUniqueId(), "job").setValue("Unemployed");
+                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getUniqueId().toString(), "job").setValue("Unemployed");
             }
 
             configManager.save(accountConfig);
@@ -82,7 +82,7 @@ public class AccountManager implements TEService {
      * @return weather or not the player has an account
      */
     public boolean hasAccount(Player player) {
-        if (accountConfig.getNode(player.getUniqueId()) != null)
+        if (accountConfig.getNode(player.getUniqueId().toString()) != null)
             return true;
         else
             createAccount(player);
@@ -101,7 +101,7 @@ public class AccountManager implements TEService {
 
         if (hasAccount(player)) {
             try {
-                accountConfig.getNode(player.getUniqueId(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(accountConfig);
 
                 player.sendMessage(Texts.of(amount + " has been added to your balance!"));
@@ -123,7 +123,7 @@ public class AccountManager implements TEService {
             BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
 
             try {
-                accountConfig.getNode(player.getUniqueId(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(accountConfig);
             } catch (IOException e) {
                 logger.warn("Could not add to player balance!");
@@ -163,7 +163,7 @@ public class AccountManager implements TEService {
         BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
-            balance = new BigDecimal((String) accountConfig.getNode(player.getUniqueId(), "balance").getValue());
+            balance = new BigDecimal((String) accountConfig.getNode(player.getUniqueId().toString(), "balance").getValue());
         }
 
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
@@ -180,7 +180,7 @@ public class AccountManager implements TEService {
         BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
-            balance = new BigDecimal((String) accountConfig.getNode(player.getUniqueId(), "balance").getValue());
+            balance = new BigDecimal((String) accountConfig.getNode(player.getUniqueId().toString(), "balance").getValue());
         }
 
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString();
