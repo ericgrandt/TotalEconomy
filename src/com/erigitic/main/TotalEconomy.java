@@ -18,6 +18,7 @@ import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
 import org.spongepowered.api.event.state.*;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.ProviderExistsException;
+import org.spongepowered.api.service.config.ConfigDir;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.args.GenericArguments;
@@ -31,6 +32,10 @@ public class TotalEconomy {
 
     @Inject
     private Logger logger;
+
+    @Inject
+    @ConfigDir(sharedRoot = false)
+    private File configDir;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
@@ -116,6 +121,10 @@ public class TotalEconomy {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    public File getConfigDir() {
+        return configDir;
     }
 
     private void setupConfig() {
