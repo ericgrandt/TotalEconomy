@@ -1,6 +1,7 @@
 package com.erigitic.main;
 
 import com.erigitic.commands.BalanceCommand;
+import com.erigitic.commands.JobCommand;
 import com.erigitic.commands.PayCommand;
 import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.TEJobs;
@@ -125,6 +126,10 @@ public class TotalEconomy {
         return accountManager;
     }
 
+    public TEJobs getTEJobs() {
+        return teJobs;
+    }
+
     public Logger getLogger() {
         return logger;
     }
@@ -148,7 +153,16 @@ public class TotalEconomy {
                 .setExecutor(new BalanceCommand(this))
                 .build();
 
+        CommandSpec jobSetCommand = CommandSpec.builder()
+                .setDescription(Texts.of("Set your job"))
+                .setExtendedDescription(Texts.of("Set your job"))
+                .setExecutor(new JobCommand(this))
+                .setArguments(GenericArguments.seq(
+                        GenericArguments.string(Texts.of("jobName"))))
+                .build();
+
         game.getCommandDispatcher().register(this, payCommand, "pay");
         game.getCommandDispatcher().register(this, balanceCommand, "balance");
+        game.getCommandDispatcher().register(this, jobSetCommand, "job");
     }
 }

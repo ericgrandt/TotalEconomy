@@ -8,6 +8,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.text.Texts;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class TEJobs {
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private ConfigurationNode accountsConfig;
+    private ConfigurationNode accountConfig;
     private Logger logger;
 
     private File jobsFile; //Will contain all the jobs with salaries, tasks(Pay, xp reward), jobName, and etc.
@@ -32,7 +33,7 @@ public class TEJobs {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
-        accountsConfig = accountManager.getAccountConfig();
+        accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
 
         jobsFile = new File("config/TotalEconomy/jobs.conf");
@@ -86,7 +87,19 @@ public class TEJobs {
      * @param jobName name of the job
      */
     public void setJob(Player player, String jobName) {
+        if (jobExists(jobName)) {
+            accountConfig.getNode(player.getName(), "job").setValue(jobName);
 
+            try {
+                accountManager.getConfigManager().save(accountConfig);
+            } catch (IOException e) {
+                logger.warn("Could not save account config while setting job!");
+            }
+
+            player.sendMessage(Texts.of("Your job has been changed to " + jobName));
+        } else {
+            player.sendMessage(Texts.of("That is not a job."));
+        }
     }
 
     /**
