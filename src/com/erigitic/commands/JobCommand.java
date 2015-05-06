@@ -30,6 +30,8 @@ public class JobCommand implements CommandExecutor {
             String jobName = args.getOne("jobName").get().toString();
 
             teJobs.setJob(sender, jobName);
+        } else {
+            sender.sendMessage(Texts.of("List of jobs will go here."));
         }
 
         return CommandResult.success();

@@ -102,6 +102,11 @@ public class TEJobs {
         }
     }
 
+    public String[] getJobList() {
+
+        return null;
+    }
+
     /**
      * Checks the jobs config for the jobName.
      *
