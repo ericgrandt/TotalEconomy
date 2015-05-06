@@ -88,7 +88,7 @@ public class TEJobs {
      */
     public void setJob(Player player, String jobName) {
         if (jobExists(jobName)) {
-            accountConfig.getNode(player.getName(), "job").setValue(jobName);
+            accountConfig.getNode(player.getUniqueId(), "job").setValue(jobName);
 
             try {
                 accountManager.getConfigManager().save(accountConfig);
