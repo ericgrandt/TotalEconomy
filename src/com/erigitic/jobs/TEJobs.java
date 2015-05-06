@@ -49,6 +49,9 @@ public class TEJobs {
         try {
             if (!jobsFile.exists()) {
                 jobsFile.createNewFile();
+
+                jobsConfig.getNode("Miner", "salary").setValue("25");//600 seconds
+                configManager.save(jobsConfig);
             }
         } catch (IOException e) {
             logger.warn("Could not create jobs config file!");
@@ -70,7 +73,7 @@ public class TEJobs {
      * @param player
      * @return String the job the player currently has
      */
-    public String getJob(Player player) {
+    public String getPlayerJob(Player player) {
         String jobName = "";
 
         return jobName;
@@ -84,5 +87,19 @@ public class TEJobs {
      */
     public void setJob(Player player, String jobName) {
 
+    }
+
+    /**
+     * Checks the jobs config for the jobName.
+     *
+     * @param jobName name of the job
+     * @return boolean if the job exists or not
+     */
+    public boolean jobExists(String jobName) {
+        if (jobsConfig.getNode(jobName).getValue() != null) {
+            return true;
+        }
+
+        return false;
     }
 }

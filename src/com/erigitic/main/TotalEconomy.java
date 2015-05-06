@@ -66,7 +66,7 @@ public class TotalEconomy {
                     defaultConf.createNewFile();
                     config = configManager.load();
 
-                    config.getNode("version").setValue("0.2.0");
+                    config.getNode("paydelay").setValue("600");//600 seconds
                     configManager.save(config);
                 }
             }
