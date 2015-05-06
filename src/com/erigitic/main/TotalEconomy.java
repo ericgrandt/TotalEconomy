@@ -153,6 +153,12 @@ public class TotalEconomy {
                 .setExecutor(new BalanceCommand(this))
                 .build();
 
+        CommandSpec jobCommand = CommandSpec.builder()
+                .setDescription(Texts.of("Display list of jobs."))
+                .setExtendedDescription(Texts.of("Display all of the jobs on screen."))
+                .setExecutor(new JobCommand(this))
+                .build();
+
         CommandSpec jobSetCommand = CommandSpec.builder()
                 .setDescription(Texts.of("Set your job"))
                 .setExtendedDescription(Texts.of("Set your job"))
@@ -163,6 +169,7 @@ public class TotalEconomy {
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
         game.getCommandDispatcher().register(this, balanceCommand, "balance");
-        game.getCommandDispatcher().register(this, jobSetCommand, "job");
+        game.getCommandDispatcher().register(this, jobCommand, "job");
+        game.getCommandDispatcher().register(this, jobSetCommand, "jobset");
     }
 }
