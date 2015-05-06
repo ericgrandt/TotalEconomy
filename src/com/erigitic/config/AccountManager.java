@@ -65,6 +65,7 @@ public class AccountManager implements TEService {
                 //TODO: Set balance to the default config defined starting balance
                 BigDecimal startBalance = new BigDecimal("10.00");
                 accountConfig.getNode(player.getName(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getName(), "job").setValue("Unemployed");
             }
 
             configManager.save(accountConfig);
