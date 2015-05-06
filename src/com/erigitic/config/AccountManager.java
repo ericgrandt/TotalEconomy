@@ -8,7 +8,6 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.text.Texts;
 
 import java.io.File;
@@ -21,9 +20,9 @@ import java.math.BigDecimal;
 public class AccountManager implements TEService {
     private TotalEconomy totalEconomy;
     private Logger logger;
-    private File accountsConfig;
+    private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
-    private ConfigurationNode config = null;
+    private ConfigurationNode accountConfig;
 
     /**
      * Default Constructor so we can access this class from elsewhere
@@ -32,8 +31,14 @@ public class AccountManager implements TEService {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
 
-        accountsConfig = new File("config/TotalEconomy/accounts.conf");
-        configManager = HoconConfigurationLoader.builder().setFile(accountsConfig).build();
+        accountsFile = new File("config/TotalEconomy/accounts.conf");
+        configManager = HoconConfigurationLoader.builder().setFile(accountsFile).build();
+
+        try {
+            accountConfig = configManager.load();
+        } catch (IOException e) {
+            logger.warn("Could not load account config!");
+        }
     }
 
     /**
@@ -41,11 +46,11 @@ public class AccountManager implements TEService {
      */
     public void setupConfig() {
         try {
-            if (!accountsConfig.exists()) {
-                accountsConfig.createNewFile();
+            if (!accountsFile.exists()) {
+                accountsFile.createNewFile();
             }
         } catch (IOException e) {
-            logger.warn("Error: Could not load/create accounts config file!");
+            logger.warn("Could not create accounts config file!");
         }
     }
 
@@ -56,17 +61,15 @@ public class AccountManager implements TEService {
      */
     public void createAccount(Player player) {
         try {
-            config = configManager.load();
-
-            if (config.getNode(player.getName(), "balance").getValue() == null) {
+            if (accountConfig.getNode(player.getName(), "balance").getValue() == null) {
                 //TODO: Set balance to the default config defined starting balance
                 BigDecimal startBalance = new BigDecimal("10.00");
-                config.getNode(player.getName(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getName(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
             }
 
-            configManager.save(config);
+            configManager.save(accountConfig);
         } catch (IOException e) {
-            logger.warn("Error: Could not create account!");
+            logger.warn("Could not create account!");
         }
     }
 
@@ -78,16 +81,10 @@ public class AccountManager implements TEService {
      * @return weather or not the player has an account
      */
     public boolean hasAccount(Player player) {
-        try {
-            config = configManager.load();
-
-            if (config.getNode(player.getName()).getValue() != null)
-                return true;
-            else
-                createAccount(player);
-        } catch (IOException e) {
-            logger.warn("Error: Could not determine if player has an account or not!");
-        }
+        if (accountConfig.getNode(player.getName()).getValue() != null)
+            return true;
+        else
+            createAccount(player);
 
         return false;
     }
@@ -103,14 +100,12 @@ public class AccountManager implements TEService {
 
         if (hasAccount(player)) {
             try {
-                config = configManager.load();
-
-                config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
-                configManager.save(config);
+                accountConfig.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                configManager.save(accountConfig);
 
                 player.sendMessage(Texts.of(amount + " has been added to your balance!"));
             } catch (IOException e) {
-                logger.warn("Error: Could not add to player balance!");
+                logger.warn("Could not add to player balance!");
             }
         }
     }
@@ -127,12 +122,10 @@ public class AccountManager implements TEService {
             BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
 
             try {
-                config = configManager.load();
-
-                config.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
-                configManager.save(config);
+                accountConfig.getNode(player.getName(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                configManager.save(accountConfig);
             } catch (IOException e) {
-                logger.warn("Error: Could not add to player balance!");
+                logger.warn("Could not add to player balance!");
             }
         }
     }
@@ -169,13 +162,7 @@ public class AccountManager implements TEService {
         BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
-            try {
-                config = configManager.load();
-
-                balance = new BigDecimal((String) config.getNode(player.getName(), "balance").getValue());
-            } catch (IOException e) {
-                logger.warn("Error: Could not get player balance from config!");
-            }
+            balance = new BigDecimal((String) accountConfig.getNode(player.getName(), "balance").getValue());
         }
 
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
@@ -192,16 +179,14 @@ public class AccountManager implements TEService {
         BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
-            try {
-                config = configManager.load();
-
-                balance = new BigDecimal((String) config.getNode(player.getName(), "balance").getValue());
-            } catch (IOException e) {
-                logger.warn("Error: Could not get player balance from config!");
-            }
+            balance = new BigDecimal((String) accountConfig.getNode(player.getName(), "balance").getValue());
         }
 
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString();
+    }
+
+    public ConfigurationNode getAccountConfig() {
+        return accountConfig;
     }
 
 }

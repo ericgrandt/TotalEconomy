@@ -3,6 +3,7 @@ package com.erigitic.main;
 import com.erigitic.commands.BalanceCommand;
 import com.erigitic.commands.PayCommand;
 import com.erigitic.config.AccountManager;
+import com.erigitic.jobs.TEJobs;
 import com.erigitic.service.TEService;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -44,6 +45,7 @@ public class TotalEconomy {
     private ConfigurationNode config = null;
 
     private AccountManager accountManager;
+    private TEJobs teJobs;
 
     /**
      * Setup all config files
@@ -53,6 +55,7 @@ public class TotalEconomy {
     @Subscribe
     public void preInit(PreInitializationEvent event) {
         accountManager = new AccountManager(this);
+        teJobs = new TEJobs(this);
 
         //Checks for folder and file existence and creates them if need be.
         try {
@@ -70,10 +73,11 @@ public class TotalEconomy {
 
             config = configManager.load();
         } catch (IOException e) {
-            logger.warn("Error: Default Config could not be loaded/created!");
+            logger.warn("Default Config could not be loaded/created!");
         }
 
         accountManager.setupConfig();
+        teJobs.setupConfig();
     }
 
     /**
@@ -89,7 +93,7 @@ public class TotalEconomy {
             try {
                 game.getServiceManager().setProvider(this, TEService.class, new AccountManager(this));
             } catch (ProviderExistsException e) {
-
+                logger.warn("Provider does not exist!");
             }
         }
     }
