@@ -59,23 +59,7 @@ public class TotalEconomy {
         teJobs = new TEJobs(this);
 
         //Checks for folder and file existence and creates them if need be.
-        try {
-            if (!defaultConf.getParentFile().exists()) {
-                defaultConf.getParentFile().mkdir();
-
-                if (!defaultConf.exists()) {
-                    defaultConf.createNewFile();
-                    config = configManager.load();
-
-                    config.getNode("paydelay").setValue("600");//600 seconds
-                    configManager.save(config);
-                }
-            }
-
-            config = configManager.load();
-        } catch (IOException e) {
-            logger.warn("Default Config could not be loaded/created!");
-        }
+        setupConfig();
 
         accountManager.setupConfig();
         teJobs.setupConfig();
@@ -132,6 +116,27 @@ public class TotalEconomy {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    private void setupConfig() {
+        try {
+            if (!defaultConf.getParentFile().exists()) {
+                defaultConf.getParentFile().mkdir();
+
+                if (!defaultConf.exists()) {
+                    defaultConf.createNewFile();
+                    config = configManager.load();
+
+                    config.getNode("features", "jobs").setValue(true);
+                    config.getNode("paydelay").setValue("600");//600 seconds
+                    configManager.save(config);
+                }
+            }
+
+            config = configManager.load();
+        } catch (IOException e) {
+            logger.warn("Default Config could not be loaded/created!");
+        }
     }
 
     /**
