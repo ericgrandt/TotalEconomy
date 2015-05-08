@@ -49,8 +49,22 @@ public class TEJobs {
             if (!jobsFile.exists()) {
                 jobsFile.createNewFile();
 
-                jobsConfig.getNode("Miner", "salary").setValue("25");//600 seconds
+                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack");
+                jobsConfig.getNode("Miner", "salary").setValue("25");
+                jobsConfig.getNode("Lumberjack", "salary").setValue("25");
                 configManager.save(jobsConfig);
+            }
+
+            if (jobsConfig.getNode("jobs").getValue() == null) {
+                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack");
+            }
+
+            if (jobsConfig.getNode("Miner", "salary").getValue() == null) {
+                jobsConfig.getNode("Miner", "salary").setValue("25");
+            }
+
+            if (jobsConfig.getNode("Lumberjack", "salary").getValue() == null) {
+                jobsConfig.getNode("Lumberjack", "salary").setValue("25");
             }
         } catch (IOException e) {
             logger.warn("Could not create jobs config file!");
@@ -103,11 +117,10 @@ public class TEJobs {
     /**
      * Gets a list of all of the jobs currently in the jobs config.
      *
-     * @return String[] array of jobs
+     * @return String list of jobs
      */
-    public String[] getJobList() {
-
-        return null;
+    public String getJobList() {
+        return jobsConfig.getNode("jobs").getString();
     }
 
     /**
