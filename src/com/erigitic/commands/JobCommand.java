@@ -34,7 +34,7 @@ public class JobCommand implements CommandExecutor {
             teJobs.setJob(sender, jobName);
         } else {
             sender.sendMessage(Texts.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, teJobs.getPlayerJob(sender)));
-            sender.sendMessage(Texts.of("List of jobs will go here."));
+            sender.sendMessage(Texts.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, teJobs.getJobList()));
         }
 
         return CommandResult.success();
