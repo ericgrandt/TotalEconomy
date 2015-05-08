@@ -105,7 +105,7 @@ public class AccountManager implements TEService {
                 accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(accountConfig);
 
-                player.sendMessage(Texts.of(TextColors.GOLD, amount, TextColors.GRAY, " has been added to your balance."));
+                player.sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been added to your balance."));
             } catch (IOException e) {
                 logger.warn("Could not add to player balance!");
             }
@@ -127,7 +127,7 @@ public class AccountManager implements TEService {
                 accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(accountConfig);
 
-                player.sendMessage(Texts.of(TextColors.GOLD, amount, TextColors.GRAY, " has been removed from your balance."));
+                player.sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been removed from your balance."));
             } catch (IOException e) {
                 logger.warn("Could not add to player balance!");
             }
@@ -172,6 +172,7 @@ public class AccountManager implements TEService {
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 
+    //MAY NOT BE NEEDED
     /**
      * Get the balance in string form in order to more easily print in game.
      *
