@@ -64,7 +64,7 @@ public class TotalEconomy {
     public void preInit(PreInitializationEvent event) {
         setupConfig();
 
-        loadJobs = (boolean) config.getNode("features", "jobs").getValue();
+        loadJobs = config.getNode("features", "jobs").getBoolean();
 
         accountManager = new AccountManager(this);
         accountManager.setupConfig();
@@ -117,22 +117,6 @@ public class TotalEconomy {
         accountManager.createAccount(player);
     }
 
-    public AccountManager getAccountManager() {
-        return accountManager;
-    }
-
-    public TEJobs getTEJobs() {
-        return teJobs;
-    }
-
-    public Logger getLogger() {
-        return logger;
-    }
-
-    public File getConfigDir() {
-        return configDir;
-    }
-
     /**
      * Setup the default config file, TotalEconomy.conf.
      */
@@ -140,17 +124,28 @@ public class TotalEconomy {
         try {
             if (!defaultConf.getParentFile().exists()) {
                 defaultConf.getParentFile().mkdir();
-
-                if (!defaultConf.exists()) {
-                    defaultConf.createNewFile();
-                    config = configManager.load();
-
-                    config.getNode("features", "jobs").setValue(true);
-                    configManager.save(config);
-                }
             }
 
+            if (!defaultConf.exists()) {
+                defaultConf.createNewFile();
+                config = configManager.load();
+
+                config.getNode("features", "jobs").setValue(true);
+                config.getNode("symbol").setValue("$");
+                configManager.save(config);
+            }
             config = configManager.load();
+
+            //Checks if the nodes exists. Otherwise they will be created.
+            if (config.getNode("features", "jobs").getValue() == null) {
+                config.getNode("features", "jobs").setValue(true);
+                configManager.save(config);
+            }
+
+            if (config.getNode("symbol").getValue() == null) {
+                config.getNode("symbol").setValue("$");
+                configManager.save(config);
+            }
         } catch (IOException e) {
             logger.warn("Default Config could not be loaded/created!");
         }
@@ -199,5 +194,25 @@ public class TotalEconomy {
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
         game.getCommandDispatcher().register(this, balanceCommand, "balance");
+    }
+
+    public AccountManager getAccountManager() {
+        return accountManager;
+    }
+
+    public TEJobs getTEJobs() {
+        return teJobs;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public File getConfigDir() {
+        return configDir;
+    }
+
+    public String getCurrencySymbol() {
+        return config.getNode("symbol").getValue().toString();
     }
 }

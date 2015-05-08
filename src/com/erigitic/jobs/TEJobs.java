@@ -2,31 +2,22 @@ package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.main.TotalEconomy;
-import com.google.common.base.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.service.scheduler.AsynchronousScheduler;
-import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Erigitic on 5/5/2015.
  */
 public class TEJobs {
-    //TODO: Configuration file to allow people to edit jobs.
-    //TODO: Add nodes to accounts config that relate to jobs
-
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private ConfigurationNode accountConfig;
