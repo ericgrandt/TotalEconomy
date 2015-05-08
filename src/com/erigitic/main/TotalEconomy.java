@@ -133,6 +133,9 @@ public class TotalEconomy {
         return configDir;
     }
 
+    /**
+     * Setup the default config file, TotalEconomy.conf.
+     */
     private void setupConfig() {
         try {
             if (!defaultConf.getParentFile().exists()) {
