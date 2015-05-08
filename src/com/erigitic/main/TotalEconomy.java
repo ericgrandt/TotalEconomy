@@ -53,6 +53,8 @@ public class TotalEconomy {
     private AccountManager accountManager;
     private TEJobs teJobs;
 
+    private boolean loadJobs = true;
+
     /**
      * Setup all config files
      *
@@ -60,14 +62,17 @@ public class TotalEconomy {
      */
     @Subscribe
     public void preInit(PreInitializationEvent event) {
-        accountManager = new AccountManager(this);
-        teJobs = new TEJobs(this);
-
-        //Checks for folder and file existence and creates them if need be.
         setupConfig();
 
+        loadJobs = (boolean) config.getNode("features", "jobs").getValue();
+
+        accountManager = new AccountManager(this);
         accountManager.setupConfig();
-        teJobs.setupConfig();
+
+        if (loadJobs == true) {
+            teJobs = new TEJobs(this);
+            teJobs.setupConfig();
+        }
     }
 
     /**
@@ -137,7 +142,6 @@ public class TotalEconomy {
                     config = configManager.load();
 
                     config.getNode("features", "jobs").setValue(true);
-                    config.getNode("paydelay").setValue("600");//600 seconds
                     configManager.save(config);
                 }
             }
@@ -152,6 +156,8 @@ public class TotalEconomy {
      * Creates and registers commands
      */
     private void createAndRegisterCommands() {
+        //TODO: Add command that will display all of the enabled features. Maybe even disabled features?
+
         CommandSpec payCommand = CommandSpec.builder()
                 .setDescription(Texts.of("Pay another player"))
                 .setExtendedDescription(Texts.of("Pay another player"))
@@ -167,23 +173,26 @@ public class TotalEconomy {
                 .setExecutor(new BalanceCommand(this))
                 .build();
 
-        CommandSpec jobCommand = CommandSpec.builder()
-                .setDescription(Texts.of("Display list of jobs."))
-                .setExtendedDescription(Texts.of("Display all of the jobs on screen."))
-                .setExecutor(new JobCommand(this))
-                .build();
+        if (loadJobs == true) {
+            CommandSpec jobCommand = CommandSpec.builder()
+                    .setDescription(Texts.of("Display list of jobs."))
+                    .setExtendedDescription(Texts.of("Display all of the jobs on screen."))
+                    .setExecutor(new JobCommand(this))
+                    .build();
 
-        CommandSpec jobSetCommand = CommandSpec.builder()
-                .setDescription(Texts.of("Set your job"))
-                .setExtendedDescription(Texts.of("Set your job"))
-                .setExecutor(new JobCommand(this))
-                .setArguments(GenericArguments.seq(
-                        GenericArguments.string(Texts.of("jobName"))))
-                .build();
+            CommandSpec jobSetCommand = CommandSpec.builder()
+                    .setDescription(Texts.of("Set your job"))
+                    .setExtendedDescription(Texts.of("Set your job"))
+                    .setExecutor(new JobCommand(this))
+                    .setArguments(GenericArguments.seq(
+                            GenericArguments.string(Texts.of("jobName"))))
+                    .build();
+
+            game.getCommandDispatcher().register(this, jobCommand, "job");
+            game.getCommandDispatcher().register(this, jobSetCommand, "jobset");
+        }
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
         game.getCommandDispatcher().register(this, balanceCommand, "balance");
-        game.getCommandDispatcher().register(this, jobCommand, "job");
-        game.getCommandDispatcher().register(this, jobSetCommand, "jobset");
     }
 }

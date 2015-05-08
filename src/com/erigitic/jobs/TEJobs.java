@@ -2,16 +2,22 @@ package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.main.TotalEconomy;
+import com.google.common.base.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.service.scheduler.AsynchronousScheduler;
+import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.text.Texts;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Erigitic on 5/5/2015.
@@ -62,6 +68,8 @@ public class TEJobs {
     /**
      * Pays the player their salary on a timed basis. This time can be changed in config(TODO).
      *
+     * NOTE: Not sure if I want to have a salary or not. Will decide later. Currently this function will be empty.
+     *
      * @param jobName (MAY NOT BE NEEDED) name of the job
      */
     public void paySalary(String jobName) {
@@ -75,9 +83,7 @@ public class TEJobs {
      * @return String the job the player currently has
      */
     public String getPlayerJob(Player player) {
-        String jobName = "";
-
-        return jobName;
+        return accountConfig.getNode(player.getUniqueId().toString(), "job").getValue().toString();
     }
 
     /**
@@ -102,6 +108,11 @@ public class TEJobs {
         }
     }
 
+    /**
+     * Gets a list of all of the jobs currently in the jobs config.
+     *
+     * @return String[] array of jobs
+     */
     public String[] getJobList() {
 
         return null;
