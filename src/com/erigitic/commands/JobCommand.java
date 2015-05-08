@@ -5,6 +5,8 @@ import com.erigitic.jobs.TEJobs;
 import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.format.TextColor;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.command.CommandException;
 import org.spongepowered.api.util.command.CommandResult;
 import org.spongepowered.api.util.command.CommandSource;
@@ -31,7 +33,7 @@ public class JobCommand implements CommandExecutor {
 
             teJobs.setJob(sender, jobName);
         } else {
-            sender.sendMessage(Texts.of("Your current job is: " + teJobs.getPlayerJob(sender)));
+            sender.sendMessage(Texts.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, teJobs.getPlayerJob(sender)));
             sender.sendMessage(Texts.of("List of jobs will go here."));
         }
 

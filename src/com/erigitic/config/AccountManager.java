@@ -9,6 +9,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,7 +105,7 @@ public class AccountManager implements TEService {
                 accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(accountConfig);
 
-                player.sendMessage(Texts.of(amount + " has been added to your balance!"));
+                player.sendMessage(Texts.of(TextColors.GOLD, amount, TextColors.GRAY, " has been added to your balance."));
             } catch (IOException e) {
                 logger.warn("Could not add to player balance!");
             }
@@ -125,6 +126,8 @@ public class AccountManager implements TEService {
             try {
                 accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
                 configManager.save(accountConfig);
+
+                player.sendMessage(Texts.of(TextColors.GOLD, amount, TextColors.GRAY, " has been removed from your balance."));
             } catch (IOException e) {
                 logger.warn("Could not add to player balance!");
             }
