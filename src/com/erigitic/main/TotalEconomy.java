@@ -69,6 +69,7 @@ public class TotalEconomy {
         accountManager = new AccountManager(this);
         accountManager.setupConfig();
 
+        //Only setup job stuff if config is set to load jobs
         if (loadJobs == true) {
             teJobs = new TEJobs(this);
             teJobs.setupConfig();
@@ -173,6 +174,7 @@ public class TotalEconomy {
                 .setExecutor(new BalanceCommand(this))
                 .build();
 
+        //Only enables job commands if the value for jobs in config is set to true
         if (loadJobs == true) {
             CommandSpec jobCommand = CommandSpec.builder()
                     .setDescription(Texts.of("Display list of jobs."))

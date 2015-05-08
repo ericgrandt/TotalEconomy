@@ -5,6 +5,7 @@ import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.command.CommandException;
 import org.spongepowered.api.util.command.CommandResult;
 import org.spongepowered.api.util.command.CommandSource;
@@ -29,7 +30,7 @@ public class BalanceCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Player sender = ((Player) src).getPlayer().get();
 
-        sender.sendMessage(Texts.of("Balance: " + accountManager.getStringBalance(sender)));
+        sender.sendMessage(Texts.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, accountManager.getStringBalance(sender)));
 
         return CommandResult.success();
     }

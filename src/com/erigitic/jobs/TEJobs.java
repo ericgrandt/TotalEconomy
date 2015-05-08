@@ -12,6 +12,7 @@ import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.service.scheduler.AsynchronousScheduler;
 import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,9 +103,9 @@ public class TEJobs {
                 logger.warn("Could not save account config while setting job!");
             }
 
-            player.sendMessage(Texts.of("Your job has been changed to " + jobName));
+            player.sendMessage(Texts.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
         } else {
-            player.sendMessage(Texts.of("That is not a job."));
+            player.sendMessage(Texts.of(TextColors.RED, "That is not a job."));
         }
     }
 

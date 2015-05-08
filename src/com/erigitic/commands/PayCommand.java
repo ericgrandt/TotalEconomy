@@ -5,6 +5,7 @@ import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.command.CommandException;
 import org.spongepowered.api.util.command.CommandResult;
 import org.spongepowered.api.util.command.CommandSource;
@@ -34,13 +35,14 @@ public class PayCommand implements CommandExecutor {
         Player recipitent = (Player) args.getOne("player").get();
         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_UNNECESSARY);
 
+        //TODO: Possibly allow people to send money to offline players? Might be possible with the way I have this implemented?
         if (recipitent.isOnline()) {
             if (accountManager.hasMoney(sender, amount)) {
                 accountManager.removeFromBalance(sender, amount);
                 accountManager.addToBalance(recipitent, amount);
             }
         } else {
-            sender.sendMessage(Texts.of("Player is not online."));
+            sender.sendMessage(Texts.of(TextColors.RED, "Player is not online."));
         }
 
         return CommandResult.success();
