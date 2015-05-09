@@ -135,17 +135,6 @@ public class TotalEconomy {
                 configManager.save(config);
             }
             config = configManager.load();
-
-            //Checks if the nodes exists. Otherwise they will be created.
-            if (config.getNode("features", "jobs").getValue() == null) {
-                config.getNode("features", "jobs").setValue(true);
-                configManager.save(config);
-            }
-
-            if (config.getNode("symbol").getValue() == null) {
-                config.getNode("symbol").setValue("$");
-                configManager.save(config);
-            }
         } catch (IOException e) {
             logger.warn("Default Config could not be loaded/created!");
         }
