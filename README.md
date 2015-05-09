@@ -4,6 +4,8 @@ All in one economy plugin for Minecraft and Sponge.
 -
 
 ## Using Total Economy in your plugin
+Using Total Economy in your plugin will allow you to charge/pay players within your own plugin.
+
 * Add TotalEconomy.jar as a library in your project.
 * In your main class add this code:
 
