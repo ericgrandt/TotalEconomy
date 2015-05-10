@@ -109,7 +109,7 @@ public class TEJobs {
             logger.warn("Problem saving account config!");
         }
 
-        player.sendMessage(Texts.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job.", curExp + expAmount));
+        player.sendMessage(Texts.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }
 
     /**
@@ -162,9 +162,7 @@ public class TEJobs {
      * @return int the job xp
      */
     public int getJobExp(String jobName, Player player) {
-
-
-        return 0;
+        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName + "Exp").getInt();
     }
 
     /**
@@ -205,11 +203,11 @@ public class TEJobs {
     @Subscribe
     public void onPlayerBlockBreak(PlayerBreakBlockEvent event) {
         Player player = event.getPlayer();
+        String playerJob = getPlayerJob(player);
         String blockName = event.getBlock().getType().getName().split(":")[1];
 
-        player.sendMessage(Texts.of("You broke " + event.getBlock().getType().getName()));
-
-        if (jobsConfig.getNode("Miner", "break", blockName).getValue() != null) {
+        //TODO: Implement better
+        if (jobsConfig.getNode(playerJob).getValue() != null && jobsConfig.getNode("Miner", "break", blockName).getValue() != null) {
             int expAmount = jobsConfig.getNode("Miner", "break", blockName, "expreward").getInt();
             double payAmount = jobsConfig.getNode("Miner", "break", blockName, "pay").getDouble();
 
