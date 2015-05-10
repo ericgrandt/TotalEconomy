@@ -92,6 +92,8 @@ public class TotalEconomy {
                 logger.warn("Provider does not exist!");
             }
         }
+
+        game.getEventManager().register(this, teJobs);
     }
 
     //TODO: Might not need this
