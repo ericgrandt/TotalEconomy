@@ -56,7 +56,8 @@ public class TEJobs {
     /**
      * Setup the jobs config
      */
-    public void setupConfig() {try {
+    public void setupConfig() {
+        try {
             String[][] minerBreakables = {{"coal_ore", "5", "0.25"}, {"iron_ore", "10", "0.50"}, {"lapis_ore", "20", "4.00"}, {"gold_ore", "40", "5.00"}, {"diamond_ore", "100", "25.00"},
                     {"redstone_ore", "25", "2.00"}, {"emerald_ore", "50", "12.50"}, {"quartz_ore", "5", "0.15"}};
 
@@ -195,6 +196,7 @@ public class TEJobs {
      * @param jobName name of job
      * @return String[][] item and exp reward
      */
+    //TODO: IMPLEMENT THIS SO PEOPLE CAN MAKE THEIR OWN JOBS AND MODIFICATIONS
     public String[][] getExpRewards(String jobName) {
 
         return null;
