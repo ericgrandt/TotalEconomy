@@ -166,7 +166,7 @@ public class AccountManager implements TEService {
         BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
-            balance = new BigDecimal((String) accountConfig.getNode(player.getUniqueId().toString(), "balance").getValue());
+            balance = new BigDecimal(accountConfig.getNode(player.getUniqueId().toString(), "balance").getString());
         }
 
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
@@ -184,7 +184,7 @@ public class AccountManager implements TEService {
         BigDecimal balance = new BigDecimal(0);
 
         if (hasAccount(player)) {
-            balance = new BigDecimal((String) accountConfig.getNode(player.getUniqueId().toString(), "balance").getValue());
+            balance = new BigDecimal(accountConfig.getNode(player.getUniqueId().toString(), "balance").getString());
         }
 
         return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString();

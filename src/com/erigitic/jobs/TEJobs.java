@@ -64,7 +64,7 @@ public class TEJobs {
             if (!jobsFile.exists()) {
                 jobsFile.createNewFile();
 
-                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack");
+                jobsConfig.getNode("jobs").setValue("Miner");
                 for (int i = 0; i < minerBreakables.length; i++) {
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "expreward").setValue(minerBreakables[i][1]);
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "pay").setValue(minerBreakables[i][2]);
@@ -75,18 +75,6 @@ public class TEJobs {
         } catch (IOException e) {
             logger.warn("Could not create jobs config file!");
         }
-    }
-
-    /**
-     * Setup the job ranks
-     */
-    //TODO: Might remove
-    private void setupRanks() {
-        jobsConfig.getNode("ranks", "novice").setValue("1");
-        jobsConfig.getNode("ranks", "advanced").setValue("25");
-        jobsConfig.getNode("ranks", "proficient").setValue("50");
-        jobsConfig.getNode("ranks", "expert").setValue("150");
-        jobsConfig.getNode("ranks", "master").setValue("300");
     }
 
 
@@ -113,13 +101,22 @@ public class TEJobs {
     }
 
     /**
-     * Get the player's current job
+     * Checks if the player has enough exp to level up. If they do they will gain a level and their current exp will be
+     * reset.
      *
-     * @param player
-     * @return String the job the player currently has
+     * @param player player object
      */
-    public String getPlayerJob(Player player) {
-        return accountConfig.getNode(player.getUniqueId().toString(), "job").getString();
+    public void checkForLevel(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        String jobName = getPlayerJob(player);
+        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getInt();
+        int playerCurExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getInt();
+        int expToLevel = getExpToLevel(player);
+
+        if (playerCurExp >= expToLevel) {
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(playerLevel + 1);
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(playerCurExp - expToLevel);
+        }
     }
 
     /**
@@ -155,14 +152,49 @@ public class TEJobs {
     }
 
     /**
+     * Get the player's current job
+     *
+     * @param player
+     * @return String the job the player currently has
+     */
+    public String getPlayerJob(Player player) {
+        return accountConfig.getNode(player.getUniqueId().toString(), "job").getString();
+    }
+
+    /**
      * Get the players exp for the passed in job.
      *
      * @param jobName the name of the job
      * @param player the player object
-     * @return int the job xp
+     * @return int the job exp
      */
     public int getJobExp(String jobName, Player player) {
         return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName + "Exp").getInt();
+    }
+
+    /**
+     * Get the players level for the passed in job
+     *
+     * @param jobName the name of the job
+     * @param player the player object
+     * @return int the job level
+     */
+    public int getJobLevel(String jobName, Player player) {
+        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName + "Level").getInt();
+    }
+
+    /**
+     * Get the exp required to level.
+     *
+     * @param player player object
+     * @return int the amount of exp needed to level
+     */
+    public int getExpToLevel(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        String jobName = getPlayerJob(player);
+        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getInt();
+
+        return playerLevel * 100;
     }
 
     /**
@@ -189,30 +221,30 @@ public class TEJobs {
     }
 
     /**
-     * Get items and exp rewards for items relating to the job in config
+     * Used for the break option in jobs. Will check if the job has the break node and if it does it will check if the
+     * block that was broken is present in the config of the player's job. If it is, it will grab the job exp reward as
+     * well as the pay.
      *
-     * @param jobName name of job
-     * @return String[][] item and exp reward
+     * @param event PlayerBlockBreakEvent
      */
-    //TODO: IMPLEMENT THIS SO PEOPLE CAN MAKE THEIR OWN JOBS AND MODIFICATIONS
-    public String[][] getExpRewards(String jobName) {
-
-        return null;
-    }
-
     @Subscribe
     public void onPlayerBlockBreak(PlayerBreakBlockEvent event) {
         Player player = event.getPlayer();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getType().getName().split(":")[1];
+        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
-        //TODO: Implement better
-        if (jobsConfig.getNode(playerJob).getValue() != null && jobsConfig.getNode("Miner", "break", blockName).getValue() != null) {
-            int expAmount = jobsConfig.getNode("Miner", "break", blockName, "expreward").getInt();
-            double payAmount = jobsConfig.getNode("Miner", "break", blockName, "pay").getDouble();
+        //Checks if the users current job has the break node.
+        boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
 
-            addExp(player, expAmount);
-            accountManager.addToBalance(player, new BigDecimal(payAmount));
+        if (jobsConfig.getNode(playerJob).getValue() != null) {
+            if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_UNNECESSARY);
+
+                addExp(player, expAmount);
+                checkForLevel(player);
+                accountManager.addToBalance(player, payAmount);
+            }
         }
     }
 }
