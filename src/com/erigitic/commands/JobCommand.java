@@ -5,7 +5,6 @@ import com.erigitic.jobs.TEJobs;
 import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
-import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.command.CommandException;
 import org.spongepowered.api.util.command.CommandResult;
@@ -36,7 +35,8 @@ public class JobCommand implements CommandExecutor {
             String jobName = teJobs.getPlayerJob(sender);
 
             sender.sendMessage(Texts.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, jobName));
-            sender.sendMessage(Texts.of(TextColors.GRAY, jobName, " Exp: ", TextColors.GOLD, teJobs.getJobExp(jobName, sender), "\n"));
+            sender.sendMessage(Texts.of(TextColors.GRAY, jobName, " Level: ", TextColors.GOLD, teJobs.getJobLevel(jobName, sender)));
+            sender.sendMessage(Texts.of(TextColors.GRAY, jobName, " Exp: ", TextColors.GOLD, teJobs.getJobExp(jobName, sender), "/", teJobs.getExpToLevel(sender), "\n")); //TODO: Add in the exp to level with this as well CUR/TOLEVEL
             sender.sendMessage(Texts.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, teJobs.getJobList()));
         }
 

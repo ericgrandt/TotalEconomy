@@ -96,7 +96,6 @@ public class TotalEconomy {
         game.getEventManager().register(this, teJobs);
     }
 
-    //TODO: Might not need this
     @Subscribe
     public void postInit(PostInitializationEvent event) {
 
