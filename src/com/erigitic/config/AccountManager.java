@@ -191,9 +191,9 @@ public class AccountManager implements TEService {
     }
 
     /**
+     * Get the account configuration file
      *
-     *
-     * @return
+     * @return ConfigurationNode
      */
     public ConfigurationNode getAccountConfig() {
         return accountConfig;
