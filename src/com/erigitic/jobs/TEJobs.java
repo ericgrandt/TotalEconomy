@@ -229,7 +229,7 @@ public class TEJobs {
      */
     @Subscribe
     public void onPlayerBlockBreak(PlayerBreakBlockEvent event) {
-        Player player = event.getPlayer();
+        Player player = event.getUser();
         String playerJob = getPlayerJob(player);
         String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
@@ -239,7 +239,7 @@ public class TEJobs {
         if (jobsConfig.getNode(playerJob).getValue() != null) {
             if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                 int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_UNNECESSARY);
+                BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
                 addExp(player, expAmount);
                 checkForLevel(player);

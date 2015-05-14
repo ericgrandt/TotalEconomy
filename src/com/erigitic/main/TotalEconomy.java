@@ -113,7 +113,7 @@ public class TotalEconomy {
 
     @Subscribe
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        Player player = event.getUser();
 
         accountManager.createAccount(player);
     }

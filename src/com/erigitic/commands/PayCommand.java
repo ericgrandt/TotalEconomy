@@ -33,7 +33,7 @@ public class PayCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Player sender = ((Player) src).getPlayer().get();
         Player recipitent = (Player) args.getOne("player").get();
-        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_UNNECESSARY);
+        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
 
         //TODO: Possibly allow people to send money to offline players? Might be possible with the way I have this implemented?
         if (recipitent.isOnline()) {

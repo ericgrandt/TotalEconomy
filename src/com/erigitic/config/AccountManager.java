@@ -65,7 +65,7 @@ public class AccountManager implements TEService {
             if (accountConfig.getNode(player.getUniqueId().toString(), "balance").getValue() == null) {
                 //TODO: Set balance to the default config defined starting balance
                 BigDecimal startBalance = new BigDecimal("10.00");
-                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 accountConfig.getNode(player.getUniqueId().toString(), "job").setValue("Unemployed");
             }
 
@@ -102,7 +102,7 @@ public class AccountManager implements TEService {
 
         if (hasAccount(player)) {
             try {
-                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 configManager.save(accountConfig);
 
                 player.sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been added to your balance."));
@@ -124,7 +124,7 @@ public class AccountManager implements TEService {
             BigDecimal newBalance = new BigDecimal(getStringBalance(player)).subtract(new BigDecimal(amount.toString()));
 
             try {
-                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString());
+                accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 configManager.save(accountConfig);
 
                 player.sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been removed from your balance."));
@@ -169,7 +169,7 @@ public class AccountManager implements TEService {
             balance = new BigDecimal(accountConfig.getNode(player.getUniqueId().toString(), "balance").getString());
         }
 
-        return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY);
+        return balance.setScale(2, BigDecimal.ROUND_DOWN);
     }
 
     //MAY NOT BE NEEDED
@@ -187,7 +187,7 @@ public class AccountManager implements TEService {
             balance = new BigDecimal(accountConfig.getNode(player.getUniqueId().toString(), "balance").getString());
         }
 
-        return balance.setScale(2, BigDecimal.ROUND_UNNECESSARY).toString();
+        return balance.setScale(2, BigDecimal.ROUND_DOWN).toString();
     }
 
     public ConfigurationNode getAccountConfig() {
