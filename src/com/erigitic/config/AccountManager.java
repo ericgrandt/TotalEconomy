@@ -190,6 +190,11 @@ public class AccountManager implements TEService {
         return balance.setScale(2, BigDecimal.ROUND_DOWN).toString();
     }
 
+    /**
+     *
+     *
+     * @return
+     */
     public ConfigurationNode getAccountConfig() {
         return accountConfig;
     }
