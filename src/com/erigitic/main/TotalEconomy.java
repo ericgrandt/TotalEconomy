@@ -148,33 +148,29 @@ public class TotalEconomy {
         //TODO: Add command that will display all of the enabled features. Maybe even disabled features?
 
         CommandSpec payCommand = CommandSpec.builder()
-                .setDescription(Texts.of("Pay another player"))
-                .setExtendedDescription(Texts.of("Pay another player"))
-                .setExecutor(new PayCommand(this))
-                .setArguments(GenericArguments.seq(
+                .description(Texts.of("Pay another player"))
+                .executor(new PayCommand(this))
+                .arguments(GenericArguments.seq(
                         GenericArguments.player(Texts.of("player"), game),
                         GenericArguments.string(Texts.of("amount"))))
                 .build();
 
         CommandSpec balanceCommand = CommandSpec.builder()
-                .setDescription(Texts.of("Display your balance"))
-                .setExtendedDescription(Texts.of("Display your balance"))
-                .setExecutor(new BalanceCommand(this))
+                .description(Texts.of("Display your balance"))
+                .executor(new BalanceCommand(this))
                 .build();
 
         //Only enables job commands if the value for jobs in config is set to true
         if (loadJobs == true) {
             CommandSpec jobCommand = CommandSpec.builder()
-                    .setDescription(Texts.of("Display list of jobs."))
-                    .setExtendedDescription(Texts.of("Display all of the jobs on screen."))
-                    .setExecutor(new JobCommand(this))
+                    .description(Texts.of("Display list of jobs."))
+                    .executor(new JobCommand(this))
                     .build();
 
             CommandSpec jobSetCommand = CommandSpec.builder()
-                    .setDescription(Texts.of("Set your job"))
-                    .setExtendedDescription(Texts.of("Set your job"))
-                    .setExecutor(new JobCommand(this))
-                    .setArguments(GenericArguments.seq(
+                    .description(Texts.of("Set your job"))
+                    .executor(new JobCommand(this))
+                    .arguments(GenericArguments.seq(
                             GenericArguments.string(Texts.of("jobName"))))
                     .build();
 
