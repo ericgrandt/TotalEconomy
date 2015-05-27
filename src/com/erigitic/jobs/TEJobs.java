@@ -7,12 +7,17 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.data.manipulator.entity.PlayerCreatedData;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
+import org.spongepowered.api.event.block.tileentity.FurnaceSmeltItemEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.entity.EntityDeathEvent;
 import org.spongepowered.api.event.entity.living.LivingDeathEvent;
 import org.spongepowered.api.event.entity.player.*;
+import org.spongepowered.api.event.inventory.CraftItemEvent;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.crafting.CraftingOutput;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -283,5 +288,23 @@ public class TEJobs {
                 accountManager.addToBalance(player, payAmount);
             }
         }
+    }
+
+    //TODO: Complete when fully implemented
+    @Subscribe
+    public void onPlayerCreate(CraftItemEvent event) {
+        CraftingOutput craftItem = event.getInventory().getResult();
+
+        if (event.getViewer().getType() instanceof Player) {
+            Player player = (Player) event.getViewer();
+        }
+    }
+
+    //TODO: Complete when fully implemented
+    @Subscribe
+    public void onPlayerSmelt(FurnaceSmeltItemEvent event) {
+        String resultName = event.getSourceItem().getItem().getName();
+
+        logger.info(resultName);
     }
 }
