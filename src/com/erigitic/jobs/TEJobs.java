@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerBreakBlockEvent;
+import org.spongepowered.api.event.entity.player.PlayerPlaceBlockEvent;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -61,13 +62,26 @@ public class TEJobs {
             String[][] minerBreakables = {{"coal_ore", "5", "0.25"}, {"iron_ore", "10", "0.50"}, {"lapis_ore", "20", "4.00"}, {"gold_ore", "40", "5.00"}, {"diamond_ore", "100", "25.00"},
                     {"redstone_ore", "25", "2.00"}, {"emerald_ore", "50", "12.50"}, {"quartz_ore", "5", "0.15"}};
 
+            String[][] lumberBreakables = {{"log", "10", "1"}, {"leaves", "1", ".01"}};
+            String[][] lumberPlaceables = {{"sapling", "1", "0.10"}};
+
             if (!jobsFile.exists()) {
                 jobsFile.createNewFile();
 
-                jobsConfig.getNode("jobs").setValue("Miner");
+                jobsConfig.getNode("jobs").setValue("Miner,Lumberjack");
+
                 for (int i = 0; i < minerBreakables.length; i++) {
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "expreward").setValue(minerBreakables[i][1]);
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "pay").setValue(minerBreakables[i][2]);
+                }
+
+                for (int i = 0; i < lumberBreakables.length; i++) {
+                    jobsConfig.getNode("Lumberjack", "break", lumberBreakables[i][0], "expreward").setValue(lumberBreakables[i][1]);
+                    jobsConfig.getNode("Lumberjack", "break", lumberBreakables[i][0], "pay").setValue(lumberBreakables[i][2]);
+                }
+                for (int i = 0; i < lumberPlaceables.length; i++) {
+                    jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "expreward").setValue(lumberPlaceables[i][1]);
+                    jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "pay").setValue(lumberPlaceables[i][2]);
                 }
 
                 loader.save(jobsConfig);
@@ -240,6 +254,27 @@ public class TEJobs {
             if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                 int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
                 BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                addExp(player, expAmount);
+                checkForLevel(player);
+                accountManager.addToBalance(player, payAmount);
+            }
+        }
+    }
+
+    @Subscribe
+    public void onPlayerPlaceBlock(PlayerPlaceBlockEvent event) {
+        Player player = event.getUser();
+        String playerJob = getPlayerJob(player);
+        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+
+        //Checks if the users current job has the place node.
+        boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);
+
+        if (jobsConfig.getNode(playerJob).getValue() != null) {
+            if (hasPlace && jobsConfig.getNode(playerJob, "place", blockName).getValue() != null) {
+                int expAmount = jobsConfig.getNode(playerJob, "place", blockName, "expreward").getInt();
+                BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
                 addExp(player, expAmount);
                 checkForLevel(player);
