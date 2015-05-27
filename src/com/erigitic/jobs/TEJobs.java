@@ -9,8 +9,10 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.PlayerBreakBlockEvent;
-import org.spongepowered.api.event.entity.player.PlayerPlaceBlockEvent;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.entity.EntityDeathEvent;
+import org.spongepowered.api.event.entity.living.LivingDeathEvent;
+import org.spongepowered.api.event.entity.player.*;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
