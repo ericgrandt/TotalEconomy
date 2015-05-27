@@ -162,20 +162,19 @@ public class TotalEconomy {
 
         //Only enables job commands if the value for jobs in config is set to true
         if (loadJobs == true) {
+            CommandSpec jobSetCmd = CommandSpec.builder()
+                    .description(Texts.of("Set your job"))
+                    .executor(new JobCommand(this))
+                    .arguments(GenericArguments.string(Texts.of("jobName")))
+                    .build();
+
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Texts.of("Display list of jobs."))
                     .executor(new JobCommand(this))
-                    .build();
-
-            CommandSpec jobSetCommand = CommandSpec.builder()
-                    .description(Texts.of("Set your job"))
-                    .executor(new JobCommand(this))
-                    .arguments(GenericArguments.seq(
-                            GenericArguments.string(Texts.of("jobName"))))
+                    .child(jobSetCmd, "set", "s")
                     .build();
 
             game.getCommandDispatcher().register(this, jobCommand, "job");
-            game.getCommandDispatcher().register(this, jobSetCommand, "jobset");
         }
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
