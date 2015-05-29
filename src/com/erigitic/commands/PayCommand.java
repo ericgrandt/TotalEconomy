@@ -31,18 +31,27 @@ public class PayCommand implements CommandExecutor {
     }
 
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        Player sender = ((Player) src).getPlayer().get();
-        Player recipitent = (Player) args.getOne("player").get();
-        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+        logger.info(src.getClass().getName());
 
-        //TODO: Possibly allow people to send money to offline players? Might be possible with the way I have this implemented?
-        if (recipitent.isOnline()) {
-            if (accountManager.hasMoney(sender, amount)) {
-                accountManager.removeFromBalance(sender, amount);
-                accountManager.addToBalance(recipitent, amount);
+        if (src instanceof Player) {
+            Player sender = ((Player) src).getPlayer().get();
+            Object playerArg = args.getOne("player").get();
+            BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+
+            //TODO: Possibly allow people to send money to offline players? Might be possible with the way I have this implemented?
+            if (playerArg instanceof Player) {
+                sender.sendMessage(Texts.of("Running"));
+                Player recipitent = (Player) playerArg;
+
+                if (recipitent.isOnline()) {
+                    if (accountManager.hasMoney(sender, amount)) {
+                        accountManager.removeFromBalance(sender, amount);
+                        accountManager.addToBalance(recipitent, amount);
+                    }
+                } else {
+                    sender.sendMessage(Texts.of(TextColors.RED, "Player is not online."));
+                }
             }
-        } else {
-            sender.sendMessage(Texts.of(TextColors.RED, "Player is not online."));
         }
 
         return CommandResult.success();

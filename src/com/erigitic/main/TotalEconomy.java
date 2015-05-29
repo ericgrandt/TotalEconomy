@@ -27,7 +27,7 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.0")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.2")
 public class TotalEconomy {
 
     @Inject
@@ -150,9 +150,8 @@ public class TotalEconomy {
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Texts.of("Pay another player"))
                 .executor(new PayCommand(this))
-                .arguments(GenericArguments.seq(
-                        GenericArguments.player(Texts.of("player"), game),
-                        GenericArguments.string(Texts.of("amount"))))
+                .arguments(GenericArguments.player(Texts.of("player"), game),
+                        GenericArguments.string(Texts.of("amount")))
                 .build();
 
         CommandSpec balanceCommand = CommandSpec.builder()
