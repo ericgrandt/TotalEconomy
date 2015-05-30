@@ -2,10 +2,12 @@ package com.erigitic.main;
 
 import com.erigitic.commands.BalanceCommand;
 import com.erigitic.commands.JobCommand;
+import com.erigitic.commands.JobToggleCommand;
 import com.erigitic.commands.PayCommand;
 import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.TEJobs;
 import com.erigitic.service.TEService;
+import com.erigitic.shops.ShopKeeper;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -52,8 +54,10 @@ public class TotalEconomy {
 
     private AccountManager accountManager;
     private TEJobs teJobs;
+    private ShopKeeper shopKeeper;
 
     private boolean loadJobs = true;
+    private boolean loadShopKeeper = true;
 
     /**
      * Setup all config files
@@ -65,6 +69,7 @@ public class TotalEconomy {
         setupConfig();
 
         loadJobs = config.getNode("features", "jobs").getBoolean();
+        loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
 
         accountManager = new AccountManager(this);
         accountManager.setupConfig();
@@ -73,6 +78,10 @@ public class TotalEconomy {
         if (loadJobs == true) {
             teJobs = new TEJobs(this);
             teJobs.setupConfig();
+        }
+
+        if (loadShopKeeper == true) {
+            shopKeeper = new ShopKeeper(this);
         }
     }
 
@@ -94,6 +103,7 @@ public class TotalEconomy {
         }
 
         game.getEventManager().register(this, teJobs);
+        game.getEventManager().register(this, shopKeeper);
     }
 
     @Subscribe
@@ -132,6 +142,7 @@ public class TotalEconomy {
                 config = configManager.load();
 
                 config.getNode("features", "jobs").setValue(true);
+                config.getNode("features", "shopkeeper").setValue(true);
                 config.getNode("symbol").setValue("$");
                 configManager.save(config);
             }
@@ -167,10 +178,16 @@ public class TotalEconomy {
                     .arguments(GenericArguments.string(Texts.of("jobName")))
                     .build();
 
+            CommandSpec jobNotifyToggle = CommandSpec.builder()
+                    .description(Texts.of("Toggle job notifications on/off"))
+                    .executor(new JobToggleCommand(this))
+                    .build();
+
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Texts.of("Display list of jobs."))
                     .executor(new JobCommand(this))
                     .child(jobSetCmd, "set", "s")
+                    .child(jobNotifyToggle, "toggle", "t")
                     .build();
 
             game.getCommandDispatcher().register(this, jobCommand, "job");
