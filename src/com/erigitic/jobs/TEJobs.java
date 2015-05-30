@@ -118,7 +118,8 @@ public class TEJobs {
             logger.warn("Problem saving account config!");
         }
 
-        player.sendMessage(Texts.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+        if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean() == true)
+            player.sendMessage(Texts.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }
 
     /**
@@ -251,6 +252,7 @@ public class TEJobs {
     @Subscribe
     public void onPlayerBlockBreak(PlayerBreakBlockEvent event) {
         Player player = event.getUser();
+        UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
         String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
@@ -261,10 +263,11 @@ public class TEJobs {
             if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                 int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
                 BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
                 addExp(player, expAmount);
                 checkForLevel(player);
-                accountManager.addToBalance(player, payAmount);
+                accountManager.addToBalance(player, payAmount, notify);
             }
         }
     }
@@ -272,6 +275,7 @@ public class TEJobs {
     @Subscribe
     public void onPlayerPlaceBlock(PlayerPlaceBlockEvent event) {
         Player player = event.getUser();
+        UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
         String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
@@ -282,29 +286,30 @@ public class TEJobs {
             if (hasPlace && jobsConfig.getNode(playerJob, "place", blockName).getValue() != null) {
                 int expAmount = jobsConfig.getNode(playerJob, "place", blockName, "expreward").getInt();
                 BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
                 addExp(player, expAmount);
                 checkForLevel(player);
-                accountManager.addToBalance(player, payAmount);
+                accountManager.addToBalance(player, payAmount, notify);
             }
         }
     }
 
     //TODO: Complete when fully implemented
-    @Subscribe
-    public void onPlayerCreate(CraftItemEvent event) {
-        CraftingOutput craftItem = event.getInventory().getResult();
-
-        if (event.getViewer().getType() instanceof Player) {
-            Player player = (Player) event.getViewer();
-        }
-    }
+//    @Subscribe
+//    public void onPlayerCreate(CraftItemEvent event) {
+//        CraftingOutput craftItem = event.getInventory().getResult();
+//
+//        if (event.getViewer().getType() instanceof Player) {
+//            Player player = (Player) event.getViewer();
+//        }
+//    }
 
     //TODO: Complete when fully implemented
-    @Subscribe
-    public void onPlayerSmelt(FurnaceSmeltItemEvent event) {
-        String resultName = event.getSourceItem().getItem().getName();
-
-        logger.info(resultName);
-    }
+//    @Subscribe
+//    public void onPlayerSmelt(FurnaceSmeltItemEvent event) {
+//        String resultName = event.getSourceItem().getItem().getName();
+//
+//        logger.info(resultName);
+//    }
 }

@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  */
 public interface TEService {
     boolean hasAccount(Player player);
-    void addToBalance(Player player, BigDecimal amount);
+    void addToBalance(Player player, BigDecimal amount, boolean notify);
     void removeFromBalance(Player player, BigDecimal amount);
     boolean hasMoney(Player player, BigDecimal amount);
     BigDecimal getBalance(Player player);

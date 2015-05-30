@@ -67,6 +67,7 @@ public class AccountManager implements TEService {
                 BigDecimal startBalance = new BigDecimal("10.00");
                 accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 accountConfig.getNode(player.getUniqueId().toString(), "job").setValue("Unemployed");
+                accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue("true");
             }
 
             configManager.save(accountConfig);
@@ -97,7 +98,7 @@ public class AccountManager implements TEService {
      * @param player object representing a Player
      * @param amount amount to be added to balance
      */
-    public void addToBalance(Player player, BigDecimal amount) {
+    public void addToBalance(Player player, BigDecimal amount, boolean notify) {
         BigDecimal newBalance = new BigDecimal(getStringBalance(player)).add(new BigDecimal(amount.toString()));
 
         if (hasAccount(player)) {
@@ -105,7 +106,8 @@ public class AccountManager implements TEService {
                 accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 configManager.save(accountConfig);
 
-                player.sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been added to your balance."));
+                if (notify)
+                    player.sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been added to your balance."));
             } catch (IOException e) {
                 logger.warn("Could not add to player balance!");
             }
@@ -188,6 +190,30 @@ public class AccountManager implements TEService {
         }
 
         return balance.setScale(2, BigDecimal.ROUND_DOWN).toString();
+    }
+
+    public void toggleNotifications(Player player) {
+        boolean notify = accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean();
+
+        if (notify == true) {
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue("false");
+            notify = false;
+        } else {
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue("true");
+            notify = true;
+        }
+
+        try {
+            configManager.save(accountConfig);
+
+            if (notify == true)
+                player.sendMessage(Texts.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
+            else
+                player.sendMessage(Texts.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
+        } catch (IOException e) {
+            player.sendMessage(Texts.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+            logger.warn("Could not save notification change!");
+        }
     }
 
     /**

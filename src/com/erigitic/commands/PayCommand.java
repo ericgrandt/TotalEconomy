@@ -46,7 +46,7 @@ public class PayCommand implements CommandExecutor {
                 if (recipitent.isOnline()) {
                     if (accountManager.hasMoney(sender, amount)) {
                         accountManager.removeFromBalance(sender, amount);
-                        accountManager.addToBalance(recipitent, amount);
+                        accountManager.addToBalance(recipitent, amount, true);
                     }
                 } else {
                     sender.sendMessage(Texts.of(TextColors.RED, "Player is not online."));
