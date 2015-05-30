@@ -103,7 +103,6 @@ public class TotalEconomy {
         }
 
         game.getEventManager().register(this, teJobs);
-        game.getEventManager().register(this, shopKeeper);
     }
 
     @Subscribe
