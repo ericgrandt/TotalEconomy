@@ -159,6 +159,7 @@ public class TotalEconomy {
 
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Texts.of("Pay another player"))
+                .permission("totaleconomy.command.pay")
                 .executor(new PayCommand(this))
                 .arguments(GenericArguments.player(Texts.of("player"), game),
                         GenericArguments.string(Texts.of("amount")))
@@ -166,6 +167,7 @@ public class TotalEconomy {
 
         CommandSpec balanceCommand = CommandSpec.builder()
                 .description(Texts.of("Display your balance"))
+                .permission("totaleconomy.command.balance")
                 .executor(new BalanceCommand(this))
                 .build();
 
@@ -173,17 +175,20 @@ public class TotalEconomy {
         if (loadJobs == true) {
             CommandSpec jobSetCmd = CommandSpec.builder()
                     .description(Texts.of("Set your job"))
+                    .permission("totaleconomy.command.jobset")
                     .executor(new JobCommand(this))
                     .arguments(GenericArguments.string(Texts.of("jobName")))
                     .build();
 
             CommandSpec jobNotifyToggle = CommandSpec.builder()
                     .description(Texts.of("Toggle job notifications on/off"))
+                    .permission("totaleconomy.command.jobtoggle")
                     .executor(new JobToggleCommand(this))
                     .build();
 
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Texts.of("Display list of jobs."))
+                    .permission("totaleconomy.command.job")
                     .executor(new JobCommand(this))
                     .child(jobSetCmd, "set", "s")
                     .child(jobNotifyToggle, "toggle", "t")
