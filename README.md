@@ -12,6 +12,15 @@ All in one economy plugin for Minecraft and Sponge.
 /job toggle - Toggle job reward notifications on/off
 ```
 
+##Permissions
+```
+totaleconomy.command.pay
+totaleconomy.command.balance
+totaleconomy.command.jobset
+totaleconomy.command.jobtoggle
+totaleconomy.command.job
+```
+
 ## Using Total Economy in your plugin
 Using Total Economy in your plugin will allow you to charge/pay players within your own plugin.
 
