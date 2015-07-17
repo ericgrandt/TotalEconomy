@@ -7,17 +7,9 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
-import org.spongepowered.api.data.manipulator.entity.PlayerCreatedData;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.block.tileentity.FurnaceSmeltItemEvent;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.entity.EntityDeathEvent;
-import org.spongepowered.api.event.entity.living.LivingDeathEvent;
 import org.spongepowered.api.event.entity.player.*;
-import org.spongepowered.api.event.inventory.CraftItemEvent;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.crafting.CraftingOutput;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -254,7 +246,7 @@ public class TEJobs {
         Player player = event.getUser();
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+        String blockName = event.getBlock().getBlockType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
         //Checks if the users current job has the break node.
         boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
@@ -277,7 +269,7 @@ public class TEJobs {
         Player player = event.getUser();
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+        String blockName = event.getBlock().getBlockType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
         //Checks if the users current job has the place node.
         boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);
@@ -293,6 +285,13 @@ public class TEJobs {
                 accountManager.addToBalance(player, payAmount, notify);
             }
         }
+    }
+
+    @Subscribe
+    public void onPlayerAttack(PlayerInteractEntityEvent event) {
+        Player player = event.getUser();
+
+        player.sendMessage(Texts.of("Attacked"));
     }
 
     //TODO: Complete when fully implemented

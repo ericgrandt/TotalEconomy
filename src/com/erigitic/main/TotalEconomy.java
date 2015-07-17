@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
+import org.spongepowered.api.event.entity.player.PlayerInteractEntityEvent;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
 import org.spongepowered.api.event.state.*;
 import org.spongepowered.api.plugin.Plugin;
@@ -29,7 +30,7 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.4")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.5")
 public class TotalEconomy {
 
     @Inject
@@ -125,6 +126,11 @@ public class TotalEconomy {
         Player player = event.getUser();
 
         accountManager.createAccount(player);
+    }
+
+    @Subscribe
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
+        event.getUser().sendMessage(Texts.of("Entity interacted with"));
     }
 
     /**
