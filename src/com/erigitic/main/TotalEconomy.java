@@ -95,6 +95,8 @@ public class TotalEconomy {
     public void init(InitializationEvent event) {
         createAndRegisterCommands();
 
+        loadJobs = config.getNode("features", "jobs").getBoolean();
+
         if (!game.getServiceManager().provide(TEService.class).isPresent()) {
             try {
                 game.getServiceManager().setProvider(this, TEService.class, new AccountManager(this));
@@ -103,7 +105,8 @@ public class TotalEconomy {
             }
         }
 
-        game.getEventManager().register(this, teJobs);
+        if (loadJobs)
+            game.getEventManager().register(this, teJobs);
     }
 
     @Subscribe
