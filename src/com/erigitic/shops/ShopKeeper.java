@@ -18,6 +18,7 @@ public class ShopKeeper {
         this.totalEconomy = totalEconomy;
     }
 
+    //Not implemented yet
     @Subscribe
     public void onShopKeeperInteract(PlayerInteractEntityEvent event) {
         Player player = event.getUser();

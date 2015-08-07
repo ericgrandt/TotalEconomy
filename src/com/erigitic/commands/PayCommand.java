@@ -41,12 +41,12 @@ public class PayCommand implements CommandExecutor {
             //TODO: Possibly allow people to send money to offline players? Might be possible with the way I have this implemented?
             if (playerArg instanceof Player) {
                 sender.sendMessage(Texts.of("Running"));
-                Player recipitent = (Player) playerArg;
+                Player recipient = (Player) playerArg;
 
-                if (recipitent.isOnline()) {
+                if (recipient.isOnline()) {
                     if (accountManager.hasMoney(sender, amount)) {
                         accountManager.removeFromBalance(sender, amount);
-                        accountManager.addToBalance(recipitent, amount, true);
+                        accountManager.addToBalance(recipient, amount, true);
                     }
                 } else {
                     sender.sendMessage(Texts.of(TextColors.RED, "Player is not online."));

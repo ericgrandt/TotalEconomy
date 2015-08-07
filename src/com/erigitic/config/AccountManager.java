@@ -76,6 +76,15 @@ public class AccountManager implements TEService {
         }
     }
 
+    public void setBalance(Player player, BigDecimal amount) {
+        try {
+            accountConfig.getNode(player.getUniqueId().toString(), "balance").setValue(amount).toString();
+            configManager.save(accountConfig);
+        } catch (IOException e) {
+            logger.warn("Could not set player balance!");
+        }
+    }
+
     /**
      * Checks if the specified player has an account. If not, one will be created.
      *
