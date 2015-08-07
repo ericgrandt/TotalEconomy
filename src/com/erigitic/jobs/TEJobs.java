@@ -7,6 +7,15 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataManipulator;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.manipulator.IntData;
+import org.spongepowered.api.data.manipulator.ListData;
+import org.spongepowered.api.data.manipulator.block.DirtData;
+import org.spongepowered.api.data.manipulator.item.BlockItemData;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.*;
@@ -16,6 +25,9 @@ import org.spongepowered.api.text.format.TextColors;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -270,6 +282,7 @@ public class TEJobs {
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
         String blockName = event.getBlock().getBlockType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+        DataQuery pQuery = new DataQuery("player");
 
         //Checks if the users current job has the place node.
         boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);

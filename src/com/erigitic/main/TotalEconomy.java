@@ -1,9 +1,6 @@
 package com.erigitic.main;
 
-import com.erigitic.commands.BalanceCommand;
-import com.erigitic.commands.JobCommand;
-import com.erigitic.commands.JobToggleCommand;
-import com.erigitic.commands.PayCommand;
+import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.TEJobs;
 import com.erigitic.service.TEService;
@@ -95,8 +92,6 @@ public class TotalEconomy {
     public void init(InitializationEvent event) {
         createAndRegisterCommands();
 
-        loadJobs = config.getNode("features", "jobs").getBoolean();
-
         if (!game.getServiceManager().provide(TEService.class).isPresent()) {
             try {
                 game.getServiceManager().setProvider(this, TEService.class, new AccountManager(this));
@@ -151,6 +146,7 @@ public class TotalEconomy {
 
                 config.getNode("features", "jobs").setValue(true);
                 config.getNode("features", "shopkeeper").setValue(true);
+                config.getNode("features", "chestshops").setValue(true);
                 config.getNode("symbol").setValue("$");
                 configManager.save(config);
             }
@@ -178,6 +174,14 @@ public class TotalEconomy {
                 .description(Texts.of("Display your balance"))
                 .permission("totaleconomy.command.balance")
                 .executor(new BalanceCommand(this))
+                .build();
+
+        CommandSpec setBalanceCommand = CommandSpec.builder()
+                .description(Texts.of("Set a player's balance"))
+                .permission("totaleconomy.command.setbalance")
+                .executor(new SetBalanceCommand(this))
+                .arguments(GenericArguments.player(Texts.of("player"), game),
+                        GenericArguments.string(Texts.of("amount")))
                 .build();
 
         //Only enables job commands if the value for jobs in config is set to true
@@ -208,6 +212,7 @@ public class TotalEconomy {
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
         game.getCommandDispatcher().register(this, balanceCommand, "balance");
+        game.getCommandDispatcher().register(this, setBalanceCommand, "setbalance");
     }
 
     public AccountManager getAccountManager() {
