@@ -9,6 +9,8 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataManipulator;
 import org.spongepowered.api.data.DataQuery;
@@ -79,6 +81,7 @@ public class TEJobs {
             if (!jobsFile.exists()) {
                 jobsFile.createNewFile();
 
+                jobsConfig.getNode("preventJobFarming").setValue(false);
                 jobsConfig.getNode("jobs").setValue("Miner,Lumberjack");
 
                 for (int i = 0; i < minerBreakables.length; i++) {
@@ -142,6 +145,8 @@ public class TEJobs {
         if (playerCurExp >= expToLevel) {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(playerLevel + 1);
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(playerCurExp - expToLevel);
+            player.sendMessage(Texts.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD, playerLevel + 1, " ", jobName));
+            //TODO: Some effect such as fireworks on level up?
         }
     }
 
@@ -262,9 +267,13 @@ public class TEJobs {
 
         //Checks if the users current job has the break node.
         boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+        boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
 
         if (jobsConfig.getNode(playerJob).getValue() != null) {
             if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                if (preventFarming)
+                    event.getBlock().setBlockType(BlockTypes.AIR);
+
                 int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
                 BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
                 boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
