@@ -31,7 +31,7 @@ public class SetBalanceCommand implements CommandExecutor {
 
         accountManager.setBalance(recipient, amount);
 
-        sender.sendMessage(Texts.of(TextColors.GRAY, "You set ", recipient.getName(), " balance to ", TextColors.GOLD, amount));
+        sender.sendMessage(Texts.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, amount));
 
         return CommandResult.success();
     }

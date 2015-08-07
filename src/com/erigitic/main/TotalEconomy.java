@@ -146,7 +146,6 @@ public class TotalEconomy {
 
                 config.getNode("features", "jobs").setValue(true);
                 config.getNode("features", "shopkeeper").setValue(true);
-                config.getNode("features", "chestshops").setValue(true);
                 config.getNode("symbol").setValue("$");
                 configManager.save(config);
             }
