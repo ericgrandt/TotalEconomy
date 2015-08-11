@@ -5,11 +5,12 @@ All in one economy plugin for Minecraft and Sponge.
 
 ##Commands
 ```
-/pay [PlayerName] [Amount] - Pay another player
+/pay [player] [amount] - Pay another player
 /balance - Display your balance
 /job - Display information about your current job as well as a job list
-/job set [JobName] - Set your job
+/job set [jobName] - Set your job
 /job toggle - Toggle job reward notifications on/off
+/setbalance [player] [amount] - Set a player's balance
 ```
 
 ##Permissions
@@ -19,6 +20,7 @@ totaleconomy.command.balance
 totaleconomy.command.jobset
 totaleconomy.command.jobtoggle
 totaleconomy.command.job
+totaleconomy.command.setbalance
 ```
 
 ## Using Total Economy in your plugin
