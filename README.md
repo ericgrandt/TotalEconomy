@@ -41,13 +41,15 @@ Using Total Economy in your plugin will allow you to charge/pay players within y
  
  #### Functions
  ```
- boolean hasAccount(Player player) - Checks if the specified player has an account.
+ void createAccount(UUID uuid) - Creates an account for the specified UUID.
  
- void addToBalance(Player player, BigDecimal amount) - Add the specified amount to a player's balance.
+ boolean hasAccount(UUID uuid) - Checks if the specified UUID has an account associated with it.
  
- void removeFromBalance(Player player, BigDecimal amount) - Remove the specified amount from a player's balance.
+ void addToBalance(UUID uuid, BigDecimal amount) - Add the specified amount to a player's balance.
  
- boolean hasMoney(Player player, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
+ void removeFromBalance(UUID uuid, BigDecimal amount) - Remove the specified amount from a player's balance.
  
- BigDecimal getBalance(Player player) - Get the passed in player's balance.
+ boolean hasMoney(UUID uuid, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
+ 
+ BigDecimal getBalance(UUID uuid) - Get the a player's balance.
  ```
