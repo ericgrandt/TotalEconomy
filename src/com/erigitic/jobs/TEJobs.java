@@ -12,12 +12,7 @@ import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataManipulator;
 import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.data.manipulator.IntData;
-import org.spongepowered.api.data.manipulator.ListData;
-import org.spongepowered.api.data.manipulator.block.DirtData;
-import org.spongepowered.api.data.manipulator.item.BlockItemData;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.*;
@@ -263,7 +258,7 @@ public class TEJobs {
         Player player = event.getUser();
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getBlockType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
 
         //Checks if the users current job has the break node.
         boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
@@ -272,7 +267,7 @@ public class TEJobs {
         if (jobsConfig.getNode(playerJob).getValue() != null) {
             if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                 if (preventFarming)
-                    event.getBlock().setBlockType(BlockTypes.AIR);
+                    event.getLocation().setBlockType(BlockTypes.AIR);
 
                 int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
                 BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
@@ -290,7 +285,7 @@ public class TEJobs {
         Player player = event.getUser();
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getBlockType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
         DataQuery pQuery = new DataQuery("player");
 
         //Checks if the users current job has the place node.
