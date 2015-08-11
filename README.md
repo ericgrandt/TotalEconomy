@@ -49,6 +49,8 @@ Using Total Economy in your plugin will allow you to utilize Total Economy's Acc
  
  void removeFromBalance(UUID uuid, BigDecimal amount) - Remove the specified amount from a player's balance.
  
+ void setBalance(UUID uuid, BigDecimal amount) - Set the balance for the player.
+ 
  boolean hasMoney(UUID uuid, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
  
  BigDecimal getBalance(UUID uuid) - Get the a player's balance.
