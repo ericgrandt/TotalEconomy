@@ -10,7 +10,7 @@ All in one economy plugin for Minecraft and Sponge.
 /job - Display information about your current job as well as a job list
 /job set [jobName] - Set your job
 /job toggle - Toggle job reward notifications on/off
-/setbalance [player] [amount]
+/setbalance [player] [amount] - Set a player's balance
 ```
 
 ##Permissions
