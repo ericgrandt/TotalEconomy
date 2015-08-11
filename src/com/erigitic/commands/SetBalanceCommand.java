@@ -29,7 +29,7 @@ public class SetBalanceCommand implements CommandExecutor {
         Player recipient = (Player) args.getOne("player").get();
         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
 
-        accountManager.setBalance(recipient, amount);
+        accountManager.setBalance(recipient.getUniqueId(), amount);
 
         sender.sendMessage(Texts.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, amount));
 
