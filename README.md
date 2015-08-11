@@ -24,7 +24,7 @@ totaleconomy.command.setbalance
 ```
 
 ## Using Total Economy in your plugin
-Using Total Economy in your plugin will allow you to charge/pay players within your own plugin.
+Using Total Economy in your plugin will allow you to utilize Total Economy's Account Manager within your own plugin.
 
 * Add TotalEconomy.jar as a library in your project.
 * In your main class add this code:
