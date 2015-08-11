@@ -30,7 +30,7 @@ public class BalanceCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player sender = ((Player) src).getPlayer().get();
-            sender.sendMessage(Texts.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), accountManager.getBalance(sender)));
+            sender.sendMessage(Texts.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), accountManager.getBalance(sender.getUniqueId())));
         }
 
         return CommandResult.success();

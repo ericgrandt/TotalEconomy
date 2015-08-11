@@ -11,6 +11,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.Server;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerInteractEntityEvent;
@@ -123,7 +124,7 @@ public class TotalEconomy {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getUser();
 
-        accountManager.createAccount(player);
+        accountManager.createAccount(player.getUniqueId());
     }
 
     @Subscribe
@@ -232,5 +233,9 @@ public class TotalEconomy {
 
     public String getCurrencySymbol() {
         return config.getNode("symbol").getValue().toString();
+    }
+
+    public Server getServer() {
+        return game.getServer();
     }
 }

@@ -280,7 +280,7 @@ public class TEJobs {
 
                 addExp(player, expAmount);
                 checkForLevel(player);
-                accountManager.addToBalance(player, payAmount, notify);
+                accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
             }
         }
     }
@@ -304,7 +304,7 @@ public class TEJobs {
 
                 addExp(player, expAmount);
                 checkForLevel(player);
-                accountManager.addToBalance(player, payAmount, notify);
+                accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
             }
         }
     }
