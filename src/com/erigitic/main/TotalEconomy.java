@@ -95,7 +95,7 @@ public class TotalEconomy {
 
         if (!game.getServiceManager().provide(TEService.class).isPresent()) {
             try {
-                game.getServiceManager().setProvider(this, TEService.class, new AccountManager(this));
+                game.getServiceManager().setProvider(this, TEService.class, accountManager);
             } catch (ProviderExistsException e) {
                 logger.warn("Provider does not exist!");
             }

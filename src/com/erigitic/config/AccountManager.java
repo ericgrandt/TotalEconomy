@@ -201,6 +201,7 @@ public class AccountManager implements TEService {
      *
      * @param uuid object representing the UUID of a player
      */
+    @Override
     public void createAccount(UUID uuid) {
         try {
             if (accountConfig.getNode(uuid.toString(), "balance").getValue() == null) {
@@ -224,6 +225,7 @@ public class AccountManager implements TEService {
      *
      * @return weather or not the player has an account
      */
+    @Override
     public boolean hasAccount(UUID uuid) {
         if (accountConfig.getNode(uuid.toString()) != null)
             return true;
@@ -239,10 +241,11 @@ public class AccountManager implements TEService {
      * @param uuid object representing the UUID of a player
      * @param amount amount to be added to balance
      */
+    @Override
     public void addToBalance(UUID uuid, BigDecimal amount, boolean notify) {
-        BigDecimal newBalance = new BigDecimal(getBalance(uuid).toString()).add(new BigDecimal(amount.toString()));
-
         if (hasAccount(uuid)) {
+            BigDecimal newBalance = new BigDecimal(getBalance(uuid).toString()).add(new BigDecimal(amount.toString()));
+
             try {
                 accountConfig.getNode(uuid.toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 configManager.save(accountConfig);
@@ -262,6 +265,7 @@ public class AccountManager implements TEService {
      * @param uuid object representing the UUID of a player
      * @param amount amount to be removed from balance
      */
+    @Override
     public void removeFromBalance(UUID uuid, BigDecimal amount) {
         if (hasAccount(uuid)) {
             BigDecimal newBalance = new BigDecimal(getBalance(uuid).toString()).subtract(new BigDecimal(amount.toString()));
@@ -283,6 +287,7 @@ public class AccountManager implements TEService {
      * @param uuid object representing the UUID of a player
      * @param amount amount to set the balance to
      */
+    @Override
     public void setBalance(UUID uuid, BigDecimal amount) {
         try {
             accountConfig.getNode(uuid.toString(), "balance").setValue(amount).toString();
@@ -300,6 +305,7 @@ public class AccountManager implements TEService {
      *
      * @return boolean weather or not the player has enough money in balance
      */
+    @Override
     public boolean hasMoney(UUID uuid, BigDecimal amount) {
         BigDecimal balance = getBalance(uuid);
 
@@ -320,6 +326,7 @@ public class AccountManager implements TEService {
      *
      * @return BigDecimal the balance
      */
+    @Override
     public BigDecimal getBalance(UUID uuid) {
         BigDecimal balance = new BigDecimal(0);
 
