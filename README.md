@@ -24,7 +24,7 @@ totaleconomy.command.setbalance
 ```
 
 ## Using Total Economy in your plugin
-Using Total Economy in your plugin will allow you to charge/pay players within your own plugin.
+Using Total Economy in your plugin will allow you to utilize Total Economy's Account Manager within your own plugin.
 
 * Add TotalEconomy.jar as a library in your project.
 * In your main class add this code:
@@ -41,13 +41,17 @@ Using Total Economy in your plugin will allow you to charge/pay players within y
  
  #### Functions
  ```
- boolean hasAccount(Player player) - Checks if the specified player has an account.
+ void createAccount(UUID uuid) - Creates an account for the specified UUID.
  
- void addToBalance(Player player, BigDecimal amount) - Add the specified amount to a player's balance.
+ boolean hasAccount(UUID uuid) - Checks if the specified UUID has an account associated with it.
  
- void removeFromBalance(Player player, BigDecimal amount) - Remove the specified amount from a player's balance.
+ void addToBalance(UUID uuid, BigDecimal amount) - Add the specified amount to a player's balance.
  
- boolean hasMoney(Player player, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
+ void removeFromBalance(UUID uuid, BigDecimal amount) - Remove the specified amount from a player's balance.
  
- BigDecimal getBalance(Player player) - Get the passed in player's balance.
+ void setBalance(UUID uuid, BigDecimal amount) - Set the balance for the player.
+ 
+ boolean hasMoney(UUID uuid, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
+ 
+ BigDecimal getBalance(UUID uuid) - Get the a player's balance.
  ```
