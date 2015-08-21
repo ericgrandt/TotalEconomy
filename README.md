@@ -27,6 +27,12 @@ totaleconomy.command.setbalance
 Using Total Economy in your plugin will allow you to utilize Total Economy's Account Manager within your own plugin.
 
 * Add TotalEconomy.jar as a library in your project.
+* Your @Plugin at the top of your main file should include: dependencies = "required-after:TotalEconomy". For example:
+
+ ```java
+  @Plugin(id = "APITest", name = "API Test", version = "1.0.0", dependencies = "required-after:TotalEconomy")
+ ```
+
 * In your main class add this code:
 
  ```java
