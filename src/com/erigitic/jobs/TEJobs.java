@@ -67,8 +67,9 @@ public class TEJobs {
      */
     public void setupConfig() {
         try {
-            String[][] minerBreakables = {{"coal_ore", "5", "0.25"}, {"iron_ore", "10", "0.50"}, {"lapis_ore", "20", "4.00"}, {"gold_ore", "40", "5.00"}, {"diamond_ore", "100", "25.00"},
-                    {"redstone_ore", "25", "2.00"}, {"emerald_ore", "50", "12.50"}, {"quartz_ore", "5", "0.15"}};
+            String[][] minerBreakables = {{"coal_ore", "5", "0.25"}, {"iron_ore", "10", "0.50"}, {"lapis_ore", "20", "4.00"},
+                    {"gold_ore", "40", "5.00"}, {"diamond_ore", "100", "25.00"}, {"redstone_ore", "25", "2.00"},
+                    {"emerald_ore", "50", "12.50"}, {"quartz_ore", "5", "0.15"}};
 
             String[][] lumberBreakables = {{"log", "10", "1"}, {"leaves", "1", ".01"}};
             String[][] lumberPlaceables = {{"sapling", "1", "0.10"}};
@@ -83,15 +84,23 @@ public class TEJobs {
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "expreward").setValue(minerBreakables[i][1]);
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "pay").setValue(minerBreakables[i][2]);
                 }
+                jobsConfig.getNode("Miner", "salary").setValue(20);
+                jobsConfig.getNode("Miner", "salarydelay").setValue(300);
 
                 for (int i = 0; i < lumberBreakables.length; i++) {
                     jobsConfig.getNode("Lumberjack", "break", lumberBreakables[i][0], "expreward").setValue(lumberBreakables[i][1]);
                     jobsConfig.getNode("Lumberjack", "break", lumberBreakables[i][0], "pay").setValue(lumberBreakables[i][2]);
                 }
+
                 for (int i = 0; i < lumberPlaceables.length; i++) {
                     jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "expreward").setValue(lumberPlaceables[i][1]);
                     jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "pay").setValue(lumberPlaceables[i][2]);
                 }
+                jobsConfig.getNode("Lumberjack", "salary").setValue(20);
+                jobsConfig.getNode("Lumberjack", "salarydelay").setValue(300);
+
+                jobsConfig.getNode("unemployedsalary").setValue(20);
+                jobsConfig.getNode("unemployedsalarydelay").setValue(300);
 
                 loader.save(jobsConfig);
             }
