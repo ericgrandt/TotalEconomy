@@ -72,14 +72,12 @@ public class TEJobs {
         SchedulerService paySchedule = totalEconomy.getGame().getScheduler();
         TaskBuilder payTask = paySchedule.createTaskBuilder();
 
-        task = payTask.execute(new Runnable() {
-            public void run() {
+        task = payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
                     BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getFloat());
                     accountManager.addToBalance(player.getUniqueId(), salary, false);
                     player.sendMessage(Texts.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                 }
-            }
         }).delay(5, TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS)
                 .name("Pay Day").submit(totalEconomy);
     }
