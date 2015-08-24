@@ -21,14 +21,20 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.ProviderExistsException;
 import org.spongepowered.api.service.config.ConfigDir;
 import org.spongepowered.api.service.config.DefaultConfig;
+import org.spongepowered.api.service.scheduler.SchedulerService;
+import org.spongepowered.api.service.scheduler.Task;
+import org.spongepowered.api.service.scheduler.TaskBuilder;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.args.GenericArguments;
 import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.8")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.9")
 public class TotalEconomy {
 
     @Inject
@@ -56,6 +62,7 @@ public class TotalEconomy {
     private ShopKeeper shopKeeper;
 
     private boolean loadJobs = true;
+    private boolean loadSalary = true;
     private boolean loadShopKeeper = true;
 
     /**
@@ -67,7 +74,8 @@ public class TotalEconomy {
     public void preInit(PreInitializationEvent event) {
         setupConfig();
 
-        loadJobs = config.getNode("features", "jobs").getBoolean();
+        loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
+        loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
         loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
 
         accountManager = new AccountManager(this);
@@ -118,6 +126,7 @@ public class TotalEconomy {
     @Subscribe
     public void onServerStop(ServerStoppingEvent event) {
         logger.info("Total Economy Stopped");
+        teJobs.getTask().cancel();
     }
 
     @Subscribe
@@ -125,11 +134,6 @@ public class TotalEconomy {
         Player player = event.getUser();
 
         accountManager.createAccount(player.getUniqueId());
-    }
-
-    @Subscribe
-    public void onEntityInteract(PlayerInteractEntityEvent event) {
-        event.getUser().sendMessage(Texts.of("Entity interacted with"));
     }
 
     /**
@@ -145,7 +149,8 @@ public class TotalEconomy {
                 defaultConf.createNewFile();
                 config = configManager.load();
 
-                config.getNode("features", "jobs").setValue(true);
+                config.getNode("features", "jobs", "enable").setValue(true);
+                config.getNode("features", "jobs", "salary").setValue(true);
                 config.getNode("features", "shopkeeper").setValue(true);
                 config.getNode("symbol").setValue("$");
                 configManager.save(config);
@@ -237,5 +242,11 @@ public class TotalEconomy {
 
     public Server getServer() {
         return game.getServer();
+    }
+
+    public Game getGame() { return game; }
+
+    public boolean isLoadSalary() {
+        return loadSalary;
     }
 }
