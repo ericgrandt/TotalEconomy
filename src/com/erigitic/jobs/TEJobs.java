@@ -16,16 +16,17 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.*;
+import org.spongepowered.api.service.scheduler.SchedulerService;
+import org.spongepowered.api.service.scheduler.Task;
+import org.spongepowered.api.service.scheduler.TaskBuilder;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Erigitic on 5/5/2015.
@@ -35,6 +36,8 @@ public class TEJobs {
     private AccountManager accountManager;
     private ConfigurationNode accountConfig;
     private Logger logger;
+
+    private Task task;
 
     private File jobsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
@@ -60,6 +63,25 @@ public class TEJobs {
         } catch (IOException e) {
             logger.warn("Could not load jobs config!");
         }
+
+        if (totalEconomy.isLoadSalary())
+            startSalaryTask();
+    }
+
+    private void startSalaryTask() {
+        SchedulerService paySchedule = totalEconomy.getGame().getScheduler();
+        TaskBuilder payTask = paySchedule.createTaskBuilder();
+
+        task = payTask.execute(new Runnable() {
+            public void run() {
+                for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
+                    BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getFloat());
+                    accountManager.addToBalance(player.getUniqueId(), salary, false);
+                    player.sendMessage(Texts.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                }
+            }
+        }).delay(5, TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS)
+                .name("Pay Day").submit(totalEconomy);
     }
 
     /**
@@ -85,7 +107,6 @@ public class TEJobs {
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "pay").setValue(minerBreakables[i][2]);
                 }
                 jobsConfig.getNode("Miner", "salary").setValue(20);
-                jobsConfig.getNode("Miner", "salarydelay").setValue(300);
 
                 for (int i = 0; i < lumberBreakables.length; i++) {
                     jobsConfig.getNode("Lumberjack", "break", lumberBreakables[i][0], "expreward").setValue(lumberBreakables[i][1]);
@@ -97,10 +118,9 @@ public class TEJobs {
                     jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "pay").setValue(lumberPlaceables[i][2]);
                 }
                 jobsConfig.getNode("Lumberjack", "salary").setValue(20);
-                jobsConfig.getNode("Lumberjack", "salarydelay").setValue(300);
 
-                jobsConfig.getNode("unemployedsalary").setValue(20);
-                jobsConfig.getNode("unemployedsalarydelay").setValue(300);
+                jobsConfig.getNode("Unemployed", "salary").setValue(20);
+                jobsConfig.getNode("salarydelay").setValue(5);
 
                 loader.save(jobsConfig);
             }
@@ -318,6 +338,10 @@ public class TEJobs {
         Player player = event.getUser();
 
         player.sendMessage(Texts.of("Attacked"));
+    }
+
+    public Task getTask() {
+        return task;
     }
 
     //TODO: Complete when fully implemented
