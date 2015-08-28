@@ -26,6 +26,7 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.9")
 public class TotalEconomy {
@@ -145,6 +146,7 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "enable").setValue(true);
                 config.getNode("features", "jobs", "salary").setValue(true);
                 config.getNode("features", "shopkeeper").setValue(true);
+                config.getNode("startbalance").setValue(100);
                 config.getNode("symbol").setValue("$");
                 configManager.save(config);
             }
@@ -228,6 +230,8 @@ public class TotalEconomy {
     public File getConfigDir() {
         return configDir;
     }
+
+    public float getStartingBalance() { return config.getNode("startbalance").getFloat(); }
 
     public String getCurrencySymbol() {
         return config.getNode("symbol").getValue().toString();
