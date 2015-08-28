@@ -114,7 +114,7 @@ public class TEJobs {
                 jobsConfig.getNode("Lumberjack", "salary").setValue(20);
 
                 jobsConfig.getNode("Unemployed", "salary").setValue(20);
-                jobsConfig.getNode("salarydelay").setValue(5);
+                jobsConfig.getNode("salarydelay").setValue(300);
 
                 loader.save(jobsConfig);
             }
