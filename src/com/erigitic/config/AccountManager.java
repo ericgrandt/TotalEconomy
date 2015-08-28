@@ -71,7 +71,7 @@ public class AccountManager implements TEService {
         try {
             if (accountConfig.getNode(uuid.toString(), "balance").getValue() == null) {
                 //TODO: Set balance to the default config defined starting balance
-                BigDecimal startBalance = new BigDecimal("10.00");
+                BigDecimal startBalance = new BigDecimal(totalEconomy.getStartingBalance());
                 accountConfig.getNode(uuid.toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
                 accountConfig.getNode(uuid.toString(), "jobnotifications").setValue("true");
