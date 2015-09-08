@@ -12,10 +12,10 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
-import org.spongepowered.api.event.state.*;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.*;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.ProviderExistsException;
 import org.spongepowered.api.service.config.ConfigDir;
@@ -26,7 +26,8 @@ import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 
 @Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.9")
 public class TotalEconomy {
@@ -57,6 +58,8 @@ public class TotalEconomy {
 
     private boolean loadJobs = true;
     private boolean loadSalary = true;
+    private boolean jobPermissions = false;
+
     private boolean loadShopKeeper = true;
 
     /**
@@ -64,12 +67,13 @@ public class TotalEconomy {
      *
      * @param event
      */
-    @Subscribe
-    public void preInit(PreInitializationEvent event) {
+    @Listener
+    public void preInit(GamePreInitializationEvent event) {
         setupConfig();
 
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
+        jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
         loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
 
         accountManager = new AccountManager(this);
@@ -91,8 +95,8 @@ public class TotalEconomy {
      *
      * @param event
      */
-    @Subscribe
-    public void init(InitializationEvent event) {
+    @Listener
+    public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
 
         if (!game.getServiceManager().provide(TEService.class).isPresent()) {
@@ -104,30 +108,31 @@ public class TotalEconomy {
         }
 
         if (loadJobs)
-            game.getEventManager().register(this, teJobs);
+            game.getEventManager().registerListeners(this, teJobs);
     }
 
-    @Subscribe
-    public void postInit(PostInitializationEvent event) {
+    @Listener
+    public void postInit(GamePostInitializationEvent event) {
 
     }
 
-    @Subscribe
-    public void onServerStart(ServerStartedEvent event) {
+    @Listener
+    public void onServerStart(GameStartedServerEvent event) {
         logger.info("Total Economy Started");
     }
 
-    @Subscribe
-    public void onServerStop(ServerStoppingEvent event) {
+    @Listener
+    public void onServerStop(GameStoppedServerEvent event) {
         logger.info("Total Economy Stopped");
-        teJobs.getTask().cancel();
     }
 
-    @Subscribe
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getUser();
+    @Listener
+    public void onPlayerJoin(ClientConnectionEvent.Join event) {
+        if (event.getTargetEntity() instanceof Player) {
+            Player player = event.getTargetEntity();
 
-        accountManager.createAccount(player.getUniqueId());
+            accountManager.createAccount(player.getUniqueId());
+        }
     }
 
     /**
@@ -145,6 +150,7 @@ public class TotalEconomy {
 
                 config.getNode("features", "jobs", "enable").setValue(true);
                 config.getNode("features", "jobs", "salary").setValue(true);
+                config.getNode("features", "jobs", "permissions").setValue(false);
                 config.getNode("features", "shopkeeper").setValue(true);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("symbol").setValue("$");
@@ -166,6 +172,14 @@ public class TotalEconomy {
                 .description(Texts.of("Pay another player"))
                 .permission("totaleconomy.command.pay")
                 .executor(new PayCommand(this))
+                .arguments(GenericArguments.player(Texts.of("player"), game),
+                        GenericArguments.string(Texts.of("amount")))
+                .build();
+
+        CommandSpec adminPayCommand = CommandSpec.builder()
+                .description(Texts.of("Pay a player without removing money from your balance."))
+                .permission("totaleconomy.command.adminpay")
+                .executor(new AdminPayCommand(this))
                 .arguments(GenericArguments.player(Texts.of("player"), game),
                         GenericArguments.string(Texts.of("amount")))
                 .build();
@@ -211,8 +225,17 @@ public class TotalEconomy {
         }
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
+        game.getCommandDispatcher().register(this, adminPayCommand, "adminpay");
         game.getCommandDispatcher().register(this, balanceCommand, "balance");
         game.getCommandDispatcher().register(this, setBalanceCommand, "setbalance");
+    }
+
+    //Used to make sure values put into commands are numeric.
+    public static boolean isNumeric(String str) {
+        NumberFormat formatter = NumberFormat.getInstance();
+        ParsePosition pos = new ParsePosition(0);
+        formatter.parse(str, pos);
+        return str.length() == pos.getIndex();
     }
 
     public AccountManager getAccountManager() {
@@ -246,4 +269,6 @@ public class TotalEconomy {
     public boolean isLoadSalary() {
         return loadSalary;
     }
+
+    public boolean isJobPermissions() { return jobPermissions; }
 }

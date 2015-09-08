@@ -8,15 +8,16 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockTypes;
-import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.*;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.BreakBlockEvent;
+import org.spongepowered.api.event.block.PlaceBlockEvent;
 import org.spongepowered.api.service.scheduler.SchedulerService;
 import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.service.scheduler.TaskBuilder;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Location;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,13 +69,19 @@ public class TEJobs {
         SchedulerService paySchedule = totalEconomy.getGame().getScheduler();
         TaskBuilder payTask = paySchedule.createTaskBuilder();
 
+        logger.info("STARTED SALARY TASK!");
+
         task = payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
                     BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getFloat());
-                    accountManager.addToBalance(player.getUniqueId(), salary, false);
-                    player.sendMessage(Texts.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                    boolean salaryDisabled = jobsConfig.getNode(getPlayerJob(player), "disablesalary").getBoolean();
+
+                    if (!salaryDisabled) {
+                        accountManager.addToBalance(player.getUniqueId(), salary, false);
+                        player.sendMessage(Texts.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                    }
                 }
-        }).delay(5, TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS)
+        }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS)
                 .name("Pay Day").submit(totalEconomy);
     }
 
@@ -100,7 +107,9 @@ public class TEJobs {
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "expreward").setValue(minerBreakables[i][1]);
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "pay").setValue(minerBreakables[i][2]);
                 }
+                jobsConfig.getNode("Miner", "disablesalary").setValue(false);
                 jobsConfig.getNode("Miner", "salary").setValue(20);
+                jobsConfig.getNode("Miner", "permission").setValue("totaleconomy.job.miner");
 
                 for (int i = 0; i < lumberBreakables.length; i++) {
                     jobsConfig.getNode("Lumberjack", "break", lumberBreakables[i][0], "expreward").setValue(lumberBreakables[i][1]);
@@ -111,8 +120,11 @@ public class TEJobs {
                     jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "expreward").setValue(lumberPlaceables[i][1]);
                     jobsConfig.getNode("Lumberjack", "place", lumberPlaceables[i][0], "pay").setValue(lumberPlaceables[i][2]);
                 }
+                jobsConfig.getNode("Lumberjack", "disablesalary").setValue(false);
                 jobsConfig.getNode("Lumberjack", "salary").setValue(20);
+                jobsConfig.getNode("Lumberjack", "permission").setValue("totaleconomy.job.lumberjack");
 
+                jobsConfig.getNode("Unemployed", "disablesalary").setValue(false);
                 jobsConfig.getNode("Unemployed", "salary").setValue(20);
                 jobsConfig.getNode("salarydelay").setValue(300);
 
@@ -176,25 +188,30 @@ public class TEJobs {
      */
     public void setJob(Player player, String jobName) {
         UUID playerUUID = player.getUniqueId();
+        boolean jobPermissions = totalEconomy.isJobPermissions();
 
         if (jobExists(jobName)) {
-            accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
+            if ((jobPermissions && player.hasPermission("totaleconomy.job." + jobName.toLowerCase())) || !jobPermissions) {
+                accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
 
-            if (accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getValue() == null) {
-                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(1);
+                if (accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getValue() == null) {
+                    accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(1);
+                }
+
+                if (accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getValue() == null) {
+                    accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(0);
+                }
+
+                try {
+                    accountManager.getConfigManager().save(accountConfig);
+                } catch (IOException e) {
+                    logger.warn("Could not save account config while setting job!");
+                }
+
+                player.sendMessage(Texts.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
+            } else {
+                player.sendMessage(Texts.of(TextColors.RED, "You do not have permission to become this job."));
             }
-
-            if (accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getValue() == null) {
-                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(0);
-            }
-
-            try {
-                accountManager.getConfigManager().save(accountConfig);
-            } catch (IOException e) {
-                logger.warn("Could not save account config while setting job!");
-            }
-
-            player.sendMessage(Texts.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
         } else {
             player.sendMessage(Texts.of(TextColors.RED, "That is not a job."));
         }
@@ -276,12 +293,13 @@ public class TEJobs {
      *
      * @param event PlayerBlockBreakEvent
      */
-    @Subscribe
-    public void onPlayerBlockBreak(PlayerBreakBlockEvent event) {
-        Player player = event.getUser();
+    @Listener
+    public void onPlayerBlockBreak(BreakBlockEvent event) {
+        Player player = event.getCause().first(Player.class).get();
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
+        String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
+        Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
 
         //Checks if the users current job has the break node.
         boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
@@ -290,7 +308,8 @@ public class TEJobs {
         if (jobsConfig.getNode(playerJob).getValue() != null) {
             if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                 if (preventFarming)
-                    event.getLocation().setBlockType(BlockTypes.AIR);
+                    blockLoc.setBlockType(BlockTypes.AIR);
+                    //event.getSourceTransform().getLocation().setBlockType(BlockTypes.AIR);
 
                 int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
                 BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
@@ -303,13 +322,13 @@ public class TEJobs {
         }
     }
 
-    @Subscribe
-    public void onPlayerPlaceBlock(PlayerPlaceBlockEvent event) {
-        Player player = event.getUser();
+    @Listener
+    public void onPlayerPlaceBlock(PlaceBlockEvent event) {
+        Player player = event.getCause().first(Player.class).get();
         UUID playerUUID = player.getUniqueId();
         String playerJob = getPlayerJob(player);
-        String blockName = event.getBlock().getType().getName().split(":")[1];//Will turn the block name from 'minecraft:block' to 'block'.
-        DataQuery pQuery = new DataQuery("player");
+        String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
+        Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
 
         //Checks if the users current job has the place node.
         boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);
@@ -327,19 +346,19 @@ public class TEJobs {
         }
     }
 
-    @Subscribe
-    public void onPlayerAttack(PlayerInteractEntityEvent event) {
-        Player player = event.getUser();
-
-        player.sendMessage(Texts.of("Attacked"));
-    }
+//    @Subscribe
+//    public void onPlayerAttack(PlayerInteractEntityEvent event) {
+//        Player player = event.getUser();
+//
+//        player.sendMessage(Texts.of("Attacked"));
+//    }
 
     public Task getTask() {
         return task;
     }
 
     //TODO: Complete when fully implemented
-//    @Subscribe
+//    @Listener
 //    public void onPlayerCreate(CraftItemEvent event) {
 //        CraftingOutput craftItem = event.getInventory().getResult();
 //
@@ -349,7 +368,7 @@ public class TEJobs {
 //    }
 
     //TODO: Complete when fully implemented
-//    @Subscribe
+//    @Listener
 //    public void onPlayerSmelt(FurnaceSmeltItemEvent event) {
 //        String resultName = event.getSourceItem().getItem().getName();
 //

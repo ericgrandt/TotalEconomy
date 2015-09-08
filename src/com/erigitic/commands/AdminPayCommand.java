@@ -15,14 +15,14 @@ import org.spongepowered.api.util.command.spec.CommandExecutor;
 import java.math.BigDecimal;
 
 /**
- * Created by Erigitic on 5/3/2015.
+ * Created by Erigitic on 9/7/2015.
  */
-public class PayCommand implements CommandExecutor {
+public class AdminPayCommand implements CommandExecutor {
     private Logger logger;
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
 
-    public PayCommand(TotalEconomy totalEconomy) {
+    public AdminPayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
 
@@ -46,10 +46,9 @@ public class PayCommand implements CommandExecutor {
                         Player recipient = (Player) playerArg;
 
                         if (recipient.isOnline()) {
-                            if (accountManager.hasMoney(sender.getUniqueId(), amount)) {
-                                accountManager.removeFromBalance(sender.getUniqueId(), amount);
-                                accountManager.addToBalance(recipient.getUniqueId(), amount, true);
-                            }
+                            accountManager.addToBalance(recipient.getUniqueId(), amount, true);
+                            sender.sendMessage(Texts.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount,
+                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
                         } else {
                             sender.sendMessage(Texts.of(TextColors.RED, "Player is not online."));
                         }
