@@ -3,7 +3,7 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.TEJobs;
 import com.erigitic.main.TotalEconomy;
-import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.command.CommandException;
@@ -24,6 +24,7 @@ public class JobCommand implements CommandExecutor {
         teJobs = totalEconomy.getTEJobs();
     }
 
+    @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player sender = ((Player) src).getPlayer().get();

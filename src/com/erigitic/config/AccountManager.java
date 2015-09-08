@@ -8,7 +8,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
-import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -70,7 +70,6 @@ public class AccountManager implements TEService {
     public void createAccount(UUID uuid) {
         try {
             if (accountConfig.getNode(uuid.toString(), "balance").getValue() == null) {
-                //TODO: Set balance to the default config defined starting balance
                 BigDecimal startBalance = new BigDecimal(totalEconomy.getStartingBalance());
                 accountConfig.getNode(uuid.toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
@@ -206,10 +205,10 @@ public class AccountManager implements TEService {
         boolean notify = accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean();
 
         if (notify == true) {
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue("false");
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(false);
             notify = false;
         } else {
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue("true");
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(true);
             notify = true;
         }
 

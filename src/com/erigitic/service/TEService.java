@@ -1,7 +1,5 @@
 package com.erigitic.service;
 
-import org.spongepowered.api.entity.player.Player;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 
