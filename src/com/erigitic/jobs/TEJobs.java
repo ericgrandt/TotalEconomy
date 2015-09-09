@@ -69,8 +69,6 @@ public class TEJobs {
         SchedulerService paySchedule = totalEconomy.getGame().getScheduler();
         TaskBuilder payTask = paySchedule.createTaskBuilder();
 
-        logger.info("STARTED SALARY TASK!");
-
         task = payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
                     BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getFloat());
