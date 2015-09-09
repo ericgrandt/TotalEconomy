@@ -101,7 +101,7 @@ public class TEJobs {
                 jobsFile.createNewFile();
 
                 jobsConfig.getNode("preventJobFarming").setValue(false);
-                jobsConfig.getNode("jobs").setValue("Miner,Lumberjack");
+                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack");
 
                 for (int i = 0; i < minerBreakables.length; i++) {
                     jobsConfig.getNode("Miner", "break", minerBreakables[i][0], "expreward").setValue(minerBreakables[i][1]);
@@ -175,7 +175,7 @@ public class TEJobs {
         if (playerCurExp >= expToLevel) {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(playerLevel + 1);
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(playerCurExp - expToLevel);
-            player.sendMessage(Texts.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD, playerLevel + 1, " ", jobName));
+            player.sendMessage(Texts.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD, playerLevel + 1, " ", jobName, "."));
             //TODO: Some effect such as fireworks on level up?
         }
     }
@@ -316,8 +316,8 @@ public class TEJobs {
                 boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
                 addExp(player, expAmount);
-                checkForLevel(player);
                 accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
+                checkForLevel(player);
             }
         }
     }
