@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.0.9")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.1.0")
 public class TotalEconomy {
 
     @Inject

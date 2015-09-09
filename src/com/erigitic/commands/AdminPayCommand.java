@@ -57,7 +57,7 @@ public class AdminPayCommand implements CommandExecutor {
                     sender.sendMessage(Texts.of(TextColors.RED, "The amount must be positive."));
                 }
             } else {
-                sender.sendMessage(Texts.of(TextColors.RED, "The amount must only contain numbers and/or a single decimal point."));
+                sender.sendMessage(Texts.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
             }
         }
 
