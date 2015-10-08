@@ -10,8 +10,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.block.BreakBlockEvent;
-import org.spongepowered.api.event.block.PlaceBlockEvent;
+import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.service.scheduler.SchedulerService;
 import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.service.scheduler.TaskBuilder;
@@ -292,63 +291,66 @@ public class TEJobs {
      * @param event PlayerBlockBreakEvent
      */
     @Listener
-    public void onPlayerBlockBreak(BreakBlockEvent event) {
-        Player player = event.getCause().first(Player.class).get();
-        UUID playerUUID = player.getUniqueId();
-        String playerJob = getPlayerJob(player);
-        String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-        Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
+    public void onPlayerBlockBreak(ChangeBlockEvent.Break event) {
+        if (event.getCause().first(Player.class).isPresent()) {
+            Player player = event.getCause().first(Player.class).get();
+            UUID playerUUID = player.getUniqueId();
+            String playerJob = getPlayerJob(player);
+            String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
+            Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
 
-        //Checks if the users current job has the break node.
-        boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
-        boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
+            //Checks if the users current job has the break node.
+            boolean hasBreak = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+            boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
 
-        if (jobsConfig.getNode(playerJob).getValue() != null) {
-            if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                if (preventFarming)
-                    blockLoc.setBlockType(BlockTypes.AIR);
+            if (jobsConfig.getNode(playerJob).getValue() != null) {
+                if (hasBreak && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                    if (preventFarming)
+                        blockLoc.setBlockType(BlockTypes.AIR);
                     //event.getSourceTransform().getLocation().setBlockType(BlockTypes.AIR);
 
-                int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
-                boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                    int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                    boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
-                addExp(player, expAmount);
-                accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
-                checkForLevel(player);
+                    addExp(player, expAmount);
+                    accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
+                    checkForLevel(player);
+                }
             }
         }
     }
 
     @Listener
-    public void onPlayerPlaceBlock(PlaceBlockEvent event) {
-        Player player = event.getCause().first(Player.class).get();
-        UUID playerUUID = player.getUniqueId();
-        String playerJob = getPlayerJob(player);
-        String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-        Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
+    public void onPlayerPlaceBlock(ChangeBlockEvent.Place event) {
+        if (event.getCause().first(Player.class).isPresent()) {
+            Player player = event.getCause().first(Player.class).get();
+            UUID playerUUID = player.getUniqueId();
+            String playerJob = getPlayerJob(player);
+            String blockName = event.getTransactions().get(0).getFinalReplacement().getState().getType().getName().split(":")[1];
 
-        //Checks if the users current job has the place node.
-        boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);
+            //Checks if the users current job has the place node.
+            boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);
 
-        if (jobsConfig.getNode(playerJob).getValue() != null) {
-            if (hasPlace && jobsConfig.getNode(playerJob, "place", blockName).getValue() != null) {
-                int expAmount = jobsConfig.getNode(playerJob, "place", blockName, "expreward").getInt();
-                BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
-                boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+            if (jobsConfig.getNode(playerJob).getValue() != null) {
+                if (hasPlace && jobsConfig.getNode(playerJob, "place", blockName).getValue() != null) {
+                    int expAmount = jobsConfig.getNode(playerJob, "place", blockName, "expreward").getInt();
+                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                    boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
-                addExp(player, expAmount);
-                checkForLevel(player);
-                accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
+                    addExp(player, expAmount);
+                    checkForLevel(player);
+                    accountManager.addToBalance(player.getUniqueId(), payAmount, notify);
+                }
             }
         }
     }
 
-//    @Subscribe
-//    public void onPlayerAttack(PlayerInteractEntityEvent event) {
-//        Player player = event.getUser();
+//    @Listener
+//    public void onPlayerAttack(InteractEntityEvent.Attack event) {
+//        Player player = event.getCause().first(Player.class).get();
 //
-//        player.sendMessage(Texts.of("Attacked"));
+//        logger.info(event.getTargetEntity().toString());
 //    }
 
     public Task getTask() {
