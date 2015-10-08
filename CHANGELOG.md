@@ -11,3 +11,11 @@ v1.1.0
 + Admin Pay Command(/adminpay [player] [amount])
 + Job Permissions
 + Ability to enable/disable salaries for individual jobs.
+
+V1.1.1
+
++ Updated to the latest version of Sponge
+
+V1.1.2
+
++ Update to the latest version of Sponge
