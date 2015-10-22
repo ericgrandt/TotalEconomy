@@ -18,4 +18,8 @@ V1.1.1
 
 V1.1.2
 
-+ Update to the latest version of Sponge
++ Updated to the latest version of Sponge
+
+V1.1.3
+
++ Updated to the latest version of the Sponge API

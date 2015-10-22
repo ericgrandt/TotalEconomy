@@ -327,7 +327,7 @@ public class TEJobs {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
-            String blockName = event.getTransactions().get(0).getFinalReplacement().getState().getType().getName().split(":")[1];
+            String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName().split(":")[1];
 
             //Checks if the users current job has the place node.
             boolean hasPlace = (jobsConfig.getNode(playerJob, "place").getValue() != null);
