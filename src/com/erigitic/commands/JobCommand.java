@@ -30,7 +30,7 @@ public class JobCommand implements CommandExecutor {
             Player sender = ((Player) src).getPlayer().get();
 
             if (args.getOne("jobName").isPresent()) {
-                String jobName = args.getOne("jobName").get().toString();
+                String jobName = args.getOne("jobName").get().toString().toLowerCase();
 
                 teJobs.setJob(sender, jobName);
             } else {
