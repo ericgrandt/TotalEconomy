@@ -3,6 +3,7 @@ package com.erigitic.config;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.service.TEService;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -24,7 +25,7 @@ public class AccountManager implements TEService {
     private TotalEconomy totalEconomy;
     private Logger logger;
     private File accountsFile;
-    private ConfigurationLoader<CommentedConfigurationNode> configManager;
+    private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
     private Server server;
 
@@ -34,17 +35,18 @@ public class AccountManager implements TEService {
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
-
         server = totalEconomy.getServer();
 
         accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
-        configManager = HoconConfigurationLoader.builder().setFile(accountsFile).build();
+        loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
 
         try {
-            accountConfig = configManager.load();
+            accountConfig = loader.load();
         } catch (IOException e) {
-            logger.warn("Could not load account config!");
+            accountConfig = loader.createEmptyNode(ConfigurationOptions.defaults());
         }
+
+        setupConfig();
     }
 
     /**
@@ -76,7 +78,7 @@ public class AccountManager implements TEService {
                 accountConfig.getNode(uuid.toString(), "jobnotifications").setValue("true");
             }
 
-            configManager.save(accountConfig);
+            loader.save(accountConfig);
         } catch (IOException e) {
             logger.warn("Could not create account!");
         }
@@ -112,7 +114,7 @@ public class AccountManager implements TEService {
 
             try {
                 accountConfig.getNode(uuid.toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
-                configManager.save(accountConfig);
+                loader.save(accountConfig);
 
                 if (notify)
                     server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been added to your balance."));
@@ -136,7 +138,7 @@ public class AccountManager implements TEService {
 
             try {
                 accountConfig.getNode(uuid.toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
-                configManager.save(accountConfig);
+                loader.save(accountConfig);
 
                 server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been removed from your balance."));
             } catch (IOException e) {
@@ -155,7 +157,7 @@ public class AccountManager implements TEService {
     public void setBalance(UUID uuid, BigDecimal amount) {
         try {
             accountConfig.getNode(uuid.toString(), "balance").setValue(amount).toString();
-            configManager.save(accountConfig);
+            loader.save(accountConfig);
         } catch (IOException e) {
             logger.warn("Could not set player balance!");
         }
@@ -213,7 +215,7 @@ public class AccountManager implements TEService {
         }
 
         try {
-            configManager.save(accountConfig);
+            loader.save(accountConfig);
 
             if (notify == true)
                 player.sendMessage(Texts.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
@@ -240,7 +242,7 @@ public class AccountManager implements TEService {
      * @return ConfigurationLoader<CommentedConfigurationNode>
      */
     public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
-        return configManager;
+        return loader;
     }
 
 }

@@ -77,12 +77,10 @@ public class TotalEconomy {
         loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
 
         accountManager = new AccountManager(this);
-        accountManager.setupConfig();
 
         //Only setup job stuff if config is set to load jobs
         if (loadJobs == true) {
             teJobs = new TEJobs(this);
-            teJobs.setupConfig();
         }
 
         if (loadShopKeeper == true) {
