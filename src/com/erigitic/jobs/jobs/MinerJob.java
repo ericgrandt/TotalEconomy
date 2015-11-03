@@ -1,5 +1,6 @@
-package com.erigitic.jobs;
+package com.erigitic.jobs.jobs;
 
+import com.erigitic.jobs.Job;
 import ninja.leaping.configurate.ConfigurationNode;
 
 /**
