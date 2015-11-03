@@ -1,19 +1,29 @@
 package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
+import com.erigitic.jobs.jobs.FishermanJob;
+import com.erigitic.jobs.jobs.LumberjackJob;
+import com.erigitic.jobs.jobs.MinerJob;
+import com.erigitic.jobs.jobs.WarriorJob;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.data.manipulator.mutable.item.FishData;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.scheduler.SchedulerService;
 import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.service.scheduler.TaskBuilder;
@@ -44,7 +54,8 @@ public class TEJobs {
 
     private MinerJob miner;
     private LumberjackJob lumberjack;
-    private Warrior warrior;
+    private WarriorJob warrior;
+    private FishermanJob fisherman;
 
     /**
      * Constructor
@@ -53,6 +64,12 @@ public class TEJobs {
      */
     public TEJobs(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
+
+        //Initialize each job
+        miner = new MinerJob();
+        lumberjack = new LumberjackJob();
+        warrior = new WarriorJob();
+        fisherman = new FishermanJob();
 
         accountManager = totalEconomy.getAccountManager();
         accountConfig = accountManager.getAccountConfig();
@@ -64,16 +81,13 @@ public class TEJobs {
         try {
             jobsConfig = loader.load();
         } catch (IOException e) {
-            logger.warn("Could not load jobs config!");
+            jobsConfig = loader.createEmptyNode(ConfigurationOptions.defaults());
         }
+
+        setupConfig();
 
         if (totalEconomy.isLoadSalary())
             startSalaryTask();
-
-        //Initialize each job
-        miner = new MinerJob();
-        lumberjack = new LumberjackJob();
-        warrior = new Warrior();
     }
 
     private void startSalaryTask() {
@@ -104,11 +118,12 @@ public class TEJobs {
                 jobsFile.createNewFile();
 
                 jobsConfig.getNode("preventJobFarming").setValue(false);
-                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack, Warrior");
+                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack, Warrior, Fisherman");
 
                 miner.setupJobValues(jobsConfig);
                 lumberjack.setupJobValues(jobsConfig);
                 warrior.setupJobValues(jobsConfig);
+                fisherman.setupJobValues(jobsConfig);
 
                 jobsConfig.getNode("Unemployed", "disablesalary").setValue(false);
                 jobsConfig.getNode("Unemployed", "salary").setValue(20);
@@ -276,8 +291,38 @@ public class TEJobs {
     }
 
     public String convertToTitle(String input) {
-        return input.substring(0, 1).toUpperCase() + input.substring(1);
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
+
+    //TODO: Decide if this is something that should be added or not.
+//    @Listener
+//    public void onJobSignCheck(ChangeSignEvent event) {
+//        SignData data = event.getText();
+//        Text lineOne = data.lines().get(0);
+//        Text lineTwo = data.lines().get(1);
+//        String lineOnePlain = Texts.toPlain(lineOne);
+//        String lineTwoPlain = Texts.toPlain(lineTwo);
+//
+//        if (lineOnePlain.equals("[TEJobs]")) {
+//            lineOne = lineOne.builder().color(TextColors.GOLD).build();
+//
+//            data.set(data.lines().set(0, lineOne));
+//
+//            if (jobExists(lineTwoPlain)) {
+//                String jobName = convertToTitle(lineTwoPlain);
+//
+//                lineTwo = Texts.of(convertToTitle(lineTwoPlain)).builder().color(TextColors.GRAY).build();
+//
+//                data.set(data.lines().set(1, lineTwo));
+//            }
+//        }
+//    }
+
+
+    /**
+     * Begin all the job listeners
+     */
+
 
     /**
      * Used for the break option in jobs. Will check if the job has the break node and if it does it will check if the
@@ -370,6 +415,37 @@ public class TEJobs {
                         checkForLevel(player);
                     }
                 }
+            }
+        }
+    }
+
+    @Listener
+    public void onPlayerFish(FishingEvent.Stop event) {
+        if (event.getCause().first(Player.class).isPresent()) {
+            Transaction<ItemStackSnapshot> itemTransaction = event.getItemStackTransaction();
+            ItemStack itemStack = itemTransaction.getFinal().createStack();
+            Player player = event.getCause().first(Player.class).get();
+            UUID playerUUID = player.getUniqueId();
+            String playerJob = getPlayerJob(player);
+
+            boolean hasCatchNode = (jobsConfig.getNode(playerJob, "catch").getValue() != null);
+
+            if (itemStack.get(FishData.class).isPresent()) {
+                if (jobsConfig.getNode(playerJob).getValue() != null) {
+                    FishData fishData = itemStack.get(FishData.class).get();
+                    String fishName = fishData.type().get().getName();
+
+                    if (hasCatchNode && jobsConfig.getNode(playerJob, "catch", fishName).getValue() != null) {
+                        int expAmount = jobsConfig.getNode(playerJob, "catch", fishName, "expreward").getInt();
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "catch", fishName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+
+                        addExp(player, expAmount);
+                        accountManager.addToBalance(playerUUID, payAmount, notify);
+                        checkForLevel(player);
+                    }
+                }
+
             }
         }
     }
