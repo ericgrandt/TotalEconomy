@@ -1,11 +1,12 @@
-package com.erigitic.jobs;
+package com.erigitic.jobs.jobs;
 
+import com.erigitic.jobs.Job;
 import ninja.leaping.configurate.ConfigurationNode;
 
 /**
  * Created by Erigitic on 10/29/2015.
  */
-public class Warrior implements Job {
+public class WarriorJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {
         String[][] killValues = {{"skeleton", "10", "1.00"}, {"zombie", "10", "1.00"}, {"creeper", "10", "1.00"}};
 
