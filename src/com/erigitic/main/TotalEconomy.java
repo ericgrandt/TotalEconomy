@@ -211,6 +211,12 @@ public class TotalEconomy {
                     .executor(new JobToggleCommand(this))
                     .build();
 
+//            CommandSpec jobInfoCmd = CommandSpec.builder()
+//                    .description(Texts.of("Prints out a list of items that reward exp and money for the current job"))
+//                    .permission("totaleconomy.command.jobinfo")
+//                    .executor(new JobInfoCommand(this))
+//                    .build();
+
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Texts.of("Display list of jobs."))
                     .permission("totaleconomy.command.job")
@@ -218,6 +224,7 @@ public class TotalEconomy {
                     .child(jobSetCmd, "set", "s")
                     .child(jobNotifyToggle, "toggle", "t")
                     .build();
+
 
             game.getCommandDispatcher().register(this, jobCommand, "job");
         }
