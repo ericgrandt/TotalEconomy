@@ -211,6 +211,7 @@ public class TotalEconomy {
                     .executor(new JobToggleCommand(this))
                     .build();
 
+            //TODO: Implement later
 //            CommandSpec jobInfoCmd = CommandSpec.builder()
 //                    .description(Texts.of("Prints out a list of items that reward exp and money for the current job"))
 //                    .permission("totaleconomy.command.jobinfo")
@@ -235,7 +236,13 @@ public class TotalEconomy {
         game.getCommandDispatcher().register(this, setBalanceCommand, "setbalance");
     }
 
-    //Used to make sure values put into commands are numeric.
+    /**
+     * Determines if the String passed in is numeric or not
+     *
+     * @param str the String to check
+     *
+     * @return boolean whether or not the String is numeric
+     */
     public static boolean isNumeric(String str) {
         NumberFormat formatter = NumberFormat.getInstance();
         ParsePosition pos = new ParsePosition(0);
