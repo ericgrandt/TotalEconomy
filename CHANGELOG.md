@@ -23,3 +23,11 @@ V1.1.2
 V1.1.3
 
 + Updated to the latest version of the Sponge API
+
+V1.2.0
+
++ Warrior Job
++ Fisherman Job
++ Job set command is no longer case sensitive
++ Change job from signs
++ BUG FIX: IOException when loading configs for first time has been fixed
