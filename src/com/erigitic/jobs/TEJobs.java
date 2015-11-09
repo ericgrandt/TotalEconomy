@@ -13,13 +13,18 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.block.tileentity.Sign;
+import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.manipulator.mutable.item.FishData;
+import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -27,6 +32,7 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.scheduler.SchedulerService;
 import org.spongepowered.api.service.scheduler.Task;
 import org.spongepowered.api.service.scheduler.TaskBuilder;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
@@ -217,7 +223,7 @@ public class TEJobs {
                 player.sendMessage(Texts.of(TextColors.RED, "You do not have permission to become this job."));
             }
         } else {
-            player.sendMessage(Texts.of(TextColors.RED, "That is not a job."));
+            player.sendMessage(Texts.of(TextColors.RED, "[TEJobs] This job does not exist"));
         }
     }
 
@@ -294,29 +300,57 @@ public class TEJobs {
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
-    //TODO: Decide if this is something that should be added or not.
-//    @Listener
-//    public void onJobSignCheck(ChangeSignEvent event) {
-//        SignData data = event.getText();
-//        Text lineOne = data.lines().get(0);
-//        Text lineTwo = data.lines().get(1);
-//        String lineOnePlain = Texts.toPlain(lineOne);
-//        String lineTwoPlain = Texts.toPlain(lineTwo);
-//
-//        if (lineOnePlain.equals("[TEJobs]")) {
-//            lineOne = lineOne.builder().color(TextColors.GOLD).build();
-//
-//            data.set(data.lines().set(0, lineOne));
-//
-//            if (jobExists(lineTwoPlain)) {
-//                String jobName = convertToTitle(lineTwoPlain);
-//
-//                lineTwo = Texts.of(convertToTitle(lineTwoPlain)).builder().color(TextColors.GRAY).build();
-//
-//                data.set(data.lines().set(1, lineTwo));
-//            }
-//        }
-//    }
+    @Listener
+    public void onJobSignCheck(ChangeSignEvent event) {
+        SignData data = event.getText();
+        Text lineOne = data.lines().get(0);
+        Text lineTwo = data.lines().get(1);
+        String lineOnePlain = Texts.toPlain(lineOne);
+        String lineTwoPlain = Texts.toPlain(lineTwo);
+
+        if (lineOnePlain.equals("[TEJobs]")) {
+            lineOne = lineOne.builder().color(TextColors.GOLD).build();
+
+            data.set(data.lines().set(0, lineOne));
+
+            if (jobExists(lineTwoPlain)) {
+                String jobName = convertToTitle(lineTwoPlain);
+
+                lineTwo = Texts.of(jobName).builder().color(TextColors.GRAY).build();
+
+                data.set(data.lines().set(1, lineTwo));
+                data.set(data.lines().set(2, Texts.of()));
+                data.set(data.lines().set(3, Texts.of()));
+            }
+        }
+    }
+
+    @Listener
+    public void onSignInteract(InteractBlockEvent event) {
+        if (event.getCause().first(Player.class).isPresent()) {
+            Player player = event.getCause().first(Player.class).get();
+            Optional<TileEntity> tileEntityOpt = event.getTargetBlock().getLocation().get().getTileEntity();
+
+            if (tileEntityOpt.isPresent()) {
+                TileEntity tileEntity = tileEntityOpt.get();
+
+                if (tileEntity instanceof Sign) {
+                    Sign sign = (Sign) tileEntity;
+                    Optional<SignData> data = sign.getOrCreate(SignData.class);
+
+                    if (data.isPresent()) {
+                        SignData signData = data.get();
+                        String lineOne = Texts.toPlain(signData.lines().get(0));
+                        String lineTwo = Texts.toPlain(signData.lines().get(1));
+
+                        if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
+                            setJob(player, lineTwo);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
     /**

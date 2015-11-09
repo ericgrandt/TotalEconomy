@@ -180,7 +180,7 @@ public class AccountManager implements TEService {
         if (result == -1 || result == 0)
             return true;
         else
-            server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.RED, "Insufficient funds."));
+            server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.RED, "[Total Economy] You do not have the funds to do this"));
 
         return false;
     }
