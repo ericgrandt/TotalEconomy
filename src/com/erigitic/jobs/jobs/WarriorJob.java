@@ -8,7 +8,7 @@ import ninja.leaping.configurate.ConfigurationNode;
  */
 public class WarriorJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] killValues = {{"skeleton", "10", "1.00"}, {"zombie", "10", "1.00"}, {"creeper", "10", "1.00"}};
+        String[][] killValues = {{"skeleton", "10", "1.00"}, {"zombie", "10", "1.00"}, {"creeper", "10", "1.00"}, {"spider", "10", "1.00"}};
 
         for (int i = 0; i < killValues.length; i++) {
             jobsConfig.getNode("Warrior", "kill", killValues[i][0], "expreward").setValue(killValues[i][1]);
