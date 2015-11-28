@@ -29,9 +29,7 @@ import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.service.scheduler.SchedulerService;
 import org.spongepowered.api.service.scheduler.Task;
-import org.spongepowered.api.service.scheduler.TaskBuilder;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
@@ -40,7 +38,8 @@ import org.spongepowered.api.world.Location;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -97,8 +96,7 @@ public class TEJobs {
     }
 
     private void startSalaryTask() {
-        SchedulerService paySchedule = totalEconomy.getGame().getScheduler();
-        TaskBuilder payTask = paySchedule.createTaskBuilder();
+        Task.Builder payTask = totalEconomy.getGame().getRegistry().createBuilder(Task.Builder.class);
 
         task = payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
