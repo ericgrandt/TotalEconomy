@@ -22,6 +22,6 @@ public class LumberjackJob implements Job {
         }
         jobsConfig.getNode("Lumberjack", "disablesalary").setValue(false);
         jobsConfig.getNode("Lumberjack", "salary").setValue(20);
-        jobsConfig.getNode("Lumberjack", "permission").setValue("totaleconomy.job.lumberjack");
+        jobsConfig.getNode("Lumberjack", "permission").setValue("main.job.lumberjack");
     }
 }
