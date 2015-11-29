@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.0")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.1")
 public class TotalEconomy {
 
     @Inject
@@ -232,7 +232,7 @@ public class TotalEconomy {
 
         game.getCommandDispatcher().register(this, payCommand, "pay");
         game.getCommandDispatcher().register(this, adminPayCommand, "adminpay");
-        game.getCommandDispatcher().register(this, balanceCommand, "balance");
+        game.getCommandDispatcher().register(this, balanceCommand, "balance", "bal");
         game.getCommandDispatcher().register(this, setBalanceCommand, "setbalance");
     }
 

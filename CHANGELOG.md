@@ -31,3 +31,8 @@ V1.2.0
 + Job set command is no longer case sensitive
 + Change job from signs
 + BUG FIX: IOException when loading configs for first time has been fixed
+
+V 1.2.1
+
++ Updated to latest version of Sponge
++ Alias for balance command (/bal)
