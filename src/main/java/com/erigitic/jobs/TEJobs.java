@@ -31,7 +31,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.scheduler.SchedulerService;
 import org.spongepowered.api.service.scheduler.Task;
-import org.spongepowered.api.service.scheduler.TaskBuilder;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
@@ -97,8 +96,8 @@ public class TEJobs {
     }
 
     private void startSalaryTask() {
-        SchedulerService paySchedule = totalEconomy.getGame().getScheduler();
-        TaskBuilder payTask = paySchedule.createTaskBuilder();
+        SchedulerService scheduler = totalEconomy.getGame().getScheduler();
+        Task.Builder payTask = scheduler.createTaskBuilder();
 
         task = payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
@@ -141,7 +140,6 @@ public class TEJobs {
             logger.warn("Could not create jobs config file!");
         }
     }
-
 
     /**
      * Add exp to player's current job
@@ -199,7 +197,7 @@ public class TEJobs {
         boolean jobPermissions = totalEconomy.isJobPermissions();
 
         if (jobExists(jobName)) {
-            if ((jobPermissions && player.hasPermission("totaleconomy.job." + jobName)) || !jobPermissions) {
+            if ((jobPermissions && player.hasPermission("main.job." + jobName)) || !jobPermissions) {
                 jobName = convertToTitle(jobName);
 
                 accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
