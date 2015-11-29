@@ -17,6 +17,6 @@ public class FishermanJob implements Job {
 
         jobsConfig.getNode("Fisherman", "disablesalary").setValue(false);
         jobsConfig.getNode("Fisherman", "salary").setValue(20);
-        jobsConfig.getNode("Fisherman", "permission").setValue("totaleconomy.job.fisherman");
+        jobsConfig.getNode("Fisherman", "permission").setValue("main.job.fisherman");
     }
 }

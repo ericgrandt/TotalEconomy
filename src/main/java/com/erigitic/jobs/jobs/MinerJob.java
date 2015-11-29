@@ -18,6 +18,6 @@ public class MinerJob implements Job {
         }
         jobsConfig.getNode("Miner", "disablesalary").setValue(false);
         jobsConfig.getNode("Miner", "salary").setValue(20);
-        jobsConfig.getNode("Miner", "permission").setValue("totaleconomy.job.miner");
+        jobsConfig.getNode("Miner", "permission").setValue("main.job.miner");
     }
 }
