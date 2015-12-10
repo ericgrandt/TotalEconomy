@@ -1,3 +1,7 @@
+v 1.2.2
+
++Update to latest version of Sponge
+
 V 1.2.1
 
 + Updated to latest version of Sponge
