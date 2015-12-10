@@ -12,24 +12,24 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
+import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.ProviderExistsException;
-import org.spongepowered.api.service.config.ConfigDir;
-import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
-import org.spongepowered.api.util.command.args.GenericArguments;
-import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.1")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.2")
 public class TotalEconomy {
 
     @Inject
@@ -227,13 +227,13 @@ public class TotalEconomy {
                     .build();
 
 
-            game.getCommandDispatcher().register(this, jobCommand, "job");
+            game.getCommandManager().register(this, jobCommand, "job");
         }
 
-        game.getCommandDispatcher().register(this, payCommand, "pay");
-        game.getCommandDispatcher().register(this, adminPayCommand, "adminpay");
-        game.getCommandDispatcher().register(this, balanceCommand, "balance", "bal");
-        game.getCommandDispatcher().register(this, setBalanceCommand, "setbalance");
+        game.getCommandManager().register(this, payCommand, "pay");
+        game.getCommandManager().register(this, adminPayCommand, "adminpay");
+        game.getCommandManager().register(this, balanceCommand, "balance", "bal");
+        game.getCommandManager().register(this, setBalanceCommand, "setbalance");
     }
 
     /**

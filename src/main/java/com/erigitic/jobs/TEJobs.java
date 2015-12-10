@@ -29,8 +29,8 @@ import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.service.scheduler.SchedulerService;
-import org.spongepowered.api.service.scheduler.Task;
+import org.spongepowered.api.scheduler.Scheduler;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
@@ -96,7 +96,7 @@ public class TEJobs {
     }
 
     private void startSalaryTask() {
-        SchedulerService scheduler = totalEconomy.getGame().getScheduler();
+        Scheduler scheduler = totalEconomy.getGame().getScheduler();
         Task.Builder payTask = scheduler.createTaskBuilder();
 
         task = payTask.execute(() -> {
