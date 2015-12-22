@@ -163,7 +163,7 @@ public class TotalEconomy {
 
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Texts.of("Pay another player"))
-                .permission("main.command.pay")
+                .permission("totaleconomy.command.pay")
                 .executor(new PayCommand(this))
                 .arguments(GenericArguments.player(Texts.of("player")),
                         GenericArguments.string(Texts.of("amount")))
@@ -171,7 +171,7 @@ public class TotalEconomy {
 
         CommandSpec adminPayCommand = CommandSpec.builder()
                 .description(Texts.of("Pay a player without removing money from your balance."))
-                .permission("main.command.adminpay")
+                .permission("totaleconomy.command.adminpay")
                 .executor(new AdminPayCommand(this))
                 .arguments(GenericArguments.player(Texts.of("player")),
                         GenericArguments.string(Texts.of("amount")))
@@ -179,13 +179,20 @@ public class TotalEconomy {
 
         CommandSpec balanceCommand = CommandSpec.builder()
                 .description(Texts.of("Display your balance"))
-                .permission("main.command.balance")
+                .permission("totaleconomy.command.balance")
                 .executor(new BalanceCommand(this))
+                .build();
+
+        CommandSpec viewBalanceCommand = CommandSpec.builder()
+                .description(Texts.of("View the balance of another player"))
+                .permission("totaleconomy.command.balance")
+                .executor(new ViewBalanceCommand(this))
+                .arguments(GenericArguments.player(Texts.of("player")))
                 .build();
 
         CommandSpec setBalanceCommand = CommandSpec.builder()
                 .description(Texts.of("Set a player's balance"))
-                .permission("main.command.setbalance")
+                .permission("totaleconomy.command.setbalance")
                 .executor(new SetBalanceCommand(this))
                 .arguments(GenericArguments.player(Texts.of("player")),
                         GenericArguments.string(Texts.of("amount")))
@@ -195,27 +202,27 @@ public class TotalEconomy {
         if (loadJobs == true) {
             CommandSpec jobSetCmd = CommandSpec.builder()
                     .description(Texts.of("Set your job"))
-                    .permission("main.command.jobset")
+                    .permission("totaleconomy.command.jobset")
                     .executor(new JobCommand(this))
                     .arguments(GenericArguments.string(Texts.of("jobName")))
                     .build();
 
             CommandSpec jobNotifyToggle = CommandSpec.builder()
                     .description(Texts.of("Toggle job notifications on/off"))
-                    .permission("main.command.jobtoggle")
+                    .permission("totaleconomy.command.jobtoggle")
                     .executor(new JobToggleCommand(this))
                     .build();
 
             //TODO: Implement later?
 //            CommandSpec jobInfoCmd = CommandSpec.builder()
 //                    .description(Texts.of("Prints out a list of items that reward exp and money for the current job"))
-//                    .permission("main.command.jobinfo")
+//                    .permission("totaleconomy.command.jobinfo")
 //                    .executor(new JobInfoCommand(this))
 //                    .build();
 
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Texts.of("Display list of jobs."))
-                    .permission("main.command.job")
+                    .permission("totaleconomy.command.job")
                     .executor(new JobCommand(this))
                     .child(jobSetCmd, "set", "s")
                     .child(jobNotifyToggle, "toggle", "t")
@@ -228,6 +235,7 @@ public class TotalEconomy {
         game.getCommandManager().register(this, payCommand, "pay");
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
         game.getCommandManager().register(this, balanceCommand, "balance", "bal");
+        game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
         game.getCommandManager().register(this, setBalanceCommand, "setbalance");
     }
 
