@@ -26,6 +26,7 @@ import org.spongepowered.api.text.Texts;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
@@ -45,7 +46,7 @@ public class TotalEconomy {
 
     @Inject
     @DefaultConfig(sharedRoot = false)
-    private ConfigurationLoader<CommentedConfigurationNode> configManager;
+    private ConfigurationLoader<CommentedConfigurationNode> loader;
 
     @Inject
     private Game game;
@@ -138,23 +139,17 @@ public class TotalEconomy {
      */
     private void setupConfig() {
         try {
-            if (!defaultConf.getParentFile().exists()) {
-                defaultConf.getParentFile().mkdir();
-            }
+            config = loader.load();
 
             if (!defaultConf.exists()) {
-                defaultConf.createNewFile();
-                config = configManager.load();
-
                 config.getNode("features", "jobs", "enable").setValue(true);
                 config.getNode("features", "jobs", "salary").setValue(true);
                 config.getNode("features", "jobs", "permissions").setValue(false);
                 config.getNode("features", "shopkeeper").setValue(true);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("symbol").setValue("$");
-                configManager.save(config);
+                loader.save(config);
             }
-            config = configManager.load();
         } catch (IOException e) {
             logger.warn("Default Config could not be loaded/created!");
         }
@@ -211,7 +206,7 @@ public class TotalEconomy {
                     .executor(new JobToggleCommand(this))
                     .build();
 
-            //TODO: Implement later
+            //TODO: Implement later?
 //            CommandSpec jobInfoCmd = CommandSpec.builder()
 //                    .description(Texts.of("Prints out a list of items that reward exp and money for the current job"))
 //                    .permission("main.command.jobinfo")
