@@ -170,7 +170,7 @@ public class TotalEconomy {
                 .description(Texts.of("Pay another player"))
                 .permission("main.command.pay")
                 .executor(new PayCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player"), game),
+                .arguments(GenericArguments.player(Texts.of("player")),
                         GenericArguments.string(Texts.of("amount")))
                 .build();
 
@@ -178,7 +178,7 @@ public class TotalEconomy {
                 .description(Texts.of("Pay a player without removing money from your balance."))
                 .permission("main.command.adminpay")
                 .executor(new AdminPayCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player"), game),
+                .arguments(GenericArguments.player(Texts.of("player")),
                         GenericArguments.string(Texts.of("amount")))
                 .build();
 
@@ -192,7 +192,7 @@ public class TotalEconomy {
                 .description(Texts.of("Set a player's balance"))
                 .permission("main.command.setbalance")
                 .executor(new SetBalanceCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player"), game),
+                .arguments(GenericArguments.player(Texts.of("player")),
                         GenericArguments.string(Texts.of("amount")))
                 .build();
 
