@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.2")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.3")
 public class TotalEconomy {
 
     @Inject
