@@ -61,5 +61,5 @@ Using Total Economy in your plugin will allow you to utilize Total Economy's Acc
  
  boolean hasMoney(UUID uuid, BigDecimal amount) - Checks if a player has the specified amount of money in their balance.
  
- BigDecimal getBalance(UUID uuid) - Get the a player's balance.
+ BigDecimal getBalance(UUID uuid) - Get a player's balance.
  ```
