@@ -37,15 +37,6 @@ public class AccountManager implements TEService {
         logger = totalEconomy.getLogger();
         server = totalEconomy.getServer();
 
-        accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
-        loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
-
-        try {
-            accountConfig = loader.load();
-        } catch (IOException e) {
-            accountConfig = loader.createEmptyNode(ConfigurationOptions.defaults());
-        }
-
         setupConfig();
     }
 
@@ -53,9 +44,14 @@ public class AccountManager implements TEService {
      * Setup the config file that will contain the user accounts. These accounts will contain the users money amount.
      */
     public void setupConfig() {
+        accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
+        loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
+
         try {
+            accountConfig = loader.load();
+
             if (!accountsFile.exists()) {
-                accountsFile.createNewFile();
+                loader.save(accountConfig);
             }
         } catch (IOException e) {
             logger.warn("Could not create accounts config file!");
