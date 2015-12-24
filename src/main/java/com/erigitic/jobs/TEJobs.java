@@ -80,15 +80,6 @@ public class TEJobs {
         accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
 
-        jobsFile = new File(totalEconomy.getConfigDir(), "jobs.conf");
-        loader = HoconConfigurationLoader.builder().setFile(jobsFile).build();
-
-        try {
-            jobsConfig = loader.load();
-        } catch (IOException e) {
-            jobsConfig = loader.createEmptyNode(ConfigurationOptions.defaults());
-        }
-
         setupConfig();
 
         if (totalEconomy.isLoadSalary())
@@ -118,10 +109,13 @@ public class TEJobs {
      * Setup the jobs config
      */
     public void setupConfig() {
-        try {
-            if (!jobsFile.exists()) {
-                jobsFile.createNewFile();
+        jobsFile = new File(totalEconomy.getConfigDir(), "jobs.conf");
+        loader = HoconConfigurationLoader.builder().setFile(jobsFile).build();
 
+        try {
+            jobsConfig = loader.load();
+
+            if (!jobsFile.exists()) {
                 jobsConfig.getNode("preventJobFarming").setValue(false);
                 jobsConfig.getNode("jobs").setValue("Miner, Lumberjack, Warrior, Fisherman");
 
