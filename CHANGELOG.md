@@ -1,6 +1,11 @@
+v 1.2.3
+
++ Updated to latest version of Sponge (Command fixed)
++ View Balance command (/viewbalance [PLAYER]) (/vbal [PLAYER])
+
 v 1.2.2
 
-+Update to latest version of Sponge
++ Updated to latest version of Sponge
 
 V 1.2.1
 
