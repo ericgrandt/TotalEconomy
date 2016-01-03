@@ -2,6 +2,7 @@ package com.erigitic.main;
 
 import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
+import com.erigitic.config.TECurrency;
 import com.erigitic.jobs.TEJobs;
 import com.erigitic.service.TEService;
 import com.erigitic.shops.ShopKeeper;
@@ -21,12 +22,15 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.service.ProviderExistsException;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.text.Text;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.security.ProviderException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
@@ -53,6 +57,8 @@ public class TotalEconomy {
 
     private ConfigurationNode config = null;
 
+    private Currency defaultCurrency;
+
     private AccountManager accountManager;
     private TEJobs teJobs;
     private ShopKeeper shopKeeper;
@@ -71,6 +77,9 @@ public class TotalEconomy {
     @Listener
     public void preInit(GamePreInitializationEvent event) {
         setupConfig();
+
+        defaultCurrency = new TECurrency(Text.of(config.getNode("currency-singular").getValue()),
+                Text.of(config.getNode("currency-plural").getValue()), Text.of(config.getNode("symbol").getValue()), 2, true);
 
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
@@ -98,13 +107,15 @@ public class TotalEconomy {
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
 
-        if (!game.getServiceManager().provide(TEService.class).isPresent()) {
-            try {
-                game.getServiceManager().setProvider(this, TEService.class, accountManager);
-            } catch (ProviderExistsException e) {
-                logger.warn("Provider does not exist!");
-            }
-        }
+//        if (!game.getServiceManager().provide(TEService.class).isPresent()) {
+//            try {
+//                game.getServiceManager().setProvider(this, TEService.class, accountManager);
+//            } catch (ProviderException e) {
+//                logger.warn("Provider does not exist!");
+//            }
+//        }
+
+        game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
 
         if (loadJobs)
             game.getEventManager().registerListeners(this, teJobs);
@@ -147,6 +158,8 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "permissions").setValue(false);
                 config.getNode("features", "shopkeeper").setValue(true);
                 config.getNode("startbalance").setValue(100);
+                config.getNode("currency-singular").setValue("Dollar");
+                config.getNode("currency-plural").setValue("Dollars");
                 config.getNode("symbol").setValue("$");
                 loader.save(config);
             }
@@ -162,66 +175,66 @@ public class TotalEconomy {
         //TODO: Add command that will display all of the enabled features. Maybe even disabled features?
 
         CommandSpec payCommand = CommandSpec.builder()
-                .description(Texts.of("Pay another player"))
+                .description(Text.of("Pay another player"))
                 .permission("totaleconomy.command.pay")
                 .executor(new PayCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player")),
-                        GenericArguments.string(Texts.of("amount")))
+                .arguments(GenericArguments.player(Text.of("player")),
+                        GenericArguments.string(Text.of("amount")))
                 .build();
 
         CommandSpec adminPayCommand = CommandSpec.builder()
-                .description(Texts.of("Pay a player without removing money from your balance."))
+                .description(Text.of("Pay a player without removing money from your balance."))
                 .permission("totaleconomy.command.adminpay")
                 .executor(new AdminPayCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player")),
-                        GenericArguments.string(Texts.of("amount")))
+                .arguments(GenericArguments.player(Text.of("player")),
+                        GenericArguments.string(Text.of("amount")))
                 .build();
 
         CommandSpec balanceCommand = CommandSpec.builder()
-                .description(Texts.of("Display your balance"))
+                .description(Text.of("Display your balance"))
                 .permission("totaleconomy.command.balance")
                 .executor(new BalanceCommand(this))
                 .build();
 
         CommandSpec viewBalanceCommand = CommandSpec.builder()
-                .description(Texts.of("View the balance of another player"))
+                .description(Text.of("View the balance of another player"))
                 .permission("totaleconomy.command.balance")
                 .executor(new ViewBalanceCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player")))
+                .arguments(GenericArguments.player(Text.of("player")))
                 .build();
 
         CommandSpec setBalanceCommand = CommandSpec.builder()
-                .description(Texts.of("Set a player's balance"))
+                .description(Text.of("Set a player's balance"))
                 .permission("totaleconomy.command.setbalance")
                 .executor(new SetBalanceCommand(this))
-                .arguments(GenericArguments.player(Texts.of("player")),
-                        GenericArguments.string(Texts.of("amount")))
+                .arguments(GenericArguments.player(Text.of("player")),
+                        GenericArguments.string(Text.of("amount")))
                 .build();
 
         //Only enables job commands if the value for jobs in config is set to true
         if (loadJobs == true) {
             CommandSpec jobSetCmd = CommandSpec.builder()
-                    .description(Texts.of("Set your job"))
+                    .description(Text.of("Set your job"))
                     .permission("totaleconomy.command.jobset")
                     .executor(new JobCommand(this))
-                    .arguments(GenericArguments.string(Texts.of("jobName")))
+                    .arguments(GenericArguments.string(Text.of("jobName")))
                     .build();
 
             CommandSpec jobNotifyToggle = CommandSpec.builder()
-                    .description(Texts.of("Toggle job notifications on/off"))
+                    .description(Text.of("Toggle job notifications on/off"))
                     .permission("totaleconomy.command.jobtoggle")
                     .executor(new JobToggleCommand(this))
                     .build();
 
             //TODO: Implement later?
 //            CommandSpec jobInfoCmd = CommandSpec.builder()
-//                    .description(Texts.of("Prints out a list of items that reward exp and money for the current job"))
+//                    .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
 //                    .permission("totaleconomy.command.jobinfo")
 //                    .executor(new JobInfoCommand(this))
 //                    .build();
 
             CommandSpec jobCommand = CommandSpec.builder()
-                    .description(Texts.of("Display list of jobs."))
+                    .description(Text.of("Display list of jobs."))
                     .permission("totaleconomy.command.job")
                     .executor(new JobCommand(this))
                     .child(jobSetCmd, "set", "s")
@@ -269,7 +282,7 @@ public class TotalEconomy {
         return configDir;
     }
 
-    public float getStartingBalance() { return config.getNode("startbalance").getFloat(); }
+    public BigDecimal getStartingBalance() { return new BigDecimal(config.getNode("startbalance").getString()); }
 
     public String getCurrencySymbol() {
         return config.getNode("symbol").getValue().toString();
@@ -280,6 +293,10 @@ public class TotalEconomy {
     }
 
     public Game getGame() { return game; }
+
+    public Currency getDefaultCurrency() {
+        return defaultCurrency;
+    }
 
     public boolean isLoadSalary() {
         return loadSalary;

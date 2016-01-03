@@ -9,7 +9,6 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextStyles;
 
 /**
@@ -29,7 +28,7 @@ public class JobInfoCommand implements CommandExecutor {
             Player sender = ((Player) src).getPlayer().get();
             String jobName = teJobs.getPlayerJob(sender);
 
-            Text information = Texts.builder("\n" + jobName + " Info\n\n").style(TextStyles.BOLD)
+            Text information = Text.builder("\n" + jobName + " Info\n\n").style(TextStyles.BOLD)
                     .build();
 
             sender.sendMessage(information);
