@@ -1,27 +1,32 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.service.TEService;
 import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.service.context.ContextCalculator;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.economy.account.Account;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.account.VirtualAccount;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * Created by Erigitic on 5/2/2015.
  */
-public class AccountManager implements TEService {
+public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
     private Logger logger;
     private File accountsFile;
@@ -65,138 +70,68 @@ public class AccountManager implements TEService {
      * @param uuid object representing the UUID of a player
      */
     @Override
-    public void createAccount(UUID uuid) {
+    public Optional<UniqueAccount> createAccount(UUID uuid) {
+        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
+
         try {
-            if (accountConfig.getNode(uuid.toString(), "balance").getValue() == null) {
-                BigDecimal startBalance = new BigDecimal(totalEconomy.getStartingBalance());
-                accountConfig.getNode(uuid.toString(), "balance").setValue(startBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
+            if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() == null) {
+                TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
+
+                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
                 accountConfig.getNode(uuid.toString(), "jobnotifications").setValue("true");
-            }
 
-            loader.save(accountConfig);
+                loader.save(accountConfig);
+
+                return Optional.of(playerAccount);
+            }
         } catch (IOException e) {
             logger.warn("Could not create account!");
         }
+
+        return null;
     }
 
-    /**
-     * Checks if the specified player has an account. If not, one will be created.
-     *
-     * @param uuid object representing the UUID of a player
-     *
-     * @return weather or not the player has an account
-     */
+    //TODO: Implement later. Some cool things can be done with this.
     @Override
-    public boolean hasAccount(UUID uuid) {
-        if (accountConfig.getNode(uuid.toString()) != null)
-            return true;
-        else
-            createAccount(uuid);
-
-        return false;
+    public Optional<VirtualAccount> createVirtualAccount(String identifier) {
+        return null;
     }
 
-    /**
-     * Add currency to player's balance.
-     *
-     * @param uuid object representing the UUID of a player
-     * @param amount amount to be added to balance
-     */
     @Override
-    public void addToBalance(UUID uuid, BigDecimal amount, boolean notify) {
-        if (hasAccount(uuid)) {
-            BigDecimal newBalance = new BigDecimal(getBalance(uuid).toString()).add(new BigDecimal(amount.toString()));
+    public Optional<UniqueAccount> getAccount(UUID uuid) {
+        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
 
-            try {
-                accountConfig.getNode(uuid.toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
-                loader.save(accountConfig);
+        if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null) {
+            TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
 
-                if (notify)
-                    server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been added to your balance."));
-            } catch (IOException e) {
-                logger.warn("Could not add to player balance!");
-            }
+            return Optional.of(playerAccount);
+        } else {
+            return createAccount(uuid);
         }
     }
 
-    /**
-     * Removes an amount from the specified player's balance. Checks if the player has a balance greater then or equal to
-     * the amount being removed.
-     *
-     * @param uuid object representing the UUID of a player
-     * @param amount amount to be removed from balance
-     */
+    //TODO: Implement later. For virtual accounts.
     @Override
-    public void removeFromBalance(UUID uuid, BigDecimal amount) {
-        if (hasAccount(uuid)) {
-            BigDecimal newBalance = new BigDecimal(getBalance(uuid).toString()).subtract(new BigDecimal(amount.toString()));
-
-            try {
-                accountConfig.getNode(uuid.toString(), "balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN).toString());
-                loader.save(accountConfig);
-
-                server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.GOLD, totalEconomy.getCurrencySymbol(), amount, TextColors.GRAY, " has been removed from your balance."));
-            } catch (IOException e) {
-                logger.warn("Could not remove from player balance!");
-            }
-        }
+    public Optional<Account> getAccount(String string) {
+        return null;
     }
 
-    /**
-     * Set a player's balance to the set amount
-     *
-     * @param uuid object representing the UUID of a player
-     * @param amount amount to set the balance to
-     */
     @Override
-    public void setBalance(UUID uuid, BigDecimal amount) {
-        try {
-            accountConfig.getNode(uuid.toString(), "balance").setValue(amount).toString();
-            loader.save(accountConfig);
-        } catch (IOException e) {
-            logger.warn("Could not set player balance!");
-        }
+    public Currency getDefaultCurrency() {
+        return totalEconomy.getDefaultCurrency();
     }
 
-    /**
-     * Checks if the player has enough money in there balance to remove from.
-     *
-     * @param uuid object representing the UUID of a player
-     * @param amount amount to be checked
-     *
-     * @return boolean weather or not the player has enough money in balance
-     */
+    //TODO: Possibly implement multiple currencies. Need some input on it. Up to the users.
     @Override
-    public boolean hasMoney(UUID uuid, BigDecimal amount) {
-        BigDecimal balance = getBalance(uuid);
-
-        int result = amount.compareTo(balance);
-
-        if (result == -1 || result == 0)
-            return true;
-        else
-            server.getPlayer(uuid).get().sendMessage(Texts.of(TextColors.RED, "[Total Economy] You do not have the funds to do this"));
-
-        return false;
+    public Set<Currency> getCurrencies() {
+        return null;
     }
 
-    /**
-     * Get the balance for the specified player.
-     *
-     * @param uuid object representing the UUID of a player
-     *
-     * @return BigDecimal the balance
-     */
+    //TODO: Figure out what this does. Currently have no idea. Let's hope it does not break something.
     @Override
-    public BigDecimal getBalance(UUID uuid) {
-        BigDecimal balance = new BigDecimal(0);
+    public void registerContextCalculator(ContextCalculator calculator) {
 
-        if (hasAccount(uuid)) {
-            balance = new BigDecimal(accountConfig.getNode(uuid.toString(), "balance").getString());
-        }
-
-        return balance.setScale(2, BigDecimal.ROUND_DOWN);
     }
 
     public void toggleNotifications(Player player) {
@@ -214,12 +149,20 @@ public class AccountManager implements TEService {
             loader.save(accountConfig);
 
             if (notify == true)
-                player.sendMessage(Texts.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
+                player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
             else
-                player.sendMessage(Texts.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
+                player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
         } catch (IOException e) {
-            player.sendMessage(Texts.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+            player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
             logger.warn("Could not save notification change!");
+        }
+    }
+
+    public void saveAccountConfig() {
+        try {
+            loader.save(accountConfig);
+        } catch (IOException e) {
+            logger.error("Could not save the account configuration file!");
         }
     }
 

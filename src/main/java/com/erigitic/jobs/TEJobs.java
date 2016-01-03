@@ -1,13 +1,13 @@
 package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
+import com.erigitic.config.TEAccount;
 import com.erigitic.jobs.jobs.FishermanJob;
 import com.erigitic.jobs.jobs.LumberjackJob;
 import com.erigitic.jobs.jobs.MinerJob;
 import com.erigitic.jobs.jobs.WarriorJob;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -25,14 +25,15 @@ import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
 
@@ -92,12 +93,14 @@ public class TEJobs {
 
         task = payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
-                    BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getFloat());
+                    BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getString());
                     boolean salaryDisabled = jobsConfig.getNode(getPlayerJob(player), "disablesalary").getBoolean();
 
                     if (!salaryDisabled) {
-                        accountManager.addToBalance(player.getUniqueId(), salary, false);
-                        player.sendMessage(Texts.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
+                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of("SalaryTask"));
+                        player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
                                 totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                     }
                 }
@@ -155,7 +158,7 @@ public class TEJobs {
         }
 
         if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean() == true)
-            player.sendMessage(Texts.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
+            player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
                     " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }
 
@@ -175,7 +178,7 @@ public class TEJobs {
         if (playerCurExp >= expToLevel) {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(playerLevel + 1);
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(playerCurExp - expToLevel);
-            player.sendMessage(Texts.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
+            player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
                     playerLevel + 1, " ", jobName, "."));
         }
     }
@@ -210,12 +213,12 @@ public class TEJobs {
                     logger.warn("Could not save account config while setting job!");
                 }
 
-                player.sendMessage(Texts.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
+                player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
             } else {
-                player.sendMessage(Texts.of(TextColors.RED, "You do not have permission to become this job."));
+                player.sendMessage(Text.of(TextColors.RED, "You do not have permission to become this job."));
             }
         } else {
-            player.sendMessage(Texts.of(TextColors.RED, "[TEJobs] This job does not exist"));
+            player.sendMessage(Text.of(TextColors.RED, "[TEJobs] This job does not exist"));
         }
     }
 
@@ -297,8 +300,8 @@ public class TEJobs {
         SignData data = event.getText();
         Text lineOne = data.lines().get(0);
         Text lineTwo = data.lines().get(1);
-        String lineOnePlain = Texts.toPlain(lineOne);
-        String lineTwoPlain = Texts.toPlain(lineTwo);
+        String lineOnePlain = lineOne.toPlain();
+        String lineTwoPlain = lineTwo.toPlain();
 
         if (lineOnePlain.equals("[TEJobs]")) {
             lineOne = lineOne.builder().color(TextColors.GOLD).build();
@@ -308,11 +311,11 @@ public class TEJobs {
             if (jobExists(lineTwoPlain)) {
                 String jobName = convertToTitle(lineTwoPlain);
 
-                lineTwo = Texts.of(jobName).builder().color(TextColors.GRAY).build();
+                lineTwo = Text.of(jobName).builder().color(TextColors.GRAY).build();
 
                 data.set(data.lines().set(1, lineTwo));
-                data.set(data.lines().set(2, Texts.of()));
-                data.set(data.lines().set(3, Texts.of()));
+                data.set(data.lines().set(2, Text.of()));
+                data.set(data.lines().set(3, Text.of()));
             }
         }
     }
@@ -332,8 +335,10 @@ public class TEJobs {
 
                     if (data.isPresent()) {
                         SignData signData = data.get();
-                        String lineOne = Texts.toPlain(signData.lines().get(0));
-                        String lineTwo = Texts.toPlain(signData.lines().get(1));
+                        Text lineOneText = signData.lines().get(0);
+                        Text lineTwoText = signData.lines().get(1);
+                        String lineOne = lineOneText.toPlain();
+                        String lineTwo = lineTwoText.toPlain();
 
                         if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
                             setJob(player, lineTwo);
@@ -343,12 +348,6 @@ public class TEJobs {
             }
         }
     }
-
-
-    /**
-     * Begin all the job listeners
-     */
-
 
     /**
      * Used for the break option in jobs. Will check if the job has the break node and if it does it will check if the
@@ -372,16 +371,24 @@ public class TEJobs {
 
             if (jobsConfig.getNode(playerJob).getValue() != null) {
                 if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                    if (preventFarming)
+                    if (preventFarming) {
                         blockLoc.setBlockType(BlockTypes.AIR);
-                    //event.getSourceTransform().getLocation().setBlockType(BlockTypes.AIR);
+                    }
 
+                    //TODO: Simplify all the code below into a single function so I do not have to rewrite it for every event.
                     int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
                     boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
+                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                    TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+
+                    if (notify) {
+                        player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                    }
+
                     addExp(player, expAmount);
-                    accountManager.addToBalance(playerUUID, payAmount, notify);
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobBreakBlock"));
                     checkForLevel(player);
                 }
             }
@@ -402,11 +409,18 @@ public class TEJobs {
             if (jobsConfig.getNode(playerJob).getValue() != null) {
                 if (hasPlaceNode && jobsConfig.getNode(playerJob, "place", blockName).getValue() != null) {
                     int expAmount = jobsConfig.getNode(playerJob, "place", blockName, "expreward").getInt();
-                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
                     boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
+                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                    TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+
+                    if (notify) {
+                        player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                    }
+
                     addExp(player, expAmount);
-                    accountManager.addToBalance(playerUUID, payAmount, notify);
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobPlaceBlock"));
                     checkForLevel(player);
                 }
             }
@@ -433,11 +447,18 @@ public class TEJobs {
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasKillNode && jobsConfig.getNode(playerJob, "kill", victimName).getValue() != null) {
                         int expAmount = jobsConfig.getNode(playerJob, "kill", victimName, "expreward").getInt();
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "kill", victimName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "kill", victimName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+
+                        if (notify) {
+                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                        }
+
                         addExp(player, expAmount);
-                        accountManager.addToBalance(playerUUID, payAmount, notify);
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobKillEntity"));
                         checkForLevel(player);
                     }
                 }
@@ -463,11 +484,18 @@ public class TEJobs {
 
                     if (hasCatchNode && jobsConfig.getNode(playerJob, "catch", fishName).getValue() != null) {
                         int expAmount = jobsConfig.getNode(playerJob, "catch", fishName, "expreward").getInt();
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "catch", fishName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "catch", fishName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+
+                        if (notify) {
+                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                        }
+
                         addExp(player, expAmount);
-                        accountManager.addToBalance(playerUUID, payAmount, notify);
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobCatchFish"));
                         checkForLevel(player);
                     }
                 }

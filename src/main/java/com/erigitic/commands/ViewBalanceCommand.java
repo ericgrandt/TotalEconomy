@@ -1,6 +1,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
+import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
@@ -9,8 +10,10 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+
+import java.math.BigDecimal;
 
 /**
  * Created by Erigitic on 12/22/2015.
@@ -33,7 +36,14 @@ public class ViewBalanceCommand implements CommandExecutor {
 
             if (playerArg instanceof Player) {
                 Player recipient = (Player) playerArg;
-                sender.sendMessage(Texts.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), accountManager.getBalance(recipient.getUniqueId())));
+
+                TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+
+                Text symbol = accountManager.getDefaultCurrency().getSymbol();
+                BigDecimal balance = recipientAccount.getBalance(accountManager.getDefaultCurrency());
+                Text formattedBal = accountManager.getDefaultCurrency().format(balance);
+
+                sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, symbol, formattedBal));
             }
         }
 
