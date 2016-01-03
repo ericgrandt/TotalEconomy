@@ -1,3 +1,7 @@
+v 1.3.0
+
++ Updated to use the Economy API and to work with the latest version of Sponge
+
 v 1.2.3
 
 + Updated to latest version of Sponge (Command fixed)
