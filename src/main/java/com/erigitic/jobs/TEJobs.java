@@ -32,7 +32,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
@@ -275,6 +274,10 @@ public class TEJobs {
      */
     public String getJobList() {
         return jobsConfig.getNode("jobs").getString();
+    }
+
+    public ConfigurationNode getJobsConfig() {
+        return jobsConfig;
     }
 
     /**
