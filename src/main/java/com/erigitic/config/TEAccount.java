@@ -11,9 +11,7 @@ import org.spongepowered.api.service.economy.transaction.*;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by Erigitic on 1/1/2016.
@@ -64,12 +62,12 @@ public class TEAccount implements UniqueAccount {
             return balance;
         }
 
-        return null;
+        return BigDecimal.ZERO;
     }
 
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return null;
+        return new HashMap<Currency, BigDecimal>();
     }
 
     @Override
@@ -89,7 +87,7 @@ public class TEAccount implements UniqueAccount {
     //TODO: Implement later
     @Override
     public TransactionResult resetBalances(Cause cause, Set<Context> contexts) {
-        return null;
+        return new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
     }
 
     @Override
@@ -165,11 +163,11 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public String getIdentifier() {
-        return "";
+        return uuid.toString();
     }
 
     @Override
     public Set<Context> getActiveContexts() {
-        return null;
+        return new HashSet<Context>();
     }
 }

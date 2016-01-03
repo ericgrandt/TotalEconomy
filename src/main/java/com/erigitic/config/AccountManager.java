@@ -19,6 +19,7 @@ import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -89,13 +90,13 @@ public class AccountManager implements EconomyService {
             logger.warn("Could not create account!");
         }
 
-        return null;
+        return Optional.empty();
     }
 
     //TODO: Implement later. Some cool things can be done with this.
     @Override
     public Optional<VirtualAccount> createVirtualAccount(String identifier) {
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -114,7 +115,7 @@ public class AccountManager implements EconomyService {
     //TODO: Implement later. For virtual accounts.
     @Override
     public Optional<Account> getAccount(String string) {
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -125,7 +126,7 @@ public class AccountManager implements EconomyService {
     //TODO: Possibly implement multiple currencies. Need some input on it. Up to the users.
     @Override
     public Set<Currency> getCurrencies() {
-        return null;
+        return new HashSet<Currency>();
     }
 
     //TODO: Figure out what this does. Currently have no idea. Let's hope it does not break something.
