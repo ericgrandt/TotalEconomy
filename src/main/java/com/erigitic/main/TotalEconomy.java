@@ -4,7 +4,6 @@ import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.jobs.TEJobs;
-import com.erigitic.service.TEService;
 import com.erigitic.shops.ShopKeeper;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -29,12 +28,10 @@ import org.spongepowered.api.text.Text;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Path;
-import java.security.ProviderException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.2.3")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.3.0")
 public class TotalEconomy {
 
     @Inject
