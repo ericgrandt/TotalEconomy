@@ -33,7 +33,6 @@ public class AccountManager implements EconomyService {
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
-    private Server server;
 
     /**
      * Default Constructor so we can access this class from elsewhere
@@ -41,7 +40,6 @@ public class AccountManager implements EconomyService {
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
-        server = totalEconomy.getServer();
 
         setupConfig();
     }

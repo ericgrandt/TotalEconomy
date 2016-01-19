@@ -72,22 +72,33 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        TransactionResult transactionResult;
+
         if (hasBalance(currency, contexts)) {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
             accountManager.saveAccountConfig();
 
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+            return transactionResult;
         }
 
-        return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+        return transactionResult;
     }
 
     //TODO: Implement later
     @Override
     public TransactionResult resetBalances(Cause cause, Set<Context> contexts) {
-        return new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+        return transactionResult;
     }
 
     @Override
@@ -97,6 +108,8 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        TransactionResult transactionResult;
+
         if (hasBalance(currency, contexts)) {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
             BigDecimal curBalance = getBalance(currency, contexts);
@@ -105,14 +118,22 @@ public class TEAccount implements UniqueAccount {
             accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
             accountManager.saveAccountConfig();
 
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+            return transactionResult;
         }
 
-        return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+        return transactionResult;
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        TransactionResult transactionResult;
+
         if (hasBalance(currency, contexts)) {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
             BigDecimal curBalance =  getBalance(currency, contexts);
@@ -122,17 +143,28 @@ public class TEAccount implements UniqueAccount {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
                 accountManager.saveAccountConfig();
 
-                return new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+                return transactionResult;
             } else {
-                return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.DEPOSIT);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+                return transactionResult;
             }
         }
 
-        return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+        return transactionResult;
     }
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        TransferResult transferResult;
+
         if (hasBalance(currency, contexts)) {
             BigDecimal curBalance = getBalance(currency, contexts);
             BigDecimal newBalance = curBalance.subtract(amount);
@@ -144,16 +176,28 @@ public class TEAccount implements UniqueAccount {
                 if (to.hasBalance(currency)) {
                     to.deposit(currency, amount, cause, contexts);
 
-                    return new TETransferResult(this, to, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
+                    transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
+                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
+
+                    return transferResult;
                 } else {
-                    return new TETransferResult(this, to, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+                    transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
+
+                    return transferResult;
                 }
             } else {
-                return new TETransferResult(this, to, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
+                transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
+
+                return transferResult;
             }
         }
 
-        return new TETransferResult(this, to, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+        transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
+
+        return transferResult;
     }
 
     @Override

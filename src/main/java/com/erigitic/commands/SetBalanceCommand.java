@@ -34,7 +34,7 @@ public class SetBalanceCommand implements CommandExecutor {
 
         TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
 
-        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of("Set Balance"));
+        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
 
         sender.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, symbol, amount));
 

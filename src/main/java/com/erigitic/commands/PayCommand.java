@@ -56,7 +56,7 @@ public class PayCommand implements CommandExecutor {
                         TEAccount playerAccount = (TEAccount) accountManager.getAccount(sender.getUniqueId()).get();
                         TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
 
-                        TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of("Pay"));
+                        TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
 
                         if (transferResult.getResult() == ResultType.SUCCESS) {
                             sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.getSymbol(),

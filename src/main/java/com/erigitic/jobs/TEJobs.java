@@ -98,7 +98,7 @@ public class TEJobs {
                     if (!salaryDisabled) {
                         TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
 
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of("SalaryTask"));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of("TotalEconomy"));
                         player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
                                 totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                     }
@@ -391,7 +391,7 @@ public class TEJobs {
                     }
 
                     addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobBreakBlock"));
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
                     checkForLevel(player);
                 }
             }
@@ -423,7 +423,7 @@ public class TEJobs {
                     }
 
                     addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobPlaceBlock"));
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
                     checkForLevel(player);
                 }
             }
@@ -461,7 +461,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobKillEntity"));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
                         checkForLevel(player);
                     }
                 }
@@ -498,7 +498,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("JobCatchFish"));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
                         checkForLevel(player);
                     }
                 }
