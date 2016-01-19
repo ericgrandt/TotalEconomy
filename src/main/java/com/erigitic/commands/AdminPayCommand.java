@@ -87,7 +87,7 @@ public class AdminPayCommand implements CommandExecutor {
                             logger.info("Command successful.");
 
                             recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, " server."));
+                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, "SERVER."));
                         }
                     }
                 } else {
