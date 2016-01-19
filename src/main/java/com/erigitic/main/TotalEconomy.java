@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.3.0")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.3.1")
 public class TotalEconomy {
 
     @Inject
@@ -85,6 +85,8 @@ public class TotalEconomy {
 
         accountManager = new AccountManager(this);
 
+        game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
+
         //Only setup job stuff if config is set to load jobs
         if (loadJobs == true) {
             teJobs = new TEJobs(this);
@@ -103,16 +105,6 @@ public class TotalEconomy {
     @Listener
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
-
-//        if (!game.getServiceManager().provide(TEService.class).isPresent()) {
-//            try {
-//                game.getServiceManager().setProvider(this, TEService.class, accountManager);
-//            } catch (ProviderException e) {
-//                logger.warn("Provider does not exist!");
-//            }
-//        }
-
-        game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
 
         if (loadJobs)
             game.getEventManager().registerListeners(this, teJobs);
@@ -195,7 +187,7 @@ public class TotalEconomy {
 
         CommandSpec viewBalanceCommand = CommandSpec.builder()
                 .description(Text.of("View the balance of another player"))
-                .permission("totaleconomy.command.balance")
+                .permission("totaleconomy.command.viewbalance")
                 .executor(new ViewBalanceCommand(this))
                 .arguments(GenericArguments.player(Text.of("player")))
                 .build();
@@ -224,11 +216,11 @@ public class TotalEconomy {
                     .build();
 
             //TODO: Implement later?
-//            CommandSpec jobInfoCmd = CommandSpec.builder()
-//                    .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
-//                    .permission("totaleconomy.command.jobinfo")
-//                    .executor(new JobInfoCommand(this))
-//                    .build();
+            CommandSpec jobInfoCmd = CommandSpec.builder()
+                    .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
+                    .permission("totaleconomy.command.jobinfo")
+                    .executor(new JobInfoCommand(this))
+                    .build();
 
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Text.of("Display list of jobs."))
@@ -236,6 +228,7 @@ public class TotalEconomy {
                     .executor(new JobCommand(this))
                     .child(jobSetCmd, "set", "s")
                     .child(jobNotifyToggle, "toggle", "t")
+                    .child(jobInfoCmd, "info", "i")
                     .build();
 
 
