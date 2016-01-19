@@ -40,20 +40,21 @@ public class AdminPayCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+        String strAmount = (String) args.getOne("amount").get();
+        Object playerArg = args.getOne("player").get();
+
         if (src instanceof Player) {
             Player sender = ((Player) src).getPlayer().get();
-            Object playerArg = args.getOne("player").get();
-            String strAmount = (String) args.getOne("amount").get();
 
             if (totalEconomy.isNumeric(strAmount)) {
                 if (!strAmount.contains("-")) {
                     if (playerArg instanceof Player) {
-                        Player recipient = (Player) playerArg;
                         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+                        Player recipient = (Player) playerArg;
 
                         TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
 
-                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of("Admin Pay"));
+                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
 
                         //TODO: Check for ResultType.FAILED?
                         if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -61,7 +62,7 @@ public class AdminPayCommand implements CommandExecutor {
                                     amount, TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
 
                             recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, sender.getName()));
+                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), "."));
                         }
                     }
                 } else {
@@ -69,6 +70,31 @@ public class AdminPayCommand implements CommandExecutor {
                 }
             } else {
                 sender.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
+            }
+        } else {
+            if (totalEconomy.isNumeric(strAmount)) {
+                if (!strAmount.contains("-")) {
+                    if (playerArg instanceof Player) {
+                        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+                        Player recipient = (Player) playerArg;
+
+                        TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+
+                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
+
+                        //TODO: Check for ResultType.FAILED?
+                        if (transactionResult.getResult() == ResultType.SUCCESS) {
+                            logger.info("Command successful.");
+
+                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.getSymbol(),
+                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, " server."));
+                        }
+                    }
+                } else {
+                    logger.error("The amount must be positive.");
+                }
+            } else {
+                logger.error("The amount must only contain numbers and a single decimal point if needed.");
             }
         }
 
