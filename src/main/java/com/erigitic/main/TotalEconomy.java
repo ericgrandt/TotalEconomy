@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.3.1")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.3.2")
 public class TotalEconomy {
 
     @Inject
@@ -185,6 +185,12 @@ public class TotalEconomy {
                 .executor(new BalanceCommand(this))
                 .build();
 
+        CommandSpec balanceTopCommand = CommandSpec.builder()
+                .description(Text.of("Display the top balance"))
+                .permission("totaleconomy.command.balancetop")
+                .executor(new BalanceTopCommand(this))
+                .build();
+
         CommandSpec viewBalanceCommand = CommandSpec.builder()
                 .description(Text.of("View the balance of another player"))
                 .permission("totaleconomy.command.viewbalance")
@@ -238,6 +244,7 @@ public class TotalEconomy {
         game.getCommandManager().register(this, payCommand, "pay");
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
         game.getCommandManager().register(this, balanceCommand, "balance", "bal");
+        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
         game.getCommandManager().register(this, setBalanceCommand, "setbalance");
     }
