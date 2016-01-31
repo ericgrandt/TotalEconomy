@@ -91,9 +91,24 @@ public class AccountManager implements EconomyService {
         return Optional.empty();
     }
 
-    //TODO: Implement later. Some cool things can be done with this.
     @Override
     public Optional<VirtualAccount> createVirtualAccount(String identifier) {
+        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
+
+        try {
+            if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() == null) {
+                TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
+
+                accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
+
+                loader.save(accountConfig);
+
+                return Optional.of(virtualAccount);
+            }
+        } catch (IOException e) {
+            logger.warn("Could not create account!");
+        }
+
         return Optional.empty();
     }
 
@@ -106,14 +121,21 @@ public class AccountManager implements EconomyService {
 
             return Optional.of(playerAccount);
         } else {
-            return createAccount(uuid);
+            return Optional.empty();
         }
     }
 
-    //TODO: Implement later. For virtual accounts.
     @Override
-    public Optional<Account> getAccount(String string) {
-        return Optional.empty();
+    public Optional<Account> getAccount(String identifier) {
+        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
+
+        if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() != null) {
+            TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
+
+            return Optional.of(virtualAccount);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override

@@ -365,34 +365,38 @@ public class TEJobs {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
-            String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-            Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
 
-            //Checks if the users current job has the break node.
-            boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
-            boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
+            //TODO: Not really sure if this will fix anything but lets hope it does. Needs some testing.
+            if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
+                String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
+                Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
 
-            if (jobsConfig.getNode(playerJob).getValue() != null) {
-                if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                    if (preventFarming) {
-                        blockLoc.setBlockType(BlockTypes.AIR);
+                //Checks if the users current job has the break node.
+                boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+                boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
+
+                if (jobsConfig.getNode(playerJob).getValue() != null) {
+                    if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                        if (preventFarming) {
+                            blockLoc.setBlockType(BlockTypes.AIR);
+                        }
+
+                        //TODO: Simplify all the code below into a single function so I do not have to rewrite it for every event.
+                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+
+                        if (notify) {
+                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                        }
+
+                        addExp(player, expAmount);
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
+                        checkForLevel(player);
                     }
-
-                    //TODO: Simplify all the code below into a single function so I do not have to rewrite it for every event.
-                    int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                    boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
-
-                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
-
-                    TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
-
-                    if (notify) {
-                        player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
-                    }
-
-                    addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
-                    checkForLevel(player);
                 }
             }
         }
