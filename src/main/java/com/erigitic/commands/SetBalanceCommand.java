@@ -10,6 +10,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -32,9 +33,9 @@ public class SetBalanceCommand implements CommandExecutor {
         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
         Text symbol = accountManager.getDefaultCurrency().getSymbol();
 
-        TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
+        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
         sender.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, symbol, amount));
 

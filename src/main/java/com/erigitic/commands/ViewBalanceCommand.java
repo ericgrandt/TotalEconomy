@@ -3,7 +3,6 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -37,7 +36,7 @@ public class ViewBalanceCommand implements CommandExecutor {
             if (playerArg instanceof Player) {
                 Player recipient = (Player) playerArg;
 
-                TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
                 Text symbol = accountManager.getDefaultCurrency().getSymbol();
                 BigDecimal balance = recipientAccount.getBalance(accountManager.getDefaultCurrency());

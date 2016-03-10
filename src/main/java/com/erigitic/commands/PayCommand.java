@@ -2,7 +2,6 @@ package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
-import com.erigitic.config.TETransferResult;
 import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
@@ -12,7 +11,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.service.context.Context;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
@@ -53,10 +52,10 @@ public class PayCommand implements CommandExecutor {
                         Player recipient = (Player) playerArg;
                         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(sender.getUniqueId()).get();
-                        TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
+                        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                        TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
+                        TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
                         if (transferResult.getResult() == ResultType.SUCCESS) {
                             sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.getSymbol(),

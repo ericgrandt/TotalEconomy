@@ -26,6 +26,7 @@ import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -96,9 +97,9 @@ public class TEJobs {
                     boolean salaryDisabled = jobsConfig.getNode(getPlayerJob(player), "disablesalary").getBoolean();
 
                     if (!salaryDisabled) {
-                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of("TotalEconomy"));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", this)));
                         player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
                                 totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                     }
@@ -375,6 +376,7 @@ public class TEJobs {
                 boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
                 boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
 
+                //TODO: Consolidate this into a function so I do not have to dirty up the code.
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                         if (preventFarming) {
@@ -387,14 +389,14 @@ public class TEJobs {
 
                         BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (notify) {
                             player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
                         checkForLevel(player);
                     }
                 }
@@ -420,14 +422,14 @@ public class TEJobs {
 
                     BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                    TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+                    TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     if (notify) {
                         player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                     }
 
                     addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
                     checkForLevel(player);
                 }
             }
@@ -458,14 +460,14 @@ public class TEJobs {
 
                         BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "kill", victimName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (notify) {
                             player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
                         checkForLevel(player);
                     }
                 }
@@ -495,14 +497,14 @@ public class TEJobs {
 
                         BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "catch", fishName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                        TEAccount playerAccount = (TEAccount) accountManager.getAccount(player.getUniqueId()).get();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (notify) {
                             player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of("TotalEconomy"));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
                         checkForLevel(player);
                     }
                 }

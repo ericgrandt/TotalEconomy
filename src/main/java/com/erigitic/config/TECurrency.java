@@ -25,6 +25,16 @@ public class TECurrency implements Currency {
     }
 
     @Override
+    public String getName() {
+        return singular.toPlain();
+    }
+
+    @Override
+    public String getId() {
+        return "totaleconomy:" + singular.toPlain();
+    }
+
+    @Override
     public Text getDisplayName() {
         return singular;
     }

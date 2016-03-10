@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.3.2")
+@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.4.0")
 public class TotalEconomy {
 
     @Inject
@@ -130,7 +130,7 @@ public class TotalEconomy {
         if (event.getTargetEntity() instanceof Player) {
             Player player = event.getTargetEntity();
 
-            accountManager.createAccount(player.getUniqueId());
+            accountManager.getOrCreateAccount(player.getUniqueId());
         }
     }
 
@@ -183,6 +183,13 @@ public class TotalEconomy {
                 .description(Text.of("Display your balance"))
                 .permission("totaleconomy.command.balance")
                 .executor(new BalanceCommand(this))
+                .build();
+
+        CommandSpec virtualBalanceCommand = CommandSpec.builder()
+                .description(Text.of("Display your balance"))
+                .permission("totaleconomy.command.balance")
+                .executor(new VirtualBalanceCommand(this))
+                .arguments(GenericArguments.string(Text.of("identifier")))
                 .build();
 
         CommandSpec balanceTopCommand = CommandSpec.builder()

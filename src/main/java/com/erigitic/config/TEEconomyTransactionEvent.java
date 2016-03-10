@@ -1,6 +1,7 @@
 package com.erigitic.config;
 
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.economy.EconomyTransactionEvent;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 
@@ -17,7 +18,7 @@ public class TEEconomyTransactionEvent implements EconomyTransactionEvent {
 
     @Override
     public Cause getCause() {
-        return Cause.of("TotalEconomy");
+        return Cause.of(NamedCause.of("TotalEconomy", this));
     }
 
     @Override
