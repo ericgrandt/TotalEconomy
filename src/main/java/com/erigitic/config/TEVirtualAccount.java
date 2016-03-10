@@ -95,13 +95,15 @@ public class TEVirtualAccount implements VirtualAccount {
         return transactionResult;
     }
 
-    //TODO: Implement later
     @Override
-    public TransactionResult resetBalances(Cause cause, Set<Context> contexts) {
+    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
         TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
-        return transactionResult;
+        HashMap result = new HashMap<>();
+        result.put(accountManager.getDefaultCurrency(), transactionResult);
+
+        return result;
     }
 
     @Override

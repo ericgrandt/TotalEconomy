@@ -11,10 +11,10 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -52,9 +52,9 @@ public class AdminPayCommand implements CommandExecutor {
                         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
                         Player recipient = (Player) playerArg;
 
-                        TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+                        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
+                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
                         //TODO: Check for ResultType.FAILED?
                         if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -78,9 +78,9 @@ public class AdminPayCommand implements CommandExecutor {
                         BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
                         Player recipient = (Player) playerArg;
 
-                        TEAccount recipientAccount = (TEAccount) accountManager.getAccount(recipient.getUniqueId()).get();
+                        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of("TotalEconomy"));
+                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
                         //TODO: Check for ResultType.FAILED?
                         if (transactionResult.getResult() == ResultType.SUCCESS) {

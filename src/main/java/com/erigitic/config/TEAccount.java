@@ -92,13 +92,16 @@ public class TEAccount implements UniqueAccount {
         return transactionResult;
     }
 
-    //TODO: Implement later
     @Override
-    public TransactionResult resetBalances(Cause cause, Set<Context> contexts) {
+    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
         TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
-        return transactionResult;
+        //TODO: Do something different here?
+        Map result = new HashMap<>();
+        result.put(accountManager.getDefaultCurrency(), transactionResult);
+
+        return result;
     }
 
     @Override
@@ -201,13 +204,13 @@ public class TEAccount implements UniqueAccount {
     }
 
     @Override
-    public UUID getUUID() {
-        return uuid;
+    public String getIdentifier() {
+        return uuid.toString();
     }
 
     @Override
-    public String getIdentifier() {
-        return uuid.toString();
+    public UUID getUniqueId() {
+        return uuid;
     }
 
     @Override

@@ -6,14 +6,12 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
-import org.spongepowered.api.Server;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.account.VirtualAccount;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -69,73 +67,53 @@ public class AccountManager implements EconomyService {
      * @param uuid object representing the UUID of a player
      */
     @Override
-    public Optional<UniqueAccount> createAccount(UUID uuid) {
+    public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
+        TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
 
         try {
-            if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() == null) {
-                TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
-
+//            if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() == null) {
+            if (!hasAccount(uuid)) {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
                 accountConfig.getNode(uuid.toString(), "jobnotifications").setValue("true");
 
                 loader.save(accountConfig);
-
-                return Optional.of(playerAccount);
             }
         } catch (IOException e) {
             logger.warn("Could not create account!");
         }
 
-        return Optional.empty();
+        return Optional.of(playerAccount);
     }
 
     @Override
-    public Optional<VirtualAccount> createVirtualAccount(String identifier) {
+    public Optional<Account> getOrCreateAccount(String identifier) {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
+        TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
 
         try {
             if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() == null) {
-                TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
-
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
 
                 loader.save(accountConfig);
-
-                return Optional.of(virtualAccount);
             }
         } catch (IOException e) {
             logger.warn("Could not create account!");
         }
 
-        return Optional.empty();
+        return Optional.of(virtualAccount);
     }
 
     @Override
-    public Optional<UniqueAccount> getAccount(UUID uuid) {
-        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
-
-        if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null) {
-            TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
-
-            return Optional.of(playerAccount);
-        } else {
-            return Optional.empty();
-        }
+    public boolean hasAccount(UUID uuid) {
+        //accountConfig.getNode(uuid.toString(), getDefaultCurrency() + "-balance").getValue() != null
+        return accountConfig.getNode(uuid.toString()).getValue() != null;
     }
 
     @Override
-    public Optional<Account> getAccount(String identifier) {
-        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
-
-        if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() != null) {
-            TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
-
-            return Optional.of(virtualAccount);
-        } else {
-            return Optional.empty();
-        }
+    public boolean hasAccount(String identifier) {
+        return accountConfig.getNode(identifier).getValue() != null;
     }
 
     @Override
