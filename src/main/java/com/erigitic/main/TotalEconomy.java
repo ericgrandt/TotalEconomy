@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "TotalEconomy", name = "Total Economy", version = "1.4.0")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.4.0")
 public class TotalEconomy {
 
     @Inject
