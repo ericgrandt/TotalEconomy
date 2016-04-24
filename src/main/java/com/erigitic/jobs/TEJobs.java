@@ -310,17 +310,21 @@ public class TEJobs {
         if (lineOnePlain.equals("[TEJobs]")) {
             lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
 
-            data.set(data.lines().set(0, lineOne));
+            String jobName = convertToTitle(lineTwoPlain);
 
             if (jobExists(lineTwoPlain)) {
-                String jobName = convertToTitle(lineTwoPlain);
 
                 lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
 
-                data.set(data.lines().set(1, lineTwo));
-                data.set(data.lines().set(2, Text.of()));
-                data.set(data.lines().set(3, Text.of()));
+            } else {
+                lineTwo = Text.of(jobName).toBuilder().color(TextColors.RED).build();
             }
+
+            data.set(data.lines().set(0, lineOne));
+            data.set(data.lines().set(1, lineTwo));
+            data.set(data.lines().set(2, Text.of()));
+            data.set(data.lines().set(3, Text.of()));
+
         }
     }
 
