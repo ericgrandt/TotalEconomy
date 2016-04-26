@@ -30,12 +30,16 @@ public class SetBalanceCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        //Declare response for context
+        //Declare response for context & define default
         Text response = Text.of("TE: Report an issue on GitHub if you get to see this!");
 
         Player recipient = (Player) args.getOne("player").get();
-        //Wish this would've worked, but it doesn't...
-        if (recipient.isOnline()) {
+
+        //Exchange this with a working solution
+        Boolean playerOnline = true;
+
+        //TODO:Implement a way to check if the player is online
+        if (playerOnline) {
             //Player online -> Change balance
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
             Text symbol = accountManager.getDefaultCurrency().getSymbol();
@@ -44,7 +48,7 @@ public class SetBalanceCommand implements CommandExecutor {
 
             recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
-            //Format/Set reply:
+            //Set reply
             response = Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, symbol, amount);
         } else {
             //TODO:Implement a way of accessing accounts of offline players
