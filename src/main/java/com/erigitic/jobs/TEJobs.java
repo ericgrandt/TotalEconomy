@@ -308,23 +308,19 @@ public class TEJobs {
         String lineTwoPlain = lineTwo.toPlain();
 
         if (lineOnePlain.equals("[TEJobs]")) {
-            lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
-
-            String jobName = convertToTitle(lineTwoPlain);
-
-            if (jobExists(lineTwoPlain)) {
-
-                lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
-
-            } else {
-                lineTwo = Text.of(jobName).toBuilder().color(TextColors.RED).build();
-            }
+            lineOne = lineOne.builder().color(TextColors.GOLD).build();
 
             data.set(data.lines().set(0, lineOne));
-            data.set(data.lines().set(1, lineTwo));
-            data.set(data.lines().set(2, Text.of()));
-            data.set(data.lines().set(3, Text.of()));
 
+            if (jobExists(lineTwoPlain)) {
+                String jobName = convertToTitle(lineTwoPlain);
+
+                lineTwo = Text.of(jobName).builder().color(TextColors.GRAY).build();
+
+                data.set(data.lines().set(1, lineTwo));
+                data.set(data.lines().set(2, Text.of()));
+                data.set(data.lines().set(3, Text.of()));
+            }
         }
     }
 
@@ -332,26 +328,24 @@ public class TEJobs {
     public void onSignInteract(InteractBlockEvent event) {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
-            if (event.getTargetBlock().getLocation().isPresent()) {
-                Optional<TileEntity> tileEntityOpt = event.getTargetBlock().getLocation().get().getTileEntity();
+            Optional<TileEntity> tileEntityOpt = event.getTargetBlock().getLocation().get().getTileEntity();
 
-                if (tileEntityOpt.isPresent()) {
-                    TileEntity tileEntity = tileEntityOpt.get();
+            if (tileEntityOpt.isPresent()) {
+                TileEntity tileEntity = tileEntityOpt.get();
 
-                    if (tileEntity instanceof Sign) {
-                        Sign sign = (Sign) tileEntity;
-                        Optional<SignData> data = sign.getOrCreate(SignData.class);
+                if (tileEntity instanceof Sign) {
+                    Sign sign = (Sign) tileEntity;
+                    Optional<SignData> data = sign.getOrCreate(SignData.class);
 
-                        if (data.isPresent()) {
-                            SignData signData = data.get();
-                            Text lineOneText = signData.lines().get(0);
-                            Text lineTwoText = signData.lines().get(1);
-                            String lineOne = lineOneText.toPlain();
-                            String lineTwo = lineTwoText.toPlain();
+                    if (data.isPresent()) {
+                        SignData signData = data.get();
+                        Text lineOneText = signData.lines().get(0);
+                        Text lineTwoText = signData.lines().get(1);
+                        String lineOne = lineOneText.toPlain();
+                        String lineTwo = lineTwoText.toPlain();
 
-                            if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
-                                setJob(player, lineTwo);
-                            }
+                        if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
+                            setJob(player, lineTwo);
                         }
                     }
                 }
