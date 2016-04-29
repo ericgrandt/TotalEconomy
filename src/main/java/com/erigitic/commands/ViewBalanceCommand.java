@@ -9,6 +9,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -33,8 +34,8 @@ public class ViewBalanceCommand implements CommandExecutor {
             Player sender = ((Player) src).getPlayer().get();
             Object playerArg = args.getOne("player").get();
 
-            if (playerArg instanceof Player) {
-                Player recipient = (Player) playerArg;
+            if (playerArg instanceof User) {
+                User recipient = (User) playerArg;
 
                 TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
