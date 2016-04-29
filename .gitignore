@@ -5,6 +5,6 @@ build
 *.jar
 .settings
 bin
+/gradle
 .classpath
 .project
-gradle/wrapper/gradle-wrapper.properties
