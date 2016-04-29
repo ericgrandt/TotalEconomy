@@ -189,7 +189,7 @@ public class TotalEconomy {
                 .description(Text.of("View the balance of another player"))
                 .permission("totaleconomy.command.viewbalance")
                 .executor(new ViewBalanceCommand(this))
-                .arguments(GenericArguments.player(Text.of("player")))
+                .arguments(GenericArguments.user(Text.of("player")))
                 .build();
 
         CommandSpec setBalanceCommand = CommandSpec.builder()
