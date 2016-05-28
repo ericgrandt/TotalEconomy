@@ -28,7 +28,7 @@ tasks.withType(JavaCompile) {
 }
 
 minecraft {
-    version = "1.8.9-11.15.1.1902-1.8.9"
+    version = "1.8.9-11.15.1.1890-1.8.9"
     runDir = "run"
     mappings = 'snapshot_20160301'
 }
@@ -45,7 +45,8 @@ repositories {
 }
 
 dependencies {
-    compile "org.spongepowered:spongeapi:4.1.0-SNAPSHOT"   
+    compile "org.spongepowered:spongeapi:4.0.3"
+    compile files("libs/SpongeVanilla.jar")
 }
 
 processResources

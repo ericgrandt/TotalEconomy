@@ -3,7 +3,6 @@ package com.erigitic.jobs;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +35,7 @@ import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.common.item.inventory.adapter.impl.slots.SlotAdapter;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
@@ -46,10 +46,8 @@ import com.erigitic.jobs.jobs.WarriorJob;
 import com.erigitic.main.TotalEconomy;
 import com.google.common.collect.Maps;
 
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerWorkbench;
-import net.minecraft.inventory.ICrafting;
-import net.minecraft.inventory.IInventory;
+import net.minecraft.util.Tuple;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -76,7 +74,7 @@ public class TEJobs {
     private WarriorJob warrior;
     private FishermanJob fisherman;
 
-    private Map<UUID, Integer> currentCrafters = Maps.newHashMap();
+    private Map<UUID, Tuple<Integer, net.minecraft.item.ItemStack>> currentCrafters = Maps.newHashMap();
 
     /**
      * Constructor
@@ -115,12 +113,12 @@ public class TEJobs {
                     TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", this)));
-                    player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
-                            totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                    player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary,
+                            TextColors.GRAY, " has just been paid."));
                 }
             }
-        }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay")
-                .getInt(), TimeUnit.SECONDS).name("Pay Day").submit(totalEconomy);
+        }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS)
+                .name("Pay Day").submit(totalEconomy);
     }
 
     /**
@@ -173,8 +171,8 @@ public class TEJobs {
         }
 
         if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean() == true)
-            player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
-                    " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+            player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ",
+                    TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }
 
     /**
@@ -193,8 +191,8 @@ public class TEJobs {
         if (playerCurExp >= expToLevel) {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(playerLevel + 1);
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(playerCurExp - expToLevel);
-            player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
-                    playerLevel + 1, " ", jobName, "."));
+            player.sendMessage(
+                    Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD, playerLevel + 1, " ", jobName, "."));
         }
     }
 
@@ -548,75 +546,53 @@ public class TEJobs {
     @Listener
     public void onPlayerClickInventory(ClickInventoryEvent event, @Root Player player) {
         if (event.getTargetInventory() instanceof ContainerWorkbench) {
-            ContainerWorkbench inventory = (ContainerWorkbench) event.getTargetInventory();
+            event.getTransactions().forEach(t -> {
+                SlotAdapter slot = (SlotAdapter) t.getSlot();
+                ContainerWorkbench inventory = (ContainerWorkbench) event.getTargetInventory();
 
-            if (this.currentCrafters.containsKey(player.getUniqueId()) &&
-                    this.currentCrafters.get(player.getUniqueId()) == inventory.windowId) {
-                return;
-            } else if (this.currentCrafters.containsKey(player.getUniqueId())) {
-                this.currentCrafters.remove(player.getUniqueId());
-            }
+                if (slot.slotNumber == 0 && currentCrafters.containsKey(player.getUniqueId())
+                        && currentCrafters.get(player.getUniqueId()).getFirst() == inventory.windowId) {
+                    UUID playerUUID = player.getUniqueId();
+                    String playerJob = getPlayerJob(player);
+                    net.minecraft.item.ItemStack result = currentCrafters.get(player.getUniqueId()).getSecond();
+                    String itemId = result.getItem().getRegistryName();
+                    // Checks if the users current job has the craft node.
+                    boolean hasCraftNode = (jobsConfig.getNode(playerJob, "craft").getValue() != null);
+                    if (jobsConfig.getNode(playerJob).getValue() != null) {
+                        if (hasCraftNode && jobsConfig.getNode(playerJob, "craft", itemId).getValue() != null) {
+                            int expAmount = jobsConfig.getNode(playerJob, "craft", itemId, "expreward").getInt() * result.stackSize;
+                            boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
-            UUID playerUUID = player.getUniqueId();
-            String playerJob = getPlayerJob(player);
-            net.minecraft.item.ItemStack result = inventory.craftResult.getStackInSlot(0);
+                            BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "craft", itemId, "pay").getString())
+                                    .multiply(new BigDecimal(result.stackSize)).setScale(2,
+                                            BigDecimal.ROUND_DOWN);
 
-            if (result != null) {
-                String itemId = result.getItem().getRegistryName();
+                            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                // Checks if the users current job has the craft node.
-                boolean hasCraftNode = (jobsConfig.getNode(playerJob, "craft").getValue() != null);
-                if (jobsConfig.getNode(playerJob).getValue() != null) {
-                    if (hasCraftNode && jobsConfig.getNode(playerJob, "craft", itemId).getValue() != null) {
-                        int expAmount = jobsConfig.getNode(playerJob, "craft", itemId, "expreward").getInt();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                            if (notify) {
+                                player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount,
+                                        TextColors.GRAY, " has been added to your balance."));
+                            }
 
-                        BigDecimal payAmount =
-                                new BigDecimal(jobsConfig.getNode(playerJob, "craft", itemId, "pay").getString()).setScale(2,
-                                        BigDecimal.ROUND_DOWN);
-
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-
-                        if (notify) {
-                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY,
-                                    " has been added to your balance."));
+                            addExp(player, expAmount);
+                            playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                            checkForLevel(player);
                         }
-
-                        addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
-                        checkForLevel(player);
-                        this.currentCrafters.put(player.getUniqueId(), inventory.windowId);
-                        inventory.onCraftGuiOpened(new ICrafting() {
-
-                            @Override
-                            public void updateCraftingInventory(Container containerToSend, List<net.minecraft.item.ItemStack> itemsList) {
-                                ;
-                            }
-
-                            @Override
-                            public void sendSlotContents(Container containerToSend, int slot, net.minecraft.item.ItemStack stack) {
-                                if (containerToSend instanceof ContainerWorkbench) {
-                                    ContainerWorkbench container = (ContainerWorkbench) containerToSend;
-                                    if (container.craftResult.getStackInSlot(0) == null) {
-                                        currentCrafters.remove(player.getUniqueId());
-                                    }
-                                }
-                            }
-
-                            @Override
-                            public void sendProgressBarUpdate(Container containerIn, int varToUpdate, int newValue) {
-                                ;
-                            }
-
-                            @Override
-                            public void sendAllWindowProperties(Container p_175173_1_, IInventory p_175173_2_) {
-                                ;
-                            }
-
-                        });
                     }
+
+                    currentCrafters.remove(player.getUniqueId());
+                } else if (slot.slotNumber == 0 && currentCrafters.containsKey(player.getUniqueId())
+                        && currentCrafters.get(player.getUniqueId()).getFirst() != inventory.windowId
+                        && inventory.craftResult.getStackInSlot(0) != null) {
+                    currentCrafters.remove(player.getUniqueId());
+                    currentCrafters.put(player.getUniqueId(),
+                            new Tuple<Integer, net.minecraft.item.ItemStack>(inventory.windowId, inventory.craftResult.getStackInSlot(0)));
+                } else if (slot.slotNumber == 0 && !currentCrafters.containsKey(player.getUniqueId())
+                        && inventory.craftResult.getStackInSlot(0) != null) {
+                    currentCrafters.put(player.getUniqueId(),
+                            new Tuple<Integer, net.minecraft.item.ItemStack>(inventory.windowId, inventory.craftResult.getStackInSlot(0)));
                 }
-            }
+            });
         }
     }
 }

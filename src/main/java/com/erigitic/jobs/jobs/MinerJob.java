@@ -18,7 +18,7 @@ public class MinerJob implements Job {
             jobsConfig.getNode("Miner", "break", breakValues[i][0], "pay").setValue(breakValues[i][2]);
         }
 
-        String[][] craftingValues = {{"minecraft:iron_ingot", "5", "0.25"}};
+        String[][] craftingValues = {{"minecraft:diamond_pickaxe", "5", "0.25"}};
 
         for (int i = 0; i < craftingValues.length; i++) {
             jobsConfig.getNode("Miner", "craft", craftingValues[i][0], "expreward").setValue(craftingValues[i][1]);
