@@ -1,15 +1,11 @@
-apply plugin: 'java'
-
-version = '1.4.1'
-
-repositories {
-    mavenCentral()
-    maven {
-        name 'Sponge maven repo'
-        url 'http://repo.spongepowered.org/maven'
-    }
+plugins {
+    id 'org.spongepowered.plugin' version '0.5.2'
 }
 
+group = 'com.erigitic'
+version = '1.5.0'
+description = 'All in one economy plugin for Minecraft/Sponge'
+
 dependencies {
-    compile "org.spongepowered:spongeapi:4.0.1"
+    compile 'org.spongepowered:spongeapi:4.0.3'
 }
