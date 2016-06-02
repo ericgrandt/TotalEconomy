@@ -185,6 +185,12 @@ public class TotalEconomy {
                 .executor(new BalanceCommand(this))
                 .build();
 
+        CommandSpec balanceTopCommand = CommandSpec.builder()
+                .description(Text.of("Display top balances"))
+                .permission("totaleconomy.command.balancetop")
+                .executor(new BalanceTopCommand(this))
+                .build();
+
         CommandSpec viewBalanceCommand = CommandSpec.builder()
                 .description(Text.of("View the balance of another player"))
                 .permission("totaleconomy.command.viewbalance")
@@ -239,7 +245,8 @@ public class TotalEconomy {
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
         game.getCommandManager().register(this, balanceCommand, "balance", "bal");
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
-        game.getCommandManager().register(this, setBalanceCommand, "setbalance");
+        game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
+        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
     }
 
     /**

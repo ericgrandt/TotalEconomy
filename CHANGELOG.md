@@ -1,3 +1,8 @@
+v 1.5.0
+
++ Balance Top command (/balancetop, /baltop)
++ Added alias for the set balance command (/setbal)
+
 v 1.3.0
 
 + Updated to use the Economy API and to work with the latest version of Sponge
