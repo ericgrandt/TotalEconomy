@@ -126,7 +126,7 @@ public class TEAccount implements UniqueAccount {
                     accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(totalEconomy.getMoneyCap());
                 }
             }
-
+            
             accountManager.saveAccountConfig();
 
             transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
