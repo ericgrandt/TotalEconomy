@@ -47,6 +47,7 @@ public class PayCommand implements CommandExecutor {
             String strAmount = (String) args.getOne("amount").get();
 
             if (totalEconomy.isNumeric(strAmount)) {
+                // Check for a negative number
                 if (!strAmount.contains("-")) {
                     if (playerArg instanceof Player) {
                         Player recipient = (Player) playerArg;
