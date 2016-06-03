@@ -2,6 +2,7 @@ v 1.5.0
 
 + Balance Top command (/balancetop, /baltop)
 + Added alias for the set balance command (/setbal)
++ Added a money cap that can be enabled/disabled as well as set from the main config
 
 v 1.3.0
 
