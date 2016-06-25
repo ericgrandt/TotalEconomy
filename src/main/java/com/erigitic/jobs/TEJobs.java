@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Erigitic on 5/5/2015.
+ * Created by Eric on 5/5/2015.
  */
 public class TEJobs {
     private TotalEconomy totalEconomy;

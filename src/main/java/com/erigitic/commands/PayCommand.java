@@ -21,7 +21,7 @@ import org.spongepowered.api.text.format.TextColors;
 import java.math.BigDecimal;
 
 /**
- * Created by Erigitic on 5/3/2015.
+ * Created by Eric on 5/3/2015.
  */
 public class PayCommand implements CommandExecutor {
     private Logger logger;
@@ -59,11 +59,11 @@ public class PayCommand implements CommandExecutor {
                         TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
                         if (transferResult.getResult() == ResultType.SUCCESS) {
-                            sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
+                            sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
+                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
 
-                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, sender.getName()));
+                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
+                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName()));
                         } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
                             sender.sendMessage(Text.of(TextColors.RED, "Insufficient funds."));
                         }

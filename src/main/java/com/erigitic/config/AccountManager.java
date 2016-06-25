@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by Erigitic on 5/2/2015.
+ * Created by Eric on 5/2/2015.
  */
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;

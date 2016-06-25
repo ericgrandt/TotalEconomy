@@ -3,7 +3,7 @@ package com.erigitic.shops;
 import com.erigitic.main.TotalEconomy;
 
 /**
- * Created by Erigitic on 5/29/2015.
+ * Created by Eric on 5/29/2015.
  */
 public class ShopKeeper {
 

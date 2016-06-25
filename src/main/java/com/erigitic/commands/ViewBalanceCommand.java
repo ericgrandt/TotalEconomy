@@ -10,13 +10,14 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
 
 /**
- * Created by Erigitic on 12/22/2015.
+ * Created by Eric on 12/22/2015.
  */
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -39,11 +40,10 @@ public class ViewBalanceCommand implements CommandExecutor {
 
                 TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                Text symbol = accountManager.getDefaultCurrency().getSymbol();
+                Currency defaultCurrency = accountManager.getDefaultCurrency();
                 BigDecimal balance = recipientAccount.getBalance(accountManager.getDefaultCurrency());
-                Text formattedBal = accountManager.getDefaultCurrency().format(balance);
 
-                sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, symbol, formattedBal));
+                sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, defaultCurrency.format(balance)));
             }
         }
 
