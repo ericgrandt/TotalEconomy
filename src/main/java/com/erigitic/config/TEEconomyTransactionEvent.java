@@ -6,7 +6,7 @@ import org.spongepowered.api.event.economy.EconomyTransactionEvent;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 
 /**
- * Created by Erigitic on 1/16/2016.
+ * Created by Eric on 1/16/2016.
  */
 public class TEEconomyTransactionEvent implements EconomyTransactionEvent {
 

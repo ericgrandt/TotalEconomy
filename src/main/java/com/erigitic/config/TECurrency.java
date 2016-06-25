@@ -4,9 +4,11 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
- * Created by Erigitic on 1/1/2016.
+ * Created by Eric on 1/1/2016.
  */
 public class TECurrency implements Currency {
 

@@ -13,7 +13,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextStyles;
 
 /**
- * Created by Erigitic on 11/3/2015.
+ * Created by Eric on 11/3/2015.
  */
 public class JobInfoCommand implements CommandExecutor {
     private TEJobs teJobs;

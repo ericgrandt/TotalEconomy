@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * Created by Erigitic on 1/1/2016.
+ * Created by Eric on 1/1/2016.
  */
 public class TEAccount implements UniqueAccount {
 
