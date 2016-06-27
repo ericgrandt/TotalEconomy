@@ -10,7 +10,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 
 /**
- * Created by Erigitic on 5/29/2015.
+ * Created by Eric on 5/29/2015.
  */
 public class JobToggleCommand implements CommandExecutor {
     private AccountManager accountManager;

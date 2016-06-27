@@ -2,7 +2,9 @@ build
 .gradle
 .idea
 *.iml
+*.jar
 .settings
 bin
+/gradle
 .classpath
 .project

@@ -1,3 +1,13 @@
+v 1.5.0
+
++ Balance Top command (/balancetop, /baltop)
++ Added alias for the set balance command (/setbal)
++ Added a money cap that can be enabled/disabled as well as set from the main config
+
+v 1.4.0
+
++ Updated API version
+
 v 1.3.0
 
 + Updated to use the Economy API and to work with the latest version of Sponge

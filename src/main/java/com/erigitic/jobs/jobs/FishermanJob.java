@@ -4,7 +4,7 @@ import com.erigitic.jobs.Job;
 import ninja.leaping.configurate.ConfigurationNode;
 
 /**
- * Created by Erigitic on 11/3/2015.
+ * Created by Eric on 11/3/2015.
  */
 public class FishermanJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {

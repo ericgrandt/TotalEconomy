@@ -21,7 +21,7 @@ import org.spongepowered.api.text.format.TextColors;
 import java.math.BigDecimal;
 
 /**
- * Created by Erigitic on 9/7/2015.
+ * Created by Eric on 9/7/2015.
  */
 public class AdminPayCommand implements CommandExecutor {
     private Logger logger;
@@ -58,11 +58,11 @@ public class AdminPayCommand implements CommandExecutor {
 
                         //TODO: Check for ResultType.FAILED?
                         if (transactionResult.getResult() == ResultType.SUCCESS) {
-                            sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
+                            sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
+                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
 
-                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), "."));
+                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
+                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), "."));
                         }
                     }
                 } else {
@@ -86,8 +86,8 @@ public class AdminPayCommand implements CommandExecutor {
                         if (transactionResult.getResult() == ResultType.SUCCESS) {
                             logger.info("Command successful.");
 
-                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.getSymbol(),
-                                    amount, TextColors.GRAY, " from ", TextColors.GOLD, "SERVER."));
+                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
+                                    TextColors.GRAY, " from ", TextColors.GOLD, "SERVER."));
                         }
                     }
                 } else {

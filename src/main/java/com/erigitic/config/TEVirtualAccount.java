@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * Created by Erigitic on 1/30/2016.
+ * Created by Eric on 1/30/2016.
  */
 public class TEVirtualAccount implements VirtualAccount {
     private TotalEconomy totalEconomy;

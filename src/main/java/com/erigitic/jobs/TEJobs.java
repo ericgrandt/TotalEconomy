@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Erigitic on 5/5/2015.
+ * Created by Eric on 5/5/2015.
  */
 public class TEJobs {
     private TotalEconomy totalEconomy;
@@ -308,19 +308,20 @@ public class TEJobs {
         String lineTwoPlain = lineTwo.toPlain();
 
         if (lineOnePlain.equals("[TEJobs]")) {
-            lineOne = lineOne.builder().color(TextColors.GOLD).build();
+            lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
 
-            data.set(data.lines().set(0, lineOne));
+            String jobName = convertToTitle(lineTwoPlain);
 
             if (jobExists(lineTwoPlain)) {
-                String jobName = convertToTitle(lineTwoPlain);
-
-                lineTwo = Text.of(jobName).builder().color(TextColors.GRAY).build();
-
-                data.set(data.lines().set(1, lineTwo));
-                data.set(data.lines().set(2, Text.of()));
-                data.set(data.lines().set(3, Text.of()));
+                lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
+            } else {
+                lineTwo = Text.of(jobName).toBuilder().color(TextColors.RED).build();
             }
+
+            data.set(data.lines().set(0, lineOne));
+            data.set(data.lines().set(1, lineTwo));
+            data.set(data.lines().set(2, Text.of()));
+            data.set(data.lines().set(3, Text.of()));
         }
     }
 
@@ -328,24 +329,27 @@ public class TEJobs {
     public void onSignInteract(InteractBlockEvent event) {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
-            Optional<TileEntity> tileEntityOpt = event.getTargetBlock().getLocation().get().getTileEntity();
 
-            if (tileEntityOpt.isPresent()) {
-                TileEntity tileEntity = tileEntityOpt.get();
+            if (event.getTargetBlock().getLocation().isPresent()) {
+                Optional<TileEntity> tileEntityOpt = event.getTargetBlock().getLocation().get().getTileEntity();
 
-                if (tileEntity instanceof Sign) {
-                    Sign sign = (Sign) tileEntity;
-                    Optional<SignData> data = sign.getOrCreate(SignData.class);
+                if (tileEntityOpt.isPresent()) {
+                    TileEntity tileEntity = tileEntityOpt.get();
 
-                    if (data.isPresent()) {
-                        SignData signData = data.get();
-                        Text lineOneText = signData.lines().get(0);
-                        Text lineTwoText = signData.lines().get(1);
-                        String lineOne = lineOneText.toPlain();
-                        String lineTwo = lineTwoText.toPlain();
+                    if (tileEntity instanceof Sign) {
+                        Sign sign = (Sign) tileEntity;
+                        Optional<SignData> data = sign.getOrCreate(SignData.class);
 
-                        if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
-                            setJob(player, lineTwo);
+                        if (data.isPresent()) {
+                            SignData signData = data.get();
+                            Text lineOneText = signData.lines().get(0);
+                            Text lineTwoText = signData.lines().get(1);
+                            String lineOne = lineOneText.toPlain();
+                            String lineTwo = lineTwoText.toPlain();
+
+                            if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
+                                setJob(player, lineTwo);
+                            }
                         }
                     }
                 }

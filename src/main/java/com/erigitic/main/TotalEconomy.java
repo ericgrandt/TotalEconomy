@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.4.0")
+@Plugin(id = "totaleconomy")
 public class TotalEconomy {
 
     @Inject
@@ -65,6 +65,9 @@ public class TotalEconomy {
     private boolean jobPermissions = false;
 
     private boolean loadShopKeeper = true;
+    private boolean loadMoneyCap = false;
+
+    private BigDecimal moneyCap;
 
     /**
      * Setup all config files
@@ -81,7 +84,9 @@ public class TotalEconomy {
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
+
         loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
+        loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
 
         accountManager = new AccountManager(this);
 
@@ -94,6 +99,11 @@ public class TotalEconomy {
 
         if (loadShopKeeper == true) {
             shopKeeper = new ShopKeeper(this);
+        }
+
+        if (loadMoneyCap == true) {
+            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
+                    .setScale(2, BigDecimal.ROUND_DOWN);
         }
     }
 
@@ -142,10 +152,12 @@ public class TotalEconomy {
             config = loader.load();
 
             if (!defaultConf.exists()) {
-                config.getNode("features", "jobs", "enable").setValue(true);
-                config.getNode("features", "jobs", "salary").setValue(true);
-                config.getNode("features", "jobs", "permissions").setValue(false);
-                config.getNode("features", "shopkeeper").setValue(true);
+                config.getNode("features", "jobs", "enable").setValue(loadJobs);
+                config.getNode("features", "jobs", "salary").setValue(loadSalary);
+                config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
+                config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
+                config.getNode("features", "moneycap", "amount").setValue(10000000);
+                config.getNode("features", "shopkeeper").setValue(loadShopKeeper);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
@@ -161,8 +173,6 @@ public class TotalEconomy {
      * Creates and registers commands
      */
     private void createAndRegisterCommands() {
-        //TODO: Add command that will display all of the enabled features. Maybe even disabled features?
-
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
                 .permission("totaleconomy.command.pay")
@@ -185,15 +195,8 @@ public class TotalEconomy {
                 .executor(new BalanceCommand(this))
                 .build();
 
-        CommandSpec virtualBalanceCommand = CommandSpec.builder()
-                .description(Text.of("Display your balance"))
-                .permission("totaleconomy.command.balance")
-                .executor(new VirtualBalanceCommand(this))
-                .arguments(GenericArguments.string(Text.of("identifier")))
-                .build();
-
         CommandSpec balanceTopCommand = CommandSpec.builder()
-                .description(Text.of("Display the top balance"))
+                .description(Text.of("Display top balances"))
                 .permission("totaleconomy.command.balancetop")
                 .executor(new BalanceTopCommand(this))
                 .build();
@@ -202,7 +205,7 @@ public class TotalEconomy {
                 .description(Text.of("View the balance of another player"))
                 .permission("totaleconomy.command.viewbalance")
                 .executor(new ViewBalanceCommand(this))
-                .arguments(GenericArguments.player(Text.of("player")))
+                .arguments(GenericArguments.user(Text.of("player")))
                 .build();
 
         CommandSpec setBalanceCommand = CommandSpec.builder()
@@ -251,9 +254,9 @@ public class TotalEconomy {
         game.getCommandManager().register(this, payCommand, "pay");
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
         game.getCommandManager().register(this, balanceCommand, "balance", "bal");
-        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
-        game.getCommandManager().register(this, setBalanceCommand, "setbalance");
+        game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
+        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
     }
 
     /**
@@ -307,4 +310,12 @@ public class TotalEconomy {
     }
 
     public boolean isJobPermissions() { return jobPermissions; }
+
+    public boolean isLoadMoneyCap() {
+        return loadMoneyCap;
+    }
+
+    public BigDecimal getMoneyCap() {
+        return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
+    }
 }
