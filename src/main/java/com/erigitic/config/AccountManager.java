@@ -76,7 +76,7 @@ public class AccountManager implements EconomyService {
             if (!hasAccount(uuid)) {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
-                accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.isDefaultJobNotifyEnabled());
+                accountConfig.getNode(uuid.toString(), "jobnotifications").setValue("true");
 
                 loader.save(accountConfig);
             }
