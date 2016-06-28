@@ -2,6 +2,14 @@ plugins {
     id 'org.spongepowered.plugin' version '0.5.2'
 }
 
+sponge {
+    //Use qualified plugin ID : Addresses warning from build task
+    //noinspection GroovyAssignabilityCheck
+    plugin {
+        id = 'com.erigitic.totaleconomy'
+    }
+}
+
 group = 'com.erigitic'
 version = '1.5.0'
 description = 'All in one economy plugin for Minecraft/Sponge'
