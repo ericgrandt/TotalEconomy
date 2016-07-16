@@ -7,5 +7,5 @@ version = '1.5.0'
 description = 'All in one economy plugin for Minecraft/Sponge'
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:4.0.3'
+    compile 'org.spongepowered:spongeapi:5.0.0-SNAPSHOT'
 }
