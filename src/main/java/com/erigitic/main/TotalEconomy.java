@@ -157,6 +157,7 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
+                config.getNode("features", "notifications", "jobs", "defaultstate").setValue(true);
                 config.getNode("features", "shopkeeper").setValue(loadShopKeeper);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
@@ -164,6 +165,16 @@ public class TotalEconomy {
                 config.getNode("symbol").setValue("$");
                 loader.save(config);
             }
+
+            //Enable #77 for existing configs
+            ConfigurationNode defJobNotifyState = config.getNode("features", "notifications", "jobs", "defaultstate");
+            if (defJobNotifyState.isVirtual()) {
+
+                defJobNotifyState.setValue(true);
+                //You may want to add a different warning if this throws IOException
+                loader.save(config);
+            }
+
         } catch (IOException e) {
             logger.warn("Default Config could not be loaded/created!");
         }
@@ -318,4 +329,7 @@ public class TotalEconomy {
     public BigDecimal getMoneyCap() {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
     }
+
+    public boolean isDefaultJobNotifyEnabled() { return config.getNode("features", "notifications", "jobs", "defaultstate").getBoolean(true); }
+
 }
