@@ -482,7 +482,7 @@ public class TEJobs {
     @Listener
     public void onPlayerFish(FishingEvent.Stop event) {
         if (event.getCause().first(Player.class).isPresent()) {
-            Transaction<ItemStackSnapshot> itemTransaction = event.getItemStackTransaction();
+            Transaction<ItemStackSnapshot> itemTransaction = event.getItemStackTransaction().get(0);
             ItemStack itemStack = itemTransaction.getFinal().createStack();
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
