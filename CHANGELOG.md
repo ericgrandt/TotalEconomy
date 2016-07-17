@@ -5,6 +5,7 @@ v 1.5.0
 + Added a money cap that can be enabled/disabled as well as set from the main config
 + Ability to set default job notifications state. Thanks to @MarkL4YG.
 + Jobs config can now be reloaded without having to restart the server. (/sponge plugins reload)
++ The pay command can be used to add/remove money from the console. To remove money just do "pay [NAME] -[AMOUNT]".
 
 v 1.4.0
 

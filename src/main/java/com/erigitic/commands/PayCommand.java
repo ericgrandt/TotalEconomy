@@ -8,12 +8,15 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.source.CommandBlockSource;
+import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -60,10 +63,10 @@ public class PayCommand implements CommandExecutor {
 
                         if (transferResult.getResult() == ResultType.SUCCESS) {
                             sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
+                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), "."));
 
                             recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName()));
+                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), "."));
                         } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
                             sender.sendMessage(Text.of(TextColors.RED, "Insufficient funds."));
                         }
@@ -73,6 +76,29 @@ public class PayCommand implements CommandExecutor {
                 }
             } else {
                 sender.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
+            }
+        } else if (src instanceof ConsoleSource || src instanceof CommandBlockSource) {
+            Object playerArg = args.getOne("player").get();
+            String strAmount = (String) args.getOne("amount").get();
+
+            if (playerArg instanceof Player) {
+                Player recipient = (Player) playerArg;
+                BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+                Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
+
+                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+
+                TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
+
+                if (transactionResult.getResult() == ResultType.SUCCESS) {
+                    if (!strAmount.contains("-")) {
+                        recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
+                                TextColors.GRAY, " from ", TextColors.GOLD, "SERVER."));
+                    } else {
+                        recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by the ",
+                                TextColors.GOLD, "SERVER."));
+                    }
+                }
             }
         }
 
