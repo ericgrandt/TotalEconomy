@@ -63,6 +63,7 @@ public class TotalEconomy {
     private boolean loadJobs = true;
     private boolean loadSalary = true;
     private boolean jobPermissions = false;
+    private boolean jobNotifications = true;
 
     private boolean loadShopKeeper = true;
     private boolean loadMoneyCap = false;
@@ -84,6 +85,7 @@ public class TotalEconomy {
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
+        jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
 
         loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
         loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
@@ -155,9 +157,9 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "enable").setValue(loadJobs);
                 config.getNode("features", "jobs", "salary").setValue(loadSalary);
                 config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
+                config.getNode("features", "jobs", "notifications").setValue(true);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
-                config.getNode("features", "notifications", "jobs", "defaultstate").setValue(true);
                 config.getNode("features", "shopkeeper").setValue(loadShopKeeper);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
@@ -166,17 +168,17 @@ public class TotalEconomy {
                 loader.save(config);
             }
 
-            //Enable #77 for existing configs
-            ConfigurationNode defJobNotifyState = config.getNode("features", "notifications", "jobs", "defaultstate");
-            if (defJobNotifyState.isVirtual()) {
+            // Change job notifaction state for pre existing configuration files
+            // TODO: Make this into its own function that will update ALL values
+            ConfigurationNode jobNotificationState = config.getNode("features", "jobs", "notifications");
+            if (jobNotificationState.isVirtual()) {
+                jobNotificationState.setValue(true);
 
-                defJobNotifyState.setValue(true);
-                //You may want to add a different warning if this throws IOException
                 loader.save(config);
             }
 
         } catch (IOException e) {
-            logger.warn("Default Config could not be loaded/created!");
+            logger.warn("Default Config could not be loaded/created/changed!");
         }
     }
 
@@ -330,6 +332,6 @@ public class TotalEconomy {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
     }
 
-    public boolean isDefaultJobNotifyEnabled() { return config.getNode("features", "notifications", "jobs", "defaultstate").getBoolean(true); }
+    public boolean hasJobNotifications() { return jobNotifications; }
 
 }
