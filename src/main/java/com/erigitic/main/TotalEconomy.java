@@ -18,6 +18,7 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
@@ -147,6 +148,16 @@ public class TotalEconomy {
     }
 
     /**
+     * Reloads configuration files
+     *
+     * @param event
+     */
+    @Listener
+    public void onGameReload(GameReloadEvent event) {
+        teJobs.reloadConfig();
+    }
+
+    /**
      * Setup the default config file, TotalEconomy.conf.
      */
     private void setupConfig() {
@@ -178,7 +189,7 @@ public class TotalEconomy {
             }
 
         } catch (IOException e) {
-            logger.warn("Default Config could not be loaded/created/changed!");
+            logger.warn("Main config could not be loaded/created/changed!");
         }
     }
 

@@ -4,6 +4,7 @@ v 1.5.0
 + Added alias for the set balance command (/setbal)
 + Added a money cap that can be enabled/disabled as well as set from the main config
 + Ability to set default job notifications state. Thanks to @MarkL4YG.
++ Jobs config can now be reloaded without having to restart the server. (/sponge plugins reload)
 
 v 1.4.0
 
