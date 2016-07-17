@@ -32,7 +32,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "totaleconomy")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.0", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -155,6 +155,8 @@ public class TotalEconomy {
     @Listener
     public void onGameReload(GameReloadEvent event) {
         teJobs.reloadConfig();
+
+        logger.info("Ttest");
     }
 
     /**
