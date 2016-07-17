@@ -100,7 +100,7 @@ public class TEVirtualAccount implements VirtualAccount {
         TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
-        HashMap result = new HashMap<>();
+        HashMap result = new HashMap<Currency, TransactionResult>();
         result.put(accountManager.getDefaultCurrency(), transactionResult);
 
         return result;
