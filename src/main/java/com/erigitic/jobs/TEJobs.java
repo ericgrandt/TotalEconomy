@@ -138,6 +138,14 @@ public class TEJobs {
         }
     }
 
+    public void reloadConfig() {
+        try {
+            jobsConfig = loader.load();
+        } catch (IOException e) {
+            logger.warn("Could not reload jobs config file!");
+        }
+    }
+
     /**
      * Add exp to player's current job
      *
@@ -181,6 +189,24 @@ public class TEJobs {
             player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
                     playerLevel + 1, " ", jobName, "."));
         }
+    }
+
+    /**
+     * Checks the jobs config for the jobName.
+     *
+     * @param jobName name of the job
+     * @return boolean if the job exists or not
+     */
+    public boolean jobExists(String jobName) {
+        if (jobsConfig.getNode(convertToTitle(jobName)).getValue() != null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public String convertToTitle(String input) {
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
     /**
@@ -279,24 +305,6 @@ public class TEJobs {
 
     public ConfigurationNode getJobsConfig() {
         return jobsConfig;
-    }
-
-    /**
-     * Checks the jobs config for the jobName.
-     *
-     * @param jobName name of the job
-     * @return boolean if the job exists or not
-     */
-    public boolean jobExists(String jobName) {
-        if (jobsConfig.getNode(convertToTitle(jobName)).getValue() != null) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public String convertToTitle(String input) {
-        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
     @Listener
