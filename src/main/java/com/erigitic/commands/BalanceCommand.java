@@ -32,7 +32,7 @@ public class BalanceCommand implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
+            Player sender = (Player) src;
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
             Currency defaultCurrency = accountManager.getDefaultCurrency();
             Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));

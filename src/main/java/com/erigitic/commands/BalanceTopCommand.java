@@ -11,6 +11,7 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
@@ -32,8 +33,8 @@ public class BalanceTopCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
 
-    private PaginationService paginationService = Sponge.getServiceManager().provide(PaginationService.class).get();
-    PaginationList.Builder builder = paginationService.builder();
+    private PaginationService paginationService = Sponge.getServiceManager().provideUnchecked(PaginationService.class);
+    private PaginationList.Builder builder = paginationService.builder();
 
     public BalanceTopCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
@@ -44,26 +45,23 @@ public class BalanceTopCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
-            ConfigurationNode accountNode = accountManager.getAccountConfig();
-            List<Text> accountBalances = new ArrayList<>();
+        ConfigurationNode accountNode = accountManager.getAccountConfig();
+        List<Text> accountBalances = new ArrayList<>();
 
-            // TODO: Add customization to this (amount of accounts to show).
-            accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
-                TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(UUID.fromString(accountUUID.toString())).get();
-                Currency defaultCurrency = accountManager.getDefaultCurrency();
-                Text playerName = playerAccount.getDisplayName();
-                Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));
+        // TODO: Add customization to this (amount of accounts to show).
+        accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
+            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(UUID.fromString(accountUUID.toString())).get();
+            Currency defaultCurrency = accountManager.getDefaultCurrency();
+            Text playerName = playerAccount.getDisplayName();
+            Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));
 
-                accountBalances.add(Text.of(TextColors.GRAY, playerName.toPlain(), ": ", TextColors.GOLD, playerBalance.toPlain()));
-            });
+            accountBalances.add(Text.of(TextColors.GRAY, playerName.toPlain(), ": ", TextColors.GOLD, playerBalance.toPlain()));
+        });
 
-            builder.title(Text.of(TextColors.GOLD, "Top Balances"))
-                    .contents(accountBalances)
-                    .padding(Text.of(TextColors.GRAY, "-"))
-                    .sendTo(sender);
-        }
+        builder.reset().title(Text.of(TextColors.GOLD, "Top Balances"))
+                .contents(accountBalances)
+                .padding(Text.of(TextColors.GRAY, "-"))
+                .sendTo(src);
 
         return CommandResult.success();
     }

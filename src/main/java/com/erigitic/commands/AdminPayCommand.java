@@ -40,62 +40,29 @@ public class AdminPayCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        String strAmount = (String) args.getOne("amount").get();
-        Object playerArg = args.getOne("player").get();
+        String strAmount = args.<String>getOne("amount").get();
+        Player recipient = args.<Player>getOne("player").get();
 
-        if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
+        if (TotalEconomy.isNumeric(strAmount)) {
+            if (!strAmount.contains("-")) {
+                BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-            if (totalEconomy.isNumeric(strAmount)) {
-                if (!strAmount.contains("-")) {
-                    if (playerArg instanceof Player) {
-                        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-                        Player recipient = (Player) playerArg;
+                TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
-                        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+                //TODO: Check for ResultType.FAILED?
+                if (transactionResult.getResult() == ResultType.SUCCESS) {
+                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
+                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
 
-                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
-
-                        //TODO: Check for ResultType.FAILED?
-                        if (transactionResult.getResult() == ResultType.SUCCESS) {
-                            sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
-
-                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), "."));
-                        }
-                    }
-                } else {
-                    sender.sendMessage(Text.of(TextColors.RED, "The amount must be positive."));
+                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
+                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), "."));
                 }
             } else {
-                sender.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
+                src.sendMessage(Text.of(TextColors.RED, "The amount must be positive."));
             }
         } else {
-            if (totalEconomy.isNumeric(strAmount)) {
-                if (!strAmount.contains("-")) {
-                    if (playerArg instanceof Player) {
-                        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-                        Player recipient = (Player) playerArg;
-
-                        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-
-                        TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
-
-                        //TODO: Check for ResultType.FAILED?
-                        if (transactionResult.getResult() == ResultType.SUCCESS) {
-                            logger.info("Command successful.");
-
-                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " from ", TextColors.GOLD, "SERVER."));
-                        }
-                    }
-                } else {
-                    logger.error("The amount must be positive.");
-                }
-            } else {
-                logger.error("The amount must only contain numbers and a single decimal point if needed.");
-            }
+            src.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
         }
 
         return CommandResult.success();
