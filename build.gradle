@@ -6,6 +6,8 @@ repositories {
     }
 }
 
+apply plugin: 'java'
+
 dependencies {
     compile 'org.spongepowered:spongeapi:5.0.0-SNAPSHOT'
 }

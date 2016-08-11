@@ -30,22 +30,15 @@ public class ViewBalanceCommand implements CommandExecutor {
     }
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
-            Object playerArg = args.getOne("player").get();
+    public CommandResult execute(CommandSource sender, CommandContext args) throws CommandException {
+        User recipient = args.<User>getOne("player").get();
 
-            if (playerArg instanceof User) {
-                User recipient = (User) playerArg;
+        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+        Currency defaultCurrency = accountManager.getDefaultCurrency();
+        BigDecimal balance = recipientAccount.getBalance(accountManager.getDefaultCurrency());
 
-                Currency defaultCurrency = accountManager.getDefaultCurrency();
-                BigDecimal balance = recipientAccount.getBalance(accountManager.getDefaultCurrency());
-
-                sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, defaultCurrency.format(balance)));
-            }
-        }
+        sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, defaultCurrency.format(balance)));
 
         return CommandResult.success();
     }

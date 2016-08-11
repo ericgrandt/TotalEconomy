@@ -29,16 +29,15 @@ public class SetBalanceCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        Player sender = ((Player) src).getPlayer().get();
-        Player recipient = (Player) args.getOne("player").get();
-        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+        Player recipient = args.<Player>getOne("player").get();
+        BigDecimal amount = new BigDecimal(args.<String>getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
         Currency defaultCurrency = accountManager.getDefaultCurrency();
 
         TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
         recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
-        sender.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, defaultCurrency.format(amount)));
+        src.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, defaultCurrency.format(amount)));
 
         return CommandResult.success();
     }
