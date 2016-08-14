@@ -155,8 +155,6 @@ public class TotalEconomy {
     @Listener
     public void onGameReload(GameReloadEvent event) {
         teJobs.reloadConfig();
-
-        logger.info("Ttest");
     }
 
     /**
