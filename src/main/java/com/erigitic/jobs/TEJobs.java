@@ -392,7 +392,7 @@ public class TEJobs {
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                         if (preventFarming) {
-                            blockLoc.setBlockType(BlockTypes.AIR);
+                            blockLoc.setBlockType(BlockTypes.AIR, Cause.of(NamedCause.of("Total Economy", this)));
                         }
 
                         //TODO: Simplify all the code below into a single function so I do not have to rewrite it for every event.
