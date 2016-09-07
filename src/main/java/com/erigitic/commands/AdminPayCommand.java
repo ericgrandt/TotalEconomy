@@ -50,7 +50,6 @@ public class AdminPayCommand implements CommandExecutor {
 
                 TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
 
-                //TODO: Check for ResultType.FAILED?
                 if (transactionResult.getResult() == ResultType.SUCCESS) {
                     src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
                             TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));

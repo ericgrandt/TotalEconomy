@@ -379,7 +379,6 @@ public class TEJobs {
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
 
-            //TODO: Not really sure if this will fix anything but lets hope it does. Needs some testing.
             if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
                 String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
                 Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
@@ -388,14 +387,12 @@ public class TEJobs {
                 boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
                 boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
 
-                //TODO: Consolidate this into a function so I do not have to dirty up the code.
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                         if (preventFarming) {
                             blockLoc.setBlockType(BlockTypes.AIR, Cause.of(NamedCause.of("Total Economy", this)));
                         }
 
-                        //TODO: Simplify all the code below into a single function so I do not have to rewrite it for every event.
                         int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 

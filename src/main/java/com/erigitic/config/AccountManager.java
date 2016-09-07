@@ -127,7 +127,6 @@ public class AccountManager implements EconomyService {
         return new HashSet<Currency>();
     }
 
-    //TODO: Figure out what this does. Currently have no idea. Let's hope it does not break something.
     @Override
     public void registerContextCalculator(ContextCalculator calculator) {
 
