@@ -179,8 +179,8 @@ public class TotalEconomy {
                 loader.save(config);
             }
 
-            // Change job notifaction state for pre existing configuration files
             // TODO: Make this into its own function that will update ALL values
+            // Change job notifaction state for pre existing configuration files
             ConfigurationNode jobNotificationState = config.getNode("features", "jobs", "notifications");
             if (jobNotificationState.isVirtual()) {
                 jobNotificationState.setValue(true);
