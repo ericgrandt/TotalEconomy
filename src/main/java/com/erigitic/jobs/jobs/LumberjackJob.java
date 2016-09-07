@@ -8,7 +8,7 @@ import ninja.leaping.configurate.ConfigurationNode;
  */
 public class LumberjackJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] breakValues = {{"log", "10", "1"}, {"leaves", "1", ".01"}};
+        String[][] breakValues = {{"log", "10", "1.00"}, {"leaves", "1", "0.01"}};
         String[][] placeValue = {{"sapling", "1", "0.10"}};
         
         for (int i = 0; i < breakValues.length; i++) {
@@ -22,6 +22,6 @@ public class LumberjackJob implements Job {
         }
         jobsConfig.getNode("Lumberjack", "disablesalary").setValue(false);
         jobsConfig.getNode("Lumberjack", "salary").setValue(20);
-        jobsConfig.getNode("Lumberjack", "permission").setValue("main.job.lumberjack");
+        jobsConfig.getNode("Lumberjack", "permission").setValue("totaleconomy.job.lumberjack");
     }
 }

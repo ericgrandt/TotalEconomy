@@ -16,6 +16,6 @@ public class WarriorJob implements Job {
         }
         jobsConfig.getNode("Warrior", "disablesalary").setValue(false);
         jobsConfig.getNode("Warrior", "salary").setValue(10);
-        jobsConfig.getNode("Warrior", "permission").setValue("main.job.warrior");
+        jobsConfig.getNode("Warrior", "permission").setValue("totaleconomy.job.warrior");
     }
 }

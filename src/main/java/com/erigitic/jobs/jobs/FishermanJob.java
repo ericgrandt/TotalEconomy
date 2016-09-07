@@ -8,7 +8,7 @@ import ninja.leaping.configurate.ConfigurationNode;
  */
 public class FishermanJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] catchValues = {{"cod", "25", "50"}, {"salmon", "100", "150"}, {"pufferfish", "250", "300"}};
+        String[][] catchValues = {{"cod", "25", "50.00"}, {"salmon", "100", "150.00"}, {"pufferfish", "250", "300.00"}};
 
         for (int i = 0; i < catchValues.length; i++) {
             jobsConfig.getNode("Fisherman", "catch", catchValues[i][0], "expreward").setValue(catchValues[i][1]);
@@ -17,6 +17,6 @@ public class FishermanJob implements Job {
 
         jobsConfig.getNode("Fisherman", "disablesalary").setValue(false);
         jobsConfig.getNode("Fisherman", "salary").setValue(20);
-        jobsConfig.getNode("Fisherman", "permission").setValue("main.job.fisherman");
+        jobsConfig.getNode("Fisherman", "permission").setValue("totaleconomy.job.fisherman");
     }
 }
