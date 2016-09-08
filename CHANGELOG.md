@@ -6,6 +6,10 @@ v 1.5.0
 + Ability to set default job notifications state. Thanks to @MarkL4YG.
 + Jobs config can now be reloaded without having to restart the server. (/sponge plugins reload)
 + The pay command can be used to add/remove money from the console. To remove money just do "pay [NAME] -[AMOUNT]".
++ Job Info command (/job info) (Displays a paginated list of everything that earns exp/money for the players current job in a paginated list)
++ Updated to latest versions of Forge and Sponge
++ FIX: Job permissions were changed back to their normal values
++ FIX: Issue with Cause.of has been fixed
 
 v 1.4.0
 

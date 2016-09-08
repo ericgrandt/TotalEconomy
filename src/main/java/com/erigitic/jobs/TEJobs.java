@@ -99,7 +99,7 @@ public class TEJobs {
                     if (!salaryDisabled) {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
                                 totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                     }
@@ -390,7 +390,7 @@ public class TEJobs {
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
                         if (preventFarming) {
-                            blockLoc.setBlockType(BlockTypes.AIR, Cause.of(NamedCause.of("Total Economy", this)));
+                            blockLoc.setBlockType(BlockTypes.AIR, Cause.of(NamedCause.of("Total Economy", totalEconomy.getPluginContainer())));
                         }
 
                         int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
@@ -405,7 +405,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }
@@ -438,7 +438,7 @@ public class TEJobs {
                     }
 
                     addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                     checkForLevel(player);
                 }
             }
@@ -476,7 +476,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }
@@ -513,7 +513,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }

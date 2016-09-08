@@ -22,6 +22,7 @@ import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
@@ -52,6 +53,9 @@ public class TotalEconomy {
 
     @Inject
     private Game game;
+
+    @Inject
+    private PluginContainer pluginContainer;
 
     private ConfigurationNode config = null;
 
@@ -324,6 +328,8 @@ public class TotalEconomy {
     }
 
     public Game getGame() { return game; }
+
+    public PluginContainer getPluginContainer() { return pluginContainer; }
 
     public Currency getDefaultCurrency() {
         return defaultCurrency;
