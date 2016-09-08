@@ -21,9 +21,11 @@ import java.math.BigDecimal;
  * Created by Eric on 8/7/2015.
  */
 public class SetBalanceCommand implements CommandExecutor {
+    private TotalEconomy totalEconomy;
     private AccountManager accountManager;
 
     public SetBalanceCommand(TotalEconomy totalEconomy) {
+        this.totalEconomy = totalEconomy;
         accountManager = totalEconomy.getAccountManager();
     }
 
@@ -35,7 +37,7 @@ public class SetBalanceCommand implements CommandExecutor {
 
         TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", this)));
+        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
         src.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, defaultCurrency.format(amount)));
 
