@@ -8,3 +8,7 @@ bin
 .classpath
 .project
 !gradle-wrapper.jar
+MANIFEST.MF
+
+# Mac Stuff
+.DS_STORE
