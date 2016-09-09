@@ -9,6 +9,16 @@ Thanks for your interest in contributing to Total Economy. There are a few guide
         * fix
         * update
 * Follow the same format/style as the rest of the code
+* Add comments for new functions:
+``` java
+/**
+ * Description of the function
+ *
+ * @param firstArg description of argument
+ * @param secondArg description of argument
+ * @return int player's balance
+ */
+```
 * Test the change/addition and make sure nothing was accidently broken
 * Make sure your commit message clearly describes the change/addition and includes the issue number if one exists
 * Submit a pull request
