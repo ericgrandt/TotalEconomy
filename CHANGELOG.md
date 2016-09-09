@@ -8,6 +8,7 @@ v 1.5.0
 + The pay command can be used to add/remove money from the console. To remove money just do "pay [NAME] -[AMOUNT]".
 + Job Info command (/job info) (Displays a paginated list of everything that earns exp/money for the players current job in a paginated list)
 + Updated to latest versions of Forge and Sponge
++ CHANGE: EXP/Money is no longer rewarded for breaking blocks that a player placed. This replaces the preventJobFarming node.
 + FIX: Job permissions were changed back to their normal values
 + FIX: Issue with Cause.of has been fixed
 
