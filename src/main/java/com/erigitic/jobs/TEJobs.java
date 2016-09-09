@@ -12,7 +12,6 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
-import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.data.Transaction;
@@ -35,7 +34,6 @@ import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.world.Location;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +42,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Erigitic on 5/5/2015.
+ * Created by Eric on 5/5/2015.
  */
 public class TEJobs {
     private TotalEconomy totalEconomy;
@@ -99,7 +97,7 @@ public class TEJobs {
                     if (!salaryDisabled) {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
                                 totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                     }
@@ -119,7 +117,6 @@ public class TEJobs {
             jobsConfig = loader.load();
 
             if (!jobsFile.exists()) {
-                jobsConfig.getNode("preventJobFarming").setValue(false);
                 jobsConfig.getNode("jobs").setValue("Miner, Lumberjack, Warrior, Fisherman");
 
                 miner.setupJobValues(jobsConfig);
@@ -135,6 +132,14 @@ public class TEJobs {
             }
         } catch (IOException e) {
             logger.warn("Could not create jobs config file!");
+        }
+    }
+
+    public void reloadConfig() {
+        try {
+            jobsConfig = loader.load();
+        } catch (IOException e) {
+            logger.warn("Could not reload jobs config file!");
         }
     }
 
@@ -181,6 +186,24 @@ public class TEJobs {
             player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
                     playerLevel + 1, " ", jobName, "."));
         }
+    }
+
+    /**
+     * Checks the jobs config for the jobName.
+     *
+     * @param jobName name of the job
+     * @return boolean if the job exists or not
+     */
+    public boolean jobExists(String jobName) {
+        if (jobsConfig.getNode(convertToTitle(jobName)).getValue() != null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public String convertToTitle(String input) {
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
     /**
@@ -281,24 +304,6 @@ public class TEJobs {
         return jobsConfig;
     }
 
-    /**
-     * Checks the jobs config for the jobName.
-     *
-     * @param jobName name of the job
-     * @return boolean if the job exists or not
-     */
-    public boolean jobExists(String jobName) {
-        if (jobsConfig.getNode(convertToTitle(jobName)).getValue() != null) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public String convertToTitle(String input) {
-        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
-    }
-
     @Listener
     public void onJobSignCheck(ChangeSignEvent event) {
         SignData data = event.getText();
@@ -371,37 +376,31 @@ public class TEJobs {
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
 
-            //TODO: Not really sure if this will fix anything but lets hope it does. Needs some testing.
             if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
                 String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-                Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
+                Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-                //Checks if the users current job has the break node.
+                // Checks if the users current job has the break node.
                 boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
-                boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
 
-                //TODO: Consolidate this into a function so I do not have to dirty up the code.
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                        if (preventFarming) {
-                            blockLoc.setBlockType(BlockTypes.AIR);
+                        if (!blockCreator.isPresent()) {
+                            int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                            boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+
+                            BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+
+                            if (notify) {
+                                player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                            }
+
+                            addExp(player, expAmount);
+                            playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                            checkForLevel(player);
                         }
-
-                        //TODO: Simplify all the code below into a single function so I do not have to rewrite it for every event.
-                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
-
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
-
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-
-                        if (notify) {
-                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
-                        }
-
-                        addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
-                        checkForLevel(player);
                     }
                 }
             }
@@ -433,7 +432,7 @@ public class TEJobs {
                     }
 
                     addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                     checkForLevel(player);
                 }
             }
@@ -471,7 +470,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }
@@ -508,7 +507,7 @@ public class TEJobs {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", this)));
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }

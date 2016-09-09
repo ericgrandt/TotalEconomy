@@ -13,7 +13,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 /**
- * Created by Erigitic on 5/5/2015.
+ * Created by Eric on 5/5/2015.
  */
 public class JobCommand implements CommandExecutor {
     private AccountManager accountManager;

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.Set;
 
 /**
- * Created by Erigitic on 1/2/2016.
+ * Created by Eric on 1/2/2016.
  */
 public class TETransferResult implements TransferResult {
 

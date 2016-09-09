@@ -15,7 +15,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 /**
- * Created by Erigitic on 5/4/2015.
+ * Created by Eric on 5/4/2015.
  */
 public class BalanceCommand implements CommandExecutor {
     private Logger logger;
@@ -32,12 +32,12 @@ public class BalanceCommand implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
+            Player sender = (Player) src;
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
             Currency defaultCurrency = accountManager.getDefaultCurrency();
             Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));
 
-            sender.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, defaultCurrency.getSymbol(), playerBalance));
+            sender.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, playerBalance));
         }
 
         return CommandResult.success();

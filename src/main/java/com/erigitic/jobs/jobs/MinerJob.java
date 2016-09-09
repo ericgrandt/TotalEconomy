@@ -4,7 +4,7 @@ import com.erigitic.jobs.Job;
 import ninja.leaping.configurate.ConfigurationNode;
 
 /**
- * Created by Erigitic on 10/29/2015.
+ * Created by Eric on 10/29/2015.
  */
 public class MinerJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {
@@ -18,6 +18,6 @@ public class MinerJob implements Job {
         }
         jobsConfig.getNode("Miner", "disablesalary").setValue(false);
         jobsConfig.getNode("Miner", "salary").setValue(20);
-        jobsConfig.getNode("Miner", "permission").setValue("main.job.miner");
+        jobsConfig.getNode("Miner", "permission").setValue("totaleconomy.job.miner");
     }
 }
