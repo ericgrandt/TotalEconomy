@@ -18,9 +18,11 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
@@ -31,7 +33,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.4.1")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.0", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -52,6 +54,9 @@ public class TotalEconomy {
     @Inject
     private Game game;
 
+    @Inject
+    private PluginContainer pluginContainer;
+
     private ConfigurationNode config = null;
 
     private Currency defaultCurrency;
@@ -63,8 +68,12 @@ public class TotalEconomy {
     private boolean loadJobs = true;
     private boolean loadSalary = true;
     private boolean jobPermissions = false;
+    private boolean jobNotifications = true;
 
     private boolean loadShopKeeper = true;
+    private boolean loadMoneyCap = false;
+
+    private BigDecimal moneyCap;
 
     /**
      * Setup all config files
@@ -81,7 +90,10 @@ public class TotalEconomy {
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
+        jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
+
         loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
+        loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
 
         accountManager = new AccountManager(this);
 
@@ -94,6 +106,11 @@ public class TotalEconomy {
 
         if (loadShopKeeper == true) {
             shopKeeper = new ShopKeeper(this);
+        }
+
+        if (loadMoneyCap == true) {
+            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
+                    .setScale(2, BigDecimal.ROUND_DOWN);
         }
     }
 
@@ -135,6 +152,16 @@ public class TotalEconomy {
     }
 
     /**
+     * Reloads configuration files
+     *
+     * @param event
+     */
+    @Listener
+    public void onGameReload(GameReloadEvent event) {
+        teJobs.reloadConfig();
+    }
+
+    /**
      * Setup the default config file, TotalEconomy.conf.
      */
     private void setupConfig() {
@@ -142,18 +169,31 @@ public class TotalEconomy {
             config = loader.load();
 
             if (!defaultConf.exists()) {
-                config.getNode("features", "jobs", "enable").setValue(true);
-                config.getNode("features", "jobs", "salary").setValue(true);
-                config.getNode("features", "jobs", "permissions").setValue(false);
-                config.getNode("features", "shopkeeper").setValue(true);
+                config.getNode("features", "jobs", "enable").setValue(loadJobs);
+                config.getNode("features", "jobs", "salary").setValue(loadSalary);
+                config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
+                config.getNode("features", "jobs", "notifications").setValue(true);
+                config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
+                config.getNode("features", "moneycap", "amount").setValue(10000000);
+                config.getNode("features", "shopkeeper").setValue(loadShopKeeper);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
                 config.getNode("symbol").setValue("$");
                 loader.save(config);
             }
+
+            // TODO: Make this into its own function that will update ALL values
+            // Change job notifaction state for pre existing configuration files
+            ConfigurationNode jobNotificationState = config.getNode("features", "jobs", "notifications");
+            if (jobNotificationState.isVirtual()) {
+                jobNotificationState.setValue(true);
+
+                loader.save(config);
+            }
+
         } catch (IOException e) {
-            logger.warn("Default Config could not be loaded/created!");
+            logger.warn("Main config could not be loaded/created/changed!");
         }
     }
 
@@ -161,8 +201,6 @@ public class TotalEconomy {
      * Creates and registers commands
      */
     private void createAndRegisterCommands() {
-        //TODO: Add command that will display all of the enabled features. Maybe even disabled features?
-
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
                 .permission("totaleconomy.command.pay")
@@ -183,6 +221,12 @@ public class TotalEconomy {
                 .description(Text.of("Display your balance"))
                 .permission("totaleconomy.command.balance")
                 .executor(new BalanceCommand(this))
+                .build();
+
+        CommandSpec balanceTopCommand = CommandSpec.builder()
+                .description(Text.of("Display top balances"))
+                .permission("totaleconomy.command.balancetop")
+                .executor(new BalanceTopCommand(this))
                 .build();
 
         CommandSpec viewBalanceCommand = CommandSpec.builder()
@@ -239,7 +283,8 @@ public class TotalEconomy {
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
         game.getCommandManager().register(this, balanceCommand, "balance", "bal");
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
-        game.getCommandManager().register(this, setBalanceCommand, "setbalance");
+        game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
+        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
     }
 
     /**
@@ -284,6 +329,8 @@ public class TotalEconomy {
 
     public Game getGame() { return game; }
 
+    public PluginContainer getPluginContainer() { return pluginContainer; }
+
     public Currency getDefaultCurrency() {
         return defaultCurrency;
     }
@@ -293,4 +340,15 @@ public class TotalEconomy {
     }
 
     public boolean isJobPermissions() { return jobPermissions; }
+
+    public boolean isLoadMoneyCap() {
+        return loadMoneyCap;
+    }
+
+    public BigDecimal getMoneyCap() {
+        return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
+    }
+
+    public boolean hasJobNotifications() { return jobNotifications; }
+
 }

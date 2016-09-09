@@ -5,6 +5,10 @@ build
 *.jar
 .settings
 bin
-/gradle
 .classpath
 .project
+!gradle-wrapper.jar
+MANIFEST.MF
+
+# Mac Stuff
+.DS_STORE

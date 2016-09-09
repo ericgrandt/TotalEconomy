@@ -1,15 +1,13 @@
-apply plugin: 'java'
-
-version = '1.4.1'
-
 repositories {
     mavenCentral()
     maven {
-        name 'Sponge maven repo'
-        url 'http://repo.spongepowered.org/maven'
+        name = 'sponge'
+        url = 'http://repo.spongepowered.org/maven'
     }
 }
 
+apply plugin: 'java'
+
 dependencies {
-    compile "org.spongepowered:spongeapi:5.0.0-SNAPSHOT"
+    compile 'org.spongepowered:spongeapi:5.0.0-SNAPSHOT'
 }

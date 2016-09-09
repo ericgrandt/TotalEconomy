@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by Erigitic on 5/2/2015.
+ * Created by Eric on 5/2/2015.
  */
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
@@ -76,7 +76,7 @@ public class AccountManager implements EconomyService {
             if (!hasAccount(uuid)) {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
-                accountConfig.getNode(uuid.toString(), "jobnotifications").setValue("true");
+                accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
 
                 loader.save(accountConfig);
             }
@@ -127,7 +127,6 @@ public class AccountManager implements EconomyService {
         return new HashSet<Currency>();
     }
 
-    //TODO: Figure out what this does. Currently have no idea. Let's hope it does not break something.
     @Override
     public void registerContextCalculator(ContextCalculator calculator) {
 
