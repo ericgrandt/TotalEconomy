@@ -12,7 +12,6 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
-import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.data.Transaction;
@@ -35,7 +34,6 @@ import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.world.Location;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,7 +117,6 @@ public class TEJobs {
             jobsConfig = loader.load();
 
             if (!jobsFile.exists()) {
-                jobsConfig.getNode("preventJobFarming").setValue(false);
                 jobsConfig.getNode("jobs").setValue("Miner, Lumberjack, Warrior, Fisherman");
 
                 miner.setupJobValues(jobsConfig);
@@ -381,32 +378,29 @@ public class TEJobs {
 
             if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
                 String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-                Location blockLoc = event.getTransactions().get(0).getOriginal().getLocation().get();
+                Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-                //Checks if the users current job has the break node.
+                // Checks if the users current job has the break node.
                 boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
-                boolean preventFarming = jobsConfig.getNode("preventJobFarming").getBoolean();
 
                 if (jobsConfig.getNode(playerJob).getValue() != null) {
                     if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                        if (preventFarming) {
-                            blockLoc.setBlockType(BlockTypes.AIR, Cause.of(NamedCause.of("Total Economy", totalEconomy.getPluginContainer())));
+                        if (!blockCreator.isPresent()) {
+                            int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                            boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+
+                            BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+
+                            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+
+                            if (notify) {
+                                player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                            }
+
+                            addExp(player, expAmount);
+                            playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                            checkForLevel(player);
                         }
-
-                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
-
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
-
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-
-                        if (notify) {
-                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
-                        }
-
-                        addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                        checkForLevel(player);
                     }
                 }
             }
