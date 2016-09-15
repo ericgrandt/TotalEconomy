@@ -1,6 +1,11 @@
 # Contributing to Total Economy
 Thanks for your interest in contributing to Total Economy. There are a few guidelines that I would like contributors to follow to make the process as easy as possible.
 
+### Contributing Issues
+* Be as descriptive as possible
+* Include a complete error log
+* Include pictures if possible
+
 ### Contributing Code
 * Fork the repository
 * Create a new branch from ‘develop'. Use slash notation (e.g. feature/feature-name)
