@@ -1,3 +1,28 @@
+/*
+ * This file is part of Total Economy, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) Eric Grandt <https://www.ericgrandt.com>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
@@ -22,9 +47,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Created by Eric on 5/2/2015.
- */
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
     private Logger logger;
@@ -32,9 +54,6 @@ public class AccountManager implements EconomyService {
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
 
-    /**
-     * Default Constructor so we can access this class from elsewhere
-     */
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
@@ -43,7 +62,7 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Setup the config file that will contain the user accounts. These accounts will contain the users money amount.
+     * Setup the config file that will contain the user accounts.
      */
     public void setupConfig() {
         accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
@@ -60,19 +79,12 @@ public class AccountManager implements EconomyService {
         }
     }
 
-
-    /**
-     * Creates a new account for the player.
-     *
-     * @param uuid object representing the UUID of a player
-     */
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
         TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
 
         try {
-//            if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() == null) {
             if (!hasAccount(uuid)) {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                 accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
@@ -107,7 +119,6 @@ public class AccountManager implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        //accountConfig.getNode(uuid.toString(), getDefaultCurrency() + "-balance").getValue() != null
         return accountConfig.getNode(uuid.toString()).getValue() != null;
     }
 
@@ -121,7 +132,6 @@ public class AccountManager implements EconomyService {
         return totalEconomy.getDefaultCurrency();
     }
 
-    //TODO: Possibly implement multiple currencies. Need some input on it. Up to the users.
     @Override
     public Set<Currency> getCurrencies() {
         return new HashSet<Currency>();
@@ -132,6 +142,11 @@ public class AccountManager implements EconomyService {
 
     }
 
+    /**
+     * Toggle a player's exp/money notifications for jobs
+     *
+     * @param player an object representing the player toggling notifications
+     */
     public void toggleNotifications(Player player) {
         boolean notify = accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean();
 
@@ -156,6 +171,9 @@ public class AccountManager implements EconomyService {
         }
     }
 
+    /**
+     * Save the account configuration file
+     */
     public void saveAccountConfig() {
         try {
             loader.save(accountConfig);
@@ -167,7 +185,7 @@ public class AccountManager implements EconomyService {
     /**
      * Get the account configuration file
      *
-     * @return ConfigurationNode
+     * @return ConfigurationNode the account configuration
      */
     public ConfigurationNode getAccountConfig() {
         return accountConfig;
@@ -176,7 +194,7 @@ public class AccountManager implements EconomyService {
     /**
      * Get the configuration manager
      *
-     * @return ConfigurationLoader<CommentedConfigurationNode>
+     * @return ConfigurationLoader<CommentedConfigurationNode> the configuration loader for the account config
      */
     public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
         return loader;

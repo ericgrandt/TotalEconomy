@@ -1,10 +1,34 @@
+/*
+ * This file is part of Total Economy, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) Eric Grandt <https://www.ericgrandt.com>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.erigitic.main;
 
 import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.jobs.TEJobs;
-import com.erigitic.shops.ShopKeeper;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -63,7 +87,6 @@ public class TotalEconomy {
 
     private AccountManager accountManager;
     private TEJobs teJobs;
-    private ShopKeeper shopKeeper;
 
     private boolean loadJobs = true;
     private boolean loadSalary = true;
@@ -75,11 +98,6 @@ public class TotalEconomy {
 
     private BigDecimal moneyCap;
 
-    /**
-     * Setup all config files
-     *
-     * @param event
-     */
     @Listener
     public void preInit(GamePreInitializationEvent event) {
         setupConfig();
@@ -104,21 +122,12 @@ public class TotalEconomy {
             teJobs = new TEJobs(this);
         }
 
-        if (loadShopKeeper == true) {
-            shopKeeper = new ShopKeeper(this);
-        }
-
         if (loadMoneyCap == true) {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
                     .setScale(2, BigDecimal.ROUND_DOWN);
         }
     }
 
-    /**
-     * Create and register all commands.
-     *
-     * @param event
-     */
     @Listener
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
@@ -162,7 +171,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Setup the default config file, TotalEconomy.conf.
+     * Setup the default config file, totaleconomy.conf.
      */
     private void setupConfig() {
         try {
@@ -182,24 +191,11 @@ public class TotalEconomy {
                 config.getNode("symbol").setValue("$");
                 loader.save(config);
             }
-
-            // TODO: Make this into its own function that will update ALL values
-            // Change job notifaction state for pre existing configuration files
-            ConfigurationNode jobNotificationState = config.getNode("features", "jobs", "notifications");
-            if (jobNotificationState.isVirtual()) {
-                jobNotificationState.setValue(true);
-
-                loader.save(config);
-            }
-
         } catch (IOException e) {
             logger.warn("Main config could not be loaded/created/changed!");
         }
     }
 
-    /**
-     * Creates and registers commands
-     */
     private void createAndRegisterCommands() {
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
@@ -259,7 +255,6 @@ public class TotalEconomy {
                     .executor(new JobToggleCommand(this))
                     .build();
 
-            //TODO: Implement later?
             CommandSpec jobInfoCmd = CommandSpec.builder()
                     .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
                     .permission("totaleconomy.command.jobinfo")
