@@ -93,7 +93,6 @@ public class TotalEconomy {
     private boolean jobPermissions = false;
     private boolean jobNotifications = true;
 
-    private boolean loadShopKeeper = true;
     private boolean loadMoneyCap = false;
 
     private BigDecimal moneyCap;
@@ -110,7 +109,6 @@ public class TotalEconomy {
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
         jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
 
-        loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
         loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
 
         accountManager = new AccountManager(this);
@@ -184,7 +182,6 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "notifications").setValue(true);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
-                config.getNode("features", "shopkeeper").setValue(loadShopKeeper);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
