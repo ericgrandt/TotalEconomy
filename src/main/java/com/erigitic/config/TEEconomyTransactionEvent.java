@@ -29,9 +29,10 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.economy.EconomyTransactionEvent;
+import org.spongepowered.api.event.impl.AbstractEvent;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 
-public class TEEconomyTransactionEvent implements EconomyTransactionEvent {
+public class TEEconomyTransactionEvent extends AbstractEvent implements EconomyTransactionEvent {
 
     private TransactionResult transactionResult;
 

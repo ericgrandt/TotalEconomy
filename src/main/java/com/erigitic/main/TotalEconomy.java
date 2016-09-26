@@ -145,6 +145,12 @@ public class TotalEconomy {
     }
 
     @Listener
+    public void onServerStopping(GameStoppingServerEvent event) {
+        logger.info("Total Economy Stopping");
+        accountManager.saveAccountConfig();
+    }
+
+    @Listener
     public void onServerStop(GameStoppedServerEvent event) {
         logger.info("Total Economy Stopped");
     }
