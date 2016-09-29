@@ -28,7 +28,6 @@ package com.erigitic.config;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
@@ -39,7 +38,6 @@ import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 public class TEAccount implements UniqueAccount {
 
@@ -60,15 +58,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public Text getDisplayName() {
-        try {
-            return Text.of(Sponge.getServer().getGameProfileManager().get(uuid).get().getName().get());
-        } catch (InterruptedException e) {
-            logger.warn("Total Economy encountered an error. Please copy your error log and post a bug report on GitHub.");
-        } catch (ExecutionException e) {
-            logger.warn("Total Economy encountered an error. Please copy your error log and post a bug report on GitHub.");
-        }
-
-        return Text.of("ERROR");
+        return Text.of(totalEconomy.getUserStorageService().get().get(uuid).get().getName());
     }
 
     @Override

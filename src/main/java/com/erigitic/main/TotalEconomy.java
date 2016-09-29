@@ -49,6 +49,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
 import java.io.File;
@@ -56,6 +57,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.Optional;
 
 @Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.1", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
@@ -80,6 +82,8 @@ public class TotalEconomy {
 
     @Inject
     private PluginContainer pluginContainer;
+
+    Optional<UserStorageService> userStorageService;
 
     private ConfigurationNode config = null;
 
@@ -141,6 +145,8 @@ public class TotalEconomy {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
+        userStorageService = game.getServiceManager().provide(UserStorageService.class);
+
         logger.info("Total Economy Started");
     }
 
@@ -348,5 +354,9 @@ public class TotalEconomy {
     }
 
     public boolean hasJobNotifications() { return jobNotifications; }
+
+    public Optional<UserStorageService> getUserStorageService() {
+        return userStorageService;
+    }
 
 }

@@ -1,3 +1,9 @@
+v1.5.1
+
++ Accounts configuration file now saves while the server is in the process of stopping
++ CHANGE: Changed the way display names are retrieved
++ FIX: EconomyTransactionEvent no longer encounters a cast exception
+
 v 1.5.0
 
 + Balance Top command (/balancetop, /baltop)
