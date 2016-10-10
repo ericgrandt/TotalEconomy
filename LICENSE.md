@@ -1,7 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) Eric
-
+Copyright (c) Eric  
 Copyright (c) contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
