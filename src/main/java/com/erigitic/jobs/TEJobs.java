@@ -420,34 +420,37 @@ public class TEJobs {
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
 
-            if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
-                BlockType blockType = event.getTransactions().get(0).getFinal().getState().getType();
-                String blockName = blockType.getId(); //Should we rather use #getID instead of #getName ?
-                //Temporary addition for debugging #102
-                totalEconomy.getLogger().debug("ChangeBlockEvent.Break: Block ID is \"" + blockName + "\"");
-                Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
+            BlockType blockType = event.getTransactions().get(0).getOriginal().getState().getType();
+            String blockName = blockType.getId(); //Should we rather use #getID instead of #getName ?
+            boolean nameOnly = !totalEconomy.jobsUseFullIDs();
+            if (nameOnly && blockName.contains(":")) {
+                String[] nameArr = blockName.split(":");
+                blockName = nameArr[nameArr.length - 1];
+            }
+            //Temporary addition for debugging #102
+            totalEconomy.getLogger().debug("ChangeBlockEvent.Break: Block ID is \"" + blockName + "\"");
+            Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-                // Checks if the users current job has the break node.
-                boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+            // Checks if the users current job has the break node.
+            boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
 
-                if (jobsConfig.getNode(playerJob).getValue() != null) {
-                    if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                        if (!blockCreator.isPresent()) {
-                            int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                            boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+            if (jobsConfig.getNode(playerJob).getValue() != null) {
+                if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                    if (!blockCreator.isPresent()) {
+                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
-                            BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                            if (notify) {
-                                player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
-                            }
-
-                            addExp(player, expAmount);
-                            playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                            checkForLevel(player);
+                        if (notify) {
+                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                         }
+
+                        addExp(player, expAmount);
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        checkForLevel(player);
                     }
                 }
             }
@@ -470,8 +473,14 @@ public class TEJobs {
 
             BlockType blockType = event.getTransactions().get(0).getFinal().getState().getType();
             String blockName = blockType.getId(); //Should we rather use #getID instead of #getName ?
+            boolean nameOnly = !totalEconomy.jobsUseFullIDs();
+            if (nameOnly && blockName.contains(":")) {
+                String[] nameArr = blockName.split(":");
+                blockName = nameArr[nameArr.length - 1];
+            }
             //Temporary addition for debugging #102
-            totalEconomy.getLogger().debug("ChangeBlockEvent.Place: Block ID is \"" + blockName + "\"");
+            totalEconomy.getLogger().debug("ChangeBlockEvent.Break: Block ID is \"" + blockName + "\"");
+            Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
             //Checks if the users current job has the place node.
             boolean hasPlaceNode = (jobsConfig.getNode(playerJob, "place").getValue() != null);
