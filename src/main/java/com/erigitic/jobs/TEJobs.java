@@ -37,6 +37,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.data.Transaction;
@@ -63,7 +64,8 @@ import org.spongepowered.api.text.format.TextColors;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class TEJobs {
@@ -419,7 +421,10 @@ public class TEJobs {
             String playerJob = getPlayerJob(player);
 
             if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
-                String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
+                BlockType blockType = event.getTransactions().get(0).getFinal().getState().getType();
+                String blockName = blockType.getId(); //Should we rather use #getID instead of #getName ?
+                //Temporary addition for debugging #102
+                totalEconomy.getLogger().debug("ChangeBlockEvent.Break: Block ID is \"" + blockName + "\"");
                 Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
                 // Checks if the users current job has the break node.
@@ -463,10 +468,10 @@ public class TEJobs {
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
 
+            BlockType blockType = event.getTransactions().get(0).getFinal().getState().getType();
+            String blockName = blockType.getId(); //Should we rather use #getID instead of #getName ?
             //Temporary addition for debugging #102
-            totalEconomy.getLogger().info("BlockPlaceEvent: Block ID is \"" + event.getTransactions().get(0).getFinal().getState().getType().getName() + "\"");
-
-            String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName().split(":")[1];
+            totalEconomy.getLogger().debug("ChangeBlockEvent.Place: Block ID is \"" + blockName + "\"");
 
             //Checks if the users current job has the place node.
             boolean hasPlaceNode = (jobsConfig.getNode(playerJob, "place").getValue() != null);
