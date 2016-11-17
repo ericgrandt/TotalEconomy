@@ -30,8 +30,8 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 public class LumberjackJob implements Job {
     public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] breakValues = {{"log", "10", "1.00"}, {"leaves", "1", "0.01"}};
-        String[][] placeValue = {{"sapling", "1", "0.10"}};
+        String[][] breakValues = {{"minecraft:log", "10", "1.00"}, {"minecraft:leaves", "1", "0.01"}};
+        String[][] placeValue = {{"minecraft:sapling", "1", "0.10"}};
         
         for (int i = 0; i < breakValues.length; i++) {
             jobsConfig.getNode("Lumberjack", "break", breakValues[i][0], "expreward").setValue(breakValues[i][1]);

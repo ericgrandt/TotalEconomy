@@ -192,6 +192,7 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "salary").setValue(loadSalary);
                 config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
                 config.getNode("features", "jobs", "notifications").setValue(true);
+                config.getNode("features", "jobs", "usefullids").setValue(true);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
                 config.getNode("startbalance").setValue(100);
@@ -354,6 +355,8 @@ public class TotalEconomy {
     }
 
     public boolean hasJobNotifications() { return jobNotifications; }
+
+    public boolean jobsUseFullIDs() { return config.getNode("features", "jobs", "usefullids").getBoolean(true); }
 
     public Optional<UserStorageService> getUserStorageService() {
         return userStorageService;
