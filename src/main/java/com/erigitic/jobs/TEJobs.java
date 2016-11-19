@@ -106,7 +106,7 @@ public class TEJobs {
         Scheduler scheduler = totalEconomy.getGame().getScheduler();
         Task.Builder payTask = scheduler.createTaskBuilder();
 
-        Task task = payTask.execute(() -> {
+        payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
                     BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getString());
                     boolean salaryDisabled = jobsConfig.getNode(getPlayerJob(player), "disablesalary").getBoolean();
@@ -243,7 +243,7 @@ public class TEJobs {
         boolean jobPermissions = totalEconomy.isJobPermissions();
 
         if (jobExists(jobName)) {
-            if ((jobPermissions && player.hasPermission("main.job." + jobName)) || !jobPermissions) {
+            if ((jobPermissions && player.hasPermission("totaleconomy.job." + jobName)) || !jobPermissions) {
                 jobName = convertToTitle(jobName);
 
                 accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
@@ -417,32 +417,29 @@ public class TEJobs {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
+            String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
+            Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-            if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
-                String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-                Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
+            // Checks if the users current job has the break node.
+            boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
 
-                // Checks if the users current job has the break node.
-                boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+            if (jobsConfig.getNode(playerJob).getValue() != null) {
+                if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                    if (!blockCreator.isPresent()) {
+                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
-                if (jobsConfig.getNode(playerJob).getValue() != null) {
-                    if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                        if (!blockCreator.isPresent()) {
-                            int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                            boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                            BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-
-                            if (notify) {
-                                player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
-                            }
-
-                            addExp(player, expAmount);
-                            playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                            checkForLevel(player);
+                        if (notify) {
+                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                         }
+
+                        addExp(player, expAmount);
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        checkForLevel(player);
                     }
                 }
             }
@@ -503,6 +500,9 @@ public class TEJobs {
             EntityDamageSource damageSource = optDamageSource.get();
             Entity killer = damageSource.getSource();
             Entity victim = event.getTargetEntity();
+
+            // TODO: REMOVE
+            logger.info("" + killer);
 
             if (killer instanceof Player) {
                 Player player = (Player) killer;
