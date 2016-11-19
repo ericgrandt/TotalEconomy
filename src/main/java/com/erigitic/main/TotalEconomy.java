@@ -83,20 +83,20 @@ public class TotalEconomy {
     @Inject
     private PluginContainer pluginContainer;
 
-    Optional<UserStorageService> userStorageService;
+    private UserStorageService userStorageService;
 
     private ConfigurationNode config = null;
 
     private Currency defaultCurrency;
 
     private AccountManager accountManager;
+
     private TEJobs teJobs;
 
     private boolean loadJobs = true;
     private boolean loadSalary = true;
     private boolean jobPermissions = false;
     private boolean jobNotifications = true;
-
     private boolean loadMoneyCap = false;
 
     private BigDecimal moneyCap;
@@ -145,7 +145,7 @@ public class TotalEconomy {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
-        userStorageService = game.getServiceManager().provide(UserStorageService.class);
+        userStorageService = game.getServiceManager().provideUnchecked(UserStorageService.class);
 
         logger.info("Total Economy Started");
     }
@@ -355,7 +355,7 @@ public class TotalEconomy {
 
     public boolean hasJobNotifications() { return jobNotifications; }
 
-    public Optional<UserStorageService> getUserStorageService() {
+    public UserStorageService getUserStorageService() {
         return userStorageService;
     }
 

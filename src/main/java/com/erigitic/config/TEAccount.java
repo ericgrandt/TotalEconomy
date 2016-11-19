@@ -58,7 +58,10 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public Text getDisplayName() {
-        return Text.of(totalEconomy.getUserStorageService().get().get(uuid).get().getName());
+        if (totalEconomy.getUserStorageService().get(uuid).isPresent())
+            return Text.of(totalEconomy.getUserStorageService().get(uuid).get().getName());
+
+        return Text.of("PLAYER NAME");
     }
 
     @Override
