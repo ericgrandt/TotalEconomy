@@ -37,6 +37,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.data.Transaction;
@@ -420,6 +421,8 @@ public class TEJobs {
             String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
+            logger.info(blockName);
+
             // Checks if the users current job has the break node.
             boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
 
@@ -459,7 +462,7 @@ public class TEJobs {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
-            String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName().split(":")[1];
+            String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName();
 
             //Checks if the users current job has the place node.
             boolean hasPlaceNode = (jobsConfig.getNode(playerJob, "place").getValue() != null);
@@ -490,7 +493,7 @@ public class TEJobs {
      * block that was broken is present in the config of the player's job. If it is, it will grab the job exp reward as
      * well as the pay.
      *
-     * @param event DesctructEntityEvent.Death
+     * @param event DestructEntityEvent.Death
      */
     @Listener
     public void onPlayerKillEntity(DestructEntityEvent.Death event) {
@@ -501,8 +504,13 @@ public class TEJobs {
             Entity killer = damageSource.getSource();
             Entity victim = event.getTargetEntity();
 
-            // TODO: REMOVE
-            logger.info("" + killer);
+            if (!(killer instanceof Player)) {
+                // If a projectile was shot to kill an entity, this will grab the player who shot it
+                Optional<UUID> damageCreator = damageSource.getSource().getCreator();
+
+                if (damageCreator.isPresent())
+                    killer = Sponge.getServer().getPlayer(damageCreator.get()).get();
+            }
 
             if (killer instanceof Player) {
                 Player player = (Player) killer;
