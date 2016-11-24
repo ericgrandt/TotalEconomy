@@ -421,8 +421,6 @@ public class TEJobs {
             String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-            logger.info(blockName);
-
             // Checks if the users current job has the break node.
             boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
 
