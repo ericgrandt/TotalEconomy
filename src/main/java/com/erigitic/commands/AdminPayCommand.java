@@ -66,24 +66,29 @@ public class AdminPayCommand implements CommandExecutor {
         Player recipient = args.<Player>getOne("player").get();
 
         if (TotalEconomy.isNumeric(strAmount)) {
-            if (!strAmount.contains("-")) {
-                BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
 
-                TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                if (transactionResult.getResult() == ResultType.SUCCESS) {
-                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
+            if (transactionResult.getResult() == ResultType.SUCCESS) {
+                if (!strAmount.contains("-")) {
+                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
+                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
 
-                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), "."));
+                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
+                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                } else {
+                    src.sendMessage(Text.of(TextColors.GRAY, "You have removed ", TextColors.GOLD, amountText,
+                            TextColors.GRAY, " from ", TextColors.GOLD, recipient.getName(), "'s", TextColors.GRAY, " account."));
+
+                    recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
+                            TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
                 }
-            } else {
-                src.sendMessage(Text.of(TextColors.RED, "The amount must be positive."));
             }
         } else {
-            src.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
+            src.sendMessage(Text.of(TextColors.RED, "The amount must be numeric."));
         }
 
         return CommandResult.success();
