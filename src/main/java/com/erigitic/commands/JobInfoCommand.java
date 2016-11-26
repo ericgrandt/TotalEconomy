@@ -101,9 +101,14 @@ public class JobInfoCommand implements CommandExecutor {
 
         jobsConfig.getNode(jobName, nodeName).getChildrenMap().keySet().forEach(value -> {
             if (value instanceof String) {
-                String valueFormatted = WordUtils.capitalize(((String) value).replaceAll("_", " "));
                 String expReward = jobsConfig.getNode(jobName, nodeName, value, "expreward").getString();
                 String moneyReward = jobsConfig.getNode(jobName, nodeName, value, "pay").getString();
+                String valueFormatted;
+
+                if (((String) value).contains(":"))
+                    value = ((String) value).split(":")[1];
+
+                valueFormatted = WordUtils.capitalize(((String) value).replaceAll("_", " "));
 
                 jobValues.add(Text.of(TextColors.LIGHT_PURPLE, WordUtils.capitalize(nodeName + ": "), TextColors.GRAY,
                         valueFormatted, " | ", TextColors.GREEN, expReward, " exp", TextColors.GRAY, " | ", TextColors.GOLD,
