@@ -85,10 +85,10 @@ public class PayCommand implements CommandExecutor {
 
                         if (transferResult.getResult() == ResultType.SUCCESS) {
                             sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), "."));
+                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
 
                             recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), "."));
+                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), TextColors.GRAY, "."));
                         } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
                             sender.sendMessage(Text.of(TextColors.RED, "Insufficient funds."));
                         }
