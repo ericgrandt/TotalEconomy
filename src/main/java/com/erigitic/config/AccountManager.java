@@ -79,6 +79,18 @@ public class AccountManager implements EconomyService {
         }
     }
 
+    /**
+     * Reload the account config
+     */
+    public void reloadConfig() {
+        try {
+            accountConfig = loader.load();
+            logger.info("Reloading account configuration file.");
+        } catch (IOException e) {
+            logger.warn("Could not reload account configuration file!");
+        }
+    }
+
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
