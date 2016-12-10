@@ -159,8 +159,9 @@ public class TEJobs {
     public void reloadConfig() {
         try {
             jobsConfig = loader.load();
+            logger.info("Reloading jobs configuration file.");
         } catch (IOException e) {
-            logger.warn("Could not reload jobs config file!");
+            logger.warn("Could not reload jobs configuration file!");
         }
     }
 

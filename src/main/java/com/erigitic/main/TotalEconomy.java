@@ -59,7 +59,7 @@ import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Optional;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.1", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.6.0", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -178,6 +178,7 @@ public class TotalEconomy {
     @Listener
     public void onGameReload(GameReloadEvent event) {
         teJobs.reloadConfig();
+        accountManager.reloadConfig();
     }
 
     /**

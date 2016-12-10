@@ -46,9 +46,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
 
 public class BalanceTopCommand implements CommandExecutor {
     private Logger logger;
@@ -69,20 +68,26 @@ public class BalanceTopCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         ConfigurationNode accountNode = accountManager.getAccountConfig();
         List<Text> accountBalances = new ArrayList<>();
+        Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
+        Currency defaultCurrency = accountManager.getDefaultCurrency();
 
         // TODO: Add customization to this (amount of accounts to show).
         accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(UUID.fromString(accountUUID.toString())).get();
-            Currency defaultCurrency = accountManager.getDefaultCurrency();
             Text playerName = playerAccount.getDisplayName();
-            Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));
 
-            accountBalances.add(Text.of(TextColors.GRAY, playerName.toPlain(), ": ", TextColors.GOLD, playerBalance.toPlain()));
+            accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(defaultCurrency));
         });
 
-        builder.reset().title(Text.of(TextColors.GOLD, "Top Balances"))
+        List<Map.Entry<String, BigDecimal>> unsortedList = new LinkedList<>(accountBalancesMap.entrySet());
+        unsortedList.sort((Map.Entry<String, BigDecimal> o1, Map.Entry<String, BigDecimal> o2) -> (o1.getValue()).compareTo(o2.getValue()));
+
+        Collections.reverse(unsortedList);
+
+        unsortedList.forEach(entry -> accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, defaultCurrency.format(entry.getValue()).toPlain())));
+
+        builder.title(Text.of(TextColors.GOLD, "Top Balances"))
                 .contents(accountBalances)
-                .padding(Text.of(TextColors.GRAY, "-"))
                 .sendTo(src);
 
         return CommandResult.success();
