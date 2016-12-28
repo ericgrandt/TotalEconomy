@@ -1,3 +1,17 @@
+v1.5.2
+
++ CHANGE: Changed output for when an error occurs during the reloading of configuration files
++ FIX: Baltop command now sorts balances in descending order
+
+v1.5.1
+
++ CHANGE: Accounts configuration file now saves while the server is in the process of stopping
++ CHANGE: Changed the way display names are retrieved
++ CHANGE: Changed the way block ids are handled
++ CHANGE: Admin pay command can now be used to remove money (/adminpay [PLAYER] -[VALUE])
++ FIX: EconomyTransactionEvent no longer encounters a cast exception
++ FIX: Kills with bows are now properly handled
+
 v 1.5.0
 
 + Balance Top command (/balancetop, /baltop)

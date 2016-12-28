@@ -1,3 +1,28 @@
+/*
+ * This file is part of Total Economy, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) Eric Grandt <https://www.ericgrandt.com>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
@@ -12,6 +37,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.data.Transaction;
@@ -41,16 +67,11 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by Eric on 5/5/2015.
- */
 public class TEJobs {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private ConfigurationNode accountConfig;
     private Logger logger;
-
-    private Task task;
 
     private File jobsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
@@ -61,15 +82,9 @@ public class TEJobs {
     private WarriorJob warrior;
     private FishermanJob fisherman;
 
-    /**
-     * Constructor
-     *
-     * @param totalEconomy object representing this plugin
-     */
     public TEJobs(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
-        //Initialize each job
         miner = new MinerJob();
         lumberjack = new LumberjackJob();
         warrior = new WarriorJob();
@@ -85,11 +100,14 @@ public class TEJobs {
             startSalaryTask();
     }
 
+    /**
+     * Start the timer that pays out the salary to each player after a specified time in seconds
+     */
     private void startSalaryTask() {
         Scheduler scheduler = totalEconomy.getGame().getScheduler();
         Task.Builder payTask = scheduler.createTaskBuilder();
 
-        task = payTask.execute(() -> {
+        payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
                     BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getString());
                     boolean salaryDisabled = jobsConfig.getNode(getPlayerJob(player), "disablesalary").getBoolean();
@@ -135,11 +153,15 @@ public class TEJobs {
         }
     }
 
+    /**
+     * Reload the jobs config
+     */
     public void reloadConfig() {
         try {
             jobsConfig = loader.load();
+            logger.info("Reloading jobs configuration file.");
         } catch (IOException e) {
-            logger.warn("Could not reload jobs config file!");
+            logger.warn("Could not reload jobs configuration file!");
         }
     }
 
@@ -202,6 +224,12 @@ public class TEJobs {
         return false;
     }
 
+    /**
+     * Convert strings to titles (title -> Title)
+     *
+     * @param input the string to be titleized
+     * @return String the titileized version of the input
+     */
     public String convertToTitle(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
@@ -217,7 +245,7 @@ public class TEJobs {
         boolean jobPermissions = totalEconomy.isJobPermissions();
 
         if (jobExists(jobName)) {
-            if ((jobPermissions && player.hasPermission("main.job." + jobName)) || !jobPermissions) {
+            if ((jobPermissions && player.hasPermission("totaleconomy.job." + jobName)) || !jobPermissions) {
                 jobName = convertToTitle(jobName);
 
                 accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
@@ -300,10 +328,20 @@ public class TEJobs {
         return jobsConfig.getNode("jobs").getString();
     }
 
+    /**
+     * Getter for the jobs configuration
+     *
+     * @return ConfigurationNode the jobs configuration
+     */
     public ConfigurationNode getJobsConfig() {
         return jobsConfig;
     }
 
+    /**
+     * Checks sign contents and converts it to a "Job Changing" sign if conditions are met
+     *
+     * @param event ChangeSignEvent
+     */
     @Listener
     public void onJobSignCheck(ChangeSignEvent event) {
         SignData data = event.getText();
@@ -330,6 +368,12 @@ public class TEJobs {
         }
     }
 
+    /**
+     * Called when a player clicks a sign. If the clicked sign is a "Job Changing" sign then the player's job will
+     * be changed on click.
+     *
+     * @param event InteractBlockEvent
+     */
     @Listener
     public void onSignInteract(InteractBlockEvent event) {
         if (event.getCause().first(Player.class).isPresent()) {
@@ -367,7 +411,7 @@ public class TEJobs {
      * block that was broken is present in the config of the player's job. If it is, it will grab the job exp reward as
      * well as the pay.
      *
-     * @param event PlayerBlockBreakEvent
+     * @param event ChangeBlockEvent.Break
      */
     @Listener
     public void onPlayerBlockBreak(ChangeBlockEvent.Break event) {
@@ -375,45 +419,49 @@ public class TEJobs {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
+            String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
+            Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-            if (event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":").length >= 2) {
-                String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName().split(":")[1];
-                Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
+            // Checks if the users current job has the break node.
+            boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
 
-                // Checks if the users current job has the break node.
-                boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+            if (jobsConfig.getNode(playerJob).getValue() != null) {
+                if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
+                    if (!blockCreator.isPresent()) {
+                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
-                if (jobsConfig.getNode(playerJob).getValue() != null) {
-                    if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                        if (!blockCreator.isPresent()) {
-                            int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
-                            boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
-                            BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-
-                            if (notify) {
-                                player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
-                            }
-
-                            addExp(player, expAmount);
-                            playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                            checkForLevel(player);
+                        if (notify) {
+                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
                         }
+
+                        addExp(player, expAmount);
+                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        checkForLevel(player);
                     }
                 }
             }
         }
     }
 
+    /**
+     * Used for the place option in jobs. Will check if the job has the place node and if it does it will check if the
+     * block that was placed is present in the config of the player's job. If it is, it will grab the job exp reward as
+     * well as the pay.
+     *
+     * @param event ChangeBlockEvent.Place
+     */
     @Listener
     public void onPlayerPlaceBlock(ChangeBlockEvent.Place event) {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
             String playerJob = getPlayerJob(player);
-            String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName().split(":")[1];
+            String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName();
 
             //Checks if the users current job has the place node.
             boolean hasPlaceNode = (jobsConfig.getNode(playerJob, "place").getValue() != null);
@@ -439,6 +487,13 @@ public class TEJobs {
         }
     }
 
+    /**
+     * Used for the break option in jobs. Will check if the job has the break node and if it does it will check if the
+     * block that was broken is present in the config of the player's job. If it is, it will grab the job exp reward as
+     * well as the pay.
+     *
+     * @param event DestructEntityEvent.Death
+     */
     @Listener
     public void onPlayerKillEntity(DestructEntityEvent.Death event) {
         Optional<EntityDamageSource> optDamageSource = event.getCause().first(EntityDamageSource.class);
@@ -447,6 +502,14 @@ public class TEJobs {
             EntityDamageSource damageSource = optDamageSource.get();
             Entity killer = damageSource.getSource();
             Entity victim = event.getTargetEntity();
+
+            if (!(killer instanceof Player)) {
+                // If a projectile was shot to kill an entity, this will grab the player who shot it
+                Optional<UUID> damageCreator = damageSource.getSource().getCreator();
+
+                if (damageCreator.isPresent())
+                    killer = Sponge.getServer().getPlayer(damageCreator.get()).get();
+            }
 
             if (killer instanceof Player) {
                 Player player = (Player) killer;
@@ -478,6 +541,13 @@ public class TEJobs {
         }
     }
 
+    /**
+     * Used for the catch option in jobs. Will check if the job has the catch node and if it does it will check if the
+     * item that was caught is present in the config of the player's job. If it is, it will grab the job exp reward as
+     * well as the pay.
+     *
+     * @param event FishingEvent.Stop
+     */
     @Listener
     public void onPlayerFish(FishingEvent.Stop event) {
         if (event.getCause().first(Player.class).isPresent()) {

@@ -1,10 +1,34 @@
+/*
+ * This file is part of Total Economy, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) Eric Grandt <https://www.ericgrandt.com>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.erigitic.main;
 
 import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.jobs.TEJobs;
-import com.erigitic.shops.ShopKeeper;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -25,6 +49,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
 import java.io.File;
@@ -32,8 +57,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.Optional;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.0", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.2", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -57,29 +83,24 @@ public class TotalEconomy {
     @Inject
     private PluginContainer pluginContainer;
 
+    private UserStorageService userStorageService;
+
     private ConfigurationNode config = null;
 
     private Currency defaultCurrency;
 
     private AccountManager accountManager;
+
     private TEJobs teJobs;
-    private ShopKeeper shopKeeper;
 
     private boolean loadJobs = true;
     private boolean loadSalary = true;
     private boolean jobPermissions = false;
     private boolean jobNotifications = true;
-
-    private boolean loadShopKeeper = true;
     private boolean loadMoneyCap = false;
 
     private BigDecimal moneyCap;
 
-    /**
-     * Setup all config files
-     *
-     * @param event
-     */
     @Listener
     public void preInit(GamePreInitializationEvent event) {
         setupConfig();
@@ -92,7 +113,6 @@ public class TotalEconomy {
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
         jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
 
-        loadShopKeeper = config.getNode("features", "shopkeeper").getBoolean();
         loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
 
         accountManager = new AccountManager(this);
@@ -104,21 +124,12 @@ public class TotalEconomy {
             teJobs = new TEJobs(this);
         }
 
-        if (loadShopKeeper == true) {
-            shopKeeper = new ShopKeeper(this);
-        }
-
         if (loadMoneyCap == true) {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
                     .setScale(2, BigDecimal.ROUND_DOWN);
         }
     }
 
-    /**
-     * Create and register all commands.
-     *
-     * @param event
-     */
     @Listener
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
@@ -134,7 +145,15 @@ public class TotalEconomy {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
+        userStorageService = game.getServiceManager().provideUnchecked(UserStorageService.class);
+
         logger.info("Total Economy Started");
+    }
+
+    @Listener
+    public void onServerStopping(GameStoppingServerEvent event) {
+        logger.info("Total Economy Stopping");
+        accountManager.saveAccountConfig();
     }
 
     @Listener
@@ -159,10 +178,11 @@ public class TotalEconomy {
     @Listener
     public void onGameReload(GameReloadEvent event) {
         teJobs.reloadConfig();
+        accountManager.reloadConfig();
     }
 
     /**
-     * Setup the default config file, TotalEconomy.conf.
+     * Setup the default config file, totaleconomy.conf.
      */
     private void setupConfig() {
         try {
@@ -175,31 +195,17 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "notifications").setValue(true);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
-                config.getNode("features", "shopkeeper").setValue(loadShopKeeper);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
                 config.getNode("symbol").setValue("$");
                 loader.save(config);
             }
-
-            // TODO: Make this into its own function that will update ALL values
-            // Change job notifaction state for pre existing configuration files
-            ConfigurationNode jobNotificationState = config.getNode("features", "jobs", "notifications");
-            if (jobNotificationState.isVirtual()) {
-                jobNotificationState.setValue(true);
-
-                loader.save(config);
-            }
-
         } catch (IOException e) {
             logger.warn("Main config could not be loaded/created/changed!");
         }
     }
 
-    /**
-     * Creates and registers commands
-     */
     private void createAndRegisterCommands() {
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
@@ -259,7 +265,6 @@ public class TotalEconomy {
                     .executor(new JobToggleCommand(this))
                     .build();
 
-            //TODO: Implement later?
             CommandSpec jobInfoCmd = CommandSpec.builder()
                     .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
                     .permission("totaleconomy.command.jobinfo")
@@ -350,5 +355,9 @@ public class TotalEconomy {
     }
 
     public boolean hasJobNotifications() { return jobNotifications; }
+
+    public UserStorageService getUserStorageService() {
+        return userStorageService;
+    }
 
 }
