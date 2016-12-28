@@ -1,4 +1,4 @@
-v1.6.0
+v1.5.2
 
 + CHANGE: Changed output for when an error occurs during the reloading of configuration files
 + FIX: Baltop command now sorts balances in descending order
