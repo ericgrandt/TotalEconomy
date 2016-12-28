@@ -1,3 +1,28 @@
+/*
+ * This file is part of Total Economy, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) Eric Grandt <https://www.ericgrandt.com>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
@@ -20,9 +45,6 @@ import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
 
-/**
- * Created by Eric on 9/7/2015.
- */
 public class AdminPayCommand implements CommandExecutor {
     private Logger logger;
     private TotalEconomy totalEconomy;
@@ -44,24 +66,29 @@ public class AdminPayCommand implements CommandExecutor {
         Player recipient = args.<Player>getOne("player").get();
 
         if (TotalEconomy.isNumeric(strAmount)) {
-            if (!strAmount.contains("-")) {
-                BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
+            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
 
-                TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                if (transactionResult.getResult() == ResultType.SUCCESS) {
-                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName()));
+            if (transactionResult.getResult() == ResultType.SUCCESS) {
+                if (!strAmount.contains("-")) {
+                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
+                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
 
-                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), "."));
+                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
+                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                } else {
+                    src.sendMessage(Text.of(TextColors.GRAY, "You have removed ", TextColors.GOLD, amountText,
+                            TextColors.GRAY, " from ", TextColors.GOLD, recipient.getName(), "'s", TextColors.GRAY, " account."));
+
+                    recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
+                            TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
                 }
-            } else {
-                src.sendMessage(Text.of(TextColors.RED, "The amount must be positive."));
             }
         } else {
-            src.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
+            src.sendMessage(Text.of(TextColors.RED, "The amount must be numeric."));
         }
 
         return CommandResult.success();
