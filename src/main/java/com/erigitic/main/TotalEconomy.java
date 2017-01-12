@@ -59,7 +59,7 @@ import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Optional;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.3", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.4", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -94,9 +94,16 @@ public class TotalEconomy {
     private TEJobs teJobs;
 
     private boolean loadJobs = true;
-    private boolean loadSalary = true;
     private boolean jobPermissions = false;
     private boolean jobNotifications = true;
+
+    private boolean loadSalary = true;
+
+    private boolean databaseActive = false;
+    private String databaseUrl;
+    private String databaseUser;
+    private String databasePassword;
+
     private boolean loadMoneyCap = false;
 
     private BigDecimal moneyCap;
@@ -110,6 +117,7 @@ public class TotalEconomy {
 
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
+        databaseActive = config.getNode("database", "enable").getBoolean();
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
         jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
 
@@ -127,6 +135,12 @@ public class TotalEconomy {
         if (loadMoneyCap == true) {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
                     .setScale(2, BigDecimal.ROUND_DOWN);
+        }
+
+        if (databaseActive) {
+            databaseUrl = config.getNode("database", "url").getString();
+            databaseUser = config.getNode("database", "user").getString();
+            databasePassword = config.getNode("database", "password").getString();
         }
     }
 
@@ -192,6 +206,10 @@ public class TotalEconomy {
             config = loader.load();
 
             if (!defaultConf.exists()) {
+                config.getNode("database", "enable").setValue(databaseActive);
+                config.getNode("database", "url").setValue("");
+                config.getNode("database", "user").setValue("");
+                config.getNode("database", "password").setValue("");
                 config.getNode("features", "jobs", "enable").setValue(loadJobs);
                 config.getNode("features", "jobs", "salary").setValue(loadSalary);
                 config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
@@ -353,6 +371,8 @@ public class TotalEconomy {
         return loadMoneyCap;
     }
 
+    public boolean isDatabaseActive() { return databaseActive; }
+
     public BigDecimal getMoneyCap() {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
     }
@@ -362,5 +382,11 @@ public class TotalEconomy {
     public UserStorageService getUserStorageService() {
         return userStorageService;
     }
+
+    public String getDatabaseUrl() { return databaseUrl; }
+
+    public String getDatabaseUser() { return databaseUser; }
+
+    public String getDatabasePassword() { return databasePassword; }
 
 }

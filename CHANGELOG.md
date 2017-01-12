@@ -1,3 +1,5 @@
+v1.5.4
+
 v1.5.3
 
 + FIX: NullPointerException no longer occurs when reloading configuration files and not having jobs enabled

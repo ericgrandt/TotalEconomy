@@ -31,17 +31,23 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.sql.SqlService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -53,18 +59,26 @@ public class AccountManager implements EconomyService {
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
+    private SqlService sql;
+
+    private boolean databaseActive;
 
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
+        databaseActive = totalEconomy.isDatabaseActive();
 
-        setupConfig();
+        if (!databaseActive)
+            setupConfig();
+        else {
+            setupDatabase();
+        }
     }
 
     /**
      * Setup the config file that will contain the user accounts.
      */
-    public void setupConfig() {
+    private void setupConfig() {
         accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
         loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
 
@@ -76,6 +90,56 @@ public class AccountManager implements EconomyService {
             }
         } catch (IOException e) {
             logger.warn("Could not create accounts config file!");
+        }
+    }
+
+    /**
+     * Setup a database for the accounts
+     *
+     * @param jdbcUrl
+     * @return DataSource
+     * @throws SQLException
+     */
+    private DataSource getDataSource(String jdbcUrl) throws SQLException {
+        if (sql == null) {
+            sql = Sponge.getServiceManager().provide(SqlService.class).get();
+        }
+
+        return sql.getDataSource(jdbcUrl);
+    }
+
+    public void setupDatabase() {
+        try {
+            Connection conn = getDataSource(totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword()).getConnection();
+
+            // Create totaleconomy database
+            conn.prepareStatement("CREATE DATABASE IF NOT EXISTS totaleconomy").execute();
+
+            // Create accounts table
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.accounts(uid varchar(60) NOT NULL," +
+                    getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
+                    "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
+                    "job_notifications boolean NOT NULL DEFAULT TRUE," +
+                    "PRIMARY KEY (uid))").execute();
+
+            // Create levels table
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.jobLevels(uid varchar(60)," +
+                    "miner int(10) unsigned NOT NULL DEFAULT '1'," +
+                    "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
+                    "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
+                    "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
+                    "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE)").execute();
+
+            // Create experience table
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.jobExperience(uid varchar(60)," +
+                    "miner int(10) unsigned NOT NULL DEFAULT '0'," +
+                    "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
+                    "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
+                    "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
+                    "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE)").execute();
+            conn.close();
+        } catch (SQLException e) {
+            logger.warn("SQL ERROR");
         }
     }
 
@@ -98,11 +162,15 @@ public class AccountManager implements EconomyService {
 
         try {
             if (!hasAccount(uuid)) {
-                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
-                accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
-                accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
+                if (!databaseActive) {
+                    accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
+                    accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
+                    accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
+                    loader.save(accountConfig);
+                } else {
+                    // TODO: Load from database
+                }
 
-                loader.save(accountConfig);
             }
         } catch (IOException e) {
             logger.warn("Could not create account!");
