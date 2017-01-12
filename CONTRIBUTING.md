@@ -3,7 +3,7 @@ Thanks for your interest in contributing to Total Economy. There are a few guide
 
 ### Contributing Issues
 * Be as descriptive as possible
-* Include a complete error log
+* Include a complete error log if applicable
 * Include pictures if possible
 
 ### Contributing Code
