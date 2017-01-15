@@ -23,30 +23,34 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.jobs.jobsets;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
+/**
+ * @author MarkL4YG
+ */
+public class LumberjackJobSet implements IDefaultJobSet {
 
-public class LumberjackJob implements IDefaultJob {
+    private static final String SETNAME = "lumberjackSet";
 
-    private static final String jobname = "lumberjack";
-    private static final String[] sets = { jobname+"Set"};
-
-    @Override
-    public String getJobName() {
-        return jobname;
-    }
+    private static final String[][] rewards = {
+            //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
+            {"break", "minecraft:log", "10", "1.00"},
+            {"break", "minecraft:log2", "10", "1.00"},
+            {"break", "minecraft:leaves", "1", "0.01"},
+            {"place", "minecraft:sapling", "1", "0.10"}
+    };
 
     @Override
     public void applyOnNode(ConfigurationNode node) {
 
-        node = node.getNode(getJobName());
+        ConfigurationNode myNode = node.getNode(SETNAME, "actions");
 
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(sets));
-        JobBasedRequirement.of(null, 0, "totaleconomy.job.lumberjack").addTo(node);
+        for (String[] a : rewards) {
+            ConfigurationNode n = myNode.getNode(a[0], a[1]);
+            n.getNode("expGain").setValue(a[2]);
+            n.getNode("moneyGain").setValue(a[3]);
+        }
     }
 }

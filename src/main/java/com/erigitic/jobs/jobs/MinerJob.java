@@ -25,21 +25,27 @@
 
 package com.erigitic.jobs.jobs;
 
-import com.erigitic.jobs.Job;
+import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-public class MinerJob implements Job {
-    public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] breakValues = {{"minecraft:coal_ore", "5", "0.25"}, {"minecraft:iron_ore", "10", "0.50"}, {"minecraft:lapis_ore", "20", "4.00"},
-                {"minecraft:gold_ore", "40", "5.00"}, {"minecraft:diamond_ore", "100", "25.00"}, {"minecraft:redstone_ore", "25", "2.00"},
-                {"minecraft:emerald_ore", "50", "12.50"}, {"minecraft:quartz_ore", "5", "0.15"}};
+import java.util.Arrays;
 
-        for (int i = 0; i < breakValues.length; i++) {
-            jobsConfig.getNode("Miner", "break", breakValues[i][0], "expreward").setValue(breakValues[i][1]);
-            jobsConfig.getNode("Miner", "break", breakValues[i][0], "pay").setValue(breakValues[i][2]);
-        }
-        jobsConfig.getNode("Miner", "disablesalary").setValue(false);
-        jobsConfig.getNode("Miner", "salary").setValue(20);
-        jobsConfig.getNode("Miner", "permission").setValue("totaleconomy.job.miner");
+public class MinerJob implements IDefaultJob {
+
+    private static final String jobname = "miner";
+    private static final String[] sets = { jobname+"Set"};
+
+    @Override
+    public String getJobName() {
+        return jobname;
+    }
+
+    @Override
+    public void applyOnNode(ConfigurationNode node) {
+        node = node.getNode(getJobName());
+
+        node.getNode("salary").setValue(20);
+        node.getNode("sets").setValue(Arrays.asList(sets));
+        JobBasedRequirement.of(null, 0, "totaleconomy.job.miner").addTo(node);
     }
 }
