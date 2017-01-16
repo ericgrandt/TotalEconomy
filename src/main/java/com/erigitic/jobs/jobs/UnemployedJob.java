@@ -25,28 +25,21 @@
 
 package com.erigitic.jobs.jobs;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
-
-public class LumberjackJob implements IDefaultJob {
-
-    private static final String jobname = "lumberjack";
-    private static final String[] sets = { jobname+"Set"};
+/**
+ * Created by Life4YourGames on 15.01.17.
+ */
+public class UnemployedJob implements IDefaultJob {
 
     @Override
     public String getJobName() {
-        return jobname;
+        return "unemployed";
     }
 
     @Override
     public void applyOnNode(ConfigurationNode node) {
-
         node = node.getNode(getJobName());
-
         node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(sets));
-        JobBasedRequirement.of(null, 0, "totaleconomy.job.lumberjack").addTo(node);
     }
 }
