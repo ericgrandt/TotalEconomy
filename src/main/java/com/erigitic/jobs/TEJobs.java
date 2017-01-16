@@ -272,7 +272,7 @@ public class TEJobs {
             logger.warn("Problem saving account config!");
         }
 
-        if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean() == true)
+        if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean())
             player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
                     " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }

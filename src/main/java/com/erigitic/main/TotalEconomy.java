@@ -290,6 +290,13 @@ public class TotalEconomy {
                     .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
                     .build();
 
+            CommandSpec jobReloadCmd = CommandSpec.builder()
+                    .description(Text.of("Reloads sets and jobs"))
+                    .permission("totaleconomy.command.job.reload")
+                    .executor(new JobReloadCommand(this))
+                    .arguments(GenericArguments.none())
+                    .build();
+
             CommandSpec jobCommand = CommandSpec.builder()
                     .description(Text.of("Display list of jobs."))
                     .permission("totaleconomy.command.job")
@@ -297,6 +304,7 @@ public class TotalEconomy {
                     .child(jobSetCmd, "set", "s")
                     .child(jobNotifyToggle, "toggle", "t")
                     .child(jobInfoCmd, "info", "i")
+                    .child(jobReloadCmd, "reload")
                     .build();
 
 
