@@ -67,7 +67,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class TEJobs {
+public class TEJobManager {
 
     //We only need one instance of this
     public static final IDefaultJobSet[] defaultJobSets = {
@@ -103,7 +103,7 @@ public class TEJobs {
     private ConfigurationNode jobsConfig;
     private Map<String, TEJob> jobs;
 
-    public TEJobs(TotalEconomy totalEconomy) {
+    public TEJobManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
@@ -480,7 +480,7 @@ public class TEJobs {
         String lineOnePlain = lineOne.toPlain();
         String lineTwoPlain = lineTwo.toPlain();
 
-        if (lineOnePlain.equals("[TEJobs]")) {
+        if (lineOnePlain.equals("[TEJobManager]")) {
             lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
 
             //String jobName = convertToTitle(lineTwoPlain);
@@ -526,7 +526,7 @@ public class TEJobs {
                             String lineOne = lineOneText.toPlain();
                             String lineTwo = lineTwoText.toPlain();
 
-                            if (lineOne.equals("[TEJobs]")) {
+                            if (lineOne.equals("[TEJobManager]")) {
                                 if (jobExists(lineTwo.toLowerCase())) {
                                     setJob(player, lineTwo.toLowerCase());
                                 } else {

@@ -27,8 +27,8 @@ package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.TEJob;
+import com.erigitic.jobs.TEJobManager;
 import com.erigitic.jobs.TEJobSet;
-import com.erigitic.jobs.TEJobs;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.commons.lang3.text.WordUtils;
@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class JobInfoCommand implements CommandExecutor {
-    private TEJobs teJobs;
+    private TEJobManager teJobManager;
     private AccountManager accountManager;
 
     private ConfigurationNode jobsConfig;
@@ -61,10 +61,10 @@ public class JobInfoCommand implements CommandExecutor {
     private PaginationList.Builder builder = paginationService.builder();
 
     public JobInfoCommand(TotalEconomy totalEconomy) {
-        teJobs = totalEconomy.getTEJobs();
+        teJobManager = totalEconomy.getTEJobs();
         accountManager = totalEconomy.getAccountManager();
 
-        jobsConfig = teJobs.getJobsConfig();
+        jobsConfig = teJobManager.getJobsConfig();
     }
 
     @Override
@@ -72,20 +72,20 @@ public class JobInfoCommand implements CommandExecutor {
         Optional<String> optJobName = args.<String>getOne("jobName");
         Optional<TEJob> optJob = Optional.empty();
         if (!optJobName.isPresent() && (src instanceof Player)) {
-            optJob = teJobs.getPlayerTEJob(((Player) src));
+            optJob = teJobManager.getPlayerTEJob(((Player) src));
         }
         if (optJobName.isPresent())
-            optJob = teJobs.getJob(optJobName.get(), false);
+            optJob = teJobManager.getJob(optJobName.get(), false);
         if (!optJob.isPresent()) {
             throw new CommandException(Text.of(TextColors.RED, "Unknown job: \"" + optJobName.orElse("") + "\""));
         }
         src.sendMessage(Text.of(TextColors.YELLOW, "[TE] There may be a long output following now..."));
         List<Text> lines = new ArrayList<Text>();
 
-        lines.add(Text.of(TextColors.GREEN, "[TE] Job info about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobs.getPlayerJob(((Player) src)),"\n"));
+        lines.add(Text.of(TextColors.GREEN, "[TE] Job info about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n"));
 
         for (String s : optJob.get().getSets()) {
-            Optional<TEJobSet> optSet = teJobs.getJobSet(s);
+            Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
             if (optSet.isPresent()) {
                 lines.add(Text.of(TextColors.GRAY, " * SET ", TextColors.WHITE, s, "\n"));
                 Map<String, List<String>> map = optSet.get().getRewardData();
@@ -102,8 +102,8 @@ public class JobInfoCommand implements CommandExecutor {
             }
         }
         if (src instanceof Player) {
-            int level = teJobs.getJobLevel(teJobs.getPlayerJob(((Player) src)), ((Player) src));
-            int exp = teJobs.getJobExp(teJobs.getPlayerJob(((Player) src)), ((Player) src));
+            int level = teJobManager.getJobLevel(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
+            int exp = teJobManager.getJobExp(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
             lines.add(Text.of(TextColors.GRAY, "Your level: ", TextColors.GOLD, level, " @ ", exp, "\n"));
         }
         src.sendMessage(Text.join(lines.toArray(new Text[lines.size()])));

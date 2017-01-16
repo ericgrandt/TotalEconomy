@@ -28,7 +28,7 @@ package com.erigitic.main;
 import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
-import com.erigitic.jobs.TEJobs;
+import com.erigitic.jobs.TEJobManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -90,7 +90,7 @@ public class TotalEconomy {
 
     private AccountManager accountManager;
 
-    private TEJobs teJobs;
+    private TEJobManager teJobManager;
 
     private boolean loadJobs = true;
     private boolean jobPermissions = false;
@@ -128,7 +128,7 @@ public class TotalEconomy {
 
         //Only setup job stuff if config is set to load jobs
         if (loadJobs == true) {
-            teJobs = new TEJobs(this);
+            teJobManager = new TEJobManager(this);
         }
 
         if (loadMoneyCap == true) {
@@ -148,7 +148,7 @@ public class TotalEconomy {
         createAndRegisterCommands();
 
         if (loadJobs)
-            game.getEventManager().registerListeners(this, teJobs);
+            game.getEventManager().registerListeners(this, teJobManager);
     }
 
     @Listener
@@ -190,7 +190,7 @@ public class TotalEconomy {
     public void onGameReload(GameReloadEvent event) {
         // If jobs are set to load, then reload the jobs config
         if (loadJobs)
-            teJobs.reloadJobsAndSets();
+            teJobManager.reloadJobsAndSets();
 
         accountManager.reloadConfig();
     }
@@ -337,8 +337,8 @@ public class TotalEconomy {
         return accountManager;
     }
 
-    public TEJobs getTEJobs() {
-        return teJobs;
+    public TEJobManager getTEJobs() {
+        return teJobManager;
     }
 
     public Logger getLogger() {

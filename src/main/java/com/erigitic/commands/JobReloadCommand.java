@@ -1,6 +1,6 @@
 package com.erigitic.commands;
 
-import com.erigitic.jobs.TEJobs;
+import com.erigitic.jobs.TEJobManager;
 import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -15,15 +15,15 @@ import org.spongepowered.api.text.format.TextColors;
  */
 public class JobReloadCommand implements CommandExecutor {
 
-    private TEJobs teJobs;
+    private TEJobManager teJobManager;
 
     public JobReloadCommand(TotalEconomy totalEconomy) {
-        this.teJobs = totalEconomy.getTEJobs();
+        this.teJobManager = totalEconomy.getTEJobs();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (teJobs.reloadJobsAndSets()) {
+        if (teJobManager.reloadJobsAndSets()) {
             src.sendMessage(Text.of(TextColors.GREEN, "[TE] Sets and jobs reloaded."));
         } else {
             throw new CommandException(Text.of(TextColors.RED, "[TE] Failed to reload sets and/or jobs!"));
