@@ -26,6 +26,7 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SQLHandler;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -59,7 +60,7 @@ public class AccountManager implements EconomyService {
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
-    private SqlService sql;
+    private SQLHandler sqlHandler;
 
     private boolean databaseActive;
 
@@ -67,6 +68,7 @@ public class AccountManager implements EconomyService {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
+        sqlHandler = totalEconomy.getSqlHandler();
 
         if (!databaseActive)
             setupConfig();
@@ -93,54 +95,30 @@ public class AccountManager implements EconomyService {
         }
     }
 
-    /**
-     * Setup a database for the accounts
-     *
-     * @param jdbcUrl
-     * @return DataSource
-     * @throws SQLException
-     */
-    private DataSource getDataSource(String jdbcUrl) throws SQLException {
-        if (sql == null) {
-            sql = Sponge.getServiceManager().provide(SqlService.class).get();
-        }
-
-        return sql.getDataSource(jdbcUrl);
-    }
-
     public void setupDatabase() {
-        try {
-            Connection conn = getDataSource(totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword()).getConnection();
+        String dbName = "totaleconomy";
 
-            // Create totaleconomy database
-            conn.prepareStatement("CREATE DATABASE IF NOT EXISTS totaleconomy").execute();
+        sqlHandler.createDatabase();
 
-            // Create accounts table
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.accounts(uid varchar(60) NOT NULL," +
-                    getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
-                    "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
-                    "job_notifications boolean NOT NULL DEFAULT TRUE," +
-                    "PRIMARY KEY (uid))").execute();
+        sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
+                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
+                "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
+                "job_notifications boolean NOT NULL DEFAULT TRUE," +
+                "PRIMARY KEY (uid)");
 
-            // Create levels table
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.jobLevels(uid varchar(60)," +
-                    "miner int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE)").execute();
+        sqlHandler.createTable("levels", "uid varchar(60)," +
+                "miner int(10) unsigned NOT NULL DEFAULT '1'," +
+                "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
+                "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
+                "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
+                "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE");
 
-            // Create experience table
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.jobExperience(uid varchar(60)," +
-                    "miner int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE)").execute();
-            conn.close();
-        } catch (SQLException e) {
-            logger.warn("SQL ERROR");
-        }
+        sqlHandler.createTable("experience", "uid varchar(60)," +
+                "miner int(10) unsigned NOT NULL DEFAULT '0'," +
+                "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
+                "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
+                "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
+                "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE");
     }
 
     /**
@@ -162,13 +140,17 @@ public class AccountManager implements EconomyService {
 
         try {
             if (!hasAccount(uuid)) {
-                if (!databaseActive) {
+                if (databaseActive) {
+
+                    String[] colsArray = {"uid", currencyName + "_balance", "job", "job_notifications"};
+                    String[] valsArray = {"'" + uuid.toString() + "'", "'" + playerAccount.getDefaultBalance(getDefaultCurrency()) + "'", "'Unemployed'", String.valueOf(totalEconomy.hasJobNotifications())};
+
+                    sqlHandler.insert("accounts", colsArray, valsArray);
+                } else {
                     accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                     accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
                     accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
                     loader.save(accountConfig);
-                } else {
-                    // TODO: Load from database
                 }
 
             }
@@ -199,7 +181,17 @@ public class AccountManager implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        return accountConfig.getNode(uuid.toString()).getValue() != null;
+        if (databaseActive) {
+            Optional<ResultSet> rsOpt = sqlHandler.select("uid", "accounts", "uid", uuid.toString());
+
+            if (rsOpt.isPresent()) {
+                return sqlHandler.recordExists(rsOpt.get());
+            } else {
+                return false;
+            }
+        } else {
+            return accountConfig.getNode(uuid.toString()).getValue() != null;
+        }
     }
 
     @Override
