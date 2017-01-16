@@ -26,7 +26,9 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.jobs.TEJobs;
+import com.erigitic.jobs.TEJob;
+import com.erigitic.jobs.TEJobManager;
+import com.erigitic.jobs.TEJobSet;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.apache.commons.lang3.text.WordUtils;
@@ -45,9 +47,11 @@ import org.spongepowered.api.text.format.TextStyles;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class JobInfoCommand implements CommandExecutor {
-    private TEJobs teJobs;
+    private TEJobManager teJobManager;
     private AccountManager accountManager;
 
     private ConfigurationNode jobsConfig;
@@ -57,34 +61,52 @@ public class JobInfoCommand implements CommandExecutor {
     private PaginationList.Builder builder = paginationService.builder();
 
     public JobInfoCommand(TotalEconomy totalEconomy) {
-        teJobs = totalEconomy.getTEJobs();
+        teJobManager = totalEconomy.getTEJobs();
         accountManager = totalEconomy.getAccountManager();
 
-        jobsConfig = teJobs.getJobsConfig();
+        jobsConfig = teJobManager.getJobsConfig();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
-            String jobName = teJobs.getPlayerJob(sender);
-            List<Text> jobValues = new ArrayList<>();
-
-            // TODO: There is probably a much better way of doing this.
-            boolean hasBreakNode = (jobsConfig.getNode(jobName, "break").getValue() != null);
-            boolean hasPlaceNode = (jobsConfig.getNode(jobName, "place").getValue() != null);
-            boolean hasCatchNode = (jobsConfig.getNode(jobName, "catch").getValue() != null);
-            boolean hasKillNode = (jobsConfig.getNode(jobName, "kill").getValue() != null);
-
-            // TODO: Same with this, probably a much better way of doing this.
-            if (hasBreakNode) { jobValues.addAll(getJobValues(jobName, "break", "Breakables")); }
-            if (hasPlaceNode) { jobValues.addAll(getJobValues(jobName, "place", "Placeables")); }
-            if (hasCatchNode) { jobValues.addAll(getJobValues(jobName, "catch", "Catchables")); }
-            if (hasKillNode) { jobValues.addAll(getJobValues(jobName, "kill", "Killables")); }
-
-            printNodeChildren(sender, jobValues);
+        Optional<String> optJobName = args.<String>getOne("jobName");
+        Optional<TEJob> optJob = Optional.empty();
+        if (!optJobName.isPresent() && (src instanceof Player)) {
+            optJob = teJobManager.getPlayerTEJob(((Player) src));
         }
+        if (optJobName.isPresent())
+            optJob = teJobManager.getJob(optJobName.get(), false);
+        if (!optJob.isPresent()) {
+            throw new CommandException(Text.of(TextColors.RED, "Unknown job: \"" + optJobName.orElse("") + "\""));
+        }
+        src.sendMessage(Text.of(TextColors.YELLOW, "[TE] There may be a long output following now..."));
+        List<Text> lines = new ArrayList<Text>();
 
+        lines.add(Text.of(TextColors.GREEN, "[TE] Job info about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n"));
+
+        for (String s : optJob.get().getSets()) {
+            Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
+            if (optSet.isPresent()) {
+                lines.add(Text.of(TextColors.GRAY, " * SET ", TextColors.WHITE, s, "\n"));
+                Map<String, List<String>> map = optSet.get().getRewardData();
+                map.forEach((k, v) -> {
+                    //Add event name
+                    lines.add(Text.of(TextColors.GRAY, " -> ", TextColors.GOLD, TextStyles.ITALIC, k, "\n"));
+                    //Add targets
+                    v.forEach(id -> {
+                        lines.add(Text.of(TextColors.GRAY, "    ID:",TextColors.DARK_GREEN, id, "\n"));
+                    });
+                });
+            } else {
+                lines.add(Text.of(TextColors.RED, " * SET ", TextColors.WHITE, s, TextColors.RED, " UNKNOWN", "\n"));
+            }
+        }
+        if (src instanceof Player) {
+            int level = teJobManager.getJobLevel(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
+            int exp = teJobManager.getJobExp(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
+            lines.add(Text.of(TextColors.GRAY, "Your level: ", TextColors.GOLD, level, " @ ", exp, "\n"));
+        }
+        src.sendMessage(Text.join(lines.toArray(new Text[lines.size()])));
         return CommandResult.success();
     }
 
@@ -126,7 +148,7 @@ public class JobInfoCommand implements CommandExecutor {
      * @param jobValues list of the formatted job values
      */
     private void printNodeChildren(Player sender, List<Text> jobValues) {
-        builder.reset().title(Text.of(TextColors.GOLD, TextStyles.BOLD, "Job Information"))
+        builder.reset().title(Text.of(TextColors.GOLD, TextStyles.BOLD, "IDefaultJob Information"))
                 .contents(jobValues)
                 .padding(Text.of(TextColors.GRAY, "-"))
                 .sendTo(sender);

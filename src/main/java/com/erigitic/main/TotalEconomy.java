@@ -28,7 +28,7 @@ package com.erigitic.main;
 import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
-import com.erigitic.jobs.TEJobs;
+import com.erigitic.jobs.TEJobManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -57,7 +57,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.util.Optional;
 
 @Plugin(id = "totaleconomy", name = "Total Economy", version = "1.5.4", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
@@ -91,7 +90,7 @@ public class TotalEconomy {
 
     private AccountManager accountManager;
 
-    private TEJobs teJobs;
+    private TEJobManager teJobManager;
 
     private boolean loadJobs = true;
     private boolean jobPermissions = false;
@@ -129,7 +128,7 @@ public class TotalEconomy {
 
         //Only setup job stuff if config is set to load jobs
         if (loadJobs == true) {
-            teJobs = new TEJobs(this);
+            teJobManager = new TEJobManager(this);
         }
 
         if (loadMoneyCap == true) {
@@ -149,7 +148,7 @@ public class TotalEconomy {
         createAndRegisterCommands();
 
         if (loadJobs)
-            game.getEventManager().registerListeners(this, teJobs);
+            game.getEventManager().registerListeners(this, teJobManager);
     }
 
     @Listener
@@ -177,11 +176,9 @@ public class TotalEconomy {
 
     @Listener
     public void onPlayerJoin(ClientConnectionEvent.Join event) {
-        if (event.getTargetEntity() instanceof Player) {
-            Player player = event.getTargetEntity();
+        Player player = event.getTargetEntity();
 
-            accountManager.getOrCreateAccount(player.getUniqueId());
-        }
+        accountManager.getOrCreateAccount(player.getUniqueId());
     }
 
     /**
@@ -193,7 +190,7 @@ public class TotalEconomy {
     public void onGameReload(GameReloadEvent event) {
         // If jobs are set to load, then reload the jobs config
         if (loadJobs)
-            teJobs.reloadConfig();
+            teJobManager.reloadJobsAndSets();
 
         accountManager.reloadConfig();
     }
@@ -275,21 +272,29 @@ public class TotalEconomy {
         if (loadJobs == true) {
             CommandSpec jobSetCmd = CommandSpec.builder()
                     .description(Text.of("Set your job"))
-                    .permission("totaleconomy.command.jobset")
+                    .permission("totaleconomy.command.job.set")
                     .executor(new JobCommand(this))
                     .arguments(GenericArguments.string(Text.of("jobName")))
                     .build();
 
             CommandSpec jobNotifyToggle = CommandSpec.builder()
                     .description(Text.of("Toggle job notifications on/off"))
-                    .permission("totaleconomy.command.jobtoggle")
+                    .permission("totaleconomy.command.job.toggle")
                     .executor(new JobToggleCommand(this))
                     .build();
 
             CommandSpec jobInfoCmd = CommandSpec.builder()
                     .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
-                    .permission("totaleconomy.command.jobinfo")
+                    .permission("totaleconomy.command.job.info")
                     .executor(new JobInfoCommand(this))
+                    .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
+                    .build();
+
+            CommandSpec jobReloadCmd = CommandSpec.builder()
+                    .description(Text.of("Reloads sets and jobs"))
+                    .permission("totaleconomy.command.job.reload")
+                    .executor(new JobReloadCommand(this))
+                    .arguments(GenericArguments.none())
                     .build();
 
             CommandSpec jobCommand = CommandSpec.builder()
@@ -299,6 +304,7 @@ public class TotalEconomy {
                     .child(jobSetCmd, "set", "s")
                     .child(jobNotifyToggle, "toggle", "t")
                     .child(jobInfoCmd, "info", "i")
+                    .child(jobReloadCmd, "reload")
                     .build();
 
 
@@ -331,8 +337,8 @@ public class TotalEconomy {
         return accountManager;
     }
 
-    public TEJobs getTEJobs() {
-        return teJobs;
+    public TEJobManager getTEJobs() {
+        return teJobManager;
     }
 
     public Logger getLogger() {
