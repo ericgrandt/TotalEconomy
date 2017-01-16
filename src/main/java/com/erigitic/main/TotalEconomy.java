@@ -29,6 +29,7 @@ import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.jobs.TEJobs;
+import com.erigitic.sql.SQLHandler;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -105,8 +106,9 @@ public class TotalEconomy {
     private String databasePassword;
 
     private boolean loadMoneyCap = false;
-
     private BigDecimal moneyCap;
+
+    private SQLHandler sqlHandler;
 
     @Listener
     public void preInit(GamePreInitializationEvent event) {
@@ -123,6 +125,13 @@ public class TotalEconomy {
 
         loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
 
+        if (databaseActive) {
+            databaseUrl = config.getNode("database", "url").getString();
+            databaseUser = config.getNode("database", "user").getString();
+            databasePassword = config.getNode("database", "password").getString();
+        }
+
+        sqlHandler = new SQLHandler(this);
         accountManager = new AccountManager(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
@@ -135,12 +144,6 @@ public class TotalEconomy {
         if (loadMoneyCap == true) {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
                     .setScale(2, BigDecimal.ROUND_DOWN);
-        }
-
-        if (databaseActive) {
-            databaseUrl = config.getNode("database", "url").getString();
-            databaseUser = config.getNode("database", "user").getString();
-            databasePassword = config.getNode("database", "password").getString();
         }
     }
 
@@ -388,5 +391,7 @@ public class TotalEconomy {
     public String getDatabaseUser() { return databaseUser; }
 
     public String getDatabasePassword() { return databasePassword; }
+
+    public SQLHandler getSqlHandler() { return sqlHandler; }
 
 }
