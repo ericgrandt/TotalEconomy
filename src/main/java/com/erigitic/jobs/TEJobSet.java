@@ -33,32 +33,35 @@ import java.util.*;
  * Created by Life4YourGames on 15.01.17.
  */
 public class TEJobSet {
-
-    public static TEJobSet of(ConfigurationNode node) {
-        TEJobSet set = new TEJobSet();
-        if (set.load(node))
-            return set;
-        return null;
-    }
-
     private List<TEActionReward> actions;
 
     private TEJobSet() {
-        actions = new ArrayList<TEActionReward>();
+        actions = new ArrayList();
+    }
+
+    public static TEJobSet of(ConfigurationNode node) {
+        TEJobSet set = new TEJobSet();
+
+        if (set.load(node))
+            return set;
+
+        return null;
     }
 
     protected boolean load(ConfigurationNode node) {
         node = node.getNode("actions");
         Map<?, ?> events = node.getChildrenMap();
+
         //Go through all event entries
         events.forEach((k1, v1) -> {
             if ((k1 instanceof String) && (v1 instanceof ConfigurationNode)) {
-
                 //Go though all id entries
                 Map<?, ?> ids = ((ConfigurationNode) v1).getChildrenMap();
+
                 ids.forEach((k2, v2) -> {
                     if ((k2 instanceof String) && (v2 instanceof ConfigurationNode)) {
                         TEActionReward reward = TEActionReward.of(((String) k1), ((String) k2), ((ConfigurationNode) v2));
+
                         if (reward!=null) {
                             actions.add(reward);
                         } else {
@@ -84,15 +87,19 @@ public class TEJobSet {
 
     public Map<String, List<String>> getRewardData() {
         //TODO: You may want to switch to TEActionReward in order to show true rewards
-        Map<String, List<String>> map = new HashMap<String, List<String>>();
+        Map<String, List<String>> map = new HashMap();
+
         for (TEActionReward action : actions) {
             List<String> l = map.getOrDefault(action.getEvent(), null);
+
             if (l==null) {
-                l = new ArrayList<String>();
+                l = new ArrayList();
                 map.put(action.getEvent(), l);
             }
+
             l.add(action.getTargetID());
         }
+
         return map;
     }
 }

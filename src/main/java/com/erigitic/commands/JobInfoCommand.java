@@ -61,7 +61,7 @@ public class JobInfoCommand implements CommandExecutor {
     private PaginationList.Builder builder = paginationService.builder();
 
     public JobInfoCommand(TotalEconomy totalEconomy) {
-        teJobManager = totalEconomy.getTEJobs();
+        teJobManager = totalEconomy.getTEJobManager();
         accountManager = totalEconomy.getAccountManager();
 
         jobsConfig = teJobManager.getJobsConfig();
@@ -69,23 +69,28 @@ public class JobInfoCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        Optional<String> optJobName = args.<String>getOne("jobName");
+        Optional<String> optJobName = args.getOne("jobName");
         Optional<TEJob> optJob = Optional.empty();
+
         if (!optJobName.isPresent() && (src instanceof Player)) {
             optJob = teJobManager.getPlayerTEJob(((Player) src));
         }
-        if (optJobName.isPresent())
+
+        if (optJobName.isPresent()) {
             optJob = teJobManager.getJob(optJobName.get(), false);
+        }
+
         if (!optJob.isPresent()) {
             throw new CommandException(Text.of(TextColors.RED, "Unknown job: \"" + optJobName.orElse("") + "\""));
         }
         src.sendMessage(Text.of(TextColors.YELLOW, "[TE] There may be a long output following now..."));
-        List<Text> lines = new ArrayList<Text>();
+        List<Text> lines = new ArrayList();
 
         lines.add(Text.of(TextColors.GREEN, "[TE] Job info about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n"));
 
         for (String s : optJob.get().getSets()) {
             Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
+
             if (optSet.isPresent()) {
                 lines.add(Text.of(TextColors.GRAY, " * SET ", TextColors.WHITE, s, "\n"));
                 Map<String, List<String>> map = optSet.get().getRewardData();
@@ -101,12 +106,16 @@ public class JobInfoCommand implements CommandExecutor {
                 lines.add(Text.of(TextColors.RED, " * SET ", TextColors.WHITE, s, TextColors.RED, " UNKNOWN", "\n"));
             }
         }
+
         if (src instanceof Player) {
             int level = teJobManager.getJobLevel(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
             int exp = teJobManager.getJobExp(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
+
             lines.add(Text.of(TextColors.GRAY, "Your level: ", TextColors.GOLD, level, " @ ", exp, "\n"));
         }
+
         src.sendMessage(Text.join(lines.toArray(new Text[lines.size()])));
+
         return CommandResult.success();
     }
 
@@ -148,7 +157,7 @@ public class JobInfoCommand implements CommandExecutor {
      * @param jobValues list of the formatted job values
      */
     private void printNodeChildren(Player sender, List<Text> jobValues) {
-        builder.reset().title(Text.of(TextColors.GOLD, TextStyles.BOLD, "IDefaultJob Information"))
+        builder.reset().title(Text.of(TextColors.GOLD, TextStyles.BOLD, "Job Information"))
                 .contents(jobValues)
                 .padding(Text.of(TextColors.GRAY, "-"))
                 .sendTo(sender);

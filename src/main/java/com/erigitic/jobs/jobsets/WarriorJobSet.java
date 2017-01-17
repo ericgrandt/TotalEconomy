@@ -44,7 +44,6 @@ public class WarriorJobSet implements IDefaultJobSet {
 
     @Override
     public void applyOnNode(ConfigurationNode node) {
-
         ConfigurationNode myNode = node.getNode(SETNAME, "actions");
 
         for (String[] a : rewards) {
