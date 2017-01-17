@@ -33,7 +33,10 @@ import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.*;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.service.economy.transaction.TransactionTypes;
+import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
@@ -144,27 +147,41 @@ public class TEAccount implements UniqueAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
             BigDecimal curBalance = getBalance(currency, contexts);
             BigDecimal newBalance = curBalance.add(amount);
+            // Is the new balance higher ?
+            boolean deposit = newBalance.compareTo(curBalance) == 1;
 
-            accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
-
-            // Reset balance to the money cap if it goes over
-            if (totalEconomy.isLoadMoneyCap()) {
-                if (getBalance(currency, contexts).compareTo(totalEconomy.getMoneyCap()) == 1) {
-                    accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(totalEconomy.getMoneyCap());
+            boolean denied = false;
+            // Deny transaction if maxMoneyCap has been triggered
+            if (totalEconomy.getMaxMoneyCap().isPresent()) {
+                if (newBalance.compareTo(totalEconomy.getMaxMoneyCap().get()) == 1) {
+                    denied = true;
                 }
             }
-            
-            accountManager.saveAccountConfig();
+            // Deny transaction if minMoneyCap has been triggered -> Skip if already denied
+            if (!denied && totalEconomy.getMaxMoneyCap().isPresent()) {
+                if (totalEconomy.getMinMoneyCap().get().compareTo(newBalance) == 1) {
+                    denied = true;
+                }
+            }
 
-            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+            if (!denied) {
+                //TODO: May want to abstract this into a class (TEAccountManager?) (suggestion)
+                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
+                accountManager.saveAccountConfig();
 
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS,
+                        deposit ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+            } else {
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_SPACE, deposit ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+            }
             return transactionResult;
         }
 
+
         transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
         return transactionResult;
     }
 
@@ -176,6 +193,25 @@ public class TEAccount implements UniqueAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
             BigDecimal curBalance =  getBalance(currency, contexts);
             BigDecimal newBalance = curBalance.subtract(amount);
+
+            boolean denied = false;
+            // Deny transaction if maxMoneyCap has been triggered
+            if (totalEconomy.getMaxMoneyCap().isPresent()) {
+                if (newBalance.compareTo(totalEconomy.getMaxMoneyCap().get()) == 1) {
+                    denied = true;
+                }
+            }
+            // Deny transaction if minMoneyCap has been triggered -> Skip if already denied
+            if (!denied && totalEconomy.getMaxMoneyCap().isPresent()) {
+                if (totalEconomy.getMinMoneyCap().get().compareTo(newBalance) == 1) {
+                    denied = true;
+                }
+            }
+            if (denied) {
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_SPACE, TransactionTypes.WITHDRAW);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                return transactionResult;
+            }
 
             if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
@@ -207,34 +243,27 @@ public class TEAccount implements UniqueAccount {
             BigDecimal curBalance = getBalance(currency, contexts);
             BigDecimal newBalance = curBalance.subtract(amount);
 
-            //TODO: Might not need to check if the balance is greater then zero here since it is being done in the withdraw function
-            if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-                withdraw(currency, amount, cause, contexts);
-
-                if (to.hasBalance(currency)) {
-                    to.deposit(currency, amount, cause, contexts);
-
-                    transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
-                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
-
-                    return transferResult;
-                } else {
-                    transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
-                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
-
-                    return transferResult;
-                }
-            } else {
-                transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
+            TransactionResult fromRes = withdraw(currency, amount, cause, contexts);
+            if (fromRes.getResult() != ResultType.SUCCESS) {
+                transferResult = new TETransferResult(this, to, currency, amount, contexts, fromRes.getResult(), fromRes.getType());
                 totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
-
                 return transferResult;
             }
+            TransactionResult toRes = to.deposit(currency, amount, cause, contexts);
+            if (toRes.getResult() != ResultType.SUCCESS) {
+                //Repay sender if failed
+                deposit(currency, amount, cause, contexts);
+                transferResult = new TETransferResult(this, to, currency, amount, contexts, toRes.getResult(), toRes.getType());
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
+                return transferResult;
+            }
+            transferResult = new TETransferResult(fromRes, toRes);
+            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
+            return transferResult;
         }
 
         transferResult = new TETransferResult(this, to, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
-
         return transferResult;
     }
 

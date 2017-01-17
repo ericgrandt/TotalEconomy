@@ -104,9 +104,11 @@ public class TotalEconomy {
     private String databaseUser;
     private String databasePassword;
 
-    private boolean loadMoneyCap = false;
+    private boolean hasMaxMoneyCap = false;
+    private boolean hasMinMoneyCap = false;
 
-    private BigDecimal moneyCap;
+    private BigDecimal moneyCapMax = null;
+    private BigDecimal moneyCapMin = null;
 
     @Listener
     public void preInit(GamePreInitializationEvent event) {
@@ -121,7 +123,10 @@ public class TotalEconomy {
         jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
         jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
 
-        loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
+        hasMaxMoneyCap = config.getNode("features", "moneycap", "max", "enable").getBoolean() &&
+            config.getNode("features", "moneycap", "max", "amount").getInt(0) >= 0;
+        hasMinMoneyCap = config.getNode("features", "moneycap", "min", "enable").getBoolean() &&
+            config.getNode("features", "moneycap", "min", "amount").getInt(0) <= 0;
 
         accountManager = new AccountManager(this);
 
@@ -132,10 +137,12 @@ public class TotalEconomy {
             teJobs = new TEJobs(this);
         }
 
-        if (loadMoneyCap == true) {
-            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
-                    .setScale(2, BigDecimal.ROUND_DOWN);
-        }
+        if (hasMaxMoneyCap) {
+            moneyCapMax = new BigDecimal(config.getNode("features", "moneycap", "max", "amount").getString("0"));
+        } else moneyCapMax = null;
+        if (hasMinMoneyCap) {
+            moneyCapMin = new BigDecimal(config.getNode("features", "moneycap", "min", "amount").getString("0"));
+        } else moneyCapMin = null;
 
         if (databaseActive) {
             databaseUrl = config.getNode("database", "url").getString();
@@ -214,8 +221,10 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "salary").setValue(loadSalary);
                 config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
                 config.getNode("features", "jobs", "notifications").setValue(true);
-                config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
-                config.getNode("features", "moneycap", "amount").setValue(10000000);
+                config.getNode("features", "moneycap", "max", "enable").setValue(hasMaxMoneyCap);
+                config.getNode("features", "moneycap", "max", "amount").setValue(10000000);
+                config.getNode("features", "moneycap", "min", "enable").setValue(hasMinMoneyCap);
+                config.getNode("features", "moneycap", "min", "amount").setValue(-10000000);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
@@ -367,15 +376,21 @@ public class TotalEconomy {
 
     public boolean isJobPermissions() { return jobPermissions; }
 
-    public boolean isLoadMoneyCap() {
-        return loadMoneyCap;
-    }
-
     public boolean isDatabaseActive() { return databaseActive; }
 
-    public BigDecimal getMoneyCap() {
-        return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
+    /**
+     * Return the maximum balance if activated
+     * @return {@link Optional<java.math.BigInteger>} the maximum amount
+     */
+    public Optional<BigDecimal> getMaxMoneyCap() {
+        return Optional.ofNullable(moneyCapMax);
     }
+
+    /**
+     * Return the minimum balance if activated
+     * @return {@link Optional<java.math.BigInteger>} the minimum amount
+     */
+    public Optional<BigDecimal> getMinMoneyCap() { return Optional.ofNullable(moneyCapMin); }
 
     public boolean hasJobNotifications() { return jobNotifications; }
 

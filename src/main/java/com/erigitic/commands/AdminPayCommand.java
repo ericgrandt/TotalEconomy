@@ -86,6 +86,9 @@ public class AdminPayCommand implements CommandExecutor {
                     recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
                             TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
                 }
+            } else {
+                //Do not return a success
+                throw new CommandException(Text.of(TextColors.RED, "[TE] Transaction unsuccessful: " + transactionResult.getResult().toString()));
             }
         } else {
             src.sendMessage(Text.of(TextColors.RED, "The amount must be numeric."));
