@@ -47,7 +47,7 @@ public class JobCommand implements CommandExecutor {
 
     public JobCommand(TotalEconomy totalEconomy) {
         accountManager = totalEconomy.getAccountManager();
-        teJobManager = totalEconomy.getTEJobs();
+        teJobManager = totalEconomy.getTEJobManager();
     }
 
     @Override
@@ -61,7 +61,9 @@ public class JobCommand implements CommandExecutor {
 
                 Optional<TEJob> optJob = teJobManager.getJob(jobName, false);
                 if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+
                 TEJob job = optJob.get();
+
                 if (job.getRequirement().isPresent()) {
                     JobBasedRequirement req = job.getRequirement().get();
                     if (req.permissionNeeded()!=null && !player.hasPermission(req.permissionNeeded()))
@@ -71,8 +73,8 @@ public class JobCommand implements CommandExecutor {
                         req.jobLevelNeeded() + " as a " + req.jobNeeded() + " first!"));
                     }
                 }
-                teJobManager.setJob(player, jobName);
 
+                teJobManager.setJob(player, jobName);
             } else {
                 String jobName = teJobManager.getPlayerJob(player);
 

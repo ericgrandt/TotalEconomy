@@ -130,6 +130,7 @@ public class TEJobManager {
                         //This should NOT happen unless the admin has removed the "unemployed" job... or sth weird happened
                         //Either way, the admin should be notified about this
                         player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
+
                         return;
                     }
 
@@ -164,13 +165,13 @@ public class TEJobManager {
         // === === === JOBSETS === === ===
         jobSetsFile = new File(totalEconomy.getConfigDir(), "jobSets.conf");
         jobSetsLoader = HoconConfigurationLoader.builder().setFile(jobSetsFile).build();
-        jobSets = new HashMap<String, TEJobSet>();
+        jobSets = new HashMap();
         reloadJobSetConfig();
 
         // === === === JOBS === === ===
         jobsFile = new File(totalEconomy.getConfigDir(), "jobs.conf");
         jobsLoader = HoconConfigurationLoader.builder().setFile(jobsFile).build();
-        jobs = new HashMap<String, TEJob>();
+        jobs = new HashMap();
         reloadJobsConfig();
     }
 
@@ -334,9 +335,6 @@ public class TEJobManager {
         UUID playerUUID = player.getUniqueId();
         boolean jobPermissions = totalEconomy.isJobPermissions();
 
-        //Disabled just ... uhm... because ? ':D
-        //jobName = convertToTitle(jobName);
-
         accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
 
         //Set level if not of type int or null
@@ -345,11 +343,12 @@ public class TEJobManager {
         );
 
         //See above
-        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(
-                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getInt(0)
+        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(
+                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0)
         );
 
         player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
+
         try {
             accountManager.getConfigManager().save(accountConfig);
         } catch (IOException e) {
@@ -385,6 +384,7 @@ public class TEJobManager {
      */
     public Optional<TEJob> getPlayerTEJob(Player player) {
         String k = getPlayerJob(player);
+
         return getJob(k, true);
     }
 
@@ -397,6 +397,7 @@ public class TEJobManager {
     public Optional<TEJob> getJob(String k, boolean tryUnemployed) {
         TEJob job = jobs.getOrDefault(k, null);
         if (job!=null || !tryUnemployed) return Optional.ofNullable(job);
+
         return getJob("unemployed", false);
     }
 
@@ -445,6 +446,7 @@ public class TEJobManager {
         StringBuilder b = new StringBuilder();
         jobs.forEach((j, o)-> b.append(j).append(", "));
         String s = b.toString();
+
         //Remove the last ", "
         return s.substring(0, s.length()-2);
     }
@@ -468,7 +470,7 @@ public class TEJobManager {
     }
 
     /**
-     * Checks sign contents and converts it to a "IDefaultJob Changing" sign if conditions are met
+     * Checks sign contents and converts it to a "Job Changing" sign if conditions are met
      *
      * @param event ChangeSignEvent
      */
@@ -499,7 +501,7 @@ public class TEJobManager {
     }
 
     /**
-     * Called when a player clicks a sign. If the clicked sign is a "IDefaultJob Changing" sign then the player's job will
+     * Called when a player clicks a sign. If the clicked sign is a "Job Changing" sign then the player's job will
      * be changed on click.
      *
      * @param event InteractBlockEvent
@@ -530,7 +532,7 @@ public class TEJobManager {
                                 if (jobExists(lineTwo.toLowerCase())) {
                                     setJob(player, lineTwo.toLowerCase());
                                 } else {
-                                    player.sendMessage(Text.of(TextColors.RED, "[TE] Sorry, this job does not exist (anymore?)"));
+                                    player.sendMessage(Text.of(TextColors.RED, "[TE] Sorry, this job does not exist"));
                                 }
                             }
                         }
@@ -557,19 +559,23 @@ public class TEJobManager {
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
             if (optPlayerJob.isPresent()) {
-
                 Optional<TEActionReward> reward = Optional.empty();
                 List<String> sets = optPlayerJob.get().getSets();
+
                 for (String s : sets) {
                     Optional<TEJobSet> optSet = getJobSet(s);
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+
                         continue;
                     }
+
                     reward = optSet.get().getRewardFor("break", blockName);
+
                     //TODO: Priorities?
                     if (reward.isPresent()) break;
                 }
+
                 if (reward.isPresent()) {
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = reward.get().getMoneyReward();
@@ -732,6 +738,7 @@ public class TEJobManager {
                             continue;
                         }
                         reward = optSet.get().getRewardFor("catch", fishName);
+
                         //TODO: Priorities?
                         if (reward.isPresent()) break;
                     }

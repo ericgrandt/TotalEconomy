@@ -33,15 +33,7 @@ import ninja.leaping.configurate.ConfigurationNode;
  * Requirement notation that is usable in various places such as higher job tiers
  */
 public class JobBasedRequirement {
-
-    public static JobBasedRequirement of(ConfigurationNode node) {
-        return new JobBasedRequirement(node);
-    }
-    public static JobBasedRequirement of(String needsJob, int needJobLevel, String needsPermission) {
-        return new JobBasedRequirement(needsJob, needJobLevel, needsPermission);
-    }
-
-    private int needJobLevel;
+    private int needsJobLevel;
     private String needsJob;
     private String needsPermission;
 
@@ -53,12 +45,19 @@ public class JobBasedRequirement {
 
     private JobBasedRequirement(String needsJob, int needJobLevel, String needsPermission) {
         this.needsJob = needsJob;
-        this.needJobLevel = needJobLevel;
+        this.needsJobLevel = needJobLevel;
         this.needsPermission = needsPermission;
     }
 
+    public static JobBasedRequirement of(ConfigurationNode node) {
+        return new JobBasedRequirement(node);
+    }
+    public static JobBasedRequirement of(String needsJob, int needsJobLevel, String needsPermission) {
+        return new JobBasedRequirement(needsJob, needsJobLevel, needsPermission);
+    }
+
     public int jobLevelNeeded() {
-        return needJobLevel;
+        return needsJobLevel;
     }
 
     //@Nullable
@@ -74,7 +73,7 @@ public class JobBasedRequirement {
     public void addTo(ConfigurationNode node) {
         node = node.getNode("require");
         node.getNode("job").setValue(needsJob);
-        node.getNode("level").setValue(needJobLevel);
+        node.getNode("level").setValue(needsJobLevel);
         node.getNode("permission").setValue(needsPermission);
     }
 }

@@ -38,14 +38,6 @@ import java.util.Optional;
  * @author MarkL4YG
  */
 public class TEJob {
-
-    public static TEJob of(ConfigurationNode node) {
-        TEJob job = new TEJob();
-        if (job.load(node))
-            return job;
-        return null;
-    }
-
     //Which sets are associated
     private List<String> sets;
 
@@ -57,6 +49,15 @@ public class TEJob {
 
     private TEJob() {
         sets = new ArrayList<String>();
+    }
+
+    public static TEJob of(ConfigurationNode node) {
+        TEJob job = new TEJob();
+
+        if (job.load(node))
+            return job;
+
+        return null;
     }
 
     public List<String> getSets() {
@@ -76,15 +77,19 @@ public class TEJob {
      */
     protected boolean load(ConfigurationNode node) {
         salary = new BigDecimal(node.getNode("salary").getString("0"));
+
         try {
             sets = node.getNode("sets").getList(TypeToken.of(String.class), new ArrayList<String>());
+
             if (!node.getNode("require").isVirtual()) {
                 requirement = JobBasedRequirement.of(node.getNode("require"));
             }
+
             return true;
         } catch (ObjectMappingException e) {
             e.printStackTrace();
         }
+
         return false;
     }
 

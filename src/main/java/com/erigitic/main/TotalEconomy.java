@@ -337,7 +337,7 @@ public class TotalEconomy {
         return accountManager;
     }
 
-    public TEJobManager getTEJobs() {
+    public TEJobManager getTEJobManager() {
         return teJobManager;
     }
 

@@ -18,7 +18,7 @@ public class JobReloadCommand implements CommandExecutor {
     private TEJobManager teJobManager;
 
     public JobReloadCommand(TotalEconomy totalEconomy) {
-        this.teJobManager = totalEconomy.getTEJobs();
+        this.teJobManager = totalEconomy.getTEJobManager();
     }
 
     @Override
@@ -28,6 +28,7 @@ public class JobReloadCommand implements CommandExecutor {
         } else {
             throw new CommandException(Text.of(TextColors.RED, "[TE] Failed to reload sets and/or jobs!"));
         }
+
         return CommandResult.success();
     }
 }

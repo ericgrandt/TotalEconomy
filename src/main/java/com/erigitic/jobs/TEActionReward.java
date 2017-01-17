@@ -33,15 +33,6 @@ import java.math.BigDecimal;
  * @author MarkL4YG
  */
 public class TEActionReward {
-
-    //@Nullable
-    public static TEActionReward of(String event, String targetID, ConfigurationNode node) {
-        TEActionReward reward = new TEActionReward();
-        if (reward.load(event, targetID, node))
-            return reward;
-        return null;
-    }
-
     private String event;
     private String targetID;
     private int expReward;
@@ -50,12 +41,23 @@ public class TEActionReward {
     private TEActionReward() {
     }
 
+    //@Nullable
+    public static TEActionReward of(String event, String targetID, ConfigurationNode node) {
+        TEActionReward reward = new TEActionReward();
+
+        if (reward.load(event, targetID, node))
+            return reward;
+
+        return null;
+    }
+
     protected boolean load(String event, String targetID, ConfigurationNode node) {
         this.event = event;
         this.targetID = targetID;
         expReward = node.getNode("expGain").getInt(0);
         moneyReward = new BigDecimal(node.getNode("moneyGain").getString("0"));
-        return event!=null && !event.isEmpty() && targetID!=null && !targetID.isEmpty();
+
+        return event != null && !event.isEmpty() && targetID != null && !targetID.isEmpty();
     }
 
     public String getEvent() {
