@@ -125,8 +125,12 @@ public class TotalEconomy {
 
         hasMaxMoneyCap = config.getNode("features", "moneycap", "max", "enable").getBoolean() &&
             config.getNode("features", "moneycap", "max", "amount").getInt(0) >= 0;
-        hasMinMoneyCap = config.getNode("features", "moneycap", "min", "enable").getBoolean() &&
-            config.getNode("features", "moneycap", "min", "amount").getInt(0) <= 0;
+
+        //DISABLED after discussion in pull#140 concluded to hard code the value
+        // - Enable this to re-enable a custom minimal cap
+        //hasMinMoneyCap = config.getNode("features", "moneycap", "min", "enable").getBoolean() &&
+        //    config.getNode("features", "moneycap", "min", "amount").getInt(0) <= 0;
+        hasMinMoneyCap = true;
 
         accountManager = new AccountManager(this);
 
@@ -141,7 +145,10 @@ public class TotalEconomy {
             moneyCapMax = new BigDecimal(config.getNode("features", "moneycap", "max", "amount").getString("0"));
         } else moneyCapMax = null;
         if (hasMinMoneyCap) {
-            moneyCapMin = new BigDecimal(config.getNode("features", "moneycap", "min", "amount").getString("0"));
+            //DISABLED after discussion in pull#140 concluded to hard code the value
+            // - Enable this to re-enable a custom minimal cap
+            //moneyCapMin = new BigDecimal(config.getNode("features", "moneycap", "min", "amount").getString("0"));
+            moneyCapMin = new BigDecimal("0");
         } else moneyCapMin = null;
 
         if (databaseActive) {
@@ -223,8 +230,10 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "notifications").setValue(true);
                 config.getNode("features", "moneycap", "max", "enable").setValue(hasMaxMoneyCap);
                 config.getNode("features", "moneycap", "max", "amount").setValue(10000000);
-                config.getNode("features", "moneycap", "min", "enable").setValue(hasMinMoneyCap);
-                config.getNode("features", "moneycap", "min", "amount").setValue(-10000000);
+                //DISABLED after discussion in pull#140 concluded to hard code the value
+                // - Enable this to re-enable a custom minimal cap
+                //config.getNode("features", "moneycap", "min", "enable").setValue(hasMinMoneyCap);
+                //config.getNode("features", "moneycap", "min", "amount").setValue(-10000000);
                 config.getNode("startbalance").setValue(100);
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
