@@ -46,7 +46,6 @@ import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Optional;
@@ -164,7 +163,7 @@ public class AccountManager implements EconomyService {
             if (!hasAccount(uuid)) {
                 if (!databaseActive) {
                     accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
-                    accountConfig.getNode(uuid.toString(), "job").setValue("Unemployed");
+                    accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
                     accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
                     loader.save(accountConfig);
                 } else {

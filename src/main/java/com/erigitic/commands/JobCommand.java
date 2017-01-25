@@ -26,7 +26,9 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.jobs.TEJobs;
+import com.erigitic.jobs.JobBasedRequirement;
+import com.erigitic.jobs.TEJob;
+import com.erigitic.jobs.TEJobManager;
 import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -37,31 +39,50 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.util.Optional;
+
 public class JobCommand implements CommandExecutor {
     private AccountManager accountManager;
-    private TEJobs teJobs;
+    private TEJobManager teJobManager;
 
     public JobCommand(TotalEconomy totalEconomy) {
         accountManager = totalEconomy.getAccountManager();
-        teJobs = totalEconomy.getTEJobs();
+        teJobManager = totalEconomy.getTEJobManager();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
+            Player player = ((Player) src).getPlayer().get();
 
+            // Do checks here, in case we or other plugins want to bypass them in the future
             if (args.getOne("jobName").isPresent()) {
                 String jobName = args.getOne("jobName").get().toString().toLowerCase();
 
-                teJobs.setJob(sender, jobName);
-            } else {
-                String jobName = teJobs.getPlayerJob(sender);
+                Optional<TEJob> optJob = teJobManager.getJob(jobName, false);
+                if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
 
-                sender.sendMessage(Text.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, jobName));
-                sender.sendMessage(Text.of(TextColors.GRAY, jobName, " Level: ", TextColors.GOLD, teJobs.getJobLevel(jobName, sender)));
-                sender.sendMessage(Text.of(TextColors.GRAY, jobName, " Exp: ", TextColors.GOLD, teJobs.getJobExp(jobName, sender), "/", teJobs.getExpToLevel(sender), "\n"));
-                sender.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, teJobs.getJobList()));
+                TEJob job = optJob.get();
+
+                if (job.getRequirement().isPresent()) {
+                    JobBasedRequirement req = job.getRequirement().get();
+
+                    if (req.permissionNeeded() != null && !player.hasPermission(req.permissionNeeded()))
+                        throw new CommandException(Text.of("You're not allowed to join job \"" + jobName + "\""));
+
+                    if (req.jobNeeded() != null && req.jobLevelNeeded() > teJobManager.getJobLevel(req.jobNeeded().toLowerCase(), player)) {
+                        throw new CommandException(Text.of("You need to reach level " + req.jobLevelNeeded() + " as a " + req.jobNeeded() + " first!"));
+                    }
+                }
+
+                teJobManager.setJob(player, jobName);
+            } else {
+                String jobName = teJobManager.getPlayerJob(player);
+
+                player.sendMessage(Text.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, jobName));
+                player.sendMessage(Text.of(TextColors.GRAY, teJobManager.titleize(jobName), " Level: ", TextColors.GOLD, teJobManager.getJobLevel(jobName, player)));
+                player.sendMessage(Text.of(TextColors.GRAY, teJobManager.titleize(jobName), " Exp: ", TextColors.GOLD, teJobManager.getJobExp(jobName, player), "/", teJobManager.getExpToLevel(player), " exp\n"));
+                player.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, teJobManager.getJobList()));
             }
         }
 

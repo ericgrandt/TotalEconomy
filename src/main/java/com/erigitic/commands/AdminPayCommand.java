@@ -86,11 +86,13 @@ public class AdminPayCommand implements CommandExecutor {
                     recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
                             TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
                 }
+
+                return CommandResult.success();
             }
         } else {
             src.sendMessage(Text.of(TextColors.RED, "The amount must be numeric."));
         }
 
-        return CommandResult.success();
+        return CommandResult.empty();
     }
 }
