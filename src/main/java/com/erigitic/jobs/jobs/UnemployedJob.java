@@ -40,6 +40,7 @@ public class UnemployedJob implements IDefaultJob {
     @Override
     public void applyOnNode(ConfigurationNode node) {
         node = node.getNode(getJobName());
+
         node.getNode("salary").setValue(20);
     }
 }

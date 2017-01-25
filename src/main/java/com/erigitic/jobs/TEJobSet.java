@@ -52,10 +52,10 @@ public class TEJobSet {
         node = node.getNode("actions");
         Map<?, ?> events = node.getChildrenMap();
 
-        //Go through all event entries
+        // Go through all event entries
         events.forEach((k1, v1) -> {
             if ((k1 instanceof String) && (v1 instanceof ConfigurationNode)) {
-                //Go though all id entries
+                // Go though all id entries
                 Map<?, ?> ids = ((ConfigurationNode) v1).getChildrenMap();
 
                 ids.forEach((k2, v2) -> {
@@ -65,7 +65,7 @@ public class TEJobSet {
                         if (reward!=null) {
                             actions.add(reward);
                         } else {
-                            //TODO: Might need some debug//error code here
+                            //TODO: Might need some debug/error code here
                         }
                     }
                 });
@@ -77,22 +77,22 @@ public class TEJobSet {
 
     public Optional<TEActionReward> getRewardFor(String event, String id) {
         return actions.stream()
-                //Match same event
+                // Match same event
                 .filter(r1 -> r1.getEvent().equals(event))
-                //Match same id
+                // Match same id
                 .filter(r2 -> r2.getTargetID().equals(id))
-                //Return the first match
+                // Return the first match
                 .findFirst();
     }
 
     public Map<String, List<String>> getRewardData() {
-        //TODO: You may want to switch to TEActionReward in order to show true rewards
+        // TODO: You may want to switch to TEActionReward in order to show true rewards
         Map<String, List<String>> map = new HashMap();
 
         for (TEActionReward action : actions) {
             List<String> l = map.getOrDefault(action.getEvent(), null);
 
-            if (l==null) {
+            if (l == null) {
                 l = new ArrayList();
                 map.put(action.getEvent(), l);
             }

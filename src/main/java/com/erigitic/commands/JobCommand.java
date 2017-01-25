@@ -66,9 +66,9 @@ public class JobCommand implements CommandExecutor {
 
                 if (job.getRequirement().isPresent()) {
                     JobBasedRequirement req = job.getRequirement().get();
-                    if (req.permissionNeeded()!=null && !player.hasPermission(req.permissionNeeded()))
+                    if (req.permissionNeeded() != null && !player.hasPermission(req.permissionNeeded()))
                         throw new CommandException(Text.of("You're not allowed to join job \"" + jobName + "\""));
-                    if (req.jobNeeded()!=null && req.jobLevelNeeded() > teJobManager.getJobLevel(req.jobNeeded().toLowerCase(), player)) {
+                    if (req.jobNeeded() != null && req.jobLevelNeeded() > teJobManager.getJobLevel(req.jobNeeded().toLowerCase(), player)) {
                         throw new CommandException(Text.of("You need to reach level " +
                         req.jobLevelNeeded() + " as a " + req.jobNeeded() + " first!"));
                     }
@@ -80,7 +80,7 @@ public class JobCommand implements CommandExecutor {
 
                 player.sendMessage(Text.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, jobName));
                 player.sendMessage(Text.of(TextColors.GRAY, jobName, " Level: ", TextColors.GOLD, teJobManager.getJobLevel(jobName, player)));
-                player.sendMessage(Text.of(TextColors.GRAY, jobName, " Exp: ", TextColors.GOLD, teJobManager.getJobExp(jobName, player), "/", teJobManager.getExpToLevel(player), "\n"));
+                player.sendMessage(Text.of(TextColors.GRAY, jobName, " Exp: ", TextColors.GOLD, teJobManager.getJobExp(jobName, player), "/", teJobManager.getExpToLevel(player), " exp\n"));
                 player.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, teJobManager.getJobList()));
             }
         }

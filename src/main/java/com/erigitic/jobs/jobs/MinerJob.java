@@ -33,7 +33,7 @@ import java.util.Arrays;
 public class MinerJob implements IDefaultJob {
 
     private static final String jobname = "miner";
-    private static final String[] sets = { jobname+"Set"};
+    private static final String[] sets = { jobname + "Set"};
 
     @Override
     public String getJobName() {

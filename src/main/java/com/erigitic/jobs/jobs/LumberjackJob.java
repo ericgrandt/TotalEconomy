@@ -33,7 +33,7 @@ import java.util.Arrays;
 public class LumberjackJob implements IDefaultJob {
 
     private static final String jobname = "lumberjack";
-    private static final String[] sets = { jobname+"Set"};
+    private static final String[] sets = { jobname + "Set"};
 
     @Override
     public String getJobName() {
@@ -42,7 +42,6 @@ public class LumberjackJob implements IDefaultJob {
 
     @Override
     public void applyOnNode(ConfigurationNode node) {
-
         node = node.getNode(getJobName());
 
         node.getNode("salary").setValue(20);

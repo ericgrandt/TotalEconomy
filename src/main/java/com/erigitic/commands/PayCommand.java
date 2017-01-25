@@ -89,15 +89,23 @@ public class PayCommand implements CommandExecutor {
 
                             recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
                                     TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), TextColors.GRAY, "."));
+
+                            return CommandResult.success();
                         } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
                             sender.sendMessage(Text.of(TextColors.RED, "Insufficient funds."));
+
+                            return CommandResult.empty();
                         }
                     }
                 } else {
                     sender.sendMessage(Text.of(TextColors.RED, "The amount must be positive."));
+
+                    return CommandResult.empty();
                 }
             } else {
                 sender.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
+
+                return CommandResult.empty();
             }
         } else if (src instanceof ConsoleSource || src instanceof CommandBlockSource) {
             Object playerArg = args.getOne("player").get();
@@ -120,10 +128,12 @@ public class PayCommand implements CommandExecutor {
                         recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by the ",
                                 TextColors.GOLD, "SERVER."));
                     }
+
+                    return CommandResult.success();
                 }
             }
         }
 
-        return CommandResult.success();
+        return CommandResult.empty();
     }
 }

@@ -38,17 +38,14 @@ import java.util.Optional;
  * @author MarkL4YG
  */
 public class TEJob {
-    //Which sets are associated
     private List<String> sets;
 
-    //Normal salary
     private BigDecimal salary;
 
-    //Requirement
     private JobBasedRequirement requirement;
 
     private TEJob() {
-        sets = new ArrayList<String>();
+        sets = new ArrayList<>();
     }
 
     public static TEJob of(ConfigurationNode node) {

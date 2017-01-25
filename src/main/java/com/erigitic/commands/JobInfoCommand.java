@@ -83,35 +83,25 @@ public class JobInfoCommand implements CommandExecutor {
         if (!optJob.isPresent()) {
             throw new CommandException(Text.of(TextColors.RED, "Unknown job: \"" + optJobName.orElse("") + "\""));
         }
-        src.sendMessage(Text.of(TextColors.YELLOW, "[TE] There may be a long output following now..."));
+
         List<Text> lines = new ArrayList();
 
-        lines.add(Text.of(TextColors.GREEN, "[TE] Job info about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n"));
+        lines.add(Text.of(TextColors.GREEN, "[TE] Job information about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n"));
 
         for (String s : optJob.get().getSets()) {
             Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
 
             if (optSet.isPresent()) {
-                lines.add(Text.of(TextColors.GRAY, " * SET ", TextColors.WHITE, s, "\n"));
                 Map<String, List<String>> map = optSet.get().getRewardData();
                 map.forEach((k, v) -> {
                     //Add event name
-                    lines.add(Text.of(TextColors.GRAY, " -> ", TextColors.GOLD, TextStyles.ITALIC, k, "\n"));
+                    lines.add(Text.of(TextColors.GRAY, TextColors.GOLD, TextStyles.ITALIC, k, "\n"));
                     //Add targets
                     v.forEach(id -> {
-                        lines.add(Text.of(TextColors.GRAY, "    ID:",TextColors.DARK_GREEN, id, "\n"));
+                        lines.add(Text.of(TextColors.GRAY, "    ID: ", TextColors.DARK_GREEN, id, "\n"));
                     });
                 });
-            } else {
-                lines.add(Text.of(TextColors.RED, " * SET ", TextColors.WHITE, s, TextColors.RED, " UNKNOWN", "\n"));
             }
-        }
-
-        if (src instanceof Player) {
-            int level = teJobManager.getJobLevel(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
-            int exp = teJobManager.getJobExp(teJobManager.getPlayerJob(((Player) src)), ((Player) src));
-
-            lines.add(Text.of(TextColors.GRAY, "Your level: ", TextColors.GOLD, level, " @ ", exp, "\n"));
         }
 
         src.sendMessage(Text.join(lines.toArray(new Text[lines.size()])));
