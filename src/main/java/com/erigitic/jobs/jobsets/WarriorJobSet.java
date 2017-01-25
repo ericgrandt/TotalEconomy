@@ -23,29 +23,33 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.jobs.jobsets;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
+/**
+ * @author MarkL4YG
+ */
+public class WarriorJobSet implements IDefaultJobSet {
 
-public class FishermanJob implements IDefaultJob {
+    private static final String SETNAME = "warriorSet";
 
-    private static final String jobname = "fisherman";
-    private static final String[] sets = { jobname + "Set"};
-
-    @Override
-    public String getJobName() {
-        return jobname;
-    }
+    private static final String[][] rewards = {
+            //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
+            {"kill", "skeleton", "10", "1.00"},
+            {"kill", "zombie", "10", "1.00"},
+            {"kill", "creeper", "10", "1.00"},
+            {"kill", "spider", "10", "1.00"}
+    };
 
     @Override
     public void applyOnNode(ConfigurationNode node) {
-        node = node.getNode(getJobName());
+        ConfigurationNode myNode = node.getNode(SETNAME, "actions");
 
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(sets));
-        JobBasedRequirement.of(null, 0, "totaleconomy.job.fisherman").addTo(node);
+        for (String[] a : rewards) {
+            ConfigurationNode n = myNode.getNode(a[0], a[1]);
+            n.getNode("expGain").setValue(a[2]);
+            n.getNode("moneyGain").setValue(a[3]);
+        }
     }
 }

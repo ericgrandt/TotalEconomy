@@ -27,10 +27,8 @@ package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
-import com.erigitic.jobs.jobs.FishermanJob;
-import com.erigitic.jobs.jobs.LumberjackJob;
-import com.erigitic.jobs.jobs.MinerJob;
-import com.erigitic.jobs.jobs.WarriorJob;
+import com.erigitic.jobs.jobs.*;
+import com.erigitic.jobs.jobsets.*;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -58,6 +56,8 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -67,28 +67,42 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class TEJobs {
+public class TEJobManager {
+
+    // We only need one instance of this
+    public static final IDefaultJobSet[] defaultJobSets = {
+            new FishermanJobSet(),
+            new LumberjackJobSet(),
+            new MinerJobSet(),
+            new WarriorJobSet()
+    };
+
+    // We only need one instance of this
+    public static final IDefaultJob[] defaultJobs = {
+            new UnemployedJob(),
+            new FishermanJob(),
+            new LumberjackJob(),
+            new MinerJob(),
+            new WarriorJob()
+    };
+
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private ConfigurationNode accountConfig;
     private Logger logger;
 
+    private File jobSetsFile;
+    private ConfigurationLoader<CommentedConfigurationNode> jobSetsLoader;
+    private ConfigurationNode jobSetsConfig;
+    private Map<String, TEJobSet> jobSets;
+
     private File jobsFile;
-    private ConfigurationLoader<CommentedConfigurationNode> loader;
+    private ConfigurationLoader<CommentedConfigurationNode> jobsLoader;
     private ConfigurationNode jobsConfig;
+    private Map<String, TEJob> jobs;
 
-    private MinerJob miner;
-    private LumberjackJob lumberjack;
-    private WarriorJob warrior;
-    private FishermanJob fisherman;
-
-    public TEJobs(TotalEconomy totalEconomy) {
+    public TEJobManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
-
-        miner = new MinerJob();
-        lumberjack = new LumberjackJob();
-        warrior = new WarriorJob();
-        fisherman = new FishermanJob();
 
         accountManager = totalEconomy.getAccountManager();
         accountConfig = accountManager.getAccountConfig();
@@ -109,15 +123,32 @@ public class TEJobs {
 
         payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
-                    BigDecimal salary = new BigDecimal(jobsConfig.getNode(getPlayerJob(player), "salary").getString());
-                    boolean salaryDisabled = jobsConfig.getNode(getPlayerJob(player), "disablesalary").getBoolean();
+                    Optional<TEJob> optJob = getPlayerTEJob(player);
+                    if (!optJob.isPresent()) {
+                        // This should NOT happen unless the admin has removed the "unemployed" job... or something weird happened
+                        // Either way, the admin should be notified about this
+                        player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
 
-                    if (!salaryDisabled) {
+                        return;
+                    }
+
+                    if (optJob.get().salaryEnabled()) {
+                        BigDecimal salary = optJob.get().getSalary();
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                        player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
-                                totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                        TransactionResult result = playerAccount.deposit(
+                                        totalEconomy.getDefaultCurrency(),
+                                        salary,
+                                        Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer()))
+                                );
+                        if (result.getResult() == ResultType.SUCCESS) {
+                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
+                                    totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                        } else {
+                            player.sendMessage(Text.of(
+                                    TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult:", result.getResult().toString()
+                            ));
+                        }
                     }
                 }
         }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay")
@@ -128,41 +159,104 @@ public class TEJobs {
      * Setup the jobs config
      */
     public void setupConfig() {
+        jobSetsFile = new File(totalEconomy.getConfigDir(), "jobSets.conf");
+        jobSetsLoader = HoconConfigurationLoader.builder().setFile(jobSetsFile).build();
+        jobSets = new HashMap();
+        reloadJobSetConfig();
+
         jobsFile = new File(totalEconomy.getConfigDir(), "jobs.conf");
-        loader = HoconConfigurationLoader.builder().setFile(jobsFile).build();
+        jobsLoader = HoconConfigurationLoader.builder().setFile(jobsFile).build();
+        jobs = new HashMap();
+        reloadJobsConfig();
+    }
 
+    /**
+     * Reload the jobSet config
+     */
+    public boolean reloadJobSetConfig() {
         try {
-            jobsConfig = loader.load();
+            jobSetsConfig = jobSetsLoader.load();
 
-            if (!jobsFile.exists()) {
-                jobsConfig.getNode("jobs").setValue("Miner, Lumberjack, Warrior, Fisherman");
+            if (!jobSetsFile.exists()) {
+                ConfigurationNode jobs = jobSetsConfig.getNode("sets");
 
-                miner.setupJobValues(jobsConfig);
-                lumberjack.setupJobValues(jobsConfig);
-                warrior.setupJobValues(jobsConfig);
-                fisherman.setupJobValues(jobsConfig);
+                // Install default jobs
+                for (IDefaultJobSet j : defaultJobSets) {
+                    j.applyOnNode(jobs);
+                }
 
-                jobsConfig.getNode("Unemployed", "disablesalary").setValue(false);
-                jobsConfig.getNode("Unemployed", "salary").setValue(20);
-                jobsConfig.getNode("salarydelay").setValue(300);
-
-                loader.save(jobsConfig);
+                jobSetsLoader.save(jobSetsConfig);
             }
+
+            ConfigurationNode sets = jobSetsConfig.getNode("sets");
+            Map<?, ?> setMap = sets.getChildrenMap();
+
+            setMap.forEach((k, v) -> {
+                if ((k instanceof String) && (v instanceof ConfigurationNode)) {
+                    TEJobSet set = TEJobSet.of((ConfigurationNode) v);
+
+                    if (set!=null)
+                        jobSets.put((String) k, set);
+                    else
+                        logger.warn("Unable to load set: " + k);
+                }
+            });
+
+            return true;
         } catch (IOException e) {
-            logger.warn("Could not create jobs config file!");
+            logger.warn("Could not create/load jobs config file!");
+
+            return false;
         }
     }
 
     /**
      * Reload the jobs config
      */
-    public void reloadConfig() {
+    public boolean reloadJobsConfig() {
         try {
-            jobsConfig = loader.load();
-            logger.info("Reloading jobs configuration file.");
+            jobsConfig = jobsLoader.load();
+
+            if (!jobsFile.exists()) {
+                ConfigurationNode jobs = jobsConfig.getNode("jobs");
+
+                // Install default jobs
+                for (IDefaultJob j : defaultJobs) {
+                    j.applyOnNode(jobs);
+                }
+
+                jobsConfig.getNode("salarydelay").setValue(300);
+
+                jobsLoader.save(jobsConfig);
+            }
+
+            ConfigurationNode sets = jobsConfig.getNode("jobs");
+            Map<?, ?> setMap = sets.getChildrenMap();
+
+            setMap.forEach((k, v) -> {
+                if ((k instanceof String) && (v instanceof ConfigurationNode)) {
+                    TEJob job = TEJob.of(((ConfigurationNode) v));
+
+                    if (job!=null)
+                        jobs.put((String) k, job);
+                    else
+                        logger.warn("Unable to load set: " + k);
+                }
+            });
+
+            return true;
         } catch (IOException e) {
-            logger.warn("Could not reload jobs configuration file!");
+            logger.warn("Could not create/load jobs config file!");
+
+            return false;
         }
+    }
+
+    /**
+     * Reload all job configs (jobs + sets)
+     */
+    public boolean reloadJobsAndSets() {
+        return reloadJobsConfig() && reloadJobSetConfig();
     }
 
     /**
@@ -174,9 +268,9 @@ public class TEJobs {
     public void addExp(Player player, int expAmount) {
         String jobName = getPlayerJob(player);
         UUID playerUUID = player.getUniqueId();
-        int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getInt();
+        int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
 
-        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(curExp + expAmount);
+        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
 
         try {
             accountManager.getConfigManager().save(accountConfig);
@@ -184,7 +278,7 @@ public class TEJobs {
             logger.warn("Problem saving account config!");
         }
 
-        if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean() == true)
+        if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean())
             player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
                     " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }
@@ -198,15 +292,15 @@ public class TEJobs {
     public void checkForLevel(Player player) {
         UUID playerUUID = player.getUniqueId();
         String jobName = getPlayerJob(player);
-        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getInt();
-        int playerCurExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getInt();
+        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt();
+        int playerCurExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
         int expToLevel = getExpToLevel(player);
 
         if (playerCurExp >= expToLevel) {
-            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(playerLevel + 1);
-            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(playerCurExp - expToLevel);
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel + 1);
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp - expToLevel);
             player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
-                    playerLevel + 1, " ", jobName, "."));
+                    playerLevel + 1, " ", titleize(jobName)));
         }
     }
 
@@ -217,12 +311,13 @@ public class TEJobs {
      * @return boolean if the job exists or not
      */
     public boolean jobExists(String jobName) {
-        if (jobsConfig.getNode(convertToTitle(jobName)).getValue() != null) {
+        if (jobsConfig.getNode(jobName.toLowerCase()).getValue() != null) {
             return true;
         }
 
         return false;
     }
+
 
     /**
      * Convert strings to titles (title -> Title)
@@ -230,7 +325,7 @@ public class TEJobs {
      * @param input the string to be titleized
      * @return String the titileized version of the input
      */
-    public String convertToTitle(String input) {
+    public String titleize(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
@@ -242,35 +337,36 @@ public class TEJobs {
      */
     public void setJob(Player player, String jobName) {
         UUID playerUUID = player.getUniqueId();
-        boolean jobPermissions = totalEconomy.isJobPermissions();
 
-        if (jobExists(jobName)) {
-            if ((jobPermissions && player.hasPermission("totaleconomy.job." + jobName)) || !jobPermissions) {
-                jobName = convertToTitle(jobName);
+        accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
 
-                accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
+        // Set level if not of type int or null
+        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(
+                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt(1)
+        );
 
-                if (accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getValue() == null) {
-                    accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").setValue(1);
-                }
+        // See above
+        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(
+                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0)
+        );
 
-                if (accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").getValue() == null) {
-                    accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Exp").setValue(0);
-                }
+        player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
 
-                try {
-                    accountManager.getConfigManager().save(accountConfig);
-                } catch (IOException e) {
-                    logger.warn("Could not save account config while setting job!");
-                }
-
-                player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
-            } else {
-                player.sendMessage(Text.of(TextColors.RED, "You do not have permission to become this job."));
-            }
-        } else {
-            player.sendMessage(Text.of(TextColors.RED, "[TEJobs] This job does not exist"));
+        try {
+            accountManager.getConfigManager().save(accountConfig);
+        } catch (IOException e) {
+            logger.warn("Could not save account config while setting job!");
+            player.sendMessage(Text.of(TextColors.RED, "[TE] Job saving for you failed! You might loose the change upon restart/reload."));
         }
+    }
+
+    /**
+     * Get a jobSet by name
+     *
+     * @return {@link Optional<TEJobSet>} jobSet
+     */
+    public Optional<TEJobSet> getJobSet(String name) {
+        return Optional.ofNullable(jobSets.getOrDefault(name, null));
     }
 
     /**
@@ -280,7 +376,36 @@ public class TEJobs {
      * @return String the job the player currently has
      */
     public String getPlayerJob(Player player) {
-        return accountConfig.getNode(player.getUniqueId().toString(), "job").getString();
+        // For convenience always cast job name to lowercase
+        return accountConfig.getNode(player.getUniqueId().toString(), "job").getString("unemployed").toLowerCase();
+    }
+
+    /**
+     * Get the player's current TEJob instance
+     *
+     * @param player
+     * @return {@link TEJob} the job the player currently has
+     */
+    public Optional<TEJob> getPlayerTEJob(Player player) {
+        String jobName = getPlayerJob(player);
+
+        return getJob(jobName, true);
+    }
+
+    /**
+     * Get a job by its name
+     *
+     * @param jobName name of the job
+     * @param tryUnemployed whether or not to try returning the unemployed job when the job wasn't found
+     * @return {@link TEJob} the job; {@code null} for not found
+     */
+    public Optional<TEJob> getJob(String jobName, boolean tryUnemployed) {
+        TEJob job = jobs.getOrDefault(jobName, null);
+
+        if (job != null || !tryUnemployed)
+            return Optional.ofNullable(job);
+
+        return getJob("unemployed", false);
     }
 
     /**
@@ -291,7 +416,7 @@ public class TEJobs {
      * @return int the job exp
      */
     public int getJobExp(String jobName, Player player) {
-        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName + "Exp").getInt();
+        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "exp").getInt(0);
     }
 
     /**
@@ -302,7 +427,7 @@ public class TEJobs {
      * @return int the job level
      */
     public int getJobLevel(String jobName, Player player) {
-        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName + "Level").getInt();
+        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
     }
 
     /**
@@ -314,7 +439,7 @@ public class TEJobs {
     public int getExpToLevel(Player player) {
         UUID playerUUID = player.getUniqueId();
         String jobName = getPlayerJob(player);
-        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName + "Level").getInt();
+        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt(1);
 
         return playerLevel * 100;
     }
@@ -325,7 +450,23 @@ public class TEJobs {
      * @return String list of jobs
      */
     public String getJobList() {
-        return jobsConfig.getNode("jobs").getString();
+        StringBuilder b = new StringBuilder();
+
+        jobs.forEach((j, o) -> b.append(j).append(", "));
+
+        String s = b.toString();
+
+        //Remove the last ", "
+        return s.substring(0, s.length() - 2);
+    }
+
+    /**
+     * Getter for the jobSet configuration
+     *
+     * @return {@link ConfigurationNode} the jobSet configuration
+     */
+    public ConfigurationNode getJobSetConfig() {
+        return jobSetsConfig;
     }
 
     /**
@@ -353,8 +494,7 @@ public class TEJobs {
         if (lineOnePlain.equals("[TEJobs]")) {
             lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
 
-            String jobName = convertToTitle(lineTwoPlain);
-
+            String jobName = lineTwoPlain.toLowerCase();
             if (jobExists(lineTwoPlain)) {
                 lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
             } else {
@@ -394,10 +534,14 @@ public class TEJobs {
                             Text lineOneText = signData.lines().get(0);
                             Text lineTwoText = signData.lines().get(1);
                             String lineOne = lineOneText.toPlain();
-                            String lineTwo = lineTwoText.toPlain();
+                            String lineTwo = lineTwoText.toPlain().toLowerCase();
 
-                            if (lineOne.equals("[TEJobs]") && jobExists(lineTwo)) {
-                                setJob(player, lineTwo);
+                            if (lineOne.equals("[TEJobs]")) {
+                                if (jobExists(lineTwo)) {
+                                    setJob(player, lineTwo);
+                                } else {
+                                    player.sendMessage(Text.of(TextColors.RED, "[TE] Sorry, this job does not exist"));
+                                }
                             }
                         }
                     }
@@ -418,20 +562,34 @@ public class TEJobs {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
-            String playerJob = getPlayerJob(player);
+            Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
             String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
-            // Checks if the users current job has the break node.
-            boolean hasBreakNode = (jobsConfig.getNode(playerJob, "break").getValue() != null);
+            if (optPlayerJob.isPresent()) {
+                // Prevent blocks placed by other players from counting towards a job
+                if (!blockCreator.isPresent()) {
+                    Optional<TEActionReward> reward = Optional.empty();
+                    List<String> sets = optPlayerJob.get().getSets();
 
-            if (jobsConfig.getNode(playerJob).getValue() != null) {
-                if (hasBreakNode && jobsConfig.getNode(playerJob, "break", blockName).getValue() != null) {
-                    if (!blockCreator.isPresent()) {
-                        int expAmount = jobsConfig.getNode(playerJob, "break", blockName, "expreward").getInt();
+                    for (String s : sets) {
+                        Optional<TEJobSet> optSet = getJobSet(s);
+                        if (!optSet.isPresent()) {
+                            logger.warn("Job " + getPlayerJob(player) + " has the nonexistent set \"" + s + "\"");
+
+                            continue;
+                        }
+
+                        reward = optSet.get().getRewardFor("break", blockName);
+
+                        // TODO: Priorities?
+                        if (reward.isPresent()) break;
+                    }
+
+                    if (reward.isPresent()) {
+                        int expAmount = reward.get().getExpReward();
+                        BigDecimal payAmount = reward.get().getMoneyReward();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
-
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "break", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
@@ -460,18 +618,31 @@ public class TEJobs {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
-            String playerJob = getPlayerJob(player);
+            Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
             String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName();
 
-            //Checks if the users current job has the place node.
-            boolean hasPlaceNode = (jobsConfig.getNode(playerJob, "place").getValue() != null);
+            if (optPlayerJob.isPresent()) {
+                Optional<TEActionReward> reward = Optional.empty();
+                List<String> sets = optPlayerJob.get().getSets();
 
-            if (jobsConfig.getNode(playerJob).getValue() != null) {
-                if (hasPlaceNode && jobsConfig.getNode(playerJob, "place", blockName).getValue() != null) {
-                    int expAmount = jobsConfig.getNode(playerJob, "place", blockName, "expreward").getInt();
+                for (String s : sets) {
+                    Optional<TEJobSet> optSet = getJobSet(s);
+
+                    if (!optSet.isPresent()) {
+                        logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+
+                        continue;
+                    }
+
+                    reward = optSet.get().getRewardFor("place", blockName);
+
+                    //TODO: Priorities?
+                    if (reward.isPresent()) break;
+                }
+                if (reward.isPresent()) {
+                    int expAmount = reward.get().getExpReward();
+                    BigDecimal payAmount = reward.get().getMoneyReward();
                     boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
-
-                    BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "place", blockName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
                     TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
@@ -514,17 +685,31 @@ public class TEJobs {
             if (killer instanceof Player) {
                 Player player = (Player) killer;
                 UUID playerUUID = player.getUniqueId();
-                String playerJob = getPlayerJob(player);
                 String victimName = victim.getType().getName();
+                Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
 
-                boolean hasKillNode = (jobsConfig.getNode(playerJob, "kill").getValue() != null);
+                if (optPlayerJob.isPresent()) {
+                    Optional<TEActionReward> reward = Optional.empty();
+                    List<String> sets = optPlayerJob.get().getSets();
 
-                if (jobsConfig.getNode(playerJob).getValue() != null) {
-                    if (hasKillNode && jobsConfig.getNode(playerJob, "kill", victimName).getValue() != null) {
-                        int expAmount = jobsConfig.getNode(playerJob, "kill", victimName, "expreward").getInt();
+                    for (String s : sets) {
+                        Optional<TEJobSet> optSet = getJobSet(s);
+
+                        if (!optSet.isPresent()) {
+                            logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+
+                            continue;
+                        }
+
+                        reward = optSet.get().getRewardFor("kill", victimName);
+
+                        //TODO: Priorities?
+                        if (reward.isPresent()) break;
+                    }
+                    if (reward.isPresent()) {
+                        int expAmount = reward.get().getExpReward();
+                        BigDecimal payAmount = reward.get().getMoneyReward();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
-
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "kill", victimName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
 
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
@@ -555,20 +740,34 @@ public class TEJobs {
             ItemStack itemStack = itemTransaction.getFinal().createStack();
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
-            String playerJob = getPlayerJob(player);
+            Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
 
-            boolean hasCatchNode = (jobsConfig.getNode(playerJob, "catch").getValue() != null);
-
-            if (itemStack.get(FishData.class).isPresent()) {
-                if (jobsConfig.getNode(playerJob).getValue() != null) {
+            if (optPlayerJob.isPresent()) {
+                if (itemStack.get(FishData.class).isPresent()) {
                     FishData fishData = itemStack.get(FishData.class).get();
                     String fishName = fishData.type().get().getName();
 
-                    if (hasCatchNode && jobsConfig.getNode(playerJob, "catch", fishName).getValue() != null) {
-                        int expAmount = jobsConfig.getNode(playerJob, "catch", fishName, "expreward").getInt();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                    Optional<TEActionReward> reward = Optional.empty();
+                    List<String> sets = optPlayerJob.get().getSets();
 
-                        BigDecimal payAmount = new BigDecimal(jobsConfig.getNode(playerJob, "catch", fishName, "pay").getString()).setScale(2, BigDecimal.ROUND_DOWN);
+                    for (String s : sets) {
+                        Optional<TEJobSet> optSet = getJobSet(s);
+
+                        if (!optSet.isPresent()) {
+                            logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+
+                            continue;
+                        }
+
+                        reward = optSet.get().getRewardFor("catch", fishName);
+
+                        //TODO: Priorities?
+                        if (reward.isPresent()) break;
+                    }
+                    if (reward.isPresent()) {
+                        int expAmount = reward.get().getExpReward();
+                        BigDecimal payAmount = reward.get().getMoneyReward();
+                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
 
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
@@ -581,7 +780,6 @@ public class TEJobs {
                         checkForLevel(player);
                     }
                 }
-
             }
         }
     }

@@ -23,29 +23,56 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.jobs;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
 
-public class FishermanJob implements IDefaultJob {
+/**
+ * @author MarkL4YG
+ */
+public class TEActionReward {
+    private String event;
+    private String targetID;
+    private int expReward;
+    private BigDecimal moneyReward;
 
-    private static final String jobname = "fisherman";
-    private static final String[] sets = { jobname + "Set"};
-
-    @Override
-    public String getJobName() {
-        return jobname;
+    private TEActionReward() {
     }
 
-    @Override
-    public void applyOnNode(ConfigurationNode node) {
-        node = node.getNode(getJobName());
+    //@Nullable
+    public static TEActionReward of(String event, String targetID, ConfigurationNode node) {
+        TEActionReward reward = new TEActionReward();
 
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(sets));
-        JobBasedRequirement.of(null, 0, "totaleconomy.job.fisherman").addTo(node);
+        if (reward.load(event, targetID, node))
+            return reward;
+
+        return null;
+    }
+
+    protected boolean load(String event, String targetID, ConfigurationNode node) {
+        this.event = event;
+        this.targetID = targetID;
+        expReward = node.getNode("expGain").getInt(0);
+        moneyReward = new BigDecimal(node.getNode("moneyGain").getString("0"));
+
+        return event != null && !event.isEmpty() && targetID != null && !targetID.isEmpty();
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public String getTargetID() {
+        return targetID;
+    }
+
+    public int getExpReward() {
+        return expReward;
+    }
+
+    public BigDecimal getMoneyReward() {
+        return moneyReward;
     }
 }
