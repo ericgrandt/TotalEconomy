@@ -47,8 +47,10 @@ public class JobToggleCommand implements CommandExecutor {
             Player sender = ((Player) src).getPlayer().get();
 
             accountManager.toggleNotifications(sender);
+
+            return CommandResult.success();
         }
 
-        return CommandResult.success();
+        return CommandResult.empty();
     }
 }
