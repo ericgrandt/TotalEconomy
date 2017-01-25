@@ -300,7 +300,7 @@ public class TEJobManager {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel + 1);
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp - expToLevel);
             player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
-                    playerLevel + 1, " ", jobName, "."));
+                    playerLevel + 1, " ", titleize(jobName)));
         }
     }
 
@@ -317,6 +317,7 @@ public class TEJobManager {
 
         return false;
     }
+
 
     /**
      * Convert strings to titles (title -> Title)
@@ -349,7 +350,7 @@ public class TEJobManager {
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0)
         );
 
-        player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, titleize(jobName)));
+        player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
 
         try {
             accountManager.getConfigManager().save(accountConfig);
@@ -495,7 +496,7 @@ public class TEJobManager {
 
             String jobName = lineTwoPlain.toLowerCase();
             if (jobExists(lineTwoPlain)) {
-                lineTwo = Text.of(titleize(jobName)).toBuilder().color(TextColors.GRAY).build();
+                lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
             } else {
                 lineTwo = Text.of(jobName).toBuilder().color(TextColors.RED).build();
             }

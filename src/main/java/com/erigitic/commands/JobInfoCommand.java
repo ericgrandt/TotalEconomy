@@ -86,7 +86,7 @@ public class JobInfoCommand implements CommandExecutor {
 
         List<Text> lines = new ArrayList();
 
-        lines.add(Text.of(TextColors.GREEN, "[TE] Job information about ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n"));
+        lines.add(Text.of(TextColors.GREEN, "Job information for ", TextColors.GOLD, optJobName.isPresent() ? optJobName.get() : teJobManager.getPlayerJob(((Player) src)),"\n\n"));
 
         for (String s : optJob.get().getSets()) {
             Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
