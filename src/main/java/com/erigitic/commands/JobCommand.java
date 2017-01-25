@@ -55,7 +55,7 @@ public class JobCommand implements CommandExecutor {
         if (src instanceof Player) {
             Player player = ((Player) src).getPlayer().get();
 
-            //Do checks here, in case we or other plugins want to bypass them in the future
+            // Do checks here, in case we or other plugins want to bypass them in the future
             if (args.getOne("jobName").isPresent()) {
                 String jobName = args.getOne("jobName").get().toString().toLowerCase();
 
@@ -66,11 +66,12 @@ public class JobCommand implements CommandExecutor {
 
                 if (job.getRequirement().isPresent()) {
                     JobBasedRequirement req = job.getRequirement().get();
+
                     if (req.permissionNeeded() != null && !player.hasPermission(req.permissionNeeded()))
                         throw new CommandException(Text.of("You're not allowed to join job \"" + jobName + "\""));
+
                     if (req.jobNeeded() != null && req.jobLevelNeeded() > teJobManager.getJobLevel(req.jobNeeded().toLowerCase(), player)) {
-                        throw new CommandException(Text.of("You need to reach level " +
-                        req.jobLevelNeeded() + " as a " + req.jobNeeded() + " first!"));
+                        throw new CommandException(Text.of("You need to reach level " + req.jobLevelNeeded() + " as a " + req.jobNeeded() + " first!"));
                     }
                 }
 
@@ -79,8 +80,8 @@ public class JobCommand implements CommandExecutor {
                 String jobName = teJobManager.getPlayerJob(player);
 
                 player.sendMessage(Text.of(TextColors.GRAY, "Your current job is: ", TextColors.GOLD, jobName));
-                player.sendMessage(Text.of(TextColors.GRAY, jobName, " Level: ", TextColors.GOLD, teJobManager.getJobLevel(jobName, player)));
-                player.sendMessage(Text.of(TextColors.GRAY, jobName, " Exp: ", TextColors.GOLD, teJobManager.getJobExp(jobName, player), "/", teJobManager.getExpToLevel(player), " exp\n"));
+                player.sendMessage(Text.of(TextColors.GRAY, teJobManager.titleize(jobName), " Level: ", TextColors.GOLD, teJobManager.getJobLevel(jobName, player)));
+                player.sendMessage(Text.of(TextColors.GRAY, teJobManager.titleize(jobName), " Exp: ", TextColors.GOLD, teJobManager.getJobExp(jobName, player), "/", teJobManager.getExpToLevel(player), " exp\n"));
                 player.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, teJobManager.getJobList()));
             }
         }
