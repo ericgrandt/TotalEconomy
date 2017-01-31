@@ -128,9 +128,10 @@ public class TotalEconomy {
             databaseUrl = config.getNode("database", "url").getString();
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
+
+            sqlHandler = new SQLHandler(this);
         }
 
-        sqlHandler = new SQLHandler(this);
         accountManager = new AccountManager(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
@@ -169,7 +170,9 @@ public class TotalEconomy {
     @Listener
     public void onServerStopping(GameStoppingServerEvent event) {
         logger.info("Total Economy Stopping");
-        accountManager.saveAccountConfig();
+
+        if (!databaseActive)
+            accountManager.saveAccountConfig();
     }
 
     @Listener

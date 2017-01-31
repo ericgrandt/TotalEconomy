@@ -46,6 +46,7 @@ public class SQLHandler {
     public SQLHandler(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
+
         try {
             dataSource = getDataSource(totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword());
         } catch (SQLException e) {
@@ -79,7 +80,7 @@ public class SQLHandler {
             return result;
         } catch (SQLException e) {
             logger.warn("Error creating database!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return false;
@@ -96,7 +97,7 @@ public class SQLHandler {
             return result;
         } catch (SQLException e) {
             logger.warn("Error creating table!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return false;
@@ -106,14 +107,14 @@ public class SQLHandler {
         try {
             Connection conn = dataSource.getConnection();
 
-            Optional<ResultSet> resultSet = Optional.of(conn.prepareStatement("SELECT " + col + " FROM " + dbName + "." + tableName).executeQuery());
+            Optional<ResultSet> resultSetOpt = Optional.of(conn.prepareStatement("SELECT " + col + " FROM " + dbName + "." + tableName).executeQuery());
 
             conn.close();
 
-            return resultSet;
+            return resultSetOpt;
         } catch (SQLException e) {
             logger.warn("Error selecting column!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return Optional.empty();
@@ -123,14 +124,14 @@ public class SQLHandler {
         try {
             Connection conn = dataSource.getConnection();
 
-            Optional<ResultSet> resultSet = Optional.of(conn.prepareStatement("SELECT " + col + " FROM " + dbName + "." + tableName + " WHERE " + colComp + "='" + valComp + "'").executeQuery());
+            Optional<ResultSet> resultSetOpt = Optional.of(conn.prepareStatement("SELECT " + col + " FROM " + dbName + "." + tableName + " WHERE " + colComp + "='" + valComp + "'").executeQuery());
 
             conn.close();
 
-            return resultSet;
+            return resultSetOpt;
         } catch (SQLException e) {
             logger.warn("Error selecting column with comparator!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return Optional.empty();
@@ -150,7 +151,7 @@ public class SQLHandler {
             return result;
         } catch (SQLException e) {
             logger.warn("Error inserting new record!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return 0;
@@ -167,7 +168,7 @@ public class SQLHandler {
             return result;
         } catch (SQLException e) {
             logger.warn("Error updating column!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return 0;
@@ -184,7 +185,7 @@ public class SQLHandler {
             return result;
         } catch (SQLException e) {
             logger.warn("Error deleting from table!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return 0;
@@ -203,9 +204,17 @@ public class SQLHandler {
                 return true;
         } catch (SQLException e) {
             logger.warn("Error when checking for existence of record!");
-            logger.warn(e.getMessage());
+            e.printStackTrace();
         }
 
         return false;
+    }
+
+    public void close(ResultSet resultSet) {
+        try {
+            resultSet.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

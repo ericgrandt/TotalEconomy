@@ -146,7 +146,7 @@ public class TEJobManager {
                                     totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                         } else {
                             player.sendMessage(Text.of(
-                                    TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult:", result.getResult().toString()
+                                    TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()
                             ));
                         }
                     }
