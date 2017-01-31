@@ -68,12 +68,13 @@ public class AccountManager implements EconomyService {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
-        sqlHandler = totalEconomy.getSqlHandler();
 
-        if (!databaseActive)
-            setupConfig();
-        else {
+        if (databaseActive) {
+            sqlHandler = totalEconomy.getSqlHandler();
+
             setupDatabase();
+        } else {
+            setupConfig();
         }
     }
 
@@ -96,8 +97,6 @@ public class AccountManager implements EconomyService {
     }
 
     public void setupDatabase() {
-        String dbName = "totaleconomy";
-
         sqlHandler.createDatabase();
 
         sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
@@ -141,7 +140,6 @@ public class AccountManager implements EconomyService {
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
-
                     String[] colsArray = {"uid", currencyName + "_balance", "job", "job_notifications"};
                     String[] valsArray = {"'" + uuid.toString() + "'", "'" + playerAccount.getDefaultBalance(getDefaultCurrency()) + "'", "'Unemployed'", String.valueOf(totalEconomy.hasJobNotifications())};
 
@@ -152,7 +150,6 @@ public class AccountManager implements EconomyService {
                     accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
                     loader.save(accountConfig);
                 }
-
             }
         } catch (IOException e) {
             logger.warn("Could not create account!");
@@ -167,6 +164,7 @@ public class AccountManager implements EconomyService {
         TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
 
         try {
+            // TODO: Create new table for virtual accounts and store all virtual account data within. IF DATABASE ENABLED.
             if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() == null) {
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
 
@@ -182,10 +180,15 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            Optional<ResultSet> rsOpt = sqlHandler.select("uid", "accounts", "uid", uuid.toString());
+            Optional<ResultSet> resultSetOpt = sqlHandler.select("uid", "accounts", "uid", uuid.toString());
 
-            if (rsOpt.isPresent()) {
-                return sqlHandler.recordExists(rsOpt.get());
+            if (resultSetOpt.isPresent()) {
+                ResultSet resultSet = resultSetOpt.get();
+                boolean recordExists = sqlHandler.recordExists(resultSet);
+
+                sqlHandler.close(resultSet);
+
+                return recordExists;
             } else {
                 return false;
             }
@@ -206,7 +209,7 @@ public class AccountManager implements EconomyService {
 
     @Override
     public Set<Currency> getCurrencies() {
-        return new HashSet<Currency>();
+        return new HashSet<>();
     }
 
     @Override
@@ -220,27 +223,50 @@ public class AccountManager implements EconomyService {
      * @param player an object representing the player toggling notifications
      */
     public void toggleNotifications(Player player) {
-        boolean notify = accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean();
+        boolean notify = true;
+        UUID uuid = player.getUniqueId();
 
-        if (notify == true) {
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(false);
-            notify = false;
+        if (databaseActive) {
+            Optional<ResultSet> resultSetOp = sqlHandler.select("job_notifications", "accounts", "uid", uuid.toString());
+
+            if (resultSetOp.isPresent()) {
+                try {
+                    ResultSet resultSet = resultSetOp.get();
+
+                    if (resultSet.next()) {
+                        notify = !resultSet.getBoolean(1);
+
+                        int result = sqlHandler.update("accounts", "job_notifications", notify ? "1":"0", "uid", uuid.toString());
+
+                        if (result == 0)
+                            player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                    } else {
+                        player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                    }
+
+                    sqlHandler.close(resultSet);
+                } catch (SQLException e) {
+                    player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                    logger.warn("Error updating notification state in database!" + e.getMessage());
+                }
+            }
         } else {
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(true);
-            notify = true;
+            notify = !accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
+
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(notify);
+
+            try {
+                loader.save(accountConfig);
+            } catch (IOException e) {
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("Could not update notification state in configuration!");
+            }
         }
 
-        try {
-            loader.save(accountConfig);
-
-            if (notify == true)
-                player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
-            else
-                player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
-        } catch (IOException e) {
-            player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-            logger.warn("Could not save notification change!");
-        }
+        if (notify == true)
+            player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
+        else
+            player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
     }
 
     /**

@@ -26,9 +26,11 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SQLHandler;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
@@ -37,6 +39,8 @@ import org.spongepowered.api.service.economy.transaction.*;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 public class TEAccount implements UniqueAccount {
@@ -45,8 +49,11 @@ public class TEAccount implements UniqueAccount {
     private AccountManager accountManager;
     private UUID uuid;
     private Logger logger;
+    private SQLHandler sqlHandler;
 
     private ConfigurationNode accountConfig;
+
+    private boolean databaseActive;
 
     public TEAccount(TotalEconomy totalEconomy, AccountManager accountManager, UUID uuid) {
         this.totalEconomy = totalEconomy;
@@ -54,6 +61,11 @@ public class TEAccount implements UniqueAccount {
         this.uuid = uuid;
 
         accountConfig = accountManager.getAccountConfig();
+
+        databaseActive = totalEconomy.isDatabaseActive();
+
+        if (databaseActive)
+            sqlHandler = totalEconomy.getSqlHandler();
     }
 
     @Override
@@ -73,17 +85,41 @@ public class TEAccount implements UniqueAccount {
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        if (accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null) {
-            return true;
-        }
+        if (databaseActive) {
+            Optional<ResultSet> resultSetOpt = sqlHandler.select(currencyName + "_balance", "accounts", "uid", uuid.toString());
 
-        return false;
+            if (resultSetOpt.isPresent()) {
+                return sqlHandler.recordExists(resultSetOpt.get());
+            }
+
+            return false;
+        } else {
+            return accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null;
+        }
     }
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
         if (hasBalance(currency, contexts)) {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
+
+            if (databaseActive) {
+                Optional<ResultSet> resultSetOpt = sqlHandler.select(currencyName + "_balance", "accounts", "uid", uuid.toString());
+
+                if (resultSetOpt.isPresent()) {
+                    ResultSet resultSet = resultSetOpt.get();
+
+                    try {
+                        BigDecimal balance = resultSet.getBigDecimal(1);
+
+                        return balance;
+                    } catch (SQLException e) {
+                        logger.warn("Error retrieving balance from database!");
+                    }
+                }
+            } else {
+
+            }
             BigDecimal balance = new BigDecimal(accountConfig.getNode(uuid.toString(), currencyName + "-balance").getString());
 
             return balance;
@@ -94,21 +130,43 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return new HashMap<Currency, BigDecimal>();
+        return new HashMap<>();
     }
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         TransactionResult transactionResult;
+        String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (hasBalance(currency, contexts)) {
-            String currencyName = currency.getDisplayName().toPlain().toLowerCase();
+            if (databaseActive) {
+                Optional<ResultSet> resultSetOpt = sqlHandler.select(currencyName + "_balance", "accounts", "uid", uuid.toString());
 
-            accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
-            accountManager.saveAccountConfig();
+                if (resultSetOpt.isPresent()) {
+                    ResultSet resultSet = resultSetOpt.get();
 
-            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                    try {
+                        resultSet.updateBigDecimal(1, amount.setScale(2, BigDecimal.ROUND_DOWN));
+
+                        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+                        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                    } catch (SQLException e) {
+                        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+                        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+                        logger.warn("Error updating balance in database!");
+                    }
+                }
+
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+            } else {
+                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
+                accountManager.saveAccountConfig();
+
+                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+            }
 
             return transactionResult;
         }
@@ -138,65 +196,18 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult;
+        BigDecimal curBalance = getBalance(currency, contexts);
+        BigDecimal newBalance = curBalance.add(amount);
 
-        if (hasBalance(currency, contexts)) {
-            String currencyName = currency.getDisplayName().toPlain().toLowerCase();
-            BigDecimal curBalance = getBalance(currency, contexts);
-            BigDecimal newBalance = curBalance.add(amount);
-
-            accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
-
-            // Reset balance to the money cap if it goes over
-            if (totalEconomy.isLoadMoneyCap()) {
-                if (getBalance(currency, contexts).compareTo(totalEconomy.getMoneyCap()) == 1) {
-                    accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(totalEconomy.getMoneyCap());
-                }
-            }
-            
-            accountManager.saveAccountConfig();
-
-            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-            return transactionResult;
-        }
-
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-        return transactionResult;
+        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult;
+        BigDecimal curBalance =  getBalance(currency, contexts);
+        BigDecimal newBalance = curBalance.subtract(amount);
 
-        if (hasBalance(currency, contexts)) {
-            String currencyName = currency.getDisplayName().toPlain().toLowerCase();
-            BigDecimal curBalance =  getBalance(currency, contexts);
-            BigDecimal newBalance = curBalance.subtract(amount);
-
-            if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
-                accountManager.saveAccountConfig();
-
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                return transactionResult;
-            } else {
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.DEPOSIT);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                return transactionResult;
-            }
-        }
-
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-        return transactionResult;
+        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
     }
 
     @Override
@@ -250,6 +261,6 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public Set<Context> getActiveContexts() {
-        return new HashSet<Context>();
+        return new HashSet<>();
     }
 }
