@@ -736,6 +736,9 @@ public class TEJobManager {
     @Listener
     public void onPlayerFish(FishingEvent.Stop event) {
         if (event.getCause().first(Player.class).isPresent()) {
+            if (event.getItemStackTransaction().size() == 0) { // no transaction, so execution can stop
+                return;
+            }
             Transaction<ItemStackSnapshot> itemTransaction = event.getItemStackTransaction().get(0);
             ItemStack itemStack = itemTransaction.getFinal().createStack();
             Player player = event.getCause().first(Player.class).get();
