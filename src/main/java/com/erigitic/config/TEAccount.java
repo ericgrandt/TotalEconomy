@@ -60,8 +60,8 @@ public class TEAccount implements UniqueAccount {
         this.accountManager = accountManager;
         this.uuid = uuid;
 
+        logger = totalEconomy.getLogger();
         accountConfig = accountManager.getAccountConfig();
-
         databaseActive = totalEconomy.isDatabaseActive();
 
         if (databaseActive)
@@ -110,19 +110,23 @@ public class TEAccount implements UniqueAccount {
                     ResultSet resultSet = resultSetOpt.get();
 
                     try {
-                        BigDecimal balance = resultSet.getBigDecimal(1);
+                        if (resultSet.next()) {
+                            BigDecimal balance = resultSet.getBigDecimal(1);
+                            sqlHandler.close(resultSet);
 
-                        return balance;
+                            return balance;
+                        } else {
+                            return BigDecimal.ZERO;
+                        }
                     } catch (SQLException e) {
                         logger.warn("Error retrieving balance from database!");
                     }
                 }
             } else {
+                BigDecimal balance = new BigDecimal(accountConfig.getNode(uuid.toString(), currencyName + "-balance").getString());
 
+                return balance;
             }
-            BigDecimal balance = new BigDecimal(accountConfig.getNode(uuid.toString(), currencyName + "-balance").getString());
-
-            return balance;
         }
 
         return BigDecimal.ZERO;
@@ -146,29 +150,38 @@ public class TEAccount implements UniqueAccount {
                     ResultSet resultSet = resultSetOpt.get();
 
                     try {
-                        resultSet.updateBigDecimal(1, amount.setScale(2, BigDecimal.ROUND_DOWN));
+                        if (resultSet.next()) {
+                            int result = sqlHandler.update("accounts", currencyName + "_balance", amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString(), "uid", uuid.toString());
 
-                        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-                        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                            if (result != 0) {
+                                sqlHandler.close(resultSet);
+
+                                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+                                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+                                return transactionResult;
+                            } else {
+                                logger.warn("Error updating balance in database!");
+                            }
+                        }
                     } catch (SQLException e) {
-                        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-                        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                        logger.warn("Error updating balance in database!");
+                        logger.warn("Encountered an SQLException while setting balance!");
                     }
                 }
 
                 transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
                 totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+
+                return transactionResult;
             } else {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
                 accountManager.saveAccountConfig();
 
                 transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
                 totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-            }
 
-            return transactionResult;
+                return transactionResult;
+            }
         }
 
         transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);

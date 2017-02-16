@@ -27,6 +27,7 @@ package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -60,6 +61,7 @@ public class AccountManager implements EconomyService {
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
+
     private SQLHandler sqlHandler;
 
     private boolean databaseActive;
@@ -140,10 +142,17 @@ public class AccountManager implements EconomyService {
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
-                    String[] colsArray = {"uid", currencyName + "_balance", "job", "job_notifications"};
-                    String[] valsArray = {"'" + uuid.toString() + "'", "'" + playerAccount.getDefaultBalance(getDefaultCurrency()) + "'", "'Unemployed'", String.valueOf(totalEconomy.hasJobNotifications())};
+                    String[] colsArray = {};
+                    String[] valsArray = {};
 
-                    sqlHandler.insert("accounts", colsArray, valsArray);
+                    new SQLQuery.SQLQueryBuilder(sqlHandler.dataSource).insert("totaleconomy.accounts")
+                            .columns("uid", currencyName + "_balance", "job", "job_notifications")
+                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "Unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
+                            .build();
+
+//                    sqlHandler.insert("accounts", colsArray, valsArray);
+                    sqlHandler.insert("levels", "uid", "'" + uuid.toString() + "'");
+                    sqlHandler.insert("experience", "uid", "'" + uuid.toString() + "'");
                 } else {
                     accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                     accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
