@@ -26,6 +26,7 @@
 package com.erigitic.sql;
 
 import com.erigitic.main.TotalEconomy;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.sql.SqlService;
@@ -39,7 +40,7 @@ import java.util.Optional;
 public class SQLHandler {
     private TotalEconomy totalEconomy;
     private Logger logger;
-    private DataSource dataSource;
+    public DataSource dataSource;
     private SqlService sql;
     private final String dbName = "totaleconomy";
 
@@ -51,6 +52,8 @@ public class SQLHandler {
             dataSource = getDataSource(totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword());
         } catch (SQLException e) {
             logger.warn("Error getting data source!");
+        } catch (UncheckedExecutionException e) {
+            logger.warn("Could not connect to database! Make sure database information is correct in totaleconomy.conf!");
         }
     }
 
@@ -61,7 +64,7 @@ public class SQLHandler {
      * @return DataSource
      * @throws SQLException
      */
-    private DataSource getDataSource(String jdbcUrl) throws SQLException {
+    public DataSource getDataSource(String jdbcUrl) throws SQLException {
         if (sql == null) {
             sql = Sponge.getServiceManager().provide(SqlService.class).get();
         }
@@ -145,6 +148,23 @@ public class SQLHandler {
             String vals = String.join(",", valsArray);
 
             int result = conn.prepareStatement("INSERT IGNORE INTO " + dbName + "." + tableName + " (" + cols + ") VALUES " + "(" + vals + ")").executeUpdate();
+
+            conn.close();
+
+            return result;
+        } catch (SQLException e) {
+            logger.warn("Error inserting new record!");
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public int insert(String tableName, String col, String val) {
+        try {
+            Connection conn = dataSource.getConnection();
+
+            int result = conn.prepareStatement("INSERT IGNORE INTO " + dbName + "." + tableName + " (" + col + ") VALUES " + "(" + val + ")").executeUpdate();
 
             conn.close();
 
