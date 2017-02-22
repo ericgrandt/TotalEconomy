@@ -36,29 +36,42 @@ public class SQLQuery {
     private DataSource dataSource;
     private ResultSet resultSet;
 
-    private SQLQuery(SQLQueryBuilder builder) {
+    private SQLQuery(Builder builder) {
         statement = builder.statement;
         dataSource = builder.dataSource;
 
-        resultSet = getResultSet();
+        executeQuery();
     }
 
-    private ResultSet getResultSet() {
+    public static SQLQuery.Builder builder(DataSource dataSource) {
+        return new Builder(dataSource);
+    }
+
+    private void executeQuery() {
         try {
             Connection conn = dataSource.getConnection();
 
             Optional<ResultSet> resultSetOpt = Optional.of(conn.prepareStatement(statement).executeQuery());
 
             if (resultSetOpt.isPresent()) {
-                return resultSetOpt.get();
+                resultSet = resultSetOpt.get();
             }
 
             conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
-        throw new NullPointerException("No result set present");
+    public boolean recordExists() {
+        try {
+            if (resultSet.isBeforeFirst())
+                return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public boolean getBoolean() {
@@ -72,58 +85,58 @@ public class SQLQuery {
         throw new NullPointerException("Could not get boolean from ResultSet");
     }
 
-    public static class SQLQueryBuilder {
+    public static class Builder {
         private DataSource dataSource;
         private String statement = "";
 
-        public SQLQueryBuilder(DataSource dataSource) {
+        public Builder(DataSource dataSource) {
             this.dataSource = dataSource;
         }
 
-        public SQLQueryBuilder select(String column) {
+        public Builder select(String column) {
             statement += "SELECT " + column;
 
             return this;
         }
 
-        public SQLQueryBuilder from(String table) {
+        public Builder from(String table) {
             statement += " FROM " + table;
 
             return this;
         }
 
-        public SQLQueryBuilder where(String comp) {
+        public Builder where(String comp) {
             statement += " WHERE " + comp;
 
             return this;
         }
 
-        public SQLQueryBuilder equals(String compVal) {
-            statement += "=" + compVal;
+        public Builder equals(String compVal) {
+            statement += "='" + compVal + "'";
 
             return this;
         }
 
-        public SQLQueryBuilder and(String comp) {
+        public Builder and(String comp) {
             statement += " AND " + comp;
 
             return this;
         }
 
-        public SQLQueryBuilder insert(String table) {
+        public Builder insert(String table) {
             statement += "INSERT IGNORE INTO " + table;
 
             return this;
         }
 
-        public SQLQueryBuilder columns(String... columns) {
+        public Builder columns(String... columns) {
             String columnsJoined = String.join(",", columns);
             statement += " (" + columnsJoined + ")";
 
             return this;
         }
 
-        public SQLQueryBuilder values(String... values) {
+        public Builder values(String... values) {
             // Join all the values with a comma deliminator and surround with ()
             String valuesJoined = "('" + String.join("','", values) + "')";
 
