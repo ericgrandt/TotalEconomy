@@ -25,6 +25,8 @@
 
 package com.erigitic.sql;
 
+import org.slf4j.Logger;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -33,34 +35,62 @@ import java.util.Optional;
 
 public class SQLQuery {
     private String statement;
+    private String errorMessage;
+    private Logger logger;
     private DataSource dataSource;
     private ResultSet resultSet;
+    private int rowsAffected = 0;
 
     private SQLQuery(Builder builder) {
         statement = builder.statement;
+        errorMessage = builder.errorMessage;
+        logger = builder.logger;
         dataSource = builder.dataSource;
 
-        executeQuery();
+        if (builder.update)
+            executeUpdate();
+        else
+            executeQuery();
     }
 
     public static SQLQuery.Builder builder(DataSource dataSource) {
         return new Builder(dataSource);
     }
 
-    private void executeQuery() {
+    public void executeQuery() {
         try {
             Connection conn = dataSource.getConnection();
 
             Optional<ResultSet> resultSetOpt = Optional.of(conn.prepareStatement(statement).executeQuery());
 
-            if (resultSetOpt.isPresent()) {
+            if (resultSetOpt.isPresent())
                 resultSet = resultSetOpt.get();
-            }
 
             conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Executes statements that return an integer (update, insert, delete).
+     *
+     * @return int number of rows affected by the query
+     */
+    public int executeUpdate() {
+        try {
+            Connection conn = dataSource.getConnection();
+
+            rowsAffected = conn.prepareStatement(statement).executeUpdate();
+
+            conn.close();
+
+            return rowsAffected;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public boolean recordExists() {
@@ -74,6 +104,11 @@ public class SQLQuery {
         return false;
     }
 
+    /**
+     * Gets a boolean from the executed SQLQuery. Throws a NPE when no boolean is returned.
+     *
+     * @return boolean value of column
+     */
     public boolean getBoolean() {
         try {
             if (resultSet.next())
@@ -82,12 +117,19 @@ public class SQLQuery {
             e.printStackTrace();
         }
 
-        throw new NullPointerException("Could not get boolean from ResultSet");
+        throw new NullPointerException(errorMessage);
+    }
+
+    public int getRowsAffected() {
+        return rowsAffected;
     }
 
     public static class Builder {
         private DataSource dataSource;
         private String statement = "";
+        private String errorMessage = "";
+        private Logger logger;
+        private boolean update = false;
 
         public Builder(DataSource dataSource) {
             this.dataSource = dataSource;
@@ -130,17 +172,37 @@ public class SQLQuery {
         }
 
         public Builder columns(String... columns) {
-            String columnsJoined = String.join(",", columns);
-            statement += " (" + columnsJoined + ")";
+            // Join all the values with a comma deliminator and surround with ()
+            String columnsJoined = "(" + String.join(",", columns) + ")";
+            statement += columnsJoined;
 
             return this;
         }
 
         public Builder values(String... values) {
-            // Join all the values with a comma deliminator and surround with ()
             String valuesJoined = "('" + String.join("','", values) + "')";
 
             statement += "VALUES " + valuesJoined;
+
+            return this;
+        }
+
+        public Builder update(String table) {
+            update = true;
+            statement += "UPDATE " + table;
+
+            return this;
+        }
+
+        public Builder set(String column) {
+            statement += "SET " + column;
+
+            return this;
+        }
+
+        public Builder onError(Logger logger, String errorMessage) {
+            this.logger = logger;
+            this.errorMessage = errorMessage;
 
             return this;
         }

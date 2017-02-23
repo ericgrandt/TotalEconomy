@@ -142,17 +142,20 @@ public class AccountManager implements EconomyService {
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
-                    String[] colsArray = {};
-                    String[] valsArray = {};
-
-                    new SQLQuery.SQLQueryBuilder(sqlHandler.dataSource).insert("totaleconomy.accounts")
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.accounts")
                             .columns("uid", currencyName + "_balance", "job", "job_notifications")
                             .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "Unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
                             .build();
 
-//                    sqlHandler.insert("accounts", colsArray, valsArray);
-                    sqlHandler.insert("levels", "uid", "'" + uuid.toString() + "'");
-                    sqlHandler.insert("experience", "uid", "'" + uuid.toString() + "'");
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.levels")
+                            .columns("uid")
+                            .values(uuid.toString())
+                            .build();
+
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.experience")
+                            .columns("uid")
+                            .values(uuid.toString())
+                            .build();
                 } else {
                     accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                     accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
@@ -189,18 +192,13 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            Optional<ResultSet> resultSetOpt = sqlHandler.select("uid", "accounts", "uid", uuid.toString());
+            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource).select("uid")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
 
-            if (resultSetOpt.isPresent()) {
-                ResultSet resultSet = resultSetOpt.get();
-                boolean recordExists = sqlHandler.recordExists(resultSet);
-
-                sqlHandler.close(resultSet);
-
-                return recordExists;
-            } else {
-                return false;
-            }
+            return query.recordExists();
         } else {
             return accountConfig.getNode(uuid.toString()).getValue() != null;
         }
@@ -236,29 +234,24 @@ public class AccountManager implements EconomyService {
         UUID uuid = player.getUniqueId();
 
         if (databaseActive) {
-            Optional<ResultSet> resultSetOp = sqlHandler.select("job_notifications", "accounts", "uid", uuid.toString());
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .onError(logger, "[SQL] Could not retrieve boolean from database!")
+                    .build();
 
-            if (resultSetOp.isPresent()) {
-                try {
-                    ResultSet resultSet = resultSetOp.get();
+            boolean jobNotifications = sqlQuery.getBoolean();
 
-                    if (resultSet.next()) {
-                        notify = !resultSet.getBoolean(1);
+            sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+                    .set("job_notifications")
+                    .equals(jobNotifications ? "1":"0")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
 
-                        int result = sqlHandler.update("accounts", "job_notifications", notify ? "1":"0", "uid", uuid.toString());
-
-                        if (result == 0)
-                            player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                    } else {
-                        player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                    }
-
-                    sqlHandler.close(resultSet);
-                } catch (SQLException e) {
-                    player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                    logger.warn("Error updating notification state in database!" + e.getMessage());
-                }
-            }
+            if (sqlQuery.getRowsAffected() == 0)
+                player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
         } else {
             notify = !accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
 
