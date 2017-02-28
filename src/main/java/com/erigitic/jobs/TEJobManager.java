@@ -30,6 +30,8 @@ import com.erigitic.config.TEAccount;
 import com.erigitic.jobs.jobs.*;
 import com.erigitic.jobs.jobsets.*;
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -64,6 +66,8 @@ import org.spongepowered.api.text.format.TextColors;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -101,12 +105,19 @@ public class TEJobManager {
     private ConfigurationNode jobsConfig;
     private Map<String, TEJob> jobs;
 
+    private boolean databaseActive;
+    private SQLHandler sqlHandler;
+
     public TEJobManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
         accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
+        databaseActive = totalEconomy.isDatabaseActive();
+
+        if (databaseActive)
+            sqlHandler = totalEconomy.getSqlHandler();
 
         setupConfig();
 
@@ -136,18 +147,12 @@ public class TEJobManager {
                         BigDecimal salary = optJob.get().getSalary();
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        TransactionResult result = playerAccount.deposit(
-                                        totalEconomy.getDefaultCurrency(),
-                                        salary,
-                                        Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer()))
-                                );
+                        TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+
                         if (result.getResult() == ResultType.SUCCESS) {
-                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
-                                    totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                         } else {
-                            player.sendMessage(Text.of(
-                                    TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult:", result.getResult().toString()
-                            ));
+                            player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                         }
                     }
                 }
@@ -268,19 +273,44 @@ public class TEJobManager {
     public void addExp(Player player, int expAmount) {
         String jobName = getPlayerJob(player);
         UUID playerUUID = player.getUniqueId();
-        int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
 
-        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
+        if (databaseActive) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                    .select(jobName)
+                    .from("totaleconomy.experience")
+                    .where("uid")
+                    .equals(playerUUID.toString())
+                    .build();
 
-        try {
-            accountManager.getConfigManager().save(accountConfig);
-        } catch (IOException e) {
-            logger.warn("Problem saving account config!");
+            int curExp = sqlQuery.getInt();
+            String newExp = String.valueOf(curExp + expAmount);
+
+            sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                    .update("totaleconomy.experience")
+                    .columns(jobName)
+                    .values(newExp)
+                    .where("uid")
+                    .equals(playerUUID.toString())
+                    .build();
+
+            if (sqlQuery.getRowsAffected() > 0)
+                player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
+                        " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+        } else {
+            int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
+
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
+
+            try {
+                accountManager.getConfigManager().save(accountConfig);
+            } catch (IOException e) {
+                logger.warn("Problem saving account config!");
+            }
+
+            if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean())
+                player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
+                        " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
         }
-
-        if (accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean())
-            player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
-                    " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
     }
 
     /**
@@ -292,9 +322,17 @@ public class TEJobManager {
     public void checkForLevel(Player player) {
         UUID playerUUID = player.getUniqueId();
         String jobName = getPlayerJob(player);
-        int playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt();
-        int playerCurExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
+        int playerLevel;
+        int playerCurExp;
         int expToLevel = getExpToLevel(player);
+
+        if (databaseActive) {
+
+        } else {
+
+        }
+        playerLevel = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt();
+        playerCurExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
 
         if (playerCurExp >= expToLevel) {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel + 1);
@@ -338,26 +376,28 @@ public class TEJobManager {
     public void setJob(Player player, String jobName) {
         UUID playerUUID = player.getUniqueId();
 
-        accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
+        if (databaseActive) {
+            sqlHandler.update("accounts", "job", jobName, "uid", playerUUID.toString());
+        } else {
+            accountConfig.getNode(playerUUID.toString(), "job").setValue(jobName);
 
-        // Set level if not of type int or null
-        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(
-                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt(1)
-        );
+            // Set level if not of type int or null
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(
+                    accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").getInt(1));
 
-        // See above
-        accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(
-                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0)
-        );
+            // See above
+            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(
+                    accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0));
+
+            try {
+                accountManager.getConfigManager().save(accountConfig);
+            } catch (IOException e) {
+                logger.warn("Could not save account config while setting job!");
+                player.sendMessage(Text.of(TextColors.RED, "[TE] Job saving for you failed! You might loose the change upon restart/reload."));
+            }
+        }
 
         player.sendMessage(Text.of(TextColors.GRAY, "Your job has been changed to ", TextColors.GOLD, jobName));
-
-        try {
-            accountManager.getConfigManager().save(accountConfig);
-        } catch (IOException e) {
-            logger.warn("Could not save account config while setting job!");
-            player.sendMessage(Text.of(TextColors.RED, "[TE] Job saving for you failed! You might loose the change upon restart/reload."));
-        }
     }
 
     /**
@@ -376,8 +416,30 @@ public class TEJobManager {
      * @return String the job the player currently has
      */
     public String getPlayerJob(Player player) {
-        // For convenience always cast job name to lowercase
-        return accountConfig.getNode(player.getUniqueId().toString(), "job").getString("unemployed").toLowerCase();
+        UUID uuid = player.getUniqueId();
+
+        if (databaseActive) {
+            Optional<ResultSet> resultSetOpt = sqlHandler.select("job", "accounts", "uid", uuid.toString());
+
+            if (resultSetOpt.isPresent()) {
+                try {
+                    ResultSet resultSet = resultSetOpt.get();
+
+                    if (resultSet.next()) {
+                        return resultSet.getString(1).toLowerCase();
+                    }
+
+                    sqlHandler.close(resultSet);
+                } catch (SQLException e) {
+                    logger.warn("Error getting player's job from the database!");
+                }
+            }
+
+            return "unemployed";
+        } else {
+            // For convenience always cast job name to lowercase
+            return accountConfig.getNode(player.getUniqueId().toString(), "job").getString("unemployed").toLowerCase();
+        }
     }
 
     /**
@@ -416,7 +478,29 @@ public class TEJobManager {
      * @return int the job exp
      */
     public int getJobExp(String jobName, Player player) {
-        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "exp").getInt(0);
+        UUID uuid = player.getUniqueId();
+
+        if (databaseActive) {
+            Optional<ResultSet> resultSetOpt = sqlHandler.select(jobName, "experience", "uid", uuid.toString());
+
+            if (resultSetOpt.isPresent()) {
+                try {
+                    ResultSet resultSet = resultSetOpt.get();
+
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1);
+                    }
+
+                    sqlHandler.close(resultSet);
+                } catch (SQLException e) {
+                    logger.warn("Error getting job experience from the database!");
+                }
+            }
+
+            return 0;
+        } else {
+            return accountConfig.getNode(uuid.toString(), "jobstats", jobName, "exp").getInt(0);
+        }
     }
 
     /**
@@ -427,7 +511,29 @@ public class TEJobManager {
      * @return int the job level
      */
     public int getJobLevel(String jobName, Player player) {
-        return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
+        UUID uuid = player.getUniqueId();
+
+        if (databaseActive) {
+            Optional<ResultSet> resultSetOpt = sqlHandler.select(jobName, "levels", "uid", uuid.toString());
+
+            if (resultSetOpt.isPresent()) {
+                try {
+                    ResultSet resultSet = resultSetOpt.get();
+
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1);
+                    }
+
+                    sqlHandler.close(resultSet);
+                } catch (SQLException e) {
+                    logger.warn("Error getting job level from the database!");
+                }
+            }
+
+            return 1;
+        } else {
+            return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
+        }
     }
 
     /**
