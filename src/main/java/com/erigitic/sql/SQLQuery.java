@@ -120,6 +120,17 @@ public class SQLQuery {
         throw new NullPointerException(errorMessage);
     }
 
+    public int getInt() {
+        try {
+            if (resultSet.next())
+                return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new NullPointerException(errorMessage);
+    }
+
     public int getRowsAffected() {
         return rowsAffected;
     }

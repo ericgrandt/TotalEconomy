@@ -192,7 +192,8 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource).select("uid")
+            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+                    .select("uid")
                     .from("totaleconomy.accounts")
                     .where("uid")
                     .equals(uuid.toString())

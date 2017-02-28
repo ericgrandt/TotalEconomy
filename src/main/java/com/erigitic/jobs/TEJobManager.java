@@ -147,18 +147,12 @@ public class TEJobManager {
                         BigDecimal salary = optJob.get().getSalary();
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        TransactionResult result = playerAccount.deposit(
-                                        totalEconomy.getDefaultCurrency(),
-                                        salary,
-                                        Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer()))
-                                );
+                        TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+
                         if (result.getResult() == ResultType.SUCCESS) {
-                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD,
-                                    totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
                         } else {
-                            player.sendMessage(Text.of(
-                                    TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()
-                            ));
+                            player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                         }
                     }
                 }
@@ -281,9 +275,27 @@ public class TEJobManager {
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            Optional<ResultSet> resultSetOp = sqlHandler.select(jobName, "experience", "uid", playerUUID.toString());
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                    .select(jobName)
+                    .from("totaleconomy.experience")
+                    .where("uid")
+                    .equals(playerUUID.toString())
+                    .build();
 
+            int curExp = sqlQuery.getInt();
+            String newExp = String.valueOf(curExp + expAmount);
 
+            sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                    .update("totaleconomy.experience")
+                    .columns(jobName)
+                    .values(newExp)
+                    .where("uid")
+                    .equals(playerUUID.toString())
+                    .build();
+
+            if (sqlQuery.getRowsAffected() > 0)
+                player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY,
+                        " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
         } else {
             int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
 
