@@ -26,6 +26,8 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -46,6 +48,7 @@ import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Optional;
@@ -58,7 +61,8 @@ public class AccountManager implements EconomyService {
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
-    private SqlService sql;
+
+    private SQLHandler sqlHandler;
 
     private boolean databaseActive;
 
@@ -67,10 +71,12 @@ public class AccountManager implements EconomyService {
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
 
-        if (!databaseActive)
-            setupConfig();
-        else {
+        if (databaseActive) {
+            sqlHandler = totalEconomy.getSqlHandler();
+
             setupDatabase();
+        } else {
+            setupConfig();
         }
     }
 
@@ -92,54 +98,28 @@ public class AccountManager implements EconomyService {
         }
     }
 
-    /**
-     * Setup a database for the accounts
-     *
-     * @param jdbcUrl
-     * @return DataSource
-     * @throws SQLException
-     */
-    private DataSource getDataSource(String jdbcUrl) throws SQLException {
-        if (sql == null) {
-            sql = Sponge.getServiceManager().provide(SqlService.class).get();
-        }
-
-        return sql.getDataSource(jdbcUrl);
-    }
-
     public void setupDatabase() {
-        try {
-            Connection conn = getDataSource(totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword()).getConnection();
+        sqlHandler.createDatabase();
 
-            // Create totaleconomy database
-            conn.prepareStatement("CREATE DATABASE IF NOT EXISTS totaleconomy").execute();
+        sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
+                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
+                "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
+                "job_notifications boolean NOT NULL DEFAULT TRUE," +
+                "PRIMARY KEY (uid)");
 
-            // Create accounts table
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.accounts(uid varchar(60) NOT NULL," +
-                    getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
-                    "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
-                    "job_notifications boolean NOT NULL DEFAULT TRUE," +
-                    "PRIMARY KEY (uid))").execute();
+        sqlHandler.createTable("levels", "uid varchar(60)," +
+                "miner int(10) unsigned NOT NULL DEFAULT '1'," +
+                "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
+                "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
+                "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
+                "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE");
 
-            // Create levels table
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.jobLevels(uid varchar(60)," +
-                    "miner int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
-                    "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE)").execute();
-
-            // Create experience table
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS totaleconomy.jobExperience(uid varchar(60)," +
-                    "miner int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
-                    "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE)").execute();
-            conn.close();
-        } catch (SQLException e) {
-            logger.warn("SQL ERROR");
-        }
+        sqlHandler.createTable("experience", "uid varchar(60)," +
+                "miner int(10) unsigned NOT NULL DEFAULT '0'," +
+                "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
+                "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
+                "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
+                "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE");
     }
 
     /**
@@ -161,15 +141,27 @@ public class AccountManager implements EconomyService {
 
         try {
             if (!hasAccount(uuid)) {
-                if (!databaseActive) {
+                if (databaseActive) {
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.accounts")
+                            .columns("uid", currencyName + "_balance", "job", "job_notifications")
+                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "Unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
+                            .build();
+
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.levels")
+                            .columns("uid")
+                            .values(uuid.toString())
+                            .build();
+
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.experience")
+                            .columns("uid")
+                            .values(uuid.toString())
+                            .build();
+                } else {
                     accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
                     accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
                     accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
                     loader.save(accountConfig);
-                } else {
-                    // TODO: Load from database
                 }
-
             }
         } catch (IOException e) {
             logger.warn("Could not create account!");
@@ -184,6 +176,7 @@ public class AccountManager implements EconomyService {
         TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
 
         try {
+            // TODO: Create new table for virtual accounts and store all virtual account data within. IF DATABASE ENABLED.
             if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() == null) {
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
 
@@ -198,7 +191,18 @@ public class AccountManager implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        return accountConfig.getNode(uuid.toString()).getValue() != null;
+        if (databaseActive) {
+            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+                    .select("uid")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
+
+            return query.recordExists();
+        } else {
+            return accountConfig.getNode(uuid.toString()).getValue() != null;
+        }
     }
 
     @Override
@@ -213,7 +217,7 @@ public class AccountManager implements EconomyService {
 
     @Override
     public Set<Currency> getCurrencies() {
-        return new HashSet<Currency>();
+        return new HashSet<>();
     }
 
     @Override
@@ -227,27 +231,45 @@ public class AccountManager implements EconomyService {
      * @param player an object representing the player toggling notifications
      */
     public void toggleNotifications(Player player) {
-        boolean notify = accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean();
+        boolean notify = true;
+        UUID uuid = player.getUniqueId();
 
-        if (notify == true) {
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(false);
-            notify = false;
+        if (databaseActive) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .onError(logger, "[SQL] Could not retrieve boolean from database!")
+                    .build();
+
+            boolean jobNotifications = sqlQuery.getBoolean();
+
+            sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+                    .set("job_notifications")
+                    .equals(jobNotifications ? "1":"0")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
+
+            if (sqlQuery.getRowsAffected() == 0)
+                player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
         } else {
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(true);
-            notify = true;
+            notify = !accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
+
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(notify);
+
+            try {
+                loader.save(accountConfig);
+            } catch (IOException e) {
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("Could not update notification state in configuration!");
+            }
         }
 
-        try {
-            loader.save(accountConfig);
-
-            if (notify == true)
-                player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
-            else
-                player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
-        } catch (IOException e) {
-            player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-            logger.warn("Could not save notification change!");
-        }
+        if (notify == true)
+            player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
+        else
+            player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
     }
 
     /**
