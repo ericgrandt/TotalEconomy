@@ -36,7 +36,6 @@ import java.util.Optional;
 public class SQLQuery {
     private String statement;
     private String errorMessage;
-    private Logger logger;
     private DataSource dataSource;
     private ResultSet resultSet;
     private int rowsAffected = 0;
@@ -44,7 +43,6 @@ public class SQLQuery {
     private SQLQuery(Builder builder) {
         statement = builder.statement;
         errorMessage = builder.errorMessage;
-        logger = builder.logger;
         dataSource = builder.dataSource;
 
         if (builder.update)
@@ -117,9 +115,31 @@ public class SQLQuery {
             e.printStackTrace();
         }
 
-        throw new NullPointerException(errorMessage);
+        throw new NullPointerException("[SQL] Could not retrieve boolean from database!");
     }
 
+    /**
+     * Gets a boolean from the executed SQLQuery. Returns a default value if no boolean is present.
+     *
+     * @param def default value to be returned
+     * @return boolean value of column
+     */
+    public boolean getBoolean(boolean def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getBoolean(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
+    }
+
+    /**
+     * Gets an int from the executed SQLQuery. Throws a NPE when no int is returned.
+     *
+     * @return int value of column
+     */
     public int getInt() {
         try {
             if (resultSet.next())
@@ -128,7 +148,57 @@ public class SQLQuery {
             e.printStackTrace();
         }
 
-        throw new NullPointerException(errorMessage);
+        throw new NullPointerException("[SQL] Could not retrieve integer from database!");
+    }
+
+    /**
+     * Gets an int from the executed SQLQuery. Returns a default value if no int is present.
+     *
+     * @param def default value to be returned
+     * @return int value of column
+     */
+    public int getInt(int def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
+    }
+
+    /**
+     * Gets a string from the executed SQLQuery. Throws a NPE when no string is returned.
+     *
+     * @return string value of column
+     */
+    public String getString() {
+        try {
+            if (resultSet.next())
+                return resultSet.getString(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new NullPointerException("[SQL] Could not retrieve string from database!");
+    }
+
+    /**
+     * Gets a string from the executed SQLQuery. Returns a default value if no string is present.
+     *
+     * @param def default value to be returned
+     * @return string value of column
+     */
+    public String getString(String def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getString(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
     }
 
     public int getRowsAffected() {
@@ -164,8 +234,8 @@ public class SQLQuery {
             return this;
         }
 
-        public Builder equals(String compVal) {
-            statement += "='" + compVal + "'";
+        public Builder equals(String val) {
+            statement += "='" + val + "'";
 
             return this;
         }
@@ -211,8 +281,7 @@ public class SQLQuery {
             return this;
         }
 
-        public Builder onError(Logger logger, String errorMessage) {
-            this.logger = logger;
+        public Builder onError(String errorMessage) {
             this.errorMessage = errorMessage;
 
             return this;
