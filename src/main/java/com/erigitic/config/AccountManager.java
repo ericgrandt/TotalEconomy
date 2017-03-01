@@ -225,38 +225,45 @@ public class AccountManager implements EconomyService {
 
     }
 
+    public boolean getJobNotificationState(Player player) {
+        UUID playerUUID = player.getUniqueId();
+
+        if (databaseActive) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(playerUUID.toString())
+                    .build();
+
+            return sqlQuery.getBoolean(true);
+        } else {
+            return accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
+        }
+    }
+
     /**
      * Toggle a player's exp/money notifications for jobs
      *
      * @param player an object representing the player toggling notifications
      */
     public void toggleNotifications(Player player) {
-        boolean notify = true;
-        UUID uuid = player.getUniqueId();
+        boolean jobNotifications = getJobNotificationState(player);
+        UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
-                    .from("totaleconomy.accounts")
-                    .where("uid")
-                    .equals(uuid.toString())
-                    .onError(logger, "[SQL] Could not retrieve boolean from database!")
-                    .build();
-
-            boolean jobNotifications = sqlQuery.getBoolean();
-
-            sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
                     .set("job_notifications")
                     .equals(jobNotifications ? "1":"0")
                     .where("uid")
-                    .equals(uuid.toString())
+                    .equals(playerUUID.toString())
                     .build();
 
-            if (sqlQuery.getRowsAffected() == 0)
+            if (sqlQuery.getRowsAffected() <= 0)
                 player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
         } else {
-            notify = !accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
+            jobNotifications = !jobNotifications;
 
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(notify);
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
 
             try {
                 loader.save(accountConfig);
@@ -266,7 +273,7 @@ public class AccountManager implements EconomyService {
             }
         }
 
-        if (notify == true)
+        if (jobNotifications == true)
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
         else
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
