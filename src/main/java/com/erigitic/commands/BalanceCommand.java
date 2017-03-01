@@ -60,8 +60,10 @@ public class BalanceCommand implements CommandExecutor {
             Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));
 
             sender.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, playerBalance));
+
+            return CommandResult.success();
         }
 
-        return CommandResult.success();
+        return CommandResult.empty();
     }
 }

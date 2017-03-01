@@ -23,10 +23,32 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs;
+package com.erigitic.jobs.jobsets;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-public interface Job {
-    void setupJobValues(ConfigurationNode jobsConfig);
+/**
+ * @author MarkL4YG
+ */
+public class FishermanJobSet implements IDefaultJobSet {
+
+    private static final String SETNAME = "fishermanSet";
+
+    private static final String[][] rewards = {
+            //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
+            {"catch", "cod", "25", "50.00"},
+            {"catch", "salmon", "100", "150.00"},
+            {"catch", "pufferfish", "250", "300.00"}
+    };
+
+    @Override
+    public void applyOnNode(ConfigurationNode node) {
+        ConfigurationNode myNode = node.getNode(SETNAME, "actions");
+
+        for (String[] a : rewards) {
+            ConfigurationNode n = myNode.getNode(a[0], a[1]);
+            n.getNode("expGain").setValue(a[2]);
+            n.getNode("moneyGain").setValue(a[3]);
+        }
+    }
 }

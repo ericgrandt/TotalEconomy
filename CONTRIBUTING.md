@@ -24,7 +24,7 @@ Thanks for your interest in contributing to Total Economy. There are a few guide
  * @return int player's balance
  */
 ```
-* Test the change/addition and make sure nothing was accidently broken
+* Test the change/addition and make sure nothing was accidentally broken
 * Make sure your commit message clearly describes the change/addition and includes the issue number if one exists
 * Submit a pull request
 

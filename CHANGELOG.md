@@ -1,4 +1,8 @@
-v1.5.4
+v1.6.0
+
++ Reusable job sets that allow for easier job creation
++ CHANGE: Updated format of job info command
++ CHANGE: Commands now properly return as successful or unsuccessful.
 
 v1.5.3
 
