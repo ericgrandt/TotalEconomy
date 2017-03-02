@@ -28,7 +28,9 @@ package com.erigitic.sql;
 import org.slf4j.Logger;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -169,6 +171,39 @@ public class SQLQuery {
     }
 
     /**
+     * Gets a BigDecimal from the executed SQLQuery. Throws a NPE when no BigDecimal is returned.
+     *
+     * @return BigDecimal value of column
+     */
+    public BigDecimal getBigDecimal() {
+        try {
+            if (resultSet.next())
+                return resultSet.getBigDecimal(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new NullPointerException("[SQL] Could not retrieve BigDecimal from database!");
+    }
+
+    /**
+     * Gets a BigDecimal from the executed SQLQuery. Returns a default value if no BigDecimal is present.
+     *
+     * @param def default value to be returned
+     * @return BigDecimal value of column
+     */
+    public BigDecimal getBigDecimal(BigDecimal def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getBigDecimal(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
+    }
+
+    /**
      * Gets a string from the executed SQLQuery. Throws a NPE when no string is returned.
      *
      * @return string value of column
@@ -210,6 +245,7 @@ public class SQLQuery {
         private String statement = "";
         private String errorMessage = "";
         private Logger logger;
+
         private boolean update = false;
 
         public Builder(DataSource dataSource) {
@@ -234,6 +270,7 @@ public class SQLQuery {
             return this;
         }
 
+        // TODO: Not really needed anymore
         public Builder equals(String val) {
             statement += "='" + val + "'";
 
@@ -254,7 +291,7 @@ public class SQLQuery {
 
         public Builder columns(String... columns) {
             // Join all the values with a comma deliminator and surround with ()
-            String columnsJoined = "(" + String.join(",", columns) + ")";
+            String columnsJoined = " (" + String.join(",", columns) + ")";
             statement += columnsJoined;
 
             return this;
@@ -263,7 +300,7 @@ public class SQLQuery {
         public Builder values(String... values) {
             String valuesJoined = "('" + String.join("','", values) + "')";
 
-            statement += "VALUES " + valuesJoined;
+            statement += " VALUES " + valuesJoined;
 
             return this;
         }
@@ -276,7 +313,7 @@ public class SQLQuery {
         }
 
         public Builder set(String column) {
-            statement += "SET " + column;
+            statement += " SET " + column;
 
             return this;
         }

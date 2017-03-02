@@ -27,6 +27,7 @@ package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.spongepowered.api.event.cause.Cause;
@@ -86,13 +87,14 @@ public class TEAccount implements UniqueAccount {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (databaseActive) {
-            Optional<ResultSet> resultSetOpt = sqlHandler.select(currencyName + "_balance", "accounts", "uid", uuid.toString());
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                    .select(currencyName + "_balance")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
 
-            if (resultSetOpt.isPresent()) {
-                return sqlHandler.recordExists(resultSetOpt.get());
-            }
-
-            return false;
+            return sqlQuery.recordExists();
         } else {
             return accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null;
         }
@@ -104,24 +106,14 @@ public class TEAccount implements UniqueAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             if (databaseActive) {
-                Optional<ResultSet> resultSetOpt = sqlHandler.select(currencyName + "_balance", "accounts", "uid", uuid.toString());
+                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                        .select(currencyName + "_balance")
+                        .from("totaleconomy.accounts")
+                        .where("uid")
+                        .equals(uuid.toString())
+                        .build();
 
-                if (resultSetOpt.isPresent()) {
-                    ResultSet resultSet = resultSetOpt.get();
-
-                    try {
-                        if (resultSet.next()) {
-                            BigDecimal balance = resultSet.getBigDecimal(1);
-                            sqlHandler.close(resultSet);
-
-                            return balance;
-                        } else {
-                            return BigDecimal.ZERO;
-                        }
-                    } catch (SQLException e) {
-                        logger.warn("Error retrieving balance from database!");
-                    }
-                }
+                return sqlQuery.getBigDecimal(BigDecimal.ZERO);
             } else {
                 BigDecimal balance = new BigDecimal(accountConfig.getNode(uuid.toString(), currencyName + "-balance").getString());
 
@@ -144,33 +136,21 @@ public class TEAccount implements UniqueAccount {
 
         if (hasBalance(currency, contexts)) {
             if (databaseActive) {
-                Optional<ResultSet> resultSetOpt = sqlHandler.select(currencyName + "_balance", "accounts", "uid", uuid.toString());
+                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                        .update("totaleconomy.accounts")
+                        .set(currencyName + "_balance")
+                        .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
+                        .where("uid")
+                        .equals(uuid.toString())
+                        .build();
 
-                if (resultSetOpt.isPresent()) {
-                    ResultSet resultSet = resultSetOpt.get();
-
-                    try {
-                        if (resultSet.next()) {
-                            int result = sqlHandler.update("accounts", currencyName + "_balance", amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString(), "uid", uuid.toString());
-
-                            if (result != 0) {
-                                sqlHandler.close(resultSet);
-
-                                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-                                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                                return transactionResult;
-                            } else {
-                                logger.warn("Error updating balance in database!");
-                            }
-                        }
-                    } catch (SQLException e) {
-                        logger.warn("Encountered an SQLException while setting balance!");
-                    }
+                if (sqlQuery.getRowsAffected() > 0) {
+                    transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                } else {
+                    transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
                 }
-
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
                 return transactionResult;
             } else {

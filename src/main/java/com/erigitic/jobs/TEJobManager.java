@@ -66,6 +66,7 @@ import org.spongepowered.api.text.format.TextColors;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -286,8 +287,10 @@ public class TEJobManager {
                     .equals(playerUUID.toString())
                     .build();
 
-            if (sqlQuery.getRowsAffected() > 0 && jobNotifications) {
-                player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+            if (sqlQuery.getRowsAffected() > 0) {
+                if (jobNotifications) {
+                    player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+                }
             } else {
                 logger.warn("[SQL] Error adding experience to a player's job!");
                 player.sendMessage(Text.of("[SQL] Error adding experience! Consult an administrator!"));
@@ -362,6 +365,9 @@ public class TEJobManager {
      */
     public void setJob(Player player, String jobName) {
         UUID playerUUID = player.getUniqueId();
+
+        // Just in case the job name was not passed in as lowercase, make it lowercase
+        jobName = jobName.toLowerCase();
 
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
@@ -470,18 +476,25 @@ public class TEJobManager {
     public int getJobExp(String jobName, Player player) {
         UUID playerUUID = player.getUniqueId();
 
-        if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                    .select(jobName)
-                    .from("totaleconomy.experience")
-                    .where("uid")
-                    .equals(playerUUID.toString())
-                    .build();
+        // Just in case the job name was not passed in as lowercase, make it lowercase
+        jobName = jobName.toLowerCase();
 
-            return sqlQuery.getInt(0);
-        } else {
-            return accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0);
+        if (!jobName.equals("unemployed")) {
+            if (databaseActive) {
+                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                        .select(jobName)
+                        .from("totaleconomy.experience")
+                        .where("uid")
+                        .equals(playerUUID.toString())
+                        .build();
+
+                return sqlQuery.getInt(0);
+            } else {
+                return accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0);
+            }
         }
+
+        return 0;
     }
 
     /**
@@ -494,18 +507,25 @@ public class TEJobManager {
     public int getJobLevel(String jobName, Player player) {
         UUID playerUUID = player.getUniqueId();
 
-        if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                    .select(jobName)
-                    .from("totaleconomy.levels")
-                    .where("uid")
-                    .equals(playerUUID.toString())
-                    .build();
+        // Just in case the job name was not passed in as lowercase, make it lowercase
+        jobName = jobName.toLowerCase();
 
-            return sqlQuery.getInt(1);
-        } else {
-            return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
+        if (!jobName.equals("unemployed")) {
+            if (databaseActive) {
+                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                        .select(jobName)
+                        .from("totaleconomy.levels")
+                        .where("uid")
+                        .equals(playerUUID.toString())
+                        .build();
+
+                return sqlQuery.getInt(1);
+            } else {
+                return accountConfig.getNode(player.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
+            }
         }
+
+        return 1;
     }
 
     /**
@@ -667,7 +687,7 @@ public class TEJobManager {
                     if (reward.isPresent()) {
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                        boolean notify = accountManager.getJobNotificationState(player);
 
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
