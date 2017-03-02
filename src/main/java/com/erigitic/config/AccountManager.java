@@ -144,7 +144,7 @@ public class AccountManager implements EconomyService {
                 if (databaseActive) {
                     SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.accounts")
                             .columns("uid", currencyName + "_balance", "job", "job_notifications")
-                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "Unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
+                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
                             .build();
 
                     SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.levels")
@@ -247,7 +247,7 @@ public class AccountManager implements EconomyService {
      * @param player an object representing the player toggling notifications
      */
     public void toggleNotifications(Player player) {
-        boolean jobNotifications = getJobNotificationState(player);
+        boolean jobNotifications = !getJobNotificationState(player);
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
@@ -261,8 +261,6 @@ public class AccountManager implements EconomyService {
             if (sqlQuery.getRowsAffected() <= 0)
                 player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
         } else {
-            jobNotifications = !jobNotifications;
-
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
 
             try {
