@@ -325,10 +325,34 @@ public class TEJobManager {
         int expToLevel = getExpToLevel(player);
 
         if (playerCurExp >= expToLevel) {
-            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel + 1);
-            accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp - expToLevel);
+            playerLevel += 1;
+            playerCurExp -= expToLevel;
+
+            if (databaseActive) {
+                SQLQuery.builder(sqlHandler.dataSource)
+                        .update("totaleconomy.levels")
+                        .set(jobName)
+                        .equals(String.valueOf(playerLevel))
+                        .where("uid")
+                        .equals(playerUUID.toString())
+                        .build();
+
+                SQLQuery.builder(sqlHandler.dataSource)
+                        .update("totaleconomy.experience")
+                        .set(jobName)
+                        .equals(String.valueOf(playerCurExp))
+                        .where("uid")
+                        .equals(playerUUID.toString())
+                        .build();
+
+                // TODO: Handle any issues that arise whilst updating
+            } else {
+                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel);
+                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
+            }
+
             player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
-                    playerLevel + 1, " ", titleize(jobName)));
+                    playerLevel, " ", titleize(jobName)));
         }
     }
 
@@ -345,7 +369,6 @@ public class TEJobManager {
 
         return false;
     }
-
 
     /**
      * Convert strings to titles (title -> Title)
