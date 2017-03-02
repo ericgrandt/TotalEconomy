@@ -25,12 +25,9 @@
 
 package com.erigitic.sql;
 
-import org.slf4j.Logger;
-
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -244,7 +241,6 @@ public class SQLQuery {
         private DataSource dataSource;
         private String statement = "";
         private String errorMessage = "";
-        private Logger logger;
 
         private boolean update = false;
 
