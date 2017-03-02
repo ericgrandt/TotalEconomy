@@ -223,6 +223,7 @@ public class TotalEconomy {
                 config.getNode("currency-singular").setValue("Dollar");
                 config.getNode("currency-plural").setValue("Dollars");
                 config.getNode("symbol").setValue("$");
+                config.getNode("prefix-symbol").setValue(true);
                 loader.save(config);
             }
         } catch (IOException e) {
