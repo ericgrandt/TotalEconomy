@@ -40,8 +40,6 @@ import org.spongepowered.api.service.economy.transaction.*;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class TEAccount implements UniqueAccount {
