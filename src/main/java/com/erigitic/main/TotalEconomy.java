@@ -210,7 +210,7 @@ public class TotalEconomy {
 
             if (!defaultConf.exists()) {
                 config.getNode("database", "enable").setValue(databaseActive);
-                config.getNode("database", "url").setValue("");
+                config.getNode("database", "url").setValue("jdbc:mysql:[URL]:[PORT]");
                 config.getNode("database", "user").setValue("");
                 config.getNode("database", "password").setValue("");
                 config.getNode("features", "jobs", "enable").setValue(loadJobs);
