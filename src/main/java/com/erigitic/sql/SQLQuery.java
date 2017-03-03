@@ -25,9 +25,8 @@
 
 package com.erigitic.sql;
 
-import org.slf4j.Logger;
-
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,7 +35,6 @@ import java.util.Optional;
 public class SQLQuery {
     private String statement;
     private String errorMessage;
-    private Logger logger;
     private DataSource dataSource;
     private ResultSet resultSet;
     private int rowsAffected = 0;
@@ -44,7 +42,6 @@ public class SQLQuery {
     private SQLQuery(Builder builder) {
         statement = builder.statement;
         errorMessage = builder.errorMessage;
-        logger = builder.logger;
         dataSource = builder.dataSource;
 
         if (builder.update)
@@ -117,9 +114,31 @@ public class SQLQuery {
             e.printStackTrace();
         }
 
-        throw new NullPointerException(errorMessage);
+        throw new NullPointerException("[SQL] Could not retrieve boolean from database!");
     }
 
+    /**
+     * Gets a boolean from the executed SQLQuery. Returns a default value if no boolean is present.
+     *
+     * @param def default value to be returned
+     * @return boolean value of column
+     */
+    public boolean getBoolean(boolean def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getBoolean(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
+    }
+
+    /**
+     * Gets an int from the executed SQLQuery. Throws a NPE when no int is returned.
+     *
+     * @return int value of column
+     */
     public int getInt() {
         try {
             if (resultSet.next())
@@ -128,7 +147,90 @@ public class SQLQuery {
             e.printStackTrace();
         }
 
-        throw new NullPointerException(errorMessage);
+        throw new NullPointerException("[SQL] Could not retrieve integer from database!");
+    }
+
+    /**
+     * Gets an int from the executed SQLQuery. Returns a default value if no int is present.
+     *
+     * @param def default value to be returned
+     * @return int value of column
+     */
+    public int getInt(int def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
+    }
+
+    /**
+     * Gets a BigDecimal from the executed SQLQuery. Throws a NPE when no BigDecimal is returned.
+     *
+     * @return BigDecimal value of column
+     */
+    public BigDecimal getBigDecimal() {
+        try {
+            if (resultSet.next())
+                return resultSet.getBigDecimal(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new NullPointerException("[SQL] Could not retrieve BigDecimal from database!");
+    }
+
+    /**
+     * Gets a BigDecimal from the executed SQLQuery. Returns a default value if no BigDecimal is present.
+     *
+     * @param def default value to be returned
+     * @return BigDecimal value of column
+     */
+    public BigDecimal getBigDecimal(BigDecimal def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getBigDecimal(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
+    }
+
+    /**
+     * Gets a string from the executed SQLQuery. Throws a NPE when no string is returned.
+     *
+     * @return string value of column
+     */
+    public String getString() {
+        try {
+            if (resultSet.next())
+                return resultSet.getString(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new NullPointerException("[SQL] Could not retrieve string from database!");
+    }
+
+    /**
+     * Gets a string from the executed SQLQuery. Returns a default value if no string is present.
+     *
+     * @param def default value to be returned
+     * @return string value of column
+     */
+    public String getString(String def) {
+        try {
+            if (resultSet.next())
+                return resultSet.getString(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return def;
     }
 
     public int getRowsAffected() {
@@ -139,7 +241,7 @@ public class SQLQuery {
         private DataSource dataSource;
         private String statement = "";
         private String errorMessage = "";
-        private Logger logger;
+
         private boolean update = false;
 
         public Builder(DataSource dataSource) {
@@ -164,8 +266,9 @@ public class SQLQuery {
             return this;
         }
 
-        public Builder equals(String compVal) {
-            statement += "='" + compVal + "'";
+        // TODO: Not really needed anymore
+        public Builder equals(String val) {
+            statement += "='" + val + "'";
 
             return this;
         }
@@ -184,7 +287,7 @@ public class SQLQuery {
 
         public Builder columns(String... columns) {
             // Join all the values with a comma deliminator and surround with ()
-            String columnsJoined = "(" + String.join(",", columns) + ")";
+            String columnsJoined = " (" + String.join(",", columns) + ")";
             statement += columnsJoined;
 
             return this;
@@ -193,7 +296,7 @@ public class SQLQuery {
         public Builder values(String... values) {
             String valuesJoined = "('" + String.join("','", values) + "')";
 
-            statement += "VALUES " + valuesJoined;
+            statement += " VALUES " + valuesJoined;
 
             return this;
         }
@@ -206,13 +309,12 @@ public class SQLQuery {
         }
 
         public Builder set(String column) {
-            statement += "SET " + column;
+            statement += " SET " + column;
 
             return this;
         }
 
-        public Builder onError(Logger logger, String errorMessage) {
-            this.logger = logger;
+        public Builder onError(String errorMessage) {
             this.errorMessage = errorMessage;
 
             return this;

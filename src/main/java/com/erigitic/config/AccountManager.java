@@ -33,23 +33,17 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.sql.SqlService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -144,7 +138,7 @@ public class AccountManager implements EconomyService {
                 if (databaseActive) {
                     SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.accounts")
                             .columns("uid", currencyName + "_balance", "job", "job_notifications")
-                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "Unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
+                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
                             .build();
 
                     SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.levels")
@@ -225,38 +219,43 @@ public class AccountManager implements EconomyService {
 
     }
 
+    public boolean getJobNotificationState(Player player) {
+        UUID playerUUID = player.getUniqueId();
+
+        if (databaseActive) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
+                    .from("totaleconomy.accounts")
+                    .where("uid")
+                    .equals(playerUUID.toString())
+                    .build();
+
+            return sqlQuery.getBoolean(true);
+        } else {
+            return accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
+        }
+    }
+
     /**
      * Toggle a player's exp/money notifications for jobs
      *
      * @param player an object representing the player toggling notifications
      */
     public void toggleNotifications(Player player) {
-        boolean notify = true;
-        UUID uuid = player.getUniqueId();
+        boolean jobNotifications = !getJobNotificationState(player);
+        UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
-                    .from("totaleconomy.accounts")
-                    .where("uid")
-                    .equals(uuid.toString())
-                    .onError(logger, "[SQL] Could not retrieve boolean from database!")
-                    .build();
-
-            boolean jobNotifications = sqlQuery.getBoolean();
-
-            sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
                     .set("job_notifications")
                     .equals(jobNotifications ? "1":"0")
                     .where("uid")
-                    .equals(uuid.toString())
+                    .equals(playerUUID.toString())
                     .build();
 
-            if (sqlQuery.getRowsAffected() == 0)
+            if (sqlQuery.getRowsAffected() <= 0)
                 player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
         } else {
-            notify = !accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
-
-            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(notify);
+            accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
 
             try {
                 loader.save(accountConfig);
@@ -266,7 +265,7 @@ public class AccountManager implements EconomyService {
             }
         }
 
-        if (notify == true)
+        if (jobNotifications == true)
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
         else
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
