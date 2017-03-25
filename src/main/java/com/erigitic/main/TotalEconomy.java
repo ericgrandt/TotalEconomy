@@ -109,12 +109,13 @@ public class TotalEconomy {
 
     private SQLHandler sqlHandler;
 
+    // TODO: Was working on grouping currency settings
     @Listener
     public void preInit(GamePreInitializationEvent event) {
         setupConfig();
 
-        defaultCurrency = new TECurrency(Text.of(config.getNode("currency-singular").getValue()),
-                Text.of(config.getNode("currency-plural").getValue()), Text.of(config.getNode("symbol").getValue()), 2, true);
+        defaultCurrency = new TECurrency(Text.of(config.getNode("currency", "currency-singular").getValue()),
+                Text.of(config.getNode("currency", "currency-plural").getValue()), Text.of(config.getNode("currency", "symbol").getValue()), 2, true);
 
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
@@ -219,11 +220,11 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "notifications").setValue(true);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
-                config.getNode("startbalance").setValue(100);
-                config.getNode("currency-singular").setValue("Dollar");
-                config.getNode("currency-plural").setValue("Dollars");
-                config.getNode("symbol").setValue("$");
-                config.getNode("prefix-symbol").setValue(true);
+                config.getNode("currency", "startbalance").setValue(100);
+                config.getNode("currency", "currency-singular").setValue("Dollar");
+                config.getNode("currency", "currency-plural").setValue("Dollars");
+                config.getNode("currency", "symbol").setValue("$");
+                config.getNode("currency", "prefix-symbol").setValue(true);
                 loader.save(config);
             }
         } catch (IOException e) {
@@ -356,10 +357,10 @@ public class TotalEconomy {
         return configDir;
     }
 
-    public BigDecimal getStartingBalance() { return new BigDecimal(config.getNode("startbalance").getString()); }
+    public BigDecimal getStartingBalance() { return new BigDecimal(config.getNode("currency", "startbalance").getString()); }
 
     public String getCurrencySymbol() {
-        return config.getNode("symbol").getValue().toString();
+        return config.getNode("currency", "symbol").getValue().toString();
     }
 
     public Server getServer() {
