@@ -29,9 +29,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.*;
 
-/**
- * Created by Life4YourGames on 15.01.17.
- */
 public class TEJobSet {
     private List<TEActionReward> actions;
 

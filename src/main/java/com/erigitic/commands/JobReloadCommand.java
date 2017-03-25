@@ -10,9 +10,6 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
-/**
- * Created by Life4YourGames on 16.01.17.
- */
 public class JobReloadCommand implements CommandExecutor {
 
     private TEJobManager teJobManager;

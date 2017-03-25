@@ -28,8 +28,6 @@ package com.erigitic.jobs;
 import ninja.leaping.configurate.ConfigurationNode;
 
 /**
- * @author MarkL4YG
- *
  * Requirement notation that is usable in various places such as higher job tiers
  */
 public class JobBasedRequirement {
