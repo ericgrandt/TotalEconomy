@@ -34,9 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author MarkL4YG
- */
 public class TEJob {
     private List<String> sets;
 

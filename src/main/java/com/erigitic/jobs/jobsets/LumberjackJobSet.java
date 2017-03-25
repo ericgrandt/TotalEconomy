@@ -27,9 +27,6 @@ package com.erigitic.jobs.jobsets;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-/**
- * @author MarkL4YG
- */
 public class LumberjackJobSet implements IDefaultJobSet {
 
     private static final String SETNAME = "lumberjackSet";

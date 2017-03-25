@@ -27,9 +27,6 @@ package com.erigitic.jobs.jobs;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-/**
- * Created by Life4YourGames on 15.01.17.
- */
 public class UnemployedJob implements IDefaultJob {
 
     @Override
