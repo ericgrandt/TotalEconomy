@@ -47,6 +47,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PayCommand implements CommandExecutor {
     private Logger logger;
@@ -65,72 +67,40 @@ public class PayCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        //TODO: This makes my eyes hurt. Come back later to possibly make it look pretty.
+        String strAmount = (String) args.getOne("amount").get();
+        Player recipient = (Player) args.getOne("player").get();
+
         if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
-            Object playerArg = args.getOne("player").get();
-            String strAmount = (String) args.getOne("amount").get();
+            Player sender = (Player) src;
 
-            if (totalEconomy.isNumeric(strAmount)) {
-                // Check for a negative number
-                if (!strAmount.contains("-")) {
-                    if (playerArg instanceof Player) {
-                        Player recipient = (Player) playerArg;
-                        BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
-                        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-
-                        TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-
-                        if (transferResult.getResult() == ResultType.SUCCESS) {
-                            sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
-
-                            recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                                    TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), TextColors.GRAY, "."));
-
-                            return CommandResult.success();
-                        } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
-                            sender.sendMessage(Text.of(TextColors.RED, "Insufficient funds."));
-
-                            return CommandResult.empty();
-                        }
-                    }
-                } else {
-                    sender.sendMessage(Text.of(TextColors.RED, "The amount must be positive."));
-
-                    return CommandResult.empty();
-                }
-            } else {
-                sender.sendMessage(Text.of(TextColors.RED, "The amount must only contain numbers and a single decimal point if needed."));
-
-                return CommandResult.empty();
+            if (sender.getUniqueId().equals(recipient.getUniqueId())) {
+                throw new CommandException(Text.of("You cannot pay yourself!"));
             }
-        } else if (src instanceof ConsoleSource || src instanceof CommandBlockSource) {
-            Object playerArg = args.getOne("player").get();
-            String strAmount = (String) args.getOne("amount").get();
 
-            if (playerArg instanceof Player) {
-                Player recipient = (Player) playerArg;
-                BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-                Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
+            Pattern amountPattern = Pattern.compile("^[+]?(\\d*\\.)?\\d+$");
+            Matcher m = amountPattern.matcher(strAmount);
 
+            if (m.matches()) {
+                BigDecimal amount = new BigDecimal(strAmount).setScale(2, BigDecimal.ROUND_DOWN);
+
+                TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
                 TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                if (transactionResult.getResult() == ResultType.SUCCESS) {
-                    if (!strAmount.contains("-")) {
-                        recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
-                                TextColors.GRAY, " from ", TextColors.GOLD, "SERVER."));
-                    } else {
-                        recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by the ",
-                                TextColors.GOLD, "SERVER."));
-                    }
+                if (transferResult.getResult() == ResultType.SUCCESS) {
+                    sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
+                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
+
+                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
+                            TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), TextColors.GRAY, "."));
 
                     return CommandResult.success();
+                } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
+                    throw new CommandException(Text.of("Insufficient funds!"));
                 }
+            } else {
+                throw new CommandException(Text.of("Invalid amount! Must be a positive number!"));
             }
         }
 

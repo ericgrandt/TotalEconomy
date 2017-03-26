@@ -327,20 +327,6 @@ public class TotalEconomy {
         game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
     }
 
-    /**
-     * Determines if the String passed in is numeric or not
-     *
-     * @param str the String to check
-     *
-     * @return boolean whether or not the String is numeric
-     */
-    public static boolean isNumeric(String str) {
-        NumberFormat formatter = NumberFormat.getInstance();
-        ParsePosition pos = new ParsePosition(0);
-        formatter.parse(str, pos);
-        return str.length() == pos.getIndex();
-    }
-
     public AccountManager getAccountManager() {
         return accountManager;
     }
