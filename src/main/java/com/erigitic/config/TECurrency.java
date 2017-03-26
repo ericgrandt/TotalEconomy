@@ -39,13 +39,15 @@ public class TECurrency implements Currency {
     private Text symbol;
     private int numFractionDigits;
     private boolean defaultCurrency;
+    private boolean prefixSymbol;
 
-    public TECurrency(Text singular, Text plural, Text symbol, int numFractionDigits, boolean defaultCurrency) {
+    public TECurrency(Text singular, Text plural, Text symbol, int numFractionDigits, boolean defaultCurrency, boolean prefixSymbol) {
         this.singular = singular;
         this.plural = plural;
         this.symbol = symbol;
         this.numFractionDigits = numFractionDigits;
         this.defaultCurrency = defaultCurrency;
+        this.prefixSymbol = prefixSymbol;
     }
 
     @Override
@@ -75,7 +77,12 @@ public class TECurrency implements Currency {
 
     @Override
     public Text format(BigDecimal amount, int numFractionDigits) {
-        return Text.of(symbol, NumberFormat.getInstance(Locale.ENGLISH).format(amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP)));
+        if (prefixSymbol) {
+            return Text.of(symbol, NumberFormat.getInstance(Locale.ENGLISH).format(amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP)));
+        } else {
+            return Text.of(NumberFormat.getInstance(Locale.ENGLISH).format(amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP)), symbol);
+
+        }
     }
 
     @Override
