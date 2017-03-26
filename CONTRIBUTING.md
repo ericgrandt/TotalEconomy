@@ -8,7 +8,7 @@ Thanks for your interest in contributing to Total Economy. There are a few guide
 
 ### Contributing Code
 * Fork the repository
-* Create a new branch from ‘develop'. Use slash notation (e.g. issue/issue#-issue-description)
+* Create a new branch from ‘develop'. Use slash notation (e.g. issue/issue#-short-issue-summary, issue/137-nfe-on-get-balance)
 * Follow the same format/style as the rest of the code
 * Add comments for new functions:
 ``` java
