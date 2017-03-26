@@ -56,8 +56,6 @@ import org.spongepowered.api.text.Text;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.text.ParsePosition;
 
 @Plugin(id = "totaleconomy", name = "Total Economy", version = "1.6.0-DEV", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
@@ -109,13 +107,18 @@ public class TotalEconomy {
 
     private SQLHandler sqlHandler;
 
-    // TODO: Was working on grouping currency settings
     @Listener
     public void preInit(GamePreInitializationEvent event) {
         setupConfig();
 
-        defaultCurrency = new TECurrency(Text.of(config.getNode("currency", "currency-singular").getValue()),
-                Text.of(config.getNode("currency", "currency-plural").getValue()), Text.of(config.getNode("currency", "symbol").getValue()), 2, true);
+        defaultCurrency = new TECurrency(
+                Text.of(config.getNode("currency", "currency-singular").getValue()),
+                Text.of(config.getNode("currency", "currency-plural").getValue()),
+                Text.of(config.getNode("currency", "symbol").getValue()),
+                2,
+                true,
+                config.getNode("currency", "prefix-symbol").getBoolean()
+        );
 
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
@@ -143,8 +146,7 @@ public class TotalEconomy {
         }
 
         if (loadMoneyCap == true) {
-            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
-                    .setScale(2, BigDecimal.ROUND_DOWN);
+            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat()).setScale(2, BigDecimal.ROUND_DOWN);
         }
     }
 
@@ -346,7 +348,7 @@ public class TotalEconomy {
     public BigDecimal getStartingBalance() { return new BigDecimal(config.getNode("currency", "startbalance").getString()); }
 
     public String getCurrencySymbol() {
-        return config.getNode("currency", "symbol").getValue().toString();
+        return config.getNode("currency", "symbol").getString();
     }
 
     public Server getServer() {
@@ -372,6 +374,8 @@ public class TotalEconomy {
     }
 
     public boolean isDatabaseActive() { return databaseActive; }
+
+    public boolean isSymbolPrefixed() { return config.getNode("currency", "prefix-symbol").getBoolean(); }
 
     public BigDecimal getMoneyCap() {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
