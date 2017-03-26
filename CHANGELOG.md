@@ -1,5 +1,6 @@
 v1.6.0
 
++ SQL Support
 + Reusable job sets that allow for easier job creation
 + Add option to change location of currency symbol (eg. $5 or 5$)
 + CHANGE: Updated format of job info command
