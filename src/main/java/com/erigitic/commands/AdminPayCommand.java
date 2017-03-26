@@ -44,6 +44,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AdminPayCommand implements CommandExecutor {
     private Logger logger;
@@ -62,10 +64,13 @@ public class AdminPayCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        String strAmount = args.<String>getOne("amount").get();
-        Player recipient = args.<Player>getOne("player").get();
+        String strAmount = (String) args.getOne("amount").get();
+        Player recipient = (Player) args.getOne("player").get();
 
-        if (TotalEconomy.isNumeric(strAmount)) {
+        Pattern amountPattern = Pattern.compile("^[+-]?(\\d*\\.)?\\d+$");
+        Matcher m = amountPattern.matcher(strAmount);
+
+        if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
             Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
@@ -90,7 +95,7 @@ public class AdminPayCommand implements CommandExecutor {
                 return CommandResult.success();
             }
         } else {
-            src.sendMessage(Text.of(TextColors.RED, "The amount must be numeric."));
+            throw new CommandException(Text.of("Invalid amount! Must be a number!"));
         }
 
         return CommandResult.empty();
