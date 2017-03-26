@@ -79,14 +79,12 @@ public class BalanceTopCommand implements CommandExecutor {
             accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(defaultCurrency));
         });
 
-        List<Map.Entry<String, BigDecimal>> unsortedList = new LinkedList<>(accountBalancesMap.entrySet());
-        unsortedList.sort((Map.Entry<String, BigDecimal> o1, Map.Entry<String, BigDecimal> o2) -> (o1.getValue()).compareTo(o2.getValue()));
+        accountBalancesMap.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .limit(10)
+                .forEach(entry -> accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, defaultCurrency.format(entry.getValue()).toPlain())));
 
-        Collections.reverse(unsortedList);
-
-        unsortedList.forEach(entry -> accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, defaultCurrency.format(entry.getValue()).toPlain())));
-
-        builder.title(Text.of(TextColors.GOLD, "Top Balances"))
+        builder.title(Text.of(TextColors.GOLD, "Top 10 Balances"))
                 .contents(accountBalances)
                 .sendTo(src);
 
