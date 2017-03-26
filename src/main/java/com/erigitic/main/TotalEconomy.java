@@ -321,7 +321,7 @@ public class TotalEconomy {
 
         game.getCommandManager().register(this, payCommand, "pay");
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
-        game.getCommandManager().register(this, balanceCommand, "balance", "bal");
+        game.getCommandManager().register(this, balanceCommand, "balance", "bal", "money");
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
         game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
         game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
