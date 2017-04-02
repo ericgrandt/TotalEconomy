@@ -1,9 +1,10 @@
 # TotalEconomy
+
 All in one economy plugin for Minecraft and Sponge.
 
--
 
-##Commands
+
+## Commands
 ```
 /pay [player] [amount] - Pay another player
 /balance - Display your balance (/bal)
@@ -17,7 +18,7 @@ All in one economy plugin for Minecraft and Sponge.
 /balancetop - Display a paginated list of top balances (/baltop)
 ```
 
-##Permissions
+## Permissions
 ```
 totaleconomy.command.pay
 totaleconomy.command.balance
