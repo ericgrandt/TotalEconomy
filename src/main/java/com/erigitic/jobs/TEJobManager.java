@@ -148,7 +148,7 @@ public class TEJobManager {
                         TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
                         if (result.getResult() == ResultType.SUCCESS) {
-                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getCurrencySymbol(), salary, TextColors.GRAY, " has just been paid."));
+                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getDefaultCurrency().format(salary), TextColors.GRAY, " has just been paid."));
                         } else {
                             player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                         }
@@ -375,6 +375,15 @@ public class TEJobManager {
      */
     public String titleize(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
+    }
+
+    /**
+     * Notifies a player when they are rewarded for completing a job action
+     *
+     * @param amount
+     */
+    private void notifyPlayer(Player player, BigDecimal amount) {
+        player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().format(amount), TextColors.GRAY, " has been added to your balance."));
     }
 
     /**
@@ -712,7 +721,7 @@ public class TEJobManager {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (notify) {
-                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                            notifyPlayer(player, payAmount);
                         }
 
                         addExp(player, expAmount);
@@ -765,7 +774,7 @@ public class TEJobManager {
                     TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     if (notify) {
-                        player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                        notifyPlayer(player, payAmount);
                     }
 
                     addExp(player, expAmount);
@@ -832,7 +841,7 @@ public class TEJobManager {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (notify) {
-                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                            notifyPlayer(player, payAmount);
                         }
 
                         addExp(player, expAmount);
@@ -893,7 +902,7 @@ public class TEJobManager {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (notify) {
-                            player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().getSymbol(), payAmount, TextColors.GRAY, " has been added to your balance."));
+                            notifyPlayer(player, payAmount);
                         }
 
                         addExp(player, expAmount);

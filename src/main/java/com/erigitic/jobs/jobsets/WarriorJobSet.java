@@ -27,9 +27,6 @@ package com.erigitic.jobs.jobsets;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-/**
- * @author MarkL4YG
- */
 public class WarriorJobSet implements IDefaultJobSet {
 
     private static final String SETNAME = "warriorSet";

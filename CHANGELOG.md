@@ -1,8 +1,13 @@
 v1.6.0
 
++ SQL Support
 + Reusable job sets that allow for easier job creation
++ Add option to change location of currency symbol (eg. $5 or 5$)
 + CHANGE: Updated format of job info command
-+ CHANGE: Commands now properly return as successful or unsuccessful.
++ CHANGE: Commands now properly return as successful or unsuccessful
++ CHANGE: Baltop command now only shows a maximum of 10 balances
++ CHANGE: Added "/money" alias to balance command
++ CHANGE: Pay command no longer works from command blocks or console (Use adminpay)
 
 v1.5.3
 

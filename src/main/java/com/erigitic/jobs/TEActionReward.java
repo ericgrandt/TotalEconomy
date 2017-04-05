@@ -29,9 +29,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import java.math.BigDecimal;
 
-/**
- * @author MarkL4YG
- */
 public class TEActionReward {
     private String event;
     private String targetID;

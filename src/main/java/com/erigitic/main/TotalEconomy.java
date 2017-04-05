@@ -56,8 +56,6 @@ import org.spongepowered.api.text.Text;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.text.ParsePosition;
 
 @Plugin(id = "totaleconomy", name = "Total Economy", version = "1.6.0-DEV", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
@@ -113,8 +111,14 @@ public class TotalEconomy {
     public void preInit(GamePreInitializationEvent event) {
         setupConfig();
 
-        defaultCurrency = new TECurrency(Text.of(config.getNode("currency-singular").getValue()),
-                Text.of(config.getNode("currency-plural").getValue()), Text.of(config.getNode("symbol").getValue()), 2, true);
+        defaultCurrency = new TECurrency(
+                Text.of(config.getNode("currency", "currency-singular").getValue()),
+                Text.of(config.getNode("currency", "currency-plural").getValue()),
+                Text.of(config.getNode("currency", "symbol").getValue()),
+                2,
+                true,
+                config.getNode("currency", "prefix-symbol").getBoolean()
+        );
 
         loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
         loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
@@ -142,8 +146,7 @@ public class TotalEconomy {
         }
 
         if (loadMoneyCap == true) {
-            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat())
-                    .setScale(2, BigDecimal.ROUND_DOWN);
+            moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat()).setScale(2, BigDecimal.ROUND_DOWN);
         }
     }
 
@@ -219,11 +222,11 @@ public class TotalEconomy {
                 config.getNode("features", "jobs", "notifications").setValue(true);
                 config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
                 config.getNode("features", "moneycap", "amount").setValue(10000000);
-                config.getNode("startbalance").setValue(100);
-                config.getNode("currency-singular").setValue("Dollar");
-                config.getNode("currency-plural").setValue("Dollars");
-                config.getNode("symbol").setValue("$");
-                config.getNode("prefix-symbol").setValue(true);
+                config.getNode("currency", "startbalance").setValue(100);
+                config.getNode("currency", "currency-singular").setValue("Dollar");
+                config.getNode("currency", "currency-plural").setValue("Dollars");
+                config.getNode("currency", "symbol").setValue("$");
+                config.getNode("currency", "prefix-symbol").setValue(true);
                 loader.save(config);
             }
         } catch (IOException e) {
@@ -320,24 +323,10 @@ public class TotalEconomy {
 
         game.getCommandManager().register(this, payCommand, "pay");
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
-        game.getCommandManager().register(this, balanceCommand, "balance", "bal");
+        game.getCommandManager().register(this, balanceCommand, "balance", "bal", "money");
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
         game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
         game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
-    }
-
-    /**
-     * Determines if the String passed in is numeric or not
-     *
-     * @param str the String to check
-     *
-     * @return boolean whether or not the String is numeric
-     */
-    public static boolean isNumeric(String str) {
-        NumberFormat formatter = NumberFormat.getInstance();
-        ParsePosition pos = new ParsePosition(0);
-        formatter.parse(str, pos);
-        return str.length() == pos.getIndex();
     }
 
     public AccountManager getAccountManager() {
@@ -356,10 +345,10 @@ public class TotalEconomy {
         return configDir;
     }
 
-    public BigDecimal getStartingBalance() { return new BigDecimal(config.getNode("startbalance").getString()); }
+    public BigDecimal getStartingBalance() { return new BigDecimal(config.getNode("currency", "startbalance").getString()); }
 
     public String getCurrencySymbol() {
-        return config.getNode("symbol").getValue().toString();
+        return config.getNode("currency", "symbol").getString();
     }
 
     public Server getServer() {
@@ -385,6 +374,8 @@ public class TotalEconomy {
     }
 
     public boolean isDatabaseActive() { return databaseActive; }
+
+    public boolean isSymbolPrefixed() { return config.getNode("currency", "prefix-symbol").getBoolean(); }
 
     public BigDecimal getMoneyCap() {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
