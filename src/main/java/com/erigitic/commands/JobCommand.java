@@ -89,8 +89,6 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    //// === === === === === SET === === === === === ////
-
     public static class Set implements CommandExecutor {
 
         public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
@@ -105,7 +103,7 @@ public class JobCommand implements CommandExecutor {
                                     GenericArguments.userOrSource(Text.of("user")),
                                     TEPermissions.JOB_SET_OTHERS
                             )
-                            //TODO: Maybe a WEAK/STRONG param for setting an others job AND ignoring requirements
+                            // TODO: Maybe a WEAK/STRONG param for setting an others job AND ignoring requirements
                     )
                     .build();
         }
@@ -118,11 +116,11 @@ public class JobCommand implements CommandExecutor {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            //TODO: Do checks here, in case we or other plugins want to bypass them in the future
+            // TODO: Do checks here, in case we or other plugins want to bypass them in the future
 
-            //JobName should always be present: Enforced by Sponge
+            // JobName should always be present: Enforced by Sponge
             String jobName = args.getOne("jobName").get().toString().toLowerCase();
-            //Player also enforced by Sponge
+            // Player also enforced by Sponge
             User user = args.<User>getOne("user").get();
 
             Optional<TEJob> optJob = totalEconomy.getTEJobManager().getJob(jobName, false);
@@ -133,27 +131,27 @@ public class JobCommand implements CommandExecutor {
                  JobBasedRequirement req = job.getRequirement().get();
 
                  if (req.permissionNeeded() != null && !user.hasPermission(req.permissionNeeded()))
-                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.YELLOW, jobName, TextColors.RED, "\""));
+                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.GOLD, jobName, TextColors.RED, "\""));
 
                  if (req.jobNeeded() != null && req.jobLevelNeeded() > totalEconomy.getTEJobManager().getJobLevel(req.jobNeeded().toLowerCase(), user)) {
                      throw new CommandException(Text.of("Insufficient level! Level ",
-                             TextColors.YELLOW, req.jobLevelNeeded(), TextColors.RED," as a ",
-                             TextColors.YELLOW, req.jobNeeded(), TextColors.RED, " required!"));
+                             TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
+                             TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
                  }
              }
 
-            src.sendMessage(Text.of(TextColors.YELLOW, "Changing job..."));
             if (!totalEconomy.getTEJobManager().setJob(user, jobName)) {
                 throw new CommandException(Text.of("Failed to set job. Contact your administrator."));
             } else if (user.getPlayer().isPresent()) {
-                user.getPlayer().get().sendMessage(Text.of(TextColors.GREEN, "Job changed to: ", TextColors.YELLOW, jobName));
+                user.getPlayer().get().sendMessage(Text.of(TextColors.GREEN, "Job changed to: ", TextColors.GOLD, jobName));
             }
+            // Only send additional feedback if CommandSource isn't the target.
+            if (!(src instanceof User) || !((User) src).getUniqueId().equals(user.getUniqueId()))
+                src.sendMessage(Text.of(TextColors.GREEN, "Job set."));
 
             return CommandResult.success();
         }
     }
-
-    //// === === === === === INFO === === === === === ////
 
     public static class Info implements CommandExecutor {
 
@@ -207,22 +205,20 @@ public class JobCommand implements CommandExecutor {
                         lines.add(Text.of(TextColors.GRAY, TextColors.GOLD, TextStyles.ITALIC, k, "\n"));
                         //Add targets
                         v.forEach(id -> {
-                            lines.add(Text.of(TextColors.GRAY, "    ID: ", TextColors.DARK_GREEN, id, "\n"));
+                            lines.add(Text.of(TextColors.GRAY, "    ID: ", TextColors.DARK_GREEN, id));
                         });
                     });
                 }
             }
             // Send the list using pagination
             pageBuilder.reset()
-                    .header(Text.of(TextColors.GREEN, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> teJobManager.getPlayerJob(((Player) src))),"\n\n"))
+                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> teJobManager.getPlayerJob(((Player) src))),"\n"))
                     .contents(lines.toArray(new Text[lines.size()]))
                     .sendTo(src);
 
             return CommandResult.success();
         }
     }
-
-    //// === === === === === RELOAD === === === === === ////
 
     public static class Reload implements CommandExecutor {
 
@@ -245,7 +241,7 @@ public class JobCommand implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (totalEconomy.getTEJobManager().reloadJobsAndSets()) {
-                src.sendMessage(Text.of(TextColors.GREEN, "[TE] Sets and jobs reloaded."));
+                src.sendMessage(Text.of(TextColors.GRAY, "[TE] Sets and jobs reloaded."));
             } else {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] Failed to reload sets and/or jobs!"));
             }
@@ -253,8 +249,6 @@ public class JobCommand implements CommandExecutor {
             return CommandResult.success();
         }
     }
-
-    //// === === === === === TOGGLE === === === === === ////
 
     public static class Toggle implements CommandExecutor {
 

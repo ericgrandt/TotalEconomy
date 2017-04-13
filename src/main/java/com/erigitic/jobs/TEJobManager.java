@@ -668,7 +668,7 @@ public class TEJobManager {
                             if (lineOne.equals("[TEJobs]")) {
                                 if (jobExists(lineTwo)) {
                                     if (setJob(player, lineTwo)) {
-                                        player.sendMessage(Text.of(TextColors.GREEN, "Job changed to: ", TextColors.YELLOW, lineTwo));
+                                        player.sendMessage(Text.of(TextColors.GRAY, "Job changed to: ", TextColors.GOLD, lineTwo));
                                     } else {
                                         player.sendMessage(Text.of(TextColors.RED, "Failed to set job. Contact your administrator."));
                                     }
