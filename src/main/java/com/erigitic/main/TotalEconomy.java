@@ -141,7 +141,7 @@ public class TotalEconomy {
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
 
         //Only setup job stuff if config is set to load jobs
-        if (loadJobs == true) {
+        if (loadJobs) {
             teJobManager = new TEJobManager(this);
         }
 
@@ -279,46 +279,9 @@ public class TotalEconomy {
                 .build();
 
         //Only enables job commands if the value for jobs in config is set to true
-        if (loadJobs == true) {
-            CommandSpec jobSetCmd = CommandSpec.builder()
-                    .description(Text.of("Set your job"))
-                    .permission("totaleconomy.command.job.set")
-                    .executor(new JobCommand(this))
-                    .arguments(GenericArguments.string(Text.of("jobName")))
-                    .build();
-
-            CommandSpec jobNotifyToggle = CommandSpec.builder()
-                    .description(Text.of("Toggle job notifications on/off"))
-                    .permission("totaleconomy.command.job.toggle")
-                    .executor(new JobToggleCommand(this))
-                    .build();
-
-            CommandSpec jobInfoCmd = CommandSpec.builder()
-                    .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
-                    .permission("totaleconomy.command.job.info")
-                    .executor(new JobInfoCommand(this))
-                    .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
-                    .build();
-
-            CommandSpec jobReloadCmd = CommandSpec.builder()
-                    .description(Text.of("Reloads sets and jobs"))
-                    .permission("totaleconomy.command.job.reload")
-                    .executor(new JobReloadCommand(this))
-                    .arguments(GenericArguments.none())
-                    .build();
-
-            CommandSpec jobCommand = CommandSpec.builder()
-                    .description(Text.of("Display list of jobs."))
-                    .permission("totaleconomy.command.job")
-                    .executor(new JobCommand(this))
-                    .child(jobSetCmd, "set", "s")
-                    .child(jobNotifyToggle, "toggle", "t")
-                    .child(jobInfoCmd, "info", "i")
-                    .child(jobReloadCmd, "reload")
-                    .build();
-
-
-            game.getCommandManager().register(this, jobCommand, "job");
+        if (loadJobs) {
+            // Cramped all the CommandSpec stuff into the nested classes as appears to be common in Sponge plugin development
+            game.getCommandManager().register(this, JobCommand.commandSpec(this), "job");
         }
 
         game.getCommandManager().register(this, payCommand, "pay");
