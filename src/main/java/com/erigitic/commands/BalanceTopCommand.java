@@ -71,9 +71,17 @@ public class BalanceTopCommand implements CommandExecutor {
         Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
         Currency defaultCurrency = accountManager.getDefaultCurrency();
 
-        // TODO: Add customization to this (amount of accounts to show).
         accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
-            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(UUID.fromString(accountUUID.toString())).get();
+            UUID uuid;
+
+            // Check if the account is virtual or not. If virtual, skip the rest of the execution and move on to next account.
+            try {
+                uuid = UUID.fromString(accountUUID.toString());
+            } catch (IllegalArgumentException e) {
+                return;
+            }
+
+            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
             Text playerName = playerAccount.getDisplayName();
 
             accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(defaultCurrency));
