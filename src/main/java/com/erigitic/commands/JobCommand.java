@@ -143,7 +143,7 @@ public class JobCommand implements CommandExecutor {
             if (!totalEconomy.getTEJobManager().setJob(user, jobName)) {
                 throw new CommandException(Text.of("Failed to set job. Contact your administrator."));
             } else if (user.getPlayer().isPresent()) {
-                user.getPlayer().get().sendMessage(Text.of(TextColors.GREEN, "Job changed to: ", TextColors.GOLD, jobName));
+                user.getPlayer().get().sendMessage(Text.of(TextColors.GRAY, "Job changed to: ", TextColors.GOLD, jobName));
             }
             // Only send additional feedback if CommandSource isn't the target.
             if (!(src instanceof User) || !((User) src).getUniqueId().equals(user.getUniqueId()))
