@@ -29,14 +29,16 @@ import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLHandler;
 import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
-import org.slf4j.Logger;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.*;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.service.economy.transaction.TransactionTypes;
+import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
@@ -47,7 +49,6 @@ public class TEAccount implements UniqueAccount {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private UUID uuid;
-    private Logger logger;
     private SQLHandler sqlHandler;
 
     private ConfigurationNode accountConfig;
@@ -59,7 +60,6 @@ public class TEAccount implements UniqueAccount {
         this.accountManager = accountManager;
         this.uuid = uuid;
 
-        logger = totalEconomy.getLogger();
         accountConfig = accountManager.getAccountConfig();
         databaseActive = totalEconomy.isDatabaseActive();
 
@@ -132,7 +132,7 @@ public class TEAccount implements UniqueAccount {
         TransactionResult transactionResult;
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        if (hasBalance(currency, contexts)) {
+        if (hasBalance(currency, contexts) && amount.compareTo(BigDecimal.ZERO) >= 0) {
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                         .update("totaleconomy.accounts")
@@ -173,7 +173,6 @@ public class TEAccount implements UniqueAccount {
         TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
-        //TODO: Do something different here?
         Map result = new HashMap<>();
         result.put(accountManager.getDefaultCurrency(), transactionResult);
 
@@ -209,7 +208,6 @@ public class TEAccount implements UniqueAccount {
             BigDecimal curBalance = getBalance(currency, contexts);
             BigDecimal newBalance = curBalance.subtract(amount);
 
-            //TODO: Might not need to check if the balance is greater then zero here since it is being done in the withdraw function
             if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
                 withdraw(currency, amount, cause, contexts);
 
