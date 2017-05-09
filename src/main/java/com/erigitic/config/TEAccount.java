@@ -162,7 +162,7 @@ public class TEAccount implements UniqueAccount {
             }
         }
 
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.DEPOSIT);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
         return transactionResult;
