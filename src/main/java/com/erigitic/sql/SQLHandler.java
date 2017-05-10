@@ -51,7 +51,7 @@ public class SQLHandler {
         } catch (SQLException e) {
             logger.warn("Error getting data source!");
         } catch (UncheckedExecutionException e) {
-            logger.warn("Could not connect to database! Make sure database information is correct in totaleconomy.conf!");
+            logger.warn("Error connecting to database! Check the config and make sure the database credentials are correct!");
         }
     }
 
