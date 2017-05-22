@@ -35,6 +35,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
@@ -65,7 +66,8 @@ public class AdminPayCommand implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         String strAmount = (String) args.getOne("amount").get();
-        Player recipient = (Player) args.getOne("player").get();
+        User recipient = args.<User>getOne("player").get();
+
 
         Pattern amountPattern = Pattern.compile("^[+-]?(\\d*\\.)?\\d+$");
         Matcher m = amountPattern.matcher(strAmount);
@@ -82,14 +84,18 @@ public class AdminPayCommand implements CommandExecutor {
                     src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
                             TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
 
-                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
-                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    if (recipient.isOnline()) {
+                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
+                                TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    }
                 } else {
                     src.sendMessage(Text.of(TextColors.GRAY, "You have removed ", TextColors.GOLD, amountText,
                             TextColors.GRAY, " from ", TextColors.GOLD, recipient.getName(), "'s", TextColors.GRAY, " account."));
 
-                    recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
-                            TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    if (recipient.isOnline()) {
+                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
+                                TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    }
                 }
 
                 return CommandResult.success();
