@@ -105,6 +105,8 @@ public class TotalEconomy {
     private boolean loadMoneyCap = false;
     private BigDecimal moneyCap;
 
+    private int saveInterval;
+
     private SQLHandler sqlHandler;
 
     @Listener
@@ -135,6 +137,8 @@ public class TotalEconomy {
 
             sqlHandler = new SQLHandler(this);
         }
+
+        saveInterval = config.getNode("save-interval").getInt(30);
 
         accountManager = new AccountManager(this);
 
@@ -227,6 +231,7 @@ public class TotalEconomy {
                 config.getNode("currency", "currency-plural").setValue("Dollars");
                 config.getNode("currency", "symbol").setValue("$");
                 config.getNode("currency", "prefix-symbol").setValue(true);
+                config.getNode("save-interval").setValue(30);
                 loader.save(config);
             }
         } catch (IOException e) {
@@ -342,6 +347,10 @@ public class TotalEconomy {
 
     public BigDecimal getMoneyCap() {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
+    }
+
+    public int getSaveInterval() {
+        return saveInterval;
     }
 
     public boolean hasJobNotifications() { return jobNotifications; }
