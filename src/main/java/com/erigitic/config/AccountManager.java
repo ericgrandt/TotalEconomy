@@ -33,6 +33,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
@@ -48,6 +49,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
@@ -60,6 +62,8 @@ public class AccountManager implements EconomyService {
 
     private boolean databaseActive;
 
+    private boolean dirty = false;
+
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
@@ -71,6 +75,13 @@ public class AccountManager implements EconomyService {
             setupDatabase();
         } else {
             setupConfig();
+        }
+
+        if (totalEconomy.getSaveInterval() > 0) {
+            Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
+                    .execute(() -> {
+                        writeToDisk();
+                    }).submit(totalEconomy);
         }
     }
 
@@ -275,8 +286,23 @@ public class AccountManager implements EconomyService {
      * Save the account configuration file
      */
     public void saveAccountConfig() {
+        dirty = true;
+        if (totalEconomy.getSaveInterval() <= 0) {
+            writeToDisk();
+        }
+    }
+
+    /**
+     * Save the account configuration file
+     */
+    public void writeToDisk() {
+        if (!dirty) {
+            return;
+        }
+
         try {
             loader.save(accountConfig);
+            dirty = false;
         } catch (IOException e) {
             logger.error("Could not save the account configuration file!");
         }
