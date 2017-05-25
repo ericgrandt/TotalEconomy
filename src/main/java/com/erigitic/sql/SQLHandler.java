@@ -80,7 +80,7 @@ public class SQLHandler {
 
             return result;
         } catch (SQLException e) {
-            logger.warn("Error creating database!");
+            logger.warn("[TE] An error occurred while creating the totaleconomy database!");
             e.printStackTrace();
         }
 
@@ -97,7 +97,7 @@ public class SQLHandler {
 
             return result;
         } catch (SQLException e) {
-            logger.warn("Error creating table!");
+            logger.warn("[TE] An error occurred while creating a table!");
             e.printStackTrace();
         }
 
