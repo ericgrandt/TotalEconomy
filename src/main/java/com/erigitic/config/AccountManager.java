@@ -99,7 +99,7 @@ public class AccountManager implements EconomyService {
                 loader.save(accountConfig);
             }
         } catch (IOException e) {
-            logger.warn("Could not create accounts config file!");
+            logger.warn("[TE] Error creating accounts configuration file!");
         }
     }
 
@@ -133,9 +133,9 @@ public class AccountManager implements EconomyService {
     public void reloadConfig() {
         try {
             accountConfig = loader.load();
-            logger.info("Reloading account configuration file.");
+            logger.info("[TE] Reloading account configuration file.");
         } catch (IOException e) {
-            logger.warn("Could not reload account configuration file!");
+            logger.warn("[TE] An error occurred while reloading the account configuration file!");
         }
     }
 
@@ -169,7 +169,7 @@ public class AccountManager implements EconomyService {
                 }
             }
         } catch (IOException e) {
-            logger.warn("Could not create account!");
+            logger.warn("[TE] An error occurred while creating a new account!");
         }
 
         return Optional.of(playerAccount);
@@ -188,7 +188,7 @@ public class AccountManager implements EconomyService {
                 loader.save(accountConfig);
             }
         } catch (IOException e) {
-            logger.warn("Could not create account!");
+            logger.warn("[TE] An error occurred while creating a new virtual account!");
         }
 
         return Optional.of(virtualAccount);
@@ -272,14 +272,15 @@ public class AccountManager implements EconomyService {
                 loader.save(accountConfig);
             } catch (IOException e) {
                 player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("Could not update notification state in configuration!");
+                logger.warn("[TE] An error occurred while updating the notification state!");
             }
         }
 
-        if (jobNotifications == true)
+        if (jobNotifications == true) {
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
-        else
+        } else {
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
+        }
     }
 
     /**
@@ -304,7 +305,7 @@ public class AccountManager implements EconomyService {
             loader.save(accountConfig);
             dirty = false;
         } catch (IOException e) {
-            logger.error("Could not save the account configuration file!");
+            logger.error("[TE] An error occurred while saving the account configuration file!");
         }
     }
 
