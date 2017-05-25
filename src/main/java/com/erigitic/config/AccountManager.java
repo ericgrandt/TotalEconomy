@@ -263,15 +263,17 @@ public class AccountManager implements EconomyService {
                     .equals(playerUUID.toString())
                     .build();
 
-            if (sqlQuery.getRowsAffected() <= 0)
-                player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+            if (sqlQuery.getRowsAffected() <= 0) {
+                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("[TE] An error occurred while updating the notification state in the database!");
+            }
         } else {
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
 
             try {
                 loader.save(accountConfig);
             } catch (IOException e) {
-                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
                 logger.warn("[TE] An error occurred while updating the notification state!");
             }
         }
