@@ -293,8 +293,8 @@ public class TEJobManager {
                     player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
                 }
             } else {
-                logger.warn("[TE] An error occurred while adding job experience!");
-                player.sendMessage(Text.of("[SQL] Error adding experience! Consult an administrator!"));
+                logger.warn("[TE] An error occurred while updating job experience in the database!");
+                player.sendMessage(Text.of(TextColors.RED, "[TE] Error adding experience! Consult an administrator!"));
             }
         } else {
             int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
@@ -581,13 +581,14 @@ public class TEJobManager {
      * @return String list of jobs
      */
     public Text getJobList() {
-        List<Text> texts = new ArrayList<Text>();
+        List<Text> texts = new ArrayList<>();
 
         jobs.forEach((j, o) -> texts.add(Text.of(
                 TextActions.runCommand("/job set " + j),
-                TextActions.showText(Text.of("Click to apply to job")),
+                TextActions.showText(Text.of("Click to change job")),
                 j))
         );
+
         return Text.joinWith(Text.of(", "), texts.toArray(new Text[texts.size()]));
     }
 
@@ -672,7 +673,7 @@ public class TEJobManager {
                                     if (setJob(player, lineTwo)) {
                                         player.sendMessage(Text.of(TextColors.GRAY, "Job changed to: ", TextColors.GOLD, lineTwo));
                                     } else {
-                                        player.sendMessage(Text.of(TextColors.RED, "Failed to set job. Contact your administrator."));
+                                        player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to set job. Contact your administrator."));
                                     }
                                 } else {
                                     player.sendMessage(Text.of(TextColors.RED, "[TE] Sorry, this job does not exist"));

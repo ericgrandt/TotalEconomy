@@ -285,7 +285,6 @@ public class TotalEconomy {
 
         //Only enables job commands if the value for jobs in config is set to true
         if (loadJobs) {
-            // Cramped all the CommandSpec stuff into the nested classes as appears to be common in Sponge plugin development
             game.getCommandManager().register(this, JobCommand.commandSpec(this), "job");
         }
 
