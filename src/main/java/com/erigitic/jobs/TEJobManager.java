@@ -200,16 +200,17 @@ public class TEJobManager {
                 if ((k instanceof String) && (v instanceof ConfigurationNode)) {
                     TEJobSet set = TEJobSet.of((ConfigurationNode) v);
 
-                    if (set!=null)
+                    if (set != null) {
                         jobSets.put((String) k, set);
-                    else
-                        logger.warn("Unable to load set: " + k);
+                    } else {
+                        logger.warn("[TE] An error occurred while loading a set: " + k);
+                    }
                 }
             });
 
             return true;
         } catch (IOException e) {
-            logger.warn("Could not create/load jobs config file!");
+            logger.warn("[TE] An error occurred while creating/loading the jobSets configuration file!");
 
             return false;
         }
@@ -242,16 +243,17 @@ public class TEJobManager {
                 if ((k instanceof String) && (v instanceof ConfigurationNode)) {
                     TEJob job = TEJob.of(((ConfigurationNode) v));
 
-                    if (job!=null)
+                    if (job != null) {
                         jobs.put((String) k, job);
-                    else
-                        logger.warn("Unable to load set: " + k);
+                    } else {
+                        logger.warn("[TE] An error occurred while loading a set: " + k);
+                    }
                 }
             });
 
             return true;
         } catch (IOException e) {
-            logger.warn("Could not create/load jobs config file!");
+            logger.warn("[TE] An error occurred while creating/loading the jobs configuration file!");
 
             return false;
         }
@@ -291,7 +293,7 @@ public class TEJobManager {
                     player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
                 }
             } else {
-                logger.warn("[SQL] Error adding experience to a player's job!");
+                logger.warn("[TE] An error occurred while adding job experience!");
                 player.sendMessage(Text.of("[SQL] Error adding experience! Consult an administrator!"));
             }
         } else {
@@ -305,7 +307,7 @@ public class TEJobManager {
             try {
                 accountManager.getConfigManager().save(accountConfig);
             } catch (IOException e) {
-                logger.warn("Problem saving account config!");
+                logger.warn("[TE] An error occurred while saving the account configuration file!");
             }
         }
     }
@@ -412,7 +414,7 @@ public class TEJobManager {
             if (sqlQuery.getRowsAffected() > 0) {
                 return true;
             } else {
-                logger.warn("[SQL] Error changing job to " + jobName + " for " + user.getUniqueId() + '/' + user.getName());
+                logger.warn("[TE] An error occurred while changing the job of " + user.getUniqueId() + "/" + user.getName() + "!");
                 return false;
             }
         } else {
@@ -429,7 +431,7 @@ public class TEJobManager {
             try {
                 accountManager.getConfigManager().save(accountConfig);
             } catch (IOException e) {
-                logger.warn("Could not save account config while setting job " + jobName + " for " + user.getUniqueId() + '/' + user.getName());
+                logger.warn("[TE] An error occurred while changing the job of " + user.getUniqueId() + "/" + user.getName() + "!");
             }
             // Return true in BOTH cases.
             return true;
@@ -708,15 +710,12 @@ public class TEJobManager {
                     for (String s : sets) {
                         Optional<TEJobSet> optSet = getJobSet(s);
                         if (!optSet.isPresent()) {
-                            logger.warn("Job " + getPlayerJob(player) + " has the nonexistent set \"" + s + "\"");
+                            logger.warn("[TE] Job " + getPlayerJob(player) + " has the nonexistent set \"" + s + "\"");
 
                             continue;
                         }
 
                         reward = optSet.get().getRewardFor("break", blockName);
-
-                        // TODO: Priorities?
-                        if (reward.isPresent()) break;
                     }
 
                     if (reward.isPresent()) {
@@ -762,16 +761,14 @@ public class TEJobManager {
                     Optional<TEJobSet> optSet = getJobSet(s);
 
                     if (!optSet.isPresent()) {
-                        logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+                        logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
 
                         continue;
                     }
 
                     reward = optSet.get().getRewardFor("place", blockName);
-
-                    //TODO: Priorities?
-                    if (reward.isPresent()) break;
                 }
+
                 if (reward.isPresent()) {
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = reward.get().getMoneyReward();
@@ -829,16 +826,14 @@ public class TEJobManager {
                         Optional<TEJobSet> optSet = getJobSet(s);
 
                         if (!optSet.isPresent()) {
-                            logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+                            logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
 
                             continue;
                         }
 
                         reward = optSet.get().getRewardFor("kill", victimName);
-
-                        //TODO: Priorities?
-                        if (reward.isPresent()) break;
                     }
+
                     if (reward.isPresent()) {
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
@@ -869,9 +864,11 @@ public class TEJobManager {
     @Listener
     public void onPlayerFish(FishingEvent.Stop event) {
         if (event.getCause().first(Player.class).isPresent()) {
-            if (event.getItemStackTransaction().size() == 0) { // no transaction, so execution can stop
+            // no transaction, so execution can stop
+            if (event.getItemStackTransaction().size() == 0) {
                 return;
             }
+
             Transaction<ItemStackSnapshot> itemTransaction = event.getItemStackTransaction().get(0);
             ItemStack itemStack = itemTransaction.getFinal().createStack();
             Player player = event.getCause().first(Player.class).get();
@@ -890,16 +887,14 @@ public class TEJobManager {
                         Optional<TEJobSet> optSet = getJobSet(s);
 
                         if (!optSet.isPresent()) {
-                            logger.warn("Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
+                            logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
 
                             continue;
                         }
 
                         reward = optSet.get().getRewardFor("catch", fishName);
-
-                        //TODO: Priorities?
-                        if (reward.isPresent()) break;
                     }
+
                     if (reward.isPresent()) {
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
