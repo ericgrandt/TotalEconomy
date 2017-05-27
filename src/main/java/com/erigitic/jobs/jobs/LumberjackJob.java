@@ -41,7 +41,7 @@ public class LumberjackJob implements IDefaultJob {
     }
 
     @Override
-    public void applyOnNode(ConfigurationNode node) {
+    public void populateNode(ConfigurationNode node) {
         node = node.getNode(getJobName());
 
         node.getNode("salary").setValue(20);

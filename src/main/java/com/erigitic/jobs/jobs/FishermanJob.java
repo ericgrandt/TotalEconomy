@@ -33,15 +33,15 @@ import java.util.Arrays;
 public class FishermanJob implements IDefaultJob {
 
     private static final String jobname = "fisherman";
-    private static final String[] sets = { jobname + "Set"};
+    private static final String[] sets = { jobname + "Set" };
 
     @Override
     public String getJobName() {
-        return jobname;
+        return "fisherman";
     }
 
     @Override
-    public void applyOnNode(ConfigurationNode node) {
+    public void populateNode(ConfigurationNode node) {
         node = node.getNode(getJobName());
 
         node.getNode("salary").setValue(20);
