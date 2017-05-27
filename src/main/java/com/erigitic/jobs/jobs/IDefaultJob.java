@@ -31,5 +31,5 @@ public interface IDefaultJob {
 
     String getJobName();
 
-    void applyOnNode(ConfigurationNode node);
+    void populateNode(ConfigurationNode node);
 }
