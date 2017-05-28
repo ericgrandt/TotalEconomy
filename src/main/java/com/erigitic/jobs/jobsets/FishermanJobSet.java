@@ -27,11 +27,11 @@ package com.erigitic.jobs.jobsets;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-public class FishermanJobSet implements IDefaultJobSet {
+public class FishermanJobSet implements JobSet {
 
-    private static final String SETNAME = "fishermanSet";
+    private final String SETNAME = "fishermanSet";
 
-    private static final String[][] rewards = {
+    private final String[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
             {"catch", "cod", "25", "50.00"},
             {"catch", "salmon", "100", "150.00"},
@@ -39,13 +39,13 @@ public class FishermanJobSet implements IDefaultJobSet {
     };
 
     @Override
-    public void applyOnNode(ConfigurationNode node) {
-        ConfigurationNode myNode = node.getNode(SETNAME, "actions");
+    public void populateNode(ConfigurationNode node) {
+        ConfigurationNode myNode = node.getNode(SETNAME);
 
-        for (String[] a : rewards) {
+        for (String[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
-            n.getNode("expGain").setValue(a[2]);
-            n.getNode("moneyGain").setValue(a[3]);
+            n.getNode("exp").setValue(a[2]);
+            n.getNode("money").setValue(a[3]);
         }
     }
 }
