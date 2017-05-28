@@ -32,25 +32,25 @@ import java.util.Arrays;
 
 public class WarriorJob implements Job {
 
-    private static final String name = "warrior";
-    private static final String[] sets = { name + "Set"};
+    private final String NAME = "warrior";
+    private final String[] SETS = { "mobs" };
 
     @Override
     public String getName() {
-        return name;
+        return NAME;
     }
 
     @Override
     public String[] getSets() {
-        return sets;
+        return SETS;
     }
 
     @Override
     public void populateNode(ConfigurationNode node) {
-        node = node.getNode(name);
+        node = node.getNode(NAME);
 
         node.getNode("salary").setValue(10);
-        node.getNode("sets").setValue(Arrays.asList(sets));
+        node.getNode("sets").setValue(Arrays.asList(SETS));
 
         // TODO: Stop with the static when it's not necessary. Remove and replace.
         JobBasedRequirement.of(null, 0, "totaleconomy.job.warrior").addTo(node);

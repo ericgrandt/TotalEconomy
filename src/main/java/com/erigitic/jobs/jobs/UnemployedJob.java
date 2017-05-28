@@ -29,9 +29,11 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 public class UnemployedJob implements Job {
 
+    private final String NAME = "unemployed";
+
     @Override
     public String getName() {
-        return "unemployed";
+        return NAME;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class UnemployedJob implements Job {
 
     @Override
     public void populateNode(ConfigurationNode node) {
-        node = node.getNode(getName());
+        node = node.getNode(NAME);
 
         node.getNode("salary").setValue(20);
     }
