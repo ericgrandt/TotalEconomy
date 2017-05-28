@@ -32,25 +32,25 @@ import java.util.Arrays;
 
 public class LumberjackJob implements Job {
 
-    private String name = "lumberjack";
-    private String[] sets = { name + "Set" };
+    private final String NAME = "lumberjack";
+    private final String[] SETS = { NAME + "Set" };
 
     @Override
     public String getName() {
-        return name;
+        return NAME;
     }
 
     @Override
     public String[] getSets() {
-        return sets;
+        return SETS;
     }
 
     @Override
     public void populateNode(ConfigurationNode node) {
-        node = node.getNode(name);
+        node = node.getNode(NAME);
 
         node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(sets));
+        node.getNode("sets").setValue(Arrays.asList(SETS));
         JobBasedRequirement.of(null, 0, "totaleconomy.job.lumberjack").addTo(node);
     }
 }
