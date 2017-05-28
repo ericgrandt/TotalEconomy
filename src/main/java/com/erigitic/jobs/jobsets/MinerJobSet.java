@@ -29,7 +29,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 public class MinerJobSet implements JobSet {
 
-    private final String SETNAME = "minerSet";
+    private final String SETNAME = "ores";
 
     private final String[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
