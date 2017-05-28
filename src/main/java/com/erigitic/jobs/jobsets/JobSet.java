@@ -27,7 +27,7 @@ package com.erigitic.jobs.jobsets;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-public interface IDefaultJobSet {
+public interface JobSet {
 
-    void applyOnNode(ConfigurationNode node);
+    void populateNode(ConfigurationNode node);
 }
