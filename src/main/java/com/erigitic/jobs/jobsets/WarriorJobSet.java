@@ -29,7 +29,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 public class WarriorJobSet implements JobSet {
 
-    private final String SETNAME = "warriorSet";
+    private final String SETNAME = "mobs";
 
     private final String[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
