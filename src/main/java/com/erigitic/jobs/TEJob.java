@@ -35,23 +35,26 @@ import java.util.List;
 import java.util.Optional;
 
 public class TEJob {
-    private List<String> sets;
-
+    private String name;
     private BigDecimal salary;
-
+    private List<String> sets = new ArrayList<>();
     private JobBasedRequirement requirement;
 
-    private TEJob() {
-        sets = new ArrayList<>();
-    }
+    private boolean isValid = false;
 
-    public static TEJob of(ConfigurationNode node) {
-        TEJob job = new TEJob();
+    public TEJob(ConfigurationNode node) {
+        name = node.getKey().toString();
+        salary = new BigDecimal(node.getNode("salary").getString());
 
-        if (job.load(node))
-            return job;
+        try {
+            sets = node.getNode("sets").getList(TypeToken.of(String.class), new ArrayList<>());
 
-        return null;
+            isValid = true;
+        } catch (ObjectMappingException e) {
+            isValid = false;
+
+            e.printStackTrace();
+        }
     }
 
     public List<String> getSets() {
@@ -62,32 +65,17 @@ public class TEJob {
         return !salary.equals(BigDecimal.ZERO);
     }
 
+    public String getName() { return name; }
+
     public BigDecimal getSalary() {
         return salary;
     }
 
-    /**
-     * Read values from a {@link ConfigurationNode}
-     */
-    protected boolean load(ConfigurationNode node) {
-        salary = new BigDecimal(node.getNode("salary").getString("0"));
-
-        try {
-            sets = node.getNode("sets").getList(TypeToken.of(String.class), new ArrayList<String>());
-
-            if (!node.getNode("require").isVirtual()) {
-                requirement = JobBasedRequirement.of(node.getNode("require"));
-            }
-
-            return true;
-        } catch (ObjectMappingException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
     public Optional<JobBasedRequirement> getRequirement() {
         return Optional.ofNullable(requirement);
+    }
+
+    public boolean isValid() {
+        return isValid;
     }
 }
