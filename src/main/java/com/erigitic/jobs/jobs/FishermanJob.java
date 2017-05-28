@@ -30,19 +30,24 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.Arrays;
 
-public class FishermanJob implements IDefaultJob {
+public class FishermanJob implements Job {
 
-    private static final String jobname = "fisherman";
-    private static final String[] sets = { jobname + "Set" };
+    private final String name = "fisherman";
+    private final String[] sets = { name + "Set" };
 
     @Override
-    public String getJobName() {
-        return "fisherman";
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String[] getSets() {
+        return sets;
     }
 
     @Override
     public void populateNode(ConfigurationNode node) {
-        node = node.getNode(getJobName());
+        node = node.getNode(name);
 
         node.getNode("salary").setValue(20);
         node.getNode("sets").setValue(Arrays.asList(sets));
