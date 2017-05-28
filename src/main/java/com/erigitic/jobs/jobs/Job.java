@@ -27,9 +27,11 @@ package com.erigitic.jobs.jobs;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-public interface IDefaultJob {
+public interface Job {
 
-    String getJobName();
+    String getName();
+
+    String[] getSets();
 
     void populateNode(ConfigurationNode node);
 }
