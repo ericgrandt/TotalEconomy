@@ -64,6 +64,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.service.economy.Currency;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,7 +75,7 @@ import java.util.concurrent.TimeUnit;
 public class TEJobManager {
 
     // We only need one instance of this
-    public static final IDefaultJobSet[] defaultJobSets = {
+    public static final JobSet[] defaultJobSets = {
             new FishermanJobSet(),
             new LumberjackJobSet(),
             new MinerJobSet(),
@@ -82,7 +83,7 @@ public class TEJobManager {
     };
 
     // We only need one instance of this
-    public static final IDefaultJob[] defaultJobs = {
+    private final Job[] defaultJobsArr = {
             new UnemployedJob(),
             new FishermanJob(),
             new LumberjackJob(),
@@ -103,7 +104,7 @@ public class TEJobManager {
     private File jobsFile;
     private ConfigurationLoader<CommentedConfigurationNode> jobsLoader;
     private ConfigurationNode jobsConfig;
-    private Map<String, TEJob> jobs;
+    private Map<String, TEJob> jobsMap;
 
     private boolean databaseActive;
     private SQLHandler sqlHandler;
@@ -134,10 +135,9 @@ public class TEJobManager {
 
         payTask.execute(() -> {
                 for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
-                    Optional<TEJob> optJob = getPlayerTEJob(player);
+                    Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
+
                     if (!optJob.isPresent()) {
-                        // This should NOT happen unless the admin has removed the "unemployed" job... or something weird happened
-                        // Either way, the admin should be notified about this
                         player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
 
                         return;
@@ -156,8 +156,7 @@ public class TEJobManager {
                         }
                     }
                 }
-        }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay")
-                .getInt(), TimeUnit.SECONDS).name("Pay Day").submit(totalEconomy);
+        }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).name("Pay Day").submit(totalEconomy);
     }
 
     /**
@@ -171,7 +170,7 @@ public class TEJobManager {
 
         jobsFile = new File(totalEconomy.getConfigDir(), "jobs.conf");
         jobsLoader = HoconConfigurationLoader.builder().setFile(jobsFile).build();
-        jobs = new HashMap();
+        jobsMap = new HashMap();
         reloadJobsConfig();
     }
 
@@ -181,30 +180,21 @@ public class TEJobManager {
     public boolean reloadJobSetConfig() {
         try {
             jobSetsConfig = jobSetsLoader.load();
+            ConfigurationNode sets = jobSetsConfig.getNode("sets");
 
             if (!jobSetsFile.exists()) {
-                ConfigurationNode jobs = jobSetsConfig.getNode("sets");
-
-                // Install default jobs
-                for (IDefaultJobSet j : defaultJobSets) {
-                    j.applyOnNode(jobs);
+                for (JobSet s : defaultJobSets) {
+                    s.populateNode(sets);
                 }
 
                 jobSetsLoader.save(jobSetsConfig);
             }
 
-            ConfigurationNode sets = jobSetsConfig.getNode("sets");
-            Map<?, ?> setMap = sets.getChildrenMap();
+            sets.getChildrenMap().forEach((setName, setNode) -> {
+                if (setNode != null) {
+                    TEJobSet jobSet = new TEJobSet(setNode);
 
-            setMap.forEach((k, v) -> {
-                if ((k instanceof String) && (v instanceof ConfigurationNode)) {
-                    TEJobSet set = TEJobSet.of((ConfigurationNode) v);
-
-                    if (set != null) {
-                        jobSets.put((String) k, set);
-                    } else {
-                        logger.warn("[TE] An error occurred while loading a set: " + k);
-                    }
+                    jobSets.put((String) setName, jobSet);
                 }
             });
 
@@ -217,18 +207,19 @@ public class TEJobManager {
     }
 
     /**
-     * Reload the jobs config
+     * Reloads the job configuration file. Can be used for initial creation of the configuration file
+     * or for simply reloading it.
+     *
+     * @return boolean Was the reload successful?
      */
     public boolean reloadJobsConfig() {
         try {
             jobsConfig = jobsLoader.load();
+            ConfigurationNode jobsNode = jobsConfig.getNode("jobs");
 
             if (!jobsFile.exists()) {
-                ConfigurationNode jobs = jobsConfig.getNode("jobs");
-
-                // Install default jobs
-                for (IDefaultJob j : defaultJobs) {
-                    j.applyOnNode(jobs);
+                for (Job j : defaultJobsArr) {
+                    j.populateNode(jobsNode);
                 }
 
                 jobsConfig.getNode("salarydelay").setValue(300);
@@ -236,17 +227,13 @@ public class TEJobManager {
                 jobsLoader.save(jobsConfig);
             }
 
-            ConfigurationNode sets = jobsConfig.getNode("jobs");
-            Map<?, ?> setMap = sets.getChildrenMap();
+            // Loop through each job node in the configuration file, create a TEJob object from it, and store in a HashMap
+            jobsNode.getChildrenMap().forEach((k, jobNode) -> {
+                if (jobNode != null) {
+                    TEJob job = new TEJob(jobNode);
 
-            setMap.forEach((k, v) -> {
-                if ((k instanceof String) && (v instanceof ConfigurationNode)) {
-                    TEJob job = TEJob.of(((ConfigurationNode) v));
-
-                    if (job != null) {
-                        jobs.put((String) k, job);
-                    } else {
-                        logger.warn("[TE] An error occurred while loading a set: " + k);
+                    if (job.isValid()) {
+                        jobsMap.put(job.getName(), job);
                     }
                 }
             });
@@ -269,8 +256,8 @@ public class TEJobManager {
     /**
      * Add exp to player's current job
      *
-     * @param player player object
-     * @param expAmount amount of exp to be gained
+     * @param player The player to give experience to
+     * @param expAmount The amount of experience to add
      */
     public void addExp(Player player, int expAmount) {
         String jobName = getPlayerJob(player);
@@ -387,7 +374,9 @@ public class TEJobManager {
      * @param amount
      */
     private void notifyPlayer(Player player, BigDecimal amount) {
-        player.sendMessage(Text.of(TextColors.GOLD, accountManager.getDefaultCurrency().format(amount), TextColors.GRAY, " has been added to your balance."));
+        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
+
+        player.sendMessage(Text.of(TextColors.GOLD, defaultCurrency.format(amount, defaultCurrency.getDefaultFractionDigits()), TextColors.GRAY, " has been added to your balance."));
     }
 
     /**
@@ -420,11 +409,9 @@ public class TEJobManager {
         } else {
             accountConfig.getNode(userUUID.toString(), "job").setValue(jobName);
 
-            // Set level if not of type int or null
             accountConfig.getNode(userUUID.toString(), "jobstats", jobName, "level").setValue(
                     accountConfig.getNode(userUUID.toString(), "jobstats", jobName, "level").getInt(1));
 
-            // See above
             accountConfig.getNode(userUUID.toString(), "jobstats", jobName, "exp").setValue(
                     accountConfig.getNode(userUUID.toString(), "jobstats", jobName, "exp").getInt(0));
 
@@ -433,7 +420,7 @@ public class TEJobManager {
             } catch (IOException e) {
                 logger.warn("[TE] An error occurred while changing the job of " + user.getUniqueId() + "/" + user.getName() + "!");
             }
-            // Return true in BOTH cases.
+
             return true;
         }
 
@@ -472,26 +459,14 @@ public class TEJobManager {
     }
 
     /**
-     * Get the user's current TEJob instance
+     * Get a TEJob object by a job name
      *
-     * @param user the user
-     * @return {@link TEJob} the job the user currently has
-     */
-    public Optional<TEJob> getPlayerTEJob(User user) {
-        String jobName = getPlayerJob(user);
-
-        return getJob(jobName, true);
-    }
-
-    /**
-     * Get a job by its name
-     *
-     * @param jobName name of the job
-     * @param tryUnemployed whether or not to try returning the unemployed job when the job wasn't found
+     * @param jobName Name of the job
+     * @param tryUnemployed Whether or not to try returning the unemployed job when the job wasn't found
      * @return {@link TEJob} the job; {@code null} for not found
      */
     public Optional<TEJob> getJob(String jobName, boolean tryUnemployed) {
-        TEJob job = jobs.getOrDefault(jobName, null);
+        TEJob job = jobsMap.getOrDefault(jobName, null);
 
         if (job != null || !tryUnemployed)
             return Optional.ofNullable(job);
@@ -576,17 +551,17 @@ public class TEJobManager {
     }
 
     /**
-     * Gets a list of all of the jobs currently in the jobs config.
+     * Gets a comma separated string of all of the jobs currently in the jobs config.
      *
-     * @return String list of jobs
+     * @return Text Comma separated string of jobs
      */
     public Text getJobList() {
         List<Text> texts = new ArrayList<>();
 
-        jobs.forEach((j, o) -> texts.add(Text.of(
-                TextActions.runCommand("/job set " + j),
+        jobsMap.forEach((jobName, jobObject) -> texts.add(Text.of(
+                TextActions.runCommand("/job set " + jobName),
                 TextActions.showText(Text.of("Click to change job")),
-                j))
+                jobName))
         );
 
         return Text.joinWith(Text.of(", "), texts.toArray(new Text[texts.size()]));
@@ -595,7 +570,7 @@ public class TEJobManager {
     /**
      * Getter for the jobSet configuration
      *
-     * @return {@link ConfigurationNode} the jobSet configuration
+     * @return ConfigurationNode the jobSet configuration
      */
     public ConfigurationNode getJobSetConfig() {
         return jobSetsConfig;
@@ -698,7 +673,10 @@ public class TEJobManager {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
-            Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
+
+            String playerJob = getPlayerJob(player);
+            Optional<TEJob> optPlayerJob = getJob(playerJob, true);
+
             String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
@@ -751,7 +729,10 @@ public class TEJobManager {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
-            Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
+
+            String playerJob = getPlayerJob(player);
+            Optional<TEJob> optPlayerJob = getJob(playerJob, true);
+
             String blockName = event.getTransactions().get(0).getFinal().getState().getType().getName();
 
             if (optPlayerJob.isPresent()) {
@@ -817,7 +798,9 @@ public class TEJobManager {
                 Player player = (Player) killer;
                 UUID playerUUID = player.getUniqueId();
                 String victimName = victim.getType().getName();
-                Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
+
+                String playerJob = getPlayerJob(player);
+                Optional<TEJob> optPlayerJob = getJob(playerJob, true);
 
                 if (optPlayerJob.isPresent()) {
                     Optional<TEActionReward> reward = Optional.empty();
@@ -874,7 +857,9 @@ public class TEJobManager {
             ItemStack itemStack = itemTransaction.getFinal().createStack();
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
-            Optional<TEJob> optPlayerJob = getPlayerTEJob(player);
+
+            String playerJob = getPlayerJob(player);
+            Optional<TEJob> optPlayerJob = getJob(playerJob, true);
 
             if (optPlayerJob.isPresent()) {
                 if (itemStack.get(FishData.class).isPresent()) {
