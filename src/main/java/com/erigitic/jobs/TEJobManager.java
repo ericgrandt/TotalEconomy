@@ -709,7 +709,7 @@ public class TEJobManager {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }
@@ -763,7 +763,7 @@ public class TEJobManager {
                     }
 
                     addExp(player, expAmount);
-                    playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                    playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                     checkForLevel(player);
                 }
             }
@@ -830,7 +830,7 @@ public class TEJobManager {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }
@@ -893,7 +893,7 @@ public class TEJobManager {
                         }
 
                         addExp(player, expAmount);
-                        playerAccount.deposit(accountManager.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
                         checkForLevel(player);
                     }
                 }

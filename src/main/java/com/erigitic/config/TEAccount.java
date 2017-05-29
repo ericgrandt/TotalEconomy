@@ -170,11 +170,11 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        TransactionResult transactionResult = new TETransactionResult(this, totalEconomy.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
         Map result = new HashMap<>();
-        result.put(accountManager.getDefaultCurrency(), transactionResult);
+        result.put(totalEconomy.getDefaultCurrency(), transactionResult);
 
         return result;
     }
