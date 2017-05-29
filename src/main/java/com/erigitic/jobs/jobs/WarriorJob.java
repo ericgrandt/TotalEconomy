@@ -52,7 +52,6 @@ public class WarriorJob implements Job {
         node.getNode("salary").setValue(10);
         node.getNode("sets").setValue(Arrays.asList(SETS));
 
-        // TODO: Stop with the static when it's not necessary. Remove and replace.
-        JobBasedRequirement.of(null, 0, "totaleconomy.job.warrior").addTo(node);
+        new JobBasedRequirement(null, 0, "totaleconomy.job.warrior").addTo(node);
     }
 }
