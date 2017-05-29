@@ -78,9 +78,9 @@ public class TECurrency implements Currency {
     @Override
     public Text format(BigDecimal amount, int numFractionDigits) {
         if (prefixSymbol) {
-            return Text.of(symbol, NumberFormat.getInstance(Locale.ENGLISH).format(amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP)));
+            return Text.of(symbol, amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP));
         } else {
-            return Text.of(NumberFormat.getInstance(Locale.ENGLISH).format(amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP)), symbol);
+            return Text.of(amount.setScale(numFractionDigits, BigDecimal.ROUND_HALF_UP), symbol);
 
         }
     }
@@ -89,7 +89,6 @@ public class TECurrency implements Currency {
     public int getDefaultFractionDigits() {
         return numFractionDigits;
     }
-
 
     @Override
     public boolean isDefault() {
