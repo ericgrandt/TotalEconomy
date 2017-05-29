@@ -56,7 +56,7 @@ public class BalanceCommand implements CommandExecutor {
         if (src instanceof Player) {
             Player sender = (Player) src;
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
-            Currency defaultCurrency = accountManager.getDefaultCurrency();
+            Currency defaultCurrency = totalEconomy.getDefaultCurrency();
             Text playerBalance = defaultCurrency.format(playerAccount.getBalance(defaultCurrency));
 
             sender.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, playerBalance));
