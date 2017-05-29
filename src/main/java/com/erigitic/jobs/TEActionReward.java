@@ -30,35 +30,24 @@ import ninja.leaping.configurate.ConfigurationNode;
 import java.math.BigDecimal;
 
 public class TEActionReward {
-    private String event;
+    private String action;
     private String targetID;
     private int expReward;
     private BigDecimal moneyReward;
 
-    private TEActionReward() {
-    }
+    private boolean isValid = false;
 
-    //@Nullable
-    public static TEActionReward of(String event, String targetID, ConfigurationNode node) {
-        TEActionReward reward = new TEActionReward();
-
-        if (reward.load(event, targetID, node))
-            return reward;
-
-        return null;
-    }
-
-    protected boolean load(String event, String targetID, ConfigurationNode node) {
-        this.event = event;
+    public TEActionReward(String action, String targetID, String expReward, String moneyReward) {
+        this.action = action;
         this.targetID = targetID;
-        expReward = node.getNode("expGain").getInt(0);
-        moneyReward = new BigDecimal(node.getNode("moneyGain").getString("0"));
+        this.expReward = Integer.parseInt(expReward);
+        this.moneyReward = new BigDecimal(moneyReward);
 
-        return event != null && !event.isEmpty() && targetID != null && !targetID.isEmpty();
+        isValid = (action != null && !action.isEmpty() && targetID != null && !targetID.isEmpty());
     }
 
-    public String getEvent() {
-        return event;
+    public String getAction() {
+        return action;
     }
 
     public String getTargetID() {
@@ -71,5 +60,9 @@ public class TEActionReward {
 
     public BigDecimal getMoneyReward() {
         return moneyReward;
+    }
+
+    public boolean isValid() {
+        return isValid;
     }
 }
