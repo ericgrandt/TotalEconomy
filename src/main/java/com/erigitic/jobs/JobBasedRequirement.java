@@ -31,47 +31,32 @@ import ninja.leaping.configurate.ConfigurationNode;
  * Requirement notation that is usable in various places such as higher job tiers
  */
 public class JobBasedRequirement {
-    private int needsJobLevel;
-    private String needsJob;
-    private String needsPermission;
+    private int reqJobLevel;
+    private String reqJob;
+    private String reqPermission;
 
-    private JobBasedRequirement(ConfigurationNode node) {
-        this(node.getNode("job").getString(null),
-                node.getNode("level").getInt(0),
-                node.getNode("permission").getString(null));
-    }
-
-    private JobBasedRequirement(String needsJob, int needJobLevel, String needsPermission) {
-        this.needsJob = needsJob;
-        this.needsJobLevel = needJobLevel;
-        this.needsPermission = needsPermission;
-    }
-
-    public static JobBasedRequirement of(ConfigurationNode node) {
-        return new JobBasedRequirement(node);
-    }
-    public static JobBasedRequirement of(String needsJob, int needsJobLevel, String needsPermission) {
-        return new JobBasedRequirement(needsJob, needsJobLevel, needsPermission);
+    public JobBasedRequirement(String reqJob, int reqJobLevel, String reqPermission) {
+        this.reqJob = reqJob;
+        this.reqJobLevel = reqJobLevel;
+        this.reqPermission = reqPermission;
     }
 
     public int jobLevelNeeded() {
-        return needsJobLevel;
+        return reqJobLevel;
     }
 
-    //@Nullable
     public String jobNeeded() {
-        return needsJob;
+        return reqJob;
     }
 
-    //@Nullable
     public String permissionNeeded() {
-        return needsPermission;
+        return reqPermission;
     }
 
     public void addTo(ConfigurationNode node) {
         node = node.getNode("require");
-        node.getNode("job").setValue(needsJob);
-        node.getNode("level").setValue(needsJobLevel);
-        node.getNode("permission").setValue(needsPermission);
+        node.getNode("job").setValue(reqJob);
+        node.getNode("level").setValue(reqJobLevel);
+        node.getNode("permission").setValue(reqPermission);
     }
 }
