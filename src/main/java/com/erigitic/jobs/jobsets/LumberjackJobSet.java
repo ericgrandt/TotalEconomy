@@ -46,7 +46,7 @@ public class LumberjackJobSet implements JobSet {
         for (String[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
-            n.getNode("moneyGain").setValue(a[3]);
+            n.getNode("money").setValue(a[3]);
         }
     }
 }
