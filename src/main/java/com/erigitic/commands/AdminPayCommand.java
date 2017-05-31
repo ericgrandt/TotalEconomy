@@ -60,7 +60,7 @@ public class AdminPayCommand implements CommandExecutor {
 
         accountManager = totalEconomy.getAccountManager();
 
-        defaultCurrency = accountManager.getDefaultCurrency();
+        defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class AdminPayCommand implements CommandExecutor {
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
             Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
 
-            TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            TransactionResult transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
                 if (!strAmount.contains("-")) {

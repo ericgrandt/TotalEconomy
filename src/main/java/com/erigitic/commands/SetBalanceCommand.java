@@ -55,11 +55,11 @@ public class SetBalanceCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         User recipient = args.<User>getOne("player").get();
         BigDecimal amount = new BigDecimal(args.<String>getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-        Currency defaultCurrency = accountManager.getDefaultCurrency();
+        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
         TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-        recipientAccount.setBalance(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
         src.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, defaultCurrency.format(amount)));
 
