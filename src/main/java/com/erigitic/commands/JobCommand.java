@@ -25,10 +25,8 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.jobs.JobBasedRequirement;
-import com.erigitic.jobs.TEJob;
-import com.erigitic.jobs.TEJobManager;
-import com.erigitic.jobs.TEJobSet;
+import com.erigitic.config.TECurrency;
+import com.erigitic.jobs.*;
 import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -40,6 +38,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
@@ -184,7 +183,7 @@ public class JobCommand implements CommandExecutor {
             Optional<TEJob> optJob = Optional.empty();
 
             if (!optJobName.isPresent() && (src instanceof Player)) {
-                optJob = teJobManager.getPlayerTEJob(((Player) src));
+                optJob = teJobManager.getJob(teJobManager.getPlayerJob((Player) src), true);
             }
 
             if (optJobName.isPresent()) {
@@ -195,21 +194,18 @@ public class JobCommand implements CommandExecutor {
                 throw new CommandException(Text.of(TextColors.RED, "Unknown job: \"" + optJobName.orElse("") + "\""));
             }
 
-            List<Text> lines = new ArrayList<Text>();
+            List<Text> lines = new ArrayList();
 
             for (String s : optJob.get().getSets()) {
                 Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
 
                 if (optSet.isPresent()) {
-                    Map<String, List<String>> map = optSet.get().getRewardData();
-                    map.forEach((k, v) -> {
-                        //Add event name
-                        lines.add(Text.of(TextColors.GRAY, TextColors.GOLD, TextStyles.ITALIC, k, "\n"));
-                        //Add targets
-                        v.forEach(id -> {
-                            lines.add(Text.of(TextColors.GRAY, "\t", TextColors.DARK_GREEN, id));
-                        });
-                    });
+                    TEJobSet jobSet = optSet.get();
+                    Currency defaultCurrency = totalEconomy.getDefaultCurrency();
+
+                    for (TEActionReward actionReward : jobSet.getActionRewards()) {
+                        lines.add(Text.of(TextColors.GOLD, "[", teJobManager.titleize(actionReward.getAction()), "] ", TextColors.GRAY, actionReward.getTargetID(), TextColors.GOLD, " (", actionReward.getExpReward(), " EXP) (", defaultCurrency.format(actionReward.getMoneyReward()), ")"));
+                    }
                 }
             }
 

@@ -62,7 +62,7 @@ public class PayCommand implements CommandExecutor {
 
         accountManager = totalEconomy.getAccountManager();
 
-        defaultCurrency = accountManager.getDefaultCurrency();
+        defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
@@ -86,7 +86,7 @@ public class PayCommand implements CommandExecutor {
                 TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
                 TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                TransferResult transferResult = playerAccount.transfer(recipientAccount, accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                TransferResult transferResult = playerAccount.transfer(recipientAccount, totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
                 if (transferResult.getResult() == ResultType.SUCCESS) {
                     sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),

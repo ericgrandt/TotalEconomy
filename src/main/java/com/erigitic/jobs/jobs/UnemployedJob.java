@@ -27,16 +27,23 @@ package com.erigitic.jobs.jobs;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-public class UnemployedJob implements IDefaultJob {
+public class UnemployedJob implements Job {
+
+    private final String NAME = "unemployed";
 
     @Override
-    public String getJobName() {
-        return "unemployed";
+    public String getName() {
+        return NAME;
     }
 
     @Override
-    public void applyOnNode(ConfigurationNode node) {
-        node = node.getNode(getJobName());
+    public String[] getSets() {
+        return null;
+    }
+
+    @Override
+    public void populateNode(ConfigurationNode node) {
+        node = node.getNode(NAME);
 
         node.getNode("salary").setValue(20);
     }
