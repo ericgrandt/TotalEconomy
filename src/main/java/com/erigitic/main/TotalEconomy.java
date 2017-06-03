@@ -158,8 +158,9 @@ public class TotalEconomy {
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
 
-        if (loadJobs)
+        if (loadJobs) {
             game.getEventManager().registerListeners(this, teJobManager);
+        }
     }
 
     @Listener
@@ -178,8 +179,9 @@ public class TotalEconomy {
     public void onServerStopping(GameStoppingServerEvent event) {
         logger.info("Total Economy Stopping");
 
-        if (!databaseActive)
+        if (!databaseActive) {
             accountManager.saveAccountConfig();
+        }
     }
 
     @Listener
@@ -201,9 +203,9 @@ public class TotalEconomy {
      */
     @Listener
     public void onGameReload(GameReloadEvent event) {
-        // If jobs are set to load, then reload the jobs config
-        if (loadJobs)
+        if (loadJobs) {
             teJobManager.reloadJobsAndSets();
+        }
 
         accountManager.reloadConfig();
     }
