@@ -35,10 +35,7 @@ import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.economy.transaction.TransactionTypes;
-import org.spongepowered.api.service.economy.transaction.TransferResult;
+import org.spongepowered.api.service.economy.transaction.*;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
@@ -132,7 +129,16 @@ public class TEAccount implements UniqueAccount {
         TransactionResult transactionResult;
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        if (hasBalance(currency, contexts) && amount.compareTo(BigDecimal.ZERO) >= 0) {
+        if (hasBalance(currency, contexts)) {
+            BigDecimal delta = amount.subtract(getBalance(currency));
+            TransactionType transactionType;
+
+            if (delta.compareTo(BigDecimal.ZERO) >= 0) {
+                transactionType = TransactionTypes.DEPOSIT;
+            } else {
+                transactionType = TransactionTypes.WITHDRAW;
+            }
+
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                         .update("totaleconomy.accounts")
@@ -143,26 +149,25 @@ public class TEAccount implements UniqueAccount {
                         .build();
 
                 if (sqlQuery.getRowsAffected() > 0) {
-                    transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                    transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
                 } else {
-                    transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                    transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.FAILED, transactionType);
                 }
-
-                return transactionResult;
             } else {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
                 accountManager.saveAccountConfig();
 
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                return transactionResult;
+                transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
             }
+        } else {
+            transactionResult = new TETransactionResult(this, currency, BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         }
 
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.DEPOSIT);
+        totalEconomy.getLogger().info("Account: " + transactionResult.getAccount().getIdentifier() +
+                " Amount: " + transactionResult.getAmount() +
+                " Currency: " + transactionResult.getCurrency().getDisplayName() +
+                " Result: " + transactionResult.getResult() +
+                " Type: " + transactionResult.getType());
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
         return transactionResult;
@@ -197,7 +202,11 @@ public class TEAccount implements UniqueAccount {
         BigDecimal curBalance =  getBalance(currency, contexts);
         BigDecimal newBalance = curBalance.subtract(amount);
 
-        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
+            return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        }
+
+        return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
     }
 
     @Override
