@@ -112,6 +112,10 @@ public class AccountManager implements EconomyService {
                 "job_notifications boolean NOT NULL DEFAULT TRUE," +
                 "PRIMARY KEY (uid)");
 
+        sqlHandler.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
+                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
+                "PRIMARY KEY (uid)");
+
         sqlHandler.createTable("levels", "uid varchar(60)," +
                 "miner int(10) unsigned NOT NULL DEFAULT '1'," +
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
@@ -181,11 +185,16 @@ public class AccountManager implements EconomyService {
         TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
 
         try {
-            // TODO: Create new table for virtual accounts and store all virtual account data within. IF DATABASE ENABLED.
-            if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() == null) {
-                accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
-
-                loader.save(accountConfig);
+            if (!hasAccount(identifier)) {
+                if (databaseActive) {
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.virtual_accounts")
+                            .columns("uid", currencyName + "_balance")
+                            .values(identifier, virtualAccount.getDefaultBalance(getDefaultCurrency()).toString())
+                            .build();
+                } else {
+                    accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
+                    loader.save(accountConfig);
+                }
             }
         } catch (IOException e) {
             logger.warn("[TE] An error occurred while creating a new virtual account!");
@@ -212,7 +221,18 @@ public class AccountManager implements EconomyService {
 
     @Override
     public boolean hasAccount(String identifier) {
-        return accountConfig.getNode(identifier).getValue() != null;
+        if (databaseActive) {
+            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+                    .select("uid")
+                    .from("totaleconomy.virtual_accounts")
+                    .where("uid")
+                    .equals(identifier)
+                    .build();
+
+            return query.recordExists();
+        } else {
+            return accountConfig.getNode(identifier).getValue() != null;
+        }
     }
 
     @Override
