@@ -105,6 +105,8 @@ public class TotalEconomy {
     private boolean loadMoneyCap = false;
     private BigDecimal moneyCap;
 
+    private int saveInterval;
+
     private SQLHandler sqlHandler;
 
     @Listener
@@ -136,6 +138,8 @@ public class TotalEconomy {
             sqlHandler = new SQLHandler(this);
         }
 
+        saveInterval = config.getNode("save-interval").getInt(30);
+
         accountManager = new AccountManager(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
@@ -154,8 +158,9 @@ public class TotalEconomy {
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
 
-        if (loadJobs)
+        if (loadJobs) {
             game.getEventManager().registerListeners(this, teJobManager);
+        }
     }
 
     @Listener
@@ -174,8 +179,9 @@ public class TotalEconomy {
     public void onServerStopping(GameStoppingServerEvent event) {
         logger.info("Total Economy Stopping");
 
-        if (!databaseActive)
+        if (!databaseActive) {
             accountManager.saveAccountConfig();
+        }
     }
 
     @Listener
@@ -197,9 +203,9 @@ public class TotalEconomy {
      */
     @Listener
     public void onGameReload(GameReloadEvent event) {
-        // If jobs are set to load, then reload the jobs config
-        if (loadJobs)
+        if (loadJobs) {
             teJobManager.reloadJobsAndSets();
+        }
 
         accountManager.reloadConfig();
     }
@@ -213,7 +219,7 @@ public class TotalEconomy {
 
             if (!defaultConf.exists()) {
                 config.getNode("database", "enable").setValue(databaseActive);
-                config.getNode("database", "url").setValue("jdbc:mysql:[URL]:[PORT]");
+                config.getNode("database", "url").setValue("jdbc:mysql://[URL]:[PORT]/");
                 config.getNode("database", "user").setValue("");
                 config.getNode("database", "password").setValue("");
                 config.getNode("features", "jobs", "enable").setValue(loadJobs);
@@ -227,10 +233,11 @@ public class TotalEconomy {
                 config.getNode("currency", "currency-plural").setValue("Dollars");
                 config.getNode("currency", "symbol").setValue("$");
                 config.getNode("currency", "prefix-symbol").setValue(true);
+                config.getNode("save-interval").setValue(30);
                 loader.save(config);
             }
         } catch (IOException e) {
-            logger.warn("Main config could not be loaded/created/changed!");
+            logger.warn("[TE] Main configuration file could not be loaded/created/changed!");
         }
     }
 
@@ -247,7 +254,7 @@ public class TotalEconomy {
                 .description(Text.of("Pay a player without removing money from your balance."))
                 .permission("totaleconomy.command.adminpay")
                 .executor(new AdminPayCommand(this))
-                .arguments(GenericArguments.player(Text.of("player")),
+                .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.string(Text.of("amount")))
                 .build();
 
@@ -274,13 +281,12 @@ public class TotalEconomy {
                 .description(Text.of("Set a player's balance"))
                 .permission("totaleconomy.command.setbalance")
                 .executor(new SetBalanceCommand(this))
-                .arguments(GenericArguments.player(Text.of("player")),
+                .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.string(Text.of("amount")))
                 .build();
 
         //Only enables job commands if the value for jobs in config is set to true
         if (loadJobs) {
-            // Cramped all the CommandSpec stuff into the nested classes as appears to be common in Sponge plugin development
             game.getCommandManager().register(this, JobCommand.commandSpec(this), "job");
         }
 
@@ -342,6 +348,10 @@ public class TotalEconomy {
 
     public BigDecimal getMoneyCap() {
         return moneyCap.setScale(2, BigDecimal.ROUND_DOWN);
+    }
+
+    public int getSaveInterval() {
+        return saveInterval;
     }
 
     public boolean hasJobNotifications() { return jobNotifications; }

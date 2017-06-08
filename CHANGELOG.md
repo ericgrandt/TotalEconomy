@@ -3,7 +3,8 @@ v1.6.0
 + SQL Support
 + Reusable job sets that allow for easier job creation
 + Add option to change location of currency symbol (eg. $5 or 5$)
-+ Add ``/job set <job> <player>`` command to set another players job
++ Add `/job set <job> <player>` command to set another players job
++ Virtual account support
 + CHANGE: Updated format of job info command
 + CHANGE: Commands now properly return as successful or unsuccessful
 + CHANGE: Baltop command now only shows a maximum of 10 balances

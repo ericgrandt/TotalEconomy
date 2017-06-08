@@ -33,6 +33,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
@@ -48,6 +49,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
@@ -60,6 +62,8 @@ public class AccountManager implements EconomyService {
 
     private boolean databaseActive;
 
+    private boolean dirty = false;
+
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
@@ -71,6 +75,13 @@ public class AccountManager implements EconomyService {
             setupDatabase();
         } else {
             setupConfig();
+        }
+
+        if (totalEconomy.getSaveInterval() > 0) {
+            Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
+                    .execute(() -> {
+                        writeToDisk();
+                    }).submit(totalEconomy);
         }
     }
 
@@ -88,7 +99,7 @@ public class AccountManager implements EconomyService {
                 loader.save(accountConfig);
             }
         } catch (IOException e) {
-            logger.warn("Could not create accounts config file!");
+            logger.warn("[TE] Error creating accounts configuration file!");
         }
     }
 
@@ -99,6 +110,10 @@ public class AccountManager implements EconomyService {
                 getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
                 "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
                 "job_notifications boolean NOT NULL DEFAULT TRUE," +
+                "PRIMARY KEY (uid)");
+
+        sqlHandler.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
+                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
                 "PRIMARY KEY (uid)");
 
         sqlHandler.createTable("levels", "uid varchar(60)," +
@@ -122,9 +137,9 @@ public class AccountManager implements EconomyService {
     public void reloadConfig() {
         try {
             accountConfig = loader.load();
-            logger.info("Reloading account configuration file.");
+            logger.info("[TE] Reloading account configuration file.");
         } catch (IOException e) {
-            logger.warn("Could not reload account configuration file!");
+            logger.warn("[TE] An error occurred while reloading the account configuration file!");
         }
     }
 
@@ -158,7 +173,7 @@ public class AccountManager implements EconomyService {
                 }
             }
         } catch (IOException e) {
-            logger.warn("Could not create account!");
+            logger.warn("[TE] An error occurred while creating a new account!");
         }
 
         return Optional.of(playerAccount);
@@ -170,14 +185,19 @@ public class AccountManager implements EconomyService {
         TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
 
         try {
-            // TODO: Create new table for virtual accounts and store all virtual account data within. IF DATABASE ENABLED.
-            if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() == null) {
-                accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
-
-                loader.save(accountConfig);
+            if (!hasAccount(identifier)) {
+                if (databaseActive) {
+                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.virtual_accounts")
+                            .columns("uid", currencyName + "_balance")
+                            .values(identifier, virtualAccount.getDefaultBalance(getDefaultCurrency()).toString())
+                            .build();
+                } else {
+                    accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
+                    loader.save(accountConfig);
+                }
             }
         } catch (IOException e) {
-            logger.warn("Could not create account!");
+            logger.warn("[TE] An error occurred while creating a new virtual account!");
         }
 
         return Optional.of(virtualAccount);
@@ -201,7 +221,18 @@ public class AccountManager implements EconomyService {
 
     @Override
     public boolean hasAccount(String identifier) {
-        return accountConfig.getNode(identifier).getValue() != null;
+        if (databaseActive) {
+            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+                    .select("uid")
+                    .from("totaleconomy.virtual_accounts")
+                    .where("uid")
+                    .equals(identifier)
+                    .build();
+
+            return query.recordExists();
+        } else {
+            return accountConfig.getNode(identifier).getValue() != null;
+        }
     }
 
     @Override
@@ -252,33 +283,51 @@ public class AccountManager implements EconomyService {
                     .equals(playerUUID.toString())
                     .build();
 
-            if (sqlQuery.getRowsAffected() <= 0)
-                player.sendMessage(Text.of(TextColors.RED, "[SQL] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+            if (sqlQuery.getRowsAffected() <= 0) {
+                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("[TE] An error occurred while updating the notification state in the database!");
+            }
         } else {
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
 
             try {
                 loader.save(accountConfig);
             } catch (IOException e) {
-                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("Could not update notification state in configuration!");
+                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("[TE] An error occurred while updating the notification state!");
             }
         }
 
-        if (jobNotifications == true)
+        if (jobNotifications == true) {
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
-        else
+        } else {
             player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
+        }
     }
 
     /**
      * Save the account configuration file
      */
     public void saveAccountConfig() {
+        dirty = true;
+        if (totalEconomy.getSaveInterval() <= 0) {
+            writeToDisk();
+        }
+    }
+
+    /**
+     * Save the account configuration file
+     */
+    public void writeToDisk() {
+        if (!dirty) {
+            return;
+        }
+
         try {
             loader.save(accountConfig);
+            dirty = false;
         } catch (IOException e) {
-            logger.error("Could not save the account configuration file!");
+            logger.error("[TE] An error occurred while saving the account configuration file!");
         }
     }
 

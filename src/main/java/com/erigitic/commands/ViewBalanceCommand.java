@@ -57,8 +57,8 @@ public class ViewBalanceCommand implements CommandExecutor {
 
         TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-        Currency defaultCurrency = accountManager.getDefaultCurrency();
-        BigDecimal balance = recipientAccount.getBalance(accountManager.getDefaultCurrency());
+        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
+        BigDecimal balance = recipientAccount.getBalance(defaultCurrency);
 
         sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, defaultCurrency.format(balance)));
 

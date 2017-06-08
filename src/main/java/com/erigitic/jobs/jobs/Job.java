@@ -23,11 +23,15 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobsets;
+package com.erigitic.jobs.jobs;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-public interface IDefaultJobSet {
+public interface Job {
 
-    void applyOnNode(ConfigurationNode node);
+    String getName();
+
+    String[] getSets();
+
+    void populateNode(ConfigurationNode node);
 }

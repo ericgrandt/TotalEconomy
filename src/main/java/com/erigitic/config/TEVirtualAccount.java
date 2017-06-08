@@ -35,10 +35,7 @@ import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.economy.transaction.TransactionTypes;
-import org.spongepowered.api.service.economy.transaction.TransferResult;
+import org.spongepowered.api.service.economy.transaction.*;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
@@ -84,7 +81,7 @@ public class TEVirtualAccount implements VirtualAccount {
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                     .select(currencyName + "_balance")
-                    .from("totaleconomy.accounts")
+                    .from("totaleconomy.virtual_accounts")
                     .where("uid")
                     .equals(identifier)
                     .build();
@@ -103,7 +100,7 @@ public class TEVirtualAccount implements VirtualAccount {
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                         .select(currencyName + "_balance")
-                        .from("totaleconomy.accounts")
+                        .from("totaleconomy.virtual_accounts")
                         .where("uid")
                         .equals(identifier)
                         .build();
@@ -129,10 +126,19 @@ public class TEVirtualAccount implements VirtualAccount {
         TransactionResult transactionResult;
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        if (hasBalance(currency, contexts) && amount.compareTo(BigDecimal.ZERO) >= 0) {
+        if (hasBalance(currency, contexts)) {
+            BigDecimal delta = amount.subtract(getBalance(currency));
+            TransactionType transactionType;
+
+            if (delta.compareTo(BigDecimal.ZERO) >= 0) {
+                transactionType = TransactionTypes.DEPOSIT;
+            } else {
+                transactionType = TransactionTypes.WITHDRAW;
+            }
+
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.accounts")
+                        .update("totaleconomy.virtual_accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
                         .where("uid")
@@ -140,26 +146,20 @@ public class TEVirtualAccount implements VirtualAccount {
                         .build();
 
                 if (sqlQuery.getRowsAffected() > 0) {
-                    transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                    transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
                 } else {
-                    transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-                    totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+                    transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.FAILED, transactionType);
                 }
-
-                return transactionResult;
             } else {
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
                 accountManager.saveAccountConfig();
 
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                return transactionResult;
+                transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
             }
+        } else {
+            transactionResult = new TETransactionResult(this, currency, BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         }
 
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.DEPOSIT);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
         return transactionResult;
@@ -167,11 +167,11 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        TransactionResult transactionResult = new TETransactionResult(this, totalEconomy.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
         Map result = new HashMap<>();
-        result.put(accountManager.getDefaultCurrency(), transactionResult);
+        result.put(totalEconomy.getDefaultCurrency(), transactionResult);
 
         return result;
     }
@@ -194,7 +194,11 @@ public class TEVirtualAccount implements VirtualAccount {
         BigDecimal curBalance =  getBalance(currency, contexts);
         BigDecimal newBalance = curBalance.subtract(amount);
 
-        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
+            return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        }
+
+        return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
     }
 
     @Override

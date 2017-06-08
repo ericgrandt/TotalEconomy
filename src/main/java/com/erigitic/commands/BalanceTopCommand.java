@@ -69,7 +69,7 @@ public class BalanceTopCommand implements CommandExecutor {
         ConfigurationNode accountNode = accountManager.getAccountConfig();
         List<Text> accountBalances = new ArrayList<>();
         Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
-        Currency defaultCurrency = accountManager.getDefaultCurrency();
+        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
         accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
             UUID uuid;
