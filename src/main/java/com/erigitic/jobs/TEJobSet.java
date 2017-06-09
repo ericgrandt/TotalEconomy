@@ -37,7 +37,13 @@ public class TEJobSet {
             if ((action instanceof String) &&  targetNode != null) {
                 targetNode.getChildrenMap().forEach((targetID, rewardsNode) -> {
                     if ((targetID instanceof String) && rewardsNode != null) {
-                        TEActionReward actionReward = new TEActionReward((String) action, (String) targetID, rewardsNode.getNode("exp").getString("0"), rewardsNode.getNode("money").getString("0"));
+                        TEActionReward actionReward = new TEActionReward(
+                                (String) action,
+                                (String) targetID,
+                                rewardsNode.getNode("exp").getString("0"),
+                                rewardsNode.getNode("money").getString("0"),
+                                rewardsNode.getNode("growTrait").getString(null)
+                        );
 
                         if (actionReward.isValid()) {
                             actionRewards.add(actionReward);

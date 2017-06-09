@@ -23,54 +23,34 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs;
+package com.erigitic.jobs.jobs;
 
+import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.math.BigDecimal;
-import java.util.Optional;
+import java.util.Arrays;
 
-public class TEActionReward {
-    private String action;
-    private String targetID;
-    private int expReward;
-    private BigDecimal moneyReward;
-    private String growthTrait;
-    private Integer growthMeta;
+public class FarmerJob implements Job {
 
-    private boolean isValid = false;
+    private final String NAME = "farmer";
+    private final String[] SETS = { "crops" };
 
-    public TEActionReward(String action, String targetID, String expReward, String moneyReward, String growthTrait) {
-        this.action = action;
-        this.targetID = targetID;
-        this.expReward = Integer.parseInt(expReward);
-        this.moneyReward = new BigDecimal(moneyReward);
-        this.growthTrait = growthTrait;
-
-        isValid = (action != null && !action.isEmpty() && targetID != null && !targetID.isEmpty());
+    @Override
+    public String getName() {
+        return NAME;
     }
 
-    public String getAction() {
-        return action;
+    @Override
+    public String[] getSets() {
+        return SETS;
     }
 
-    public String getTargetID() {
-        return targetID;
-    }
+    @Override
+    public void populateNode(ConfigurationNode node) {
+        node = node.getNode(NAME);
 
-    public int getExpReward() {
-        return expReward;
-    }
-
-    public BigDecimal getMoneyReward() {
-        return moneyReward;
-    }
-
-    public boolean isValid() {
-        return isValid;
-    }
-
-    public Optional<String> getGrowthTrait() {
-        return Optional.ofNullable(growthTrait);
+        node.getNode("salary").setValue(20);
+        node.getNode("sets").setValue(Arrays.asList(SETS));
+        new JobBasedRequirement(null, 0, "totaleconomy.job.fisherman").addTo(node);
     }
 }
