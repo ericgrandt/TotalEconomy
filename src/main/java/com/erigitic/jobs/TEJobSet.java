@@ -42,7 +42,7 @@ public class TEJobSet {
                                 (String) targetID,
                                 rewardsNode.getNode("exp").getString("0"),
                                 rewardsNode.getNode("money").getString("0"),
-                                rewardsNode.getNode("growTrait").getString(null)
+                                rewardsNode.getNode("growthTrait").getString(null)
                         );
 
                         if (actionReward.isValid()) {

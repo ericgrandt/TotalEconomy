@@ -692,40 +692,50 @@ public class TEJobManager {
 
                 for (String s : sets) {
                     Optional<TEJobSet> optSet = getJobSet(s);
+
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                         continue;
                     }
-                    Optional<TEActionReward> cr = optSet.get().getRewardFor("break", blockName);
+
+                    Optional<TEActionReward> currentReward = optSet.get().getRewardFor("break", blockName);
+
                     // Use the one giving higher exp in case of duplicates (faster comparision than BD)
-                    if (reward.isPresent() && cr.isPresent()) {
-                        if (cr.get().getExpReward() > reward.get().getExpReward())
-                            reward = cr;
+                    if (reward.isPresent() && currentReward.isPresent()) {
+                        if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                            reward = currentReward;
+                        }
                     } else {
-                        reward = cr;
+                        reward = currentReward;
                     }
                 }
 
                 if (reward.isPresent()) {
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = reward.get().getMoneyReward();
-                    Optional<String> growTrait = reward.get().getGrowthTrait();
+                    Optional<String> growthTrait = reward.get().getGrowthTrait();
+
                     // If there is a growth trait calculate a percentage to compensate only partly grown crops
-                    if (growTrait.isPresent()) {
-                        Optional<BlockTrait<?>> optTrait = state.getTrait(growTrait.get());
+                    if (growthTrait.isPresent()) {
+                        Optional<BlockTrait<?>> optTrait = state.getTrait(growthTrait.get());
+
                         if (!optTrait.isPresent()) {
                             logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that couldn't be found on the block.");
                             return;
                         }
+
                         if (!Integer.class.isAssignableFrom(optTrait.get().getValueClass())) {
                             logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that cannot be read as Integer.");
                             return;
                         }
+
                         Optional<Integer> optVal = state.getTraitValue((BlockTrait<Integer>) optTrait.get());
+
                         if (!optVal.isPresent()) {
                             logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that couldn't be read as Integer.");
                             return;
                         }
+
                         // Calculate percentages
                         Integer val = optVal.get();
                         Collection<Integer> optValues = (Collection<Integer>) optTrait.get().getPossibleValues();
@@ -741,6 +751,7 @@ public class TEJobManager {
 
                     boolean notify = accountManager.getJobNotificationState(player);
                     TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+
                     if (notify) {
                         notifyPlayer(player, payAmount);
                     }
@@ -777,17 +788,21 @@ public class TEJobManager {
 
                 for (String s : sets) {
                     Optional<TEJobSet> optSet = getJobSet(s);
+
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                         continue;
                     }
-                    Optional<TEActionReward> cr = optSet.get().getRewardFor("place", blockName);
+
+                    Optional<TEActionReward> currentReward = optSet.get().getRewardFor("place", blockName);
+
                     // Use the one giving higher exp in case of duplicates (faster comparision than BD)
-                    if (reward.isPresent() && cr.isPresent()) {
-                        if (cr.get().getExpReward() > reward.get().getExpReward())
-                            reward = cr;
+                    if (reward.isPresent() && currentReward.isPresent()) {
+                        if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                            reward = currentReward;
+                        }
                     } else {
-                        reward = cr;
+                        reward = currentReward;
                     }
                 }
 
@@ -848,17 +863,21 @@ public class TEJobManager {
 
                     for (String s : sets) {
                         Optional<TEJobSet> optSet = getJobSet(s);
+
                         if (!optSet.isPresent()) {
                             logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
                         }
-                        Optional<TEActionReward> cr = optSet.get().getRewardFor("kill", victimName);
+
+                        Optional<TEActionReward> currentReward = optSet.get().getRewardFor("kill", victimName);
+
                         // Use the one giving higher exp in case of duplicates (faster comparision than BD)
-                        if (reward.isPresent() && cr.isPresent()) {
-                            if (cr.get().getExpReward() > reward.get().getExpReward())
-                                reward = cr;
+                        if (reward.isPresent() && currentReward.isPresent()) {
+                            if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                                reward = currentReward;
+                            }
                         } else {
-                            reward = cr;
+                            reward = currentReward;
                         }
                     }
 

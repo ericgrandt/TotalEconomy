@@ -3,7 +3,7 @@ v1.6.0
 + SQL Support
 + Reusable job sets that allow for easier job creation
 + Add option to change location of currency symbol (eg. $5 or 5$)
-+ [JobSets] Add `growTrait` node to `break` nodes to support crops (see the farmer job)
++ Add `growthTrait` node to `break` nodes to support crops (see the farmer job)
 + Add `farmer` to the default jobs
 + Add `/job set <job> <player>` command to set another players job
 + Virtual account support

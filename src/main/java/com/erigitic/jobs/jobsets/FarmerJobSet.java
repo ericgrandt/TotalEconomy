@@ -44,10 +44,10 @@ public class FarmerJobSet implements JobSet {
             {"break", "minecraft:red_flower", "1", "0.10", null},
             {"break", "minecraft:yellow_flower", "1", "0.10", null},
             {"break", "minecraft:vine", "0", "0.05", null},
-            {"break", "minecraft:waterlily", "1", "0.1", null},
+            {"break", "minecraft:waterlily", "1", "0.10", null},
 
-            {"break", "minecraft:red_mushroom", "8", "5", null},
-            {"break", "minecraft:brown_mushroom", "8", "5", null}
+            {"break", "minecraft:red_mushroom", "8", "5.00", null},
+            {"break", "minecraft:brown_mushroom", "8", "5.00", null}
     };
 
     @Override
@@ -58,7 +58,7 @@ public class FarmerJobSet implements JobSet {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
             n.getNode("money").setValue(a[3]);
-            n.getNode("growTrait").setValue(a[4]);
+            n.getNode("growthTrait").setValue(a[4]);
         }
     }
 }

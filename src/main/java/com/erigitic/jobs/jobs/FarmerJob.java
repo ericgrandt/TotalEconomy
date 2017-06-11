@@ -51,6 +51,6 @@ public class FarmerJob implements Job {
 
         node.getNode("salary").setValue(20);
         node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.fisherman").addTo(node);
+        new JobBasedRequirement(null, 0, "totaleconomy.job.farmer").addTo(node);
     }
 }
