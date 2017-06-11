@@ -934,17 +934,21 @@ public class TEJobManager {
 
                     for (String s : sets) {
                         Optional<TEJobSet> optSet = getJobSet(s);
+
                         if (!optSet.isPresent()) {
                             logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
                         }
-                        Optional<TEActionReward> cr = optSet.get().getRewardFor("catch", fishName);
+
+                        Optional<TEActionReward> currentReward = optSet.get().getRewardFor("catch", fishName);
+
                         // Use the one giving higher exp in case of duplicates (faster comparision than BD)
-                        if (reward.isPresent() && cr.isPresent()) {
-                            if (cr.get().getExpReward() > reward.get().getExpReward())
-                                reward = cr;
+                        if (reward.isPresent() && currentReward.isPresent()) {
+                            if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                                reward = currentReward;
+                            }
                         } else {
-                            reward = cr;
+                            reward = currentReward;
                         }
                     }
 
