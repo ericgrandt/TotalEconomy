@@ -3,6 +3,8 @@ v1.6.0
 + SQL Support
 + Reusable job sets that allow for easier job creation
 + Add option to change location of currency symbol (eg. $5 or 5$)
++ Add `growthTrait` node to `break` nodes to support crops (see the farmer job)
++ Add `farmer` to the default jobs
 + Add `/job set <job> <player>` command to set another players job
 + Virtual account support
 + CHANGE: Updated format of job info command
@@ -10,6 +12,8 @@ v1.6.0
 + CHANGE: Baltop command now only shows a maximum of 10 balances
 + CHANGE: Added "/money" alias to balance command
 + CHANGE: Pay command no longer works from command blocks or console (Use adminpay)
++ CHANGE: In case of duplicate rewards in a job (across multiple sets) the one giving more exp is chosen rather than the last match
++ CHANGE: No gains from breaking a block placed by any player UNLESS the block is indicating to have a `growTrait`
 
 v1.5.3
 

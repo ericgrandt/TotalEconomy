@@ -38,8 +38,11 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
+import org.spongepowered.api.block.trait.BlockTrait;
+import org.spongepowered.api.block.trait.IntegerTrait;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.manipulator.mutable.item.FishData;
 import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
@@ -79,7 +82,8 @@ public class TEJobManager {
             new FishermanJobSet(),
             new LumberjackJobSet(),
             new MinerJobSet(),
-            new WarriorJobSet()
+            new WarriorJobSet(),
+            new FarmerJobSet()
     };
 
     // We only need one instance of this
@@ -88,7 +92,8 @@ public class TEJobManager {
             new FishermanJob(),
             new LumberjackJob(),
             new MinerJob(),
-            new WarriorJob()
+            new WarriorJob(),
+            new FarmerJob()
     };
 
     private TotalEconomy totalEconomy;
@@ -677,41 +682,83 @@ public class TEJobManager {
             String playerJob = getPlayerJob(player);
             Optional<TEJob> optPlayerJob = getJob(playerJob, true);
 
-            String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
+            BlockState state = event.getTransactions().get(0).getOriginal().getState();
+            String blockName = state.getType().getName();
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
             if (optPlayerJob.isPresent()) {
-                // Prevent blocks placed by other players from counting towards a job
-                if (!blockCreator.isPresent()) {
-                    Optional<TEActionReward> reward = Optional.empty();
-                    List<String> sets = optPlayerJob.get().getSets();
+                Optional<TEActionReward> reward = Optional.empty();
+                List<String> sets = optPlayerJob.get().getSets();
 
-                    for (String s : sets) {
-                        Optional<TEJobSet> optSet = getJobSet(s);
-                        if (!optSet.isPresent()) {
-                            logger.warn("[TE] Job " + getPlayerJob(player) + " has the nonexistent set \"" + s + "\"");
+                for (String s : sets) {
+                    Optional<TEJobSet> optSet = getJobSet(s);
 
-                            continue;
-                        }
-
-                        reward = optSet.get().getRewardFor("break", blockName);
+                    if (!optSet.isPresent()) {
+                        logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
+                        continue;
                     }
 
-                    if (reward.isPresent()) {
-                        int expAmount = reward.get().getExpReward();
-                        BigDecimal payAmount = reward.get().getMoneyReward();
-                        boolean notify = accountManager.getJobNotificationState(player);
+                    Optional<TEActionReward> currentReward = optSet.get().getRewardFor("break", blockName);
 
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                    // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                    if (reward.isPresent() && currentReward.isPresent()) {
+                        if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                            reward = currentReward;
+                        }
+                    } else {
+                        reward = currentReward;
+                    }
+                }
 
-                        if (notify) {
-                            notifyPlayer(player, payAmount);
+                if (reward.isPresent()) {
+                    int expAmount = reward.get().getExpReward();
+                    BigDecimal payAmount = reward.get().getMoneyReward();
+                    Optional<String> growthTrait = reward.get().getGrowthTrait();
+
+                    // If there is a growth trait calculate a percentage to compensate only partly grown crops
+                    if (growthTrait.isPresent()) {
+                        Optional<BlockTrait<?>> optTrait = state.getTrait(growthTrait.get());
+
+                        if (!optTrait.isPresent()) {
+                            logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that couldn't be found on the block.");
+                            return;
                         }
 
-                        addExp(player, expAmount);
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                        checkForLevel(player);
+                        if (!Integer.class.isAssignableFrom(optTrait.get().getValueClass())) {
+                            logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that cannot be read as Integer.");
+                            return;
+                        }
+
+                        Optional<Integer> optVal = state.getTraitValue((BlockTrait<Integer>) optTrait.get());
+
+                        if (!optVal.isPresent()) {
+                            logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that couldn't be read as Integer.");
+                            return;
+                        }
+
+                        // Calculate percentages
+                        Integer val = optVal.get();
+                        Collection<Integer> optValues = (Collection<Integer>) optTrait.get().getPossibleValues();
+                        Integer max = optValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+                        Integer min = optValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
+                        double perc = (double) (val - min) / (double) (max - min);
+                        payAmount = payAmount.multiply(BigDecimal.valueOf(perc));
+                        expAmount = (int) (expAmount * perc);
+                    } else if (blockCreator.isPresent()) {
+                        // A player placed the block and it doesn't indicate growth -> Do not pay to prevent exploits
+                        return;
                     }
+
+                    boolean notify = accountManager.getJobNotificationState(player);
+                    TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+
+                    if (notify) {
+                        notifyPlayer(player, payAmount);
+                    }
+
+                    addExp(player, expAmount);
+                    playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                    checkForLevel(player);
                 }
             }
         }
@@ -743,12 +790,20 @@ public class TEJobManager {
                     Optional<TEJobSet> optSet = getJobSet(s);
 
                     if (!optSet.isPresent()) {
-                        logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
-
+                        logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                         continue;
                     }
 
-                    reward = optSet.get().getRewardFor("place", blockName);
+                    Optional<TEActionReward> currentReward = optSet.get().getRewardFor("place", blockName);
+
+                    // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                    if (reward.isPresent() && currentReward.isPresent()) {
+                        if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                            reward = currentReward;
+                        }
+                    } else {
+                        reward = currentReward;
+                    }
                 }
 
                 if (reward.isPresent()) {
@@ -810,12 +865,20 @@ public class TEJobManager {
                         Optional<TEJobSet> optSet = getJobSet(s);
 
                         if (!optSet.isPresent()) {
-                            logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
-
+                            logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
                         }
 
-                        reward = optSet.get().getRewardFor("kill", victimName);
+                        Optional<TEActionReward> currentReward = optSet.get().getRewardFor("kill", victimName);
+
+                        // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                        if (reward.isPresent() && currentReward.isPresent()) {
+                            if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                                reward = currentReward;
+                            }
+                        } else {
+                            reward = currentReward;
+                        }
                     }
 
                     if (reward.isPresent()) {
@@ -873,12 +936,20 @@ public class TEJobManager {
                         Optional<TEJobSet> optSet = getJobSet(s);
 
                         if (!optSet.isPresent()) {
-                            logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
-
+                            logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
                         }
 
-                        reward = optSet.get().getRewardFor("catch", fishName);
+                        Optional<TEActionReward> currentReward = optSet.get().getRewardFor("catch", fishName);
+
+                        // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                        if (reward.isPresent() && currentReward.isPresent()) {
+                            if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                                reward = currentReward;
+                            }
+                        } else {
+                            reward = currentReward;
+                        }
                     }
 
                     if (reward.isPresent()) {
