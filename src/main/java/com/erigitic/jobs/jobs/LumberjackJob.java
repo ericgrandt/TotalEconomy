@@ -25,25 +25,32 @@
 
 package com.erigitic.jobs.jobs;
 
-import com.erigitic.jobs.Job;
+import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-public class LumberjackJob implements Job {
-    public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] breakValues = {{"minecraft:log", "10", "1.00"}, {"minecraft:leaves", "1", "0.01"}};
-        String[][] placeValue = {{"minecraft:sapling", "1", "0.10"}};
-        
-        for (int i = 0; i < breakValues.length; i++) {
-            jobsConfig.getNode("Lumberjack", "break", breakValues[i][0], "expreward").setValue(breakValues[i][1]);
-            jobsConfig.getNode("Lumberjack", "break", breakValues[i][0], "pay").setValue(breakValues[i][2]);
-        }
+import java.util.Arrays;
 
-        for (int i = 0; i < placeValue.length; i++) {
-            jobsConfig.getNode("Lumberjack", "place", placeValue[i][0], "expreward").setValue(placeValue[i][1]);
-            jobsConfig.getNode("Lumberjack", "place", placeValue[i][0], "pay").setValue(placeValue[i][2]);
-        }
-        jobsConfig.getNode("Lumberjack", "disablesalary").setValue(false);
-        jobsConfig.getNode("Lumberjack", "salary").setValue(20);
-        jobsConfig.getNode("Lumberjack", "permission").setValue("totaleconomy.job.lumberjack");
+public class LumberjackJob implements Job {
+
+    private final String NAME = "lumberjack";
+    private final String[] SETS = { NAME + "Set" };
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public String[] getSets() {
+        return SETS;
+    }
+
+    @Override
+    public void populateNode(ConfigurationNode node) {
+        node = node.getNode(NAME);
+
+        node.getNode("salary").setValue(20);
+        node.getNode("sets").setValue(Arrays.asList(SETS));
+        new JobBasedRequirement(null, 0, "totaleconomy.job.lumberjack").addTo(node);
     }
 }

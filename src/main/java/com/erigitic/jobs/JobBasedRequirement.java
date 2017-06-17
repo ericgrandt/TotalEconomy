@@ -23,34 +23,40 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.jobs;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
+/**
+ * Requirement notation that is usable in various places such as higher job tiers
+ */
+public class JobBasedRequirement {
+    private int reqJobLevel;
+    private String reqJob;
+    private String reqPermission;
 
-public class MinerJob implements Job {
-
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
-
-    @Override
-    public String getName() {
-        return NAME;
+    public JobBasedRequirement(String reqJob, int reqJobLevel, String reqPermission) {
+        this.reqJob = reqJob;
+        this.reqJobLevel = reqJobLevel;
+        this.reqPermission = reqPermission;
     }
 
-    @Override
-    public String[] getSets() {
-        return SETS;
+    public int jobLevelNeeded() {
+        return reqJobLevel;
     }
 
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
+    public String jobNeeded() {
+        return reqJob;
+    }
 
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
+    public String permissionNeeded() {
+        return reqPermission;
+    }
+
+    public void addTo(ConfigurationNode node) {
+        node = node.getNode("require");
+        node.getNode("job").setValue(reqJob);
+        node.getNode("level").setValue(reqJobLevel);
+        node.getNode("permission").setValue(reqPermission);
     }
 }

@@ -26,27 +26,31 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.economy.transaction.TransactionTypes;
-import org.spongepowered.api.service.economy.transaction.TransferResult;
+import org.spongepowered.api.service.economy.transaction.*;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 public class TEVirtualAccount implements VirtualAccount {
+
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private String identifier;
+    private SQLHandler sqlHandler;
 
     private ConfigurationNode accountConfig;
+
+    private boolean databaseActive;
 
     public TEVirtualAccount(TotalEconomy totalEconomy, AccountManager accountManager, String identifier) {
         this.totalEconomy = totalEconomy;
@@ -54,6 +58,10 @@ public class TEVirtualAccount implements VirtualAccount {
         this.identifier = identifier;
 
         accountConfig = accountManager.getAccountConfig();
+        databaseActive = totalEconomy.isDatabaseActive();
+
+        if (databaseActive)
+            sqlHandler = totalEconomy.getSqlHandler();
     }
 
     @Override
@@ -63,27 +71,46 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public BigDecimal getDefaultBalance(Currency currency) {
-        return BigDecimal.ZERO;
+        return totalEconomy.getStartingBalance();
     }
 
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        if (accountConfig.getNode(identifier, currencyName + "-balance").getValue() != null) {
-            return true;
-        }
+        if (databaseActive) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                    .select(currencyName + "_balance")
+                    .from("totaleconomy.virtual_accounts")
+                    .where("uid")
+                    .equals(identifier)
+                    .build();
 
-        return false;
+            return sqlQuery.recordExists();
+        } else {
+            return accountConfig.getNode(identifier, currencyName + "-balance").getValue() != null;
+        }
     }
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
         if (hasBalance(currency, contexts)) {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
-            BigDecimal balance = new BigDecimal(accountConfig.getNode(identifier, currencyName + "-balance").getString());
 
-            return balance;
+            if (databaseActive) {
+                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                        .select(currencyName + "_balance")
+                        .from("totaleconomy.virtual_accounts")
+                        .where("uid")
+                        .equals(identifier)
+                        .build();
+
+                return sqlQuery.getBigDecimal(BigDecimal.ZERO);
+            } else {
+                BigDecimal balance = new BigDecimal(accountConfig.getNode(identifier, currencyName + "-balance").getString());
+
+                return balance;
+            }
         }
 
         return BigDecimal.ZERO;
@@ -91,26 +118,48 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return new HashMap<Currency, BigDecimal>();
+        return new HashMap<>();
     }
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         TransactionResult transactionResult;
+        String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (hasBalance(currency, contexts)) {
-            String currencyName = currency.getDisplayName().toPlain().toLowerCase();
+            BigDecimal delta = amount.subtract(getBalance(currency));
+            TransactionType transactionType;
 
-            accountConfig.getNode(identifier, currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
-            accountManager.saveAccountConfig();
+            if (delta.compareTo(BigDecimal.ZERO) >= 0) {
+                transactionType = TransactionTypes.DEPOSIT;
+            } else {
+                transactionType = TransactionTypes.WITHDRAW;
+            }
 
-            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+            if (databaseActive) {
+                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                        .update("totaleconomy.virtual_accounts")
+                        .set(currencyName + "_balance")
+                        .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
+                        .where("uid")
+                        .equals(identifier)
+                        .build();
 
-            return transactionResult;
+                if (sqlQuery.getRowsAffected() > 0) {
+                    transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
+                } else {
+                    transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.FAILED, transactionType);
+                }
+            } else {
+                accountConfig.getNode(identifier, currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
+                accountManager.saveAccountConfig();
+
+                transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
+            }
+        } else {
+            transactionResult = new TETransactionResult(this, currency, BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         }
 
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
         return transactionResult;
@@ -118,11 +167,11 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult = new TETransactionResult(this, accountManager.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        TransactionResult transactionResult = new TETransactionResult(this, totalEconomy.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
 
-        HashMap result = new HashMap<Currency, TransactionResult>();
-        result.put(accountManager.getDefaultCurrency(), transactionResult);
+        Map result = new HashMap<>();
+        result.put(totalEconomy.getDefaultCurrency(), transactionResult);
 
         return result;
     }
@@ -134,57 +183,22 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult;
+        BigDecimal curBalance = getBalance(currency, contexts);
+        BigDecimal newBalance = curBalance.add(amount);
 
-        if (hasBalance(currency, contexts)) {
-            String currencyName = currency.getDisplayName().toPlain().toLowerCase();
-            BigDecimal curBalance = getBalance(currency, contexts);
-            BigDecimal newBalance = curBalance.add(amount);
-
-            accountConfig.getNode(identifier, currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
-            accountManager.saveAccountConfig();
-
-            transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
-            totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-            return transactionResult;
-        }
-
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-        return transactionResult;
+        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult;
+        BigDecimal curBalance =  getBalance(currency, contexts);
+        BigDecimal newBalance = curBalance.subtract(amount);
 
-        if (hasBalance(currency, contexts)) {
-            String currencyName = currency.getDisplayName().toPlain().toLowerCase();
-            BigDecimal curBalance =  getBalance(currency, contexts);
-            BigDecimal newBalance = curBalance.subtract(amount);
-
-            if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-                accountConfig.getNode(identifier, currencyName + "-balance").setValue(newBalance.setScale(2, BigDecimal.ROUND_DOWN));
-                accountManager.saveAccountConfig();
-
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                return transactionResult;
-            } else {
-                transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.DEPOSIT);
-                totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-                return transactionResult;
-            }
+        if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
+            return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
         }
 
-        transactionResult = new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
-        return transactionResult;
+        return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
     }
 
     @Override
