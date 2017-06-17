@@ -23,34 +23,15 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.commands;
 
-import com.erigitic.jobs.JobBasedRequirement;
-import ninja.leaping.configurate.ConfigurationNode;
+public class TEPermissions {
 
-import java.util.Arrays;
-
-public class MinerJob implements Job {
-
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
-
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
-    @Override
-    public String[] getSets() {
-        return SETS;
-    }
-
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
-
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
-    }
+    public static final String JOB_INFO         = "totaleconomy.command.job.info";
+    public static final String JOB_SET          = "totaleconomy.command.job.set";
+    // Some PermissionManagers seem to set defaults like this:
+    // (Due to a lack of time I was unable to verify this. But the suspicion is reasonable)
+    // 'some.permission.one' == 'some.permission.one.*'
+    //  - MarkL4YG
+    public static final String JOB_SET_OTHERS   = "totaleconomy.command.job.setother";
 }

@@ -30,10 +30,10 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import java.util.Arrays;
 
-public class MinerJob implements Job {
+public class FarmerJob implements Job {
 
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
+    private final String NAME = "farmer";
+    private final String[] SETS = { "crops" };
 
     @Override
     public String getName() {
@@ -51,6 +51,6 @@ public class MinerJob implements Job {
 
         node.getNode("salary").setValue(20);
         node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
+        new JobBasedRequirement(null, 0, "totaleconomy.job.farmer").addTo(node);
     }
 }

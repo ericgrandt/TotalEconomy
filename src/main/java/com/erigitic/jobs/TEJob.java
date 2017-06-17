@@ -23,34 +23,59 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.jobs;
 
-import com.erigitic.jobs.JobBasedRequirement;
+import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-public class MinerJob implements Job {
+public class TEJob {
+    private String name;
+    private BigDecimal salary;
+    private List<String> sets = new ArrayList<>();
+    private JobBasedRequirement requirement;
 
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
+    private boolean isValid = false;
 
-    @Override
-    public String getName() {
-        return NAME;
+    public TEJob(ConfigurationNode node) {
+        name = node.getKey().toString();
+        salary = new BigDecimal(node.getNode("salary").getString());
+
+        try {
+            sets = node.getNode("sets").getList(TypeToken.of(String.class), new ArrayList<>());
+
+            isValid = true;
+        } catch (ObjectMappingException e) {
+            isValid = false;
+
+            e.printStackTrace();
+        }
     }
 
-    @Override
-    public String[] getSets() {
-        return SETS;
+    public List<String> getSets() {
+        return sets;
     }
 
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
+    public boolean salaryEnabled() {
+        return !salary.equals(BigDecimal.ZERO);
+    }
 
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
+    public String getName() { return name; }
+
+    public BigDecimal getSalary() {
+        return salary;
+    }
+
+    public Optional<JobBasedRequirement> getRequirement() {
+        return Optional.ofNullable(requirement);
+    }
+
+    public boolean isValid() {
+        return isValid;
     }
 }

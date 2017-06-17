@@ -23,34 +23,11 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.jobs.jobsets;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
+public interface JobSet {
 
-public class MinerJob implements Job {
-
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
-
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
-    @Override
-    public String[] getSets() {
-        return SETS;
-    }
-
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
-
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
-    }
+    void populateNode(ConfigurationNode node);
 }

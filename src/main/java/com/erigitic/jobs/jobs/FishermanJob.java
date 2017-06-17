@@ -25,20 +25,32 @@
 
 package com.erigitic.jobs.jobs;
 
-import com.erigitic.jobs.Job;
+import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
+import java.util.Arrays;
+
 public class FishermanJob implements Job {
-    public void setupJobValues(ConfigurationNode jobsConfig) {
-        String[][] catchValues = {{"cod", "25", "50.00"}, {"salmon", "100", "150.00"}, {"pufferfish", "250", "300.00"}};
 
-        for (int i = 0; i < catchValues.length; i++) {
-            jobsConfig.getNode("Fisherman", "catch", catchValues[i][0], "expreward").setValue(catchValues[i][1]);
-            jobsConfig.getNode("Fisherman", "catch", catchValues[i][0], "pay").setValue(catchValues[i][2]);
-        }
+    private final String NAME = "fisherman";
+    private final String[] SETS = { "fish" };
 
-        jobsConfig.getNode("Fisherman", "disablesalary").setValue(false);
-        jobsConfig.getNode("Fisherman", "salary").setValue(20);
-        jobsConfig.getNode("Fisherman", "permission").setValue("totaleconomy.job.fisherman");
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public String[] getSets() {
+        return SETS;
+    }
+
+    @Override
+    public void populateNode(ConfigurationNode node) {
+        node = node.getNode(NAME);
+
+        node.getNode("salary").setValue(20);
+        node.getNode("sets").setValue(Arrays.asList(SETS));
+        new JobBasedRequirement(null, 0, "totaleconomy.job.fisherman").addTo(node);
     }
 }

@@ -25,15 +25,11 @@
 
 package com.erigitic.jobs.jobs;
 
-import com.erigitic.jobs.JobBasedRequirement;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.Arrays;
+public class UnemployedJob implements Job {
 
-public class MinerJob implements Job {
-
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
+    private final String NAME = "unemployed";
 
     @Override
     public String getName() {
@@ -42,7 +38,7 @@ public class MinerJob implements Job {
 
     @Override
     public String[] getSets() {
-        return SETS;
+        return null;
     }
 
     @Override
@@ -50,7 +46,5 @@ public class MinerJob implements Job {
         node = node.getNode(NAME);
 
         node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
     }
 }

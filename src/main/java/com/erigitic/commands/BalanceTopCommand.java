@@ -69,24 +69,30 @@ public class BalanceTopCommand implements CommandExecutor {
         ConfigurationNode accountNode = accountManager.getAccountConfig();
         List<Text> accountBalances = new ArrayList<>();
         Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
-        Currency defaultCurrency = accountManager.getDefaultCurrency();
+        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
-        // TODO: Add customization to this (amount of accounts to show).
         accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
-            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(UUID.fromString(accountUUID.toString())).get();
+            UUID uuid;
+
+            // Check if the account is virtual or not. If virtual, skip the rest of the execution and move on to next account.
+            try {
+                uuid = UUID.fromString(accountUUID.toString());
+            } catch (IllegalArgumentException e) {
+                return;
+            }
+
+            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
             Text playerName = playerAccount.getDisplayName();
 
             accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(defaultCurrency));
         });
 
-        List<Map.Entry<String, BigDecimal>> unsortedList = new LinkedList<>(accountBalancesMap.entrySet());
-        unsortedList.sort((Map.Entry<String, BigDecimal> o1, Map.Entry<String, BigDecimal> o2) -> (o1.getValue()).compareTo(o2.getValue()));
+        accountBalancesMap.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .limit(10)
+                .forEach(entry -> accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, defaultCurrency.format(entry.getValue()).toPlain())));
 
-        Collections.reverse(unsortedList);
-
-        unsortedList.forEach(entry -> accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, defaultCurrency.format(entry.getValue()).toPlain())));
-
-        builder.title(Text.of(TextColors.GOLD, "Top Balances"))
+        builder.title(Text.of(TextColors.GOLD, "Top 10 Balances"))
                 .contents(accountBalances)
                 .sendTo(src);
 

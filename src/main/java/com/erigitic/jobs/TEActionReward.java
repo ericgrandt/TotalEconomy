@@ -23,32 +23,54 @@
  * SOFTWARE.
  */
 
-package com.erigitic.commands;
+package com.erigitic.jobs;
 
-import com.erigitic.config.AccountManager;
-import com.erigitic.main.TotalEconomy;
-import org.spongepowered.api.command.CommandException;
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
+import ninja.leaping.configurate.ConfigurationNode;
 
-public class JobToggleCommand implements CommandExecutor {
-    private AccountManager accountManager;
+import java.math.BigDecimal;
+import java.util.Optional;
 
-    public JobToggleCommand(TotalEconomy totalEconomy) {
-        accountManager = totalEconomy.getAccountManager();
+public class TEActionReward {
+    private String action;
+    private String targetID;
+    private int expReward;
+    private BigDecimal moneyReward;
+    private String growthTrait;
+    private Integer growthMeta;
+
+    private boolean isValid = false;
+
+    public TEActionReward(String action, String targetID, String expReward, String moneyReward, String growthTrait) {
+        this.action = action;
+        this.targetID = targetID;
+        this.expReward = Integer.parseInt(expReward);
+        this.moneyReward = new BigDecimal(moneyReward);
+        this.growthTrait = growthTrait;
+
+        isValid = (action != null && !action.isEmpty() && targetID != null && !targetID.isEmpty());
     }
 
-    @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (src instanceof Player) {
-            Player sender = ((Player) src).getPlayer().get();
+    public String getAction() {
+        return action;
+    }
 
-            accountManager.toggleNotifications(sender);
-        }
+    public String getTargetID() {
+        return targetID;
+    }
 
-        return CommandResult.success();
+    public int getExpReward() {
+        return expReward;
+    }
+
+    public BigDecimal getMoneyReward() {
+        return moneyReward;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public Optional<String> getGrowthTrait() {
+        return Optional.ofNullable(growthTrait);
     }
 }

@@ -35,6 +35,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
@@ -44,6 +45,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AdminPayCommand implements CommandExecutor {
     private Logger logger;
@@ -57,40 +60,50 @@ public class AdminPayCommand implements CommandExecutor {
 
         accountManager = totalEconomy.getAccountManager();
 
-        defaultCurrency = accountManager.getDefaultCurrency();
+        defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        String strAmount = args.<String>getOne("amount").get();
-        Player recipient = args.<Player>getOne("player").get();
+        String strAmount = (String) args.getOne("amount").get();
+        User recipient = args.<User>getOne("player").get();
 
-        if (TotalEconomy.isNumeric(strAmount)) {
+
+        Pattern amountPattern = Pattern.compile("^[+-]?(\\d*\\.)?\\d+$");
+        Matcher m = amountPattern.matcher(strAmount);
+
+        if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
             Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
 
-            TransactionResult transactionResult = recipientAccount.deposit(accountManager.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            TransactionResult transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
                 if (!strAmount.contains("-")) {
                     src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
                             TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
 
-                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
-                            TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    if (recipient.isOnline()) {
+                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
+                                TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    }
                 } else {
                     src.sendMessage(Text.of(TextColors.GRAY, "You have removed ", TextColors.GOLD, amountText,
                             TextColors.GRAY, " from ", TextColors.GOLD, recipient.getName(), "'s", TextColors.GRAY, " account."));
 
-                    recipient.sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
-                            TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    if (recipient.isOnline()) {
+                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
+                                TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                    }
                 }
+
+                return CommandResult.success();
             }
         } else {
-            src.sendMessage(Text.of(TextColors.RED, "The amount must be numeric."));
+            throw new CommandException(Text.of("Invalid amount! Must be a number!"));
         }
 
-        return CommandResult.success();
+        return CommandResult.empty();
     }
 }
