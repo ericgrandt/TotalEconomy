@@ -64,6 +64,12 @@ public class AccountManager implements EconomyService {
 
     private boolean dirty = false;
 
+    /**
+     * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
+     * or configuration files depending on main configuration value, and starts save script if setup.
+     *
+     * @param totalEconomy Main plugin class
+     */
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
@@ -86,7 +92,7 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Setup the config file that will contain the user accounts.
+     * Setup the config file that will contain the user accounts
      */
     private void setupConfig() {
         accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
@@ -103,6 +109,9 @@ public class AccountManager implements EconomyService {
         }
     }
 
+    /**
+     * Setup the database that will contain the user accounts
+     */
     public void setupDatabase() {
         sqlHandler.createDatabase();
 
@@ -143,6 +152,12 @@ public class AccountManager implements EconomyService {
         }
     }
 
+    /**
+     * Gets or creates a unique account for the passed in UUID
+     *
+     * @param uuid {@link UUID} of the player an account is being created for
+     * @return Optional<UniqueAccount> The account that was retrieved or created
+     */
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
@@ -179,6 +194,12 @@ public class AccountManager implements EconomyService {
         return Optional.of(playerAccount);
     }
 
+    /**
+     * Gets or creates a virtual account for the passed in identifier
+     *
+     * @param identifier The virtual accounts identifier
+     * @return Optiona<Account> The virtual account that was retrieved or created
+     */
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
@@ -203,6 +224,12 @@ public class AccountManager implements EconomyService {
         return Optional.of(virtualAccount);
     }
 
+    /**
+     * Determines if a unique account is associated with the passed in UUID
+     *
+     * @param uuid {@link UUID} to check for an account
+     * @return boolean Whether or not an account is associated with the passed in UUID
+     */
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
@@ -219,6 +246,12 @@ public class AccountManager implements EconomyService {
         }
     }
 
+    /**
+     * Determines if a virtual account is associated with the passed in UUID
+     *
+     * @param identifier The identifier to check for an account
+     * @return boolean Whether or not a virtual account is associated with the passed in identifier
+     */
     @Override
     public boolean hasAccount(String identifier) {
         if (databaseActive) {
@@ -235,11 +268,21 @@ public class AccountManager implements EconomyService {
         }
     }
 
+    /**
+     * Gets the default {@link Currency}
+     *
+     * @return Currency The default currency
+     */
     @Override
     public Currency getDefaultCurrency() {
         return totalEconomy.getDefaultCurrency();
     }
 
+    /**
+     * Gets a set containing all of the currencies
+     *
+     * @return Set<Currency> Set of all currencies
+     */
     @Override
     public Set<Currency> getCurrencies() {
         return new HashSet<>();
@@ -250,6 +293,12 @@ public class AccountManager implements EconomyService {
 
     }
 
+    /**
+     * Gets the passed in player's notification state
+     *
+     * @param player The {@link Player} who's notification state to get
+     * @return boolean The notification state
+     */
     public boolean getJobNotificationState(Player player) {
         UUID playerUUID = player.getUniqueId();
 
@@ -269,7 +318,7 @@ public class AccountManager implements EconomyService {
     /**
      * Toggle a player's exp/money notifications for jobs
      *
-     * @param player an object representing the player toggling notifications
+     * @param player Player toggling notifications
      */
     public void toggleNotifications(Player player) {
         boolean jobNotifications = !getJobNotificationState(player);
@@ -310,6 +359,7 @@ public class AccountManager implements EconomyService {
      */
     public void saveAccountConfig() {
         dirty = true;
+
         if (totalEconomy.getSaveInterval() <= 0) {
             writeToDisk();
         }
