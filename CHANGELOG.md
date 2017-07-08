@@ -1,3 +1,7 @@
+v1.7.0
+
++ Multi-Currency support
+
 v1.6.0
 
 + SQL Support
