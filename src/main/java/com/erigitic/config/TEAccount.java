@@ -92,7 +92,7 @@ public class TEAccount implements UniqueAccount {
      */
     @Override
     public BigDecimal getDefaultBalance(Currency currency) {
-        return totalEconomy.getStartingBalance();
+        return ((TECurrency) currency).getStartingBalance();
     }
 
     /**
