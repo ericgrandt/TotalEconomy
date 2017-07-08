@@ -152,7 +152,7 @@ public class TEVirtualAccount implements VirtualAccount {
                 }
             } else {
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
-                accountManager.saveAccountConfig();
+                accountManager.saveAccountConfig(false);
 
                 transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
             }
