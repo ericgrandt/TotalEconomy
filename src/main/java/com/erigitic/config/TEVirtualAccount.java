@@ -71,7 +71,7 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public BigDecimal getDefaultBalance(Currency currency) {
-        return totalEconomy.getStartingBalance();
+        return ((TECurrency) currency).getStartingBalance();
     }
 
     @Override

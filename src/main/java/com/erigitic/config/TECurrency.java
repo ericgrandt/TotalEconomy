@@ -38,16 +38,20 @@ public class TECurrency implements Currency {
     private Text plural;
     private Text symbol;
     private int numFractionDigits;
-    private boolean defaultCurrency;
+    private boolean isDefault;
     private boolean prefixSymbol;
+    boolean isTransferable;
+    private BigDecimal startBalance;
 
-    public TECurrency(Text singular, Text plural, Text symbol, int numFractionDigits, boolean defaultCurrency, boolean prefixSymbol) {
+    public TECurrency(Text singular, Text plural, Text symbol, int numFractionDigits, boolean defaultCurrency, boolean prefixSymbol, boolean isTransferable, BigDecimal startBalance) {
         this.singular = singular;
         this.plural = plural;
         this.symbol = symbol;
         this.numFractionDigits = numFractionDigits;
-        this.defaultCurrency = defaultCurrency;
+        this.isDefault = defaultCurrency;
         this.prefixSymbol = prefixSymbol;
+        this.isTransferable = isTransferable;
+        this.startBalance = startBalance;
     }
 
     @Override
@@ -57,7 +61,7 @@ public class TECurrency implements Currency {
 
     @Override
     public String getId() {
-        return "totaleconomy:" + singular.toPlain();
+        return "totaleconomy:" + singular.toPlain().toLowerCase();
     }
 
     @Override
@@ -92,6 +96,16 @@ public class TECurrency implements Currency {
 
     @Override
     public boolean isDefault() {
-        return defaultCurrency;
+        return isDefault;
+    }
+
+    public boolean isSymbolPrefixed() {
+        return prefixSymbol;
+    }
+
+    public boolean isTransferable() { return isTransferable; }
+
+    public BigDecimal getStartingBalance() {
+        return startBalance;
     }
 }

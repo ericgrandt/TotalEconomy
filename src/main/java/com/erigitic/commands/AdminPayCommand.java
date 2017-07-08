@@ -45,18 +45,17 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AdminPayCommand implements CommandExecutor {
-    private Logger logger;
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private Currency defaultCurrency;
 
     public AdminPayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
-        logger = totalEconomy.getLogger();
 
         accountManager = totalEconomy.getAccountManager();
 
@@ -65,22 +64,35 @@ public class AdminPayCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        String strAmount = (String) args.getOne("amount").get();
+        String amountStr = (String) args.getOne("amount").get();
         User recipient = args.<User>getOne("player").get();
-
+        Optional<String> optCurrencyName = args.getOne("currencyName");
 
         Pattern amountPattern = Pattern.compile("^[+-]?(\\d*\\.)?\\d+$");
-        Matcher m = amountPattern.matcher(strAmount);
+        Matcher m = amountPattern.matcher(amountStr);
 
         if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-            Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
+            Text amountText;
+            TransactionResult transactionResult;
 
-            TransactionResult transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            if (optCurrencyName.isPresent()) {
+                Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+                if (optCurrency.isPresent()) {
+                    amountText = Text.of(optCurrency.get().format(amount).toPlain().replace("-", ""));
+                    transactionResult = recipientAccount.deposit(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                } else {
+                    throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+                }
+            } else {
+                amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
+                transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            }
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
-                if (!strAmount.contains("-")) {
+                if (!amountStr.contains("-")) {
                     src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
                             TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
 
@@ -99,11 +111,11 @@ public class AdminPayCommand implements CommandExecutor {
                 }
 
                 return CommandResult.success();
+            } else {
+                throw new CommandException(Text.of("[TE] An error occurred while paying a player!"));
             }
         } else {
-            throw new CommandException(Text.of("Invalid amount! Must be a number!"));
+            throw new CommandException(Text.of("[TE] Invalid amount! Must be a number!"));
         }
-
-        return CommandResult.empty();
     }
 }

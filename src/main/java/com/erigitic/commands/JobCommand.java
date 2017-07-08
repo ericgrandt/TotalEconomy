@@ -171,7 +171,6 @@ public class JobCommand implements CommandExecutor {
                     .build();
         }
 
-        // Setup pagination
         private PaginationService paginationService = Sponge.getServiceManager().provideUnchecked(PaginationService.class);
         private PaginationList.Builder pageBuilder = paginationService.builder();
 
@@ -271,9 +270,9 @@ public class JobCommand implements CommandExecutor {
                 totalEconomy.getAccountManager().toggleNotifications(sender);
 
                 return CommandResult.success();
+            } else {
+                throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
             }
-
-            return CommandResult.empty();
         }
     }
 }
