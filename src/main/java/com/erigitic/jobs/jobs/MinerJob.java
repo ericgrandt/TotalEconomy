@@ -51,6 +51,7 @@ public class MinerJob implements Job {
 
         node.getNode("salary").setValue(20);
         node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.miner").addTo(node);
+
+        new JobBasedRequirement("", 0, "totaleconomy.job.miner").addTo(node);
     }
 }
