@@ -62,7 +62,7 @@ public class AccountManager implements EconomyService {
 
     private boolean databaseActive;
 
-    private boolean dirty = false;
+    private boolean confSaveRequested = false;
 
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
@@ -81,13 +81,13 @@ public class AccountManager implements EconomyService {
             setupDatabase();
         } else {
             setupConfig();
-        }
 
-        if (totalEconomy.getSaveInterval() > 0) {
-            Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
-                    .execute(() -> {
-                        writeToDisk();
-                    }).submit(totalEconomy);
+            if (totalEconomy.getSaveInterval() > 0) {
+                Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
+                        .execute(() -> {
+                            writeToDisk(false);
+                        }).submit(totalEconomy);
+            }
         }
     }
 
@@ -168,16 +168,14 @@ public class AccountManager implements EconomyService {
      */
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
-        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
         TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
 
-        // TODO: 1.7.0: Loop through the currencies and create a column for each one, with the default value set to the start balance
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
                     SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.accounts")
-                            .columns("uid", currencyName + "_balance", "job", "job_notifications")
-                            .values(uuid.toString(), playerAccount.getDefaultBalance(getDefaultCurrency()).toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
+                            .columns("uid", "job", "job_notifications")
+                            .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
                             .build();
 
                     SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.levels")
@@ -189,8 +187,24 @@ public class AccountManager implements EconomyService {
                             .columns("uid")
                             .values(uuid.toString())
                             .build();
+
+                    for (Currency currency : totalEconomy.getCurrencies()) {
+                        TECurrency teCurrency = (TECurrency) currency;
+
+                        SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+                                .set(teCurrency.getName().toLowerCase() + "_balance")
+                                .equals(playerAccount.getDefaultBalance(teCurrency).toString())
+                                .where("uid")
+                                .equals(uuid.toString())
+                                .build();
+                    }
                 } else {
-                    accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(playerAccount.getDefaultBalance(getDefaultCurrency()));
+                    for (Currency currency : totalEconomy.getCurrencies()) {
+                        TECurrency teCurrency = (TECurrency) currency;
+
+                        accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
+                    }
+
                     accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
                     accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
                     loader.save(accountConfig);
@@ -365,26 +379,28 @@ public class AccountManager implements EconomyService {
 
     /**
      * Save the account configuration file
+     *
+     * @param forceSave Whether to force a save regardless of if conditions are met or not
      */
-    public void saveAccountConfig() {
-        dirty = true;
+    public void saveAccountConfig(boolean forceSave) {
+        confSaveRequested = true;
 
-        if (totalEconomy.getSaveInterval() <= 0) {
-            writeToDisk();
+        if (totalEconomy.getSaveInterval() <= 0 || forceSave) {
+            writeToDisk(forceSave);
         }
     }
 
     /**
      * Save the account configuration file
      */
-    public void writeToDisk() {
-        if (!dirty) {
+    public void writeToDisk(boolean forceSave) {
+        if (!forceSave && !confSaveRequested) {
             return;
         }
 
         try {
             loader.save(accountConfig);
-            dirty = false;
+            confSaveRequested = false;
         } catch (IOException e) {
             logger.error("[TE] An error occurred while saving the account configuration file!");
         }

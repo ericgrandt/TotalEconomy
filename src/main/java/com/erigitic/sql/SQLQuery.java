@@ -266,7 +266,6 @@ public class SQLQuery {
             return this;
         }
 
-        // TODO: Not really needed anymore
         public Builder equals(String val) {
             statement += "='" + val + "'";
 
