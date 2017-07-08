@@ -113,16 +113,24 @@ public class AccountManager implements EconomyService {
      * Setup the database that will contain the user accounts
      */
     public void setupDatabase() {
+        String currencyCols = "";
+
+        for (Currency currency : getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            currencyCols += teCurrency.getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + teCurrency.getStartingBalance() + "',";
+        }
+
         sqlHandler.createDatabase();
 
         sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
-                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
+                currencyCols +
                 "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
                 "job_notifications boolean NOT NULL DEFAULT TRUE," +
                 "PRIMARY KEY (uid)");
 
         sqlHandler.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
-                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getStartingBalance() + "'," +
+                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getDefaultCurrency().getStartingBalance() + "'," +
                 "PRIMARY KEY (uid)");
 
         sqlHandler.createTable("levels", "uid varchar(60)," +
@@ -163,6 +171,7 @@ public class AccountManager implements EconomyService {
         String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
         TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
 
+        // TODO: 1.7.0: Loop through the currencies and create a column for each one, with the default value set to the start balance
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
@@ -198,7 +207,7 @@ public class AccountManager implements EconomyService {
      * Gets or creates a virtual account for the passed in identifier
      *
      * @param identifier The virtual accounts identifier
-     * @return Optiona<Account> The virtual account that was retrieved or created
+     * @return Optional<Account> The virtual account that was retrieved or created
      */
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
@@ -285,7 +294,7 @@ public class AccountManager implements EconomyService {
      */
     @Override
     public Set<Currency> getCurrencies() {
-        return new HashSet<>();
+        return totalEconomy.getCurrencies();
     }
 
     @Override

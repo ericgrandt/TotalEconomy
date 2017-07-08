@@ -35,33 +35,63 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private Currency defaultCurrency;
 
     public ViewBalanceCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
+
+        defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
     public CommandResult execute(CommandSource sender, CommandContext args) throws CommandException {
         User recipient = args.<User>getOne("player").get();
-
+        Optional<String> optCurrencyName = args.getOne("currencyName");
         TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+        BigDecimal balance;
+        Text balanceText;
+        TransactionResult transactionResult;
 
-        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
-        BigDecimal balance = recipientAccount.getBalance(defaultCurrency);
+        if (optCurrencyName.isPresent()) {
+            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
-        sender.sendMessage(Text.of(TextColors.GRAY, recipient.getName(), "'s Balance: ", TextColors.GOLD, defaultCurrency.format(balance)));
+            if (optCurrency.isPresent()) {
+                balance = recipientAccount.getBalance(optCurrency.get());
 
-        return CommandResult.success();
+                balanceText = Text.of(TextColors.GRAY, recipient.getName(), "'s ", optCurrency.get().getDisplayName(), " Balance: ", TextColors.GOLD, optCurrency.get().format(balance));
+                transactionResult = recipientAccount.setBalance(optCurrency.get(), balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            } else {
+                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+            }
+        } else {
+            balance = recipientAccount.getBalance(defaultCurrency);
+
+            balanceText = Text.of(TextColors.GRAY, recipient.getName(), "'s ", defaultCurrency.getDisplayName(), " Balance: ", TextColors.GOLD, defaultCurrency.format(balance));
+            transactionResult = recipientAccount.setBalance(defaultCurrency, balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        }
+
+        if (transactionResult.getResult() == ResultType.SUCCESS) {
+            sender.sendMessage(Text.of(balanceText));
+
+            return CommandResult.success();
+        } else {
+            throw new CommandException(Text.of("[TE] An error occurred setting a player's balance!"));
+        }
     }
 }
