@@ -121,8 +121,6 @@ public class AccountManager implements EconomyService {
             currencyCols += teCurrency.getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + teCurrency.getStartingBalance() + "',";
         }
 
-        sqlHandler.createDatabase();
-
         sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
                 currencyCols +
                 "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
@@ -138,14 +136,14 @@ public class AccountManager implements EconomyService {
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
                 "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
                 "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
-                "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE");
+                "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
 
         sqlHandler.createTable("experience", "uid varchar(60)," +
                 "miner int(10) unsigned NOT NULL DEFAULT '0'," +
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
                 "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
                 "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
-                "FOREIGN KEY (uid) REFERENCES totaleconomy.accounts(uid) ON DELETE CASCADE");
+                "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
     }
 
     /**
@@ -173,17 +171,17 @@ public class AccountManager implements EconomyService {
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
-                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.accounts")
+                    SQLQuery.builder(sqlHandler.dataSource).insert("accounts")
                             .columns("uid", "job", "job_notifications")
                             .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
                             .build();
 
-                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.levels")
+                    SQLQuery.builder(sqlHandler.dataSource).insert("levels")
                             .columns("uid")
                             .values(uuid.toString())
                             .build();
 
-                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.experience")
+                    SQLQuery.builder(sqlHandler.dataSource).insert("experience")
                             .columns("uid")
                             .values(uuid.toString())
                             .build();
@@ -191,7 +189,7 @@ public class AccountManager implements EconomyService {
                     for (Currency currency : totalEconomy.getCurrencies()) {
                         TECurrency teCurrency = (TECurrency) currency;
 
-                        SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+                        SQLQuery.builder(sqlHandler.dataSource).update("accounts")
                                 .set(teCurrency.getName().toLowerCase() + "_balance")
                                 .equals(playerAccount.getDefaultBalance(teCurrency).toString())
                                 .where("uid")
@@ -231,7 +229,7 @@ public class AccountManager implements EconomyService {
         try {
             if (!hasAccount(identifier)) {
                 if (databaseActive) {
-                    SQLQuery.builder(sqlHandler.dataSource).insert("totaleconomy.virtual_accounts")
+                    SQLQuery.builder(sqlHandler.dataSource).insert("virtual_accounts")
                             .columns("uid", currencyName + "_balance")
                             .values(identifier, virtualAccount.getDefaultBalance(getDefaultCurrency()).toString())
                             .build();
@@ -258,7 +256,7 @@ public class AccountManager implements EconomyService {
         if (databaseActive) {
             SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
                     .select("uid")
-                    .from("totaleconomy.accounts")
+                    .from("accounts")
                     .where("uid")
                     .equals(uuid.toString())
                     .build();
@@ -280,7 +278,7 @@ public class AccountManager implements EconomyService {
         if (databaseActive) {
             SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
                     .select("uid")
-                    .from("totaleconomy.virtual_accounts")
+                    .from("virtual_accounts")
                     .where("uid")
                     .equals(identifier)
                     .build();
@@ -327,7 +325,7 @@ public class AccountManager implements EconomyService {
 
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
-                    .from("totaleconomy.accounts")
+                    .from("accounts")
                     .where("uid")
                     .equals(playerUUID.toString())
                     .build();
@@ -348,7 +346,7 @@ public class AccountManager implements EconomyService {
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("totaleconomy.accounts")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("accounts")
                     .set("job_notifications")
                     .equals(jobNotifications ? "1":"0")
                     .where("uid")

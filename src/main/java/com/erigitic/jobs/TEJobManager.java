@@ -273,7 +273,7 @@ public class TEJobManager {
             int newExp = getJobExp(jobName, player) + expAmount;
 
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                    .update("totaleconomy.experience")
+                    .update("experience")
                     .set(jobName)
                     .equals(String.valueOf(newExp))
                     .where("uid")
@@ -323,7 +323,7 @@ public class TEJobManager {
 
             if (databaseActive) {
                 SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.levels")
+                        .update("levels")
                         .set(jobName)
                         .equals(String.valueOf(playerLevel))
                         .where("uid")
@@ -331,7 +331,7 @@ public class TEJobManager {
                         .build();
 
                 SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.experience")
+                        .update("experience")
                         .set(jobName)
                         .equals(String.valueOf(playerCurExp))
                         .where("uid")
@@ -398,7 +398,7 @@ public class TEJobManager {
 
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                    .update("totaleconomy.accounts")
+                    .update("accounts")
                     .set("job")
                     .equals(jobName)
                     .where("uid")
@@ -452,7 +452,7 @@ public class TEJobManager {
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                     .select("job")
-                    .from("totaleconomy.accounts")
+                    .from("accounts")
                     .where("uid")
                     .equals(uuid.toString())
                     .build();
@@ -496,7 +496,7 @@ public class TEJobManager {
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                         .select(jobName)
-                        .from("totaleconomy.levels")
+                        .from("levels")
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
@@ -527,7 +527,7 @@ public class TEJobManager {
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                         .select(jobName)
-                        .from("totaleconomy.experience")
+                        .from("experience")
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
