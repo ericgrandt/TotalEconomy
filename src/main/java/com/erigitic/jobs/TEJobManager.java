@@ -32,6 +32,7 @@ import com.erigitic.jobs.jobsets.*;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLHandler;
 import com.erigitic.sql.SQLQuery;
+import com.erigitic.util.MessageHandler;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -78,7 +79,7 @@ import java.util.concurrent.TimeUnit;
 public class TEJobManager {
 
     // We only need one instance of this
-    public static final JobSet[] defaultJobSets = {
+    public final JobSet[] defaultJobSets = {
             new FishermanJobSet(),
             new LumberjackJobSet(),
             new MinerJobSet(),
@@ -98,6 +99,7 @@ public class TEJobManager {
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageHandler messageHandler;
     private ConfigurationNode accountConfig;
     private Logger logger;
 
@@ -118,6 +120,7 @@ public class TEJobManager {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
+        messageHandler = totalEconomy.getMessageHandler();
         accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
@@ -155,7 +158,10 @@ public class TEJobManager {
                         TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
                         if (result.getResult() == ResultType.SUCCESS) {
-                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getDefaultCurrency().format(salary), TextColors.GRAY, " has just been paid."));
+                            Map<String, String> messageValues = new HashMap<>();
+                            messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
+
+                            player.sendMessage(messageHandler.getMessage("jobs.salary", messageValues));
                         } else {
                             player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                         }
@@ -269,6 +275,10 @@ public class TEJobManager {
         UUID playerUUID = player.getUniqueId();
         boolean jobNotifications = accountManager.getJobNotificationState(player);
 
+        Map<String, String> messageValues = new HashMap<>();
+        messageValues.put("job", titleize(jobName));
+        messageValues.put("exp", String.valueOf(expAmount));
+
         if (databaseActive) {
             int newExp = getJobExp(jobName, player) + expAmount;
 
@@ -282,7 +292,7 @@ public class TEJobManager {
 
             if (sqlQuery.getRowsAffected() > 0) {
                 if (jobNotifications) {
-                    player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+                    player.sendMessage(messageHandler.getMessage("jobs.addexp", messageValues));
                 }
             } else {
                 logger.warn("[TE] An error occurred while updating job experience in the database!");
@@ -293,8 +303,9 @@ public class TEJobManager {
 
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
 
-            if (jobNotifications)
-                player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+            if (jobNotifications) {
+                player.sendMessage(messageHandler.getMessage("jobs.addexp", messageValues));
+            }
 
             try {
                 accountManager.getConfigManager().save(accountConfig);
@@ -321,6 +332,10 @@ public class TEJobManager {
             playerLevel += 1;
             playerCurExp -= expToLevel;
 
+            Map<String, String> messageValues = new HashMap<>();
+            messageValues.put("job", titleize(jobName));
+            messageValues.put("level", String.valueOf(playerLevel));
+
             if (databaseActive) {
                 SQLQuery.builder(sqlHandler.dataSource)
                         .update("levels")
@@ -337,15 +352,12 @@ public class TEJobManager {
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
-
-                // TODO: Handle any issues that arise whilst updating
             } else {
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel);
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
             }
 
-            player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
-                    playerLevel, " ", titleize(jobName)));
+            player.sendMessage(messageHandler.getMessage("jobs.levelup", messageValues));
         }
     }
 
@@ -356,7 +368,7 @@ public class TEJobManager {
      * @return boolean if the job exists or not
      */
     public boolean jobExists(String jobName) {
-        if (jobsConfig.getNode(jobName.toLowerCase()).getValue() != null) {
+        if (jobsConfig.getNode("jobs", jobName.toLowerCase()).getValue() != null) {
             return true;
         }
 
@@ -380,8 +392,12 @@ public class TEJobManager {
      */
     private void notifyPlayer(Player player, BigDecimal amount) {
         Currency defaultCurrency = totalEconomy.getDefaultCurrency();
+        Text amountText = defaultCurrency.format(amount, defaultCurrency.getDefaultFractionDigits());
 
-        player.sendMessage(Text.of(TextColors.GOLD, defaultCurrency.format(amount, defaultCurrency.getDefaultFractionDigits()), TextColors.GRAY, " has been added to your balance."));
+        Map<String, String> messageValues = new HashMap<>();
+        messageValues.put("amount", amountText.toPlain());
+
+        player.sendMessage(messageHandler.getMessage("jobs.notify", messageValues));
     }
 
     /**
@@ -646,12 +662,15 @@ public class TEJobManager {
                             Text lineOneText = signData.lines().get(0);
                             Text lineTwoText = signData.lines().get(1);
                             String lineOne = lineOneText.toPlain();
-                            String lineTwo = lineTwoText.toPlain().toLowerCase();
+                            String jobName = lineTwoText.toPlain().toLowerCase();
 
                             if (lineOne.equals("[TEJobs]")) {
-                                if (jobExists(lineTwo)) {
-                                    if (setJob(player, lineTwo)) {
-                                        player.sendMessage(Text.of(TextColors.GRAY, "Job changed to: ", TextColors.GOLD, lineTwo));
+                                if (jobExists(jobName)) {
+                                    if (setJob(player, jobName)) {
+                                        Map<String, String> messageValues = new HashMap<>();
+                                        messageValues.put("job", titleize(jobName));
+
+                                        player.sendMessage(messageHandler.getMessage("jobs.sign", messageValues));
                                     } else {
                                         player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to set job. Contact your administrator."));
                                     }
