@@ -27,9 +27,8 @@ package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
-import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
-import org.slf4j.Logger;
+import com.erigitic.util.MessageHandler;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -40,17 +39,21 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class BalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageHandler messageHandler;
     private Currency defaultCurrency;
 
     public BalanceCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
+        messageHandler = totalEconomy.getMessageHandler();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -63,21 +66,25 @@ public class BalanceCommand implements CommandExecutor {
             Optional<String> optCurrencyName = args.getOne("currencyName");
             Text balanceText;
 
+            Map<String, String> messageValues = new HashMap<>();
+
             if (optCurrencyName.isPresent()) {
                 Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
                 if (optCurrency.isPresent()) {
                     Currency currency = optCurrency.get();
 
-                    balanceText = Text.of(TextColors.GRAY, currency.getDisplayName(), " Balance: ", TextColors.GOLD, optCurrency.get().format(playerAccount.getBalance(currency)));
+                    messageValues.put("amount", currency.format(playerAccount.getBalance(currency)).toPlain());
+
+                    sender.sendMessage(messageHandler.getMessage("command.balance.other", messageValues));
                 } else {
                     throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
                 }
             } else {
-                balanceText = Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, defaultCurrency.format(playerAccount.getBalance(defaultCurrency)));
-            }
+                messageValues.put("amount", defaultCurrency.format(playerAccount.getBalance(defaultCurrency)).toPlain());
 
-            sender.sendMessage(Text.of(balanceText));
+                sender.sendMessage(messageHandler.getMessage("command.balance.default", messageValues));
+            }
 
             return CommandResult.success();
         } else {
