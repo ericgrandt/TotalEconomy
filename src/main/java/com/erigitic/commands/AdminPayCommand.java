@@ -28,13 +28,12 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import org.slf4j.Logger;
+import com.erigitic.util.MessageHandler;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
@@ -45,6 +44,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,12 +53,14 @@ import java.util.regex.Pattern;
 public class AdminPayCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageHandler messageHandler;
     private Currency defaultCurrency;
 
     public AdminPayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
+        messageHandler = totalEconomy.getMessageHandler();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -92,21 +95,22 @@ public class AdminPayCommand implements CommandExecutor {
             }
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
+                Map<String, String> messageValues = new HashMap<>();
+                messageValues.put("sender", src.getName());
+                messageValues.put("recipient", recipient.getName());
+                messageValues.put("amount", amountText.toPlain());
+
                 if (!amountStr.contains("-")) {
-                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
-                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
+                    src.sendMessage(messageHandler.getMessage("command.adminpay.send.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
-                                TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                        recipient.getPlayer().get().sendMessage(messageHandler.getMessage("command.adminpay.send.recipient", messageValues));
                     }
                 } else {
-                    src.sendMessage(Text.of(TextColors.GRAY, "You have removed ", TextColors.GOLD, amountText,
-                            TextColors.GRAY, " from ", TextColors.GOLD, recipient.getName(), "'s", TextColors.GRAY, " account."));
+                    src.sendMessage(messageHandler.getMessage("command.adminpay.remove.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
-                                TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                        recipient.getPlayer().get().sendMessage(messageHandler.getMessage("command.adminpay.remove.recipient", messageValues));
                     }
                 }
 
