@@ -28,6 +28,7 @@ package com.erigitic.config;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLHandler;
 import com.erigitic.sql.SQLQuery;
+import com.erigitic.util.MessageHandler;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -53,6 +54,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
+    private MessageHandler messageHandler;
     private Logger logger;
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
@@ -72,6 +74,8 @@ public class AccountManager implements EconomyService {
      */
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
+
+        messageHandler = totalEconomy.getMessageHandler();
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
 
@@ -369,9 +373,9 @@ public class AccountManager implements EconomyService {
         }
 
         if (jobNotifications == true) {
-            player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.GREEN, "ON"));
+            player.sendMessage(messageHandler.getMessage("notifications.on"));
         } else {
-            player.sendMessage(Text.of(TextColors.GRAY, "Notifications are now ", TextColors.RED, "OFF"));
+            player.sendMessage(messageHandler.getMessage("notifications.off"));
         }
     }
 

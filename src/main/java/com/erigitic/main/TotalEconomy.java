@@ -31,6 +31,7 @@ import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.TEJobManager;
 import com.erigitic.sql.SQLHandler;
+import com.erigitic.util.MessageHandler;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -49,18 +50,18 @@ import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.registry.CatalogRegistryModule;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.0-dev.2", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.0-dev.3", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -91,8 +92,8 @@ public class TotalEconomy {
     private TECurrency defaultCurrency;
 
     private AccountManager accountManager;
-
     private TEJobManager teJobManager;
+    private MessageHandler messageHandler;
 
     private TECurrencyRegistryModule teCurrencyRegistryModule;
 
@@ -101,15 +102,16 @@ public class TotalEconomy {
     private boolean loadJobs = true;
     private boolean jobPermissions = false;
     private boolean jobNotifications = true;
-
     private boolean loadSalary = true;
-
+    private boolean loadMoneyCap = false;
     private boolean databaseActive = false;
+
+    private String languageTag;
+
     private String databaseUrl;
     private String databaseUser;
     private String databasePassword;
 
-    private boolean loadMoneyCap = false;
     private BigDecimal moneyCap;
 
     private int saveInterval;
@@ -157,6 +159,8 @@ public class TotalEconomy {
         jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
         loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
 
+        languageTag = config.getNode("language").getString("en");
+
         if (databaseActive) {
             databaseUrl = config.getNode("database", "url").getString();
             databaseUser = config.getNode("database", "user").getString();
@@ -167,6 +171,7 @@ public class TotalEconomy {
 
         saveInterval = config.getNode("save-interval").getInt(30);
 
+        messageHandler = new MessageHandler(this, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this);
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
@@ -269,6 +274,7 @@ public class TotalEconomy {
                 config.getNode("currency", "dollar", "transferable").setValue(true);
                 config.getNode("currency", "dollar", "startbalance").setValue("100");
 
+                config.getNode("language").setValue("en");
                 config.getNode("save-interval").setValue(30);
 
                 loader.save(config);
@@ -351,6 +357,8 @@ public class TotalEconomy {
     public TEJobManager getTEJobManager() {
         return teJobManager;
     }
+
+    public MessageHandler getMessageHandler() { return messageHandler; }
 
     public TECurrencyRegistryModule getTECurrencyRegistryModule() { return teCurrencyRegistryModule; }
 
