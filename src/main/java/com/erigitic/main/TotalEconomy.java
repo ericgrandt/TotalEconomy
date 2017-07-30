@@ -61,7 +61,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.0-dev.4", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.0", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
