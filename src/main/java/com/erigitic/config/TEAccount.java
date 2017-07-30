@@ -170,6 +170,9 @@ public class TEAccount implements UniqueAccount {
         TransactionResult transactionResult;
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
+        // If the amount is greater then the money cap, set the amount to the money cap
+        amount = amount.min(totalEconomy.getMoneyCap());
+
         if (hasBalance(currency, contexts)) {
             BigDecimal delta = amount.subtract(getBalance(currency));
             TransactionType transactionType;
@@ -210,25 +213,25 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * NOT IMPLEMENTED
+     * Resets all currency balances to their starting balances
      *
      * @param cause
      * @param contexts
-     * @return
+     * @return Map<Currency, TransactionResult> Map of transaction results
      */
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult = new TETransactionResult(this, totalEconomy.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
-        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+        Map<Currency, TransactionResult> result = new HashMap<>();
 
-        Map result = new HashMap<>();
-        result.put(totalEconomy.getDefaultCurrency(), transactionResult);
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            result.put(currency, resetBalance(currency, cause, contexts));
+        }
 
         return result;
     }
 
     /**
-     * Reset a balance
+     * Reset a currencies balance to its starting balance
      *
      * @param currency The balance to reset
      * @param cause
@@ -237,7 +240,7 @@ public class TEAccount implements UniqueAccount {
      */
     @Override
     public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
-        return setBalance(currency, BigDecimal.ZERO, cause);
+        return setBalance(currency, ((TECurrency) currency).getStartingBalance(), cause);
     }
 
     /**
