@@ -27,6 +27,7 @@ package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
+import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageHandler;
 import org.spongepowered.api.command.CommandException;
@@ -64,7 +65,6 @@ public class BalanceCommand implements CommandExecutor {
             Player sender = (Player) src;
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
             Optional<String> optCurrencyName = args.getOne("currencyName");
-            Text balanceText;
 
             Map<String, String> messageValues = new HashMap<>();
 
@@ -72,8 +72,9 @@ public class BalanceCommand implements CommandExecutor {
                 Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
                 if (optCurrency.isPresent()) {
-                    Currency currency = optCurrency.get();
+                    TECurrency currency = (TECurrency) optCurrency.get();
 
+                    messageValues.put("currency", currency.getName());
                     messageValues.put("amount", currency.format(playerAccount.getBalance(currency)).toPlain());
 
                     sender.sendMessage(messageHandler.getMessage("command.balance.other", messageValues));
