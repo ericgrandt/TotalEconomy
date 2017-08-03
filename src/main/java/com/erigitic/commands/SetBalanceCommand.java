@@ -28,6 +28,7 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.util.MessageHandler;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -37,32 +38,75 @@ import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SetBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageHandler messageHandler;
+    private Currency defaultCurrency;
 
     public SetBalanceCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
+
         accountManager = totalEconomy.getAccountManager();
+        messageHandler = totalEconomy.getMessageHandler();
+
+        defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         User recipient = args.<User>getOne("player").get();
-        BigDecimal amount = new BigDecimal(args.<String>getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-        Currency defaultCurrency = totalEconomy.getDefaultCurrency();
+        String amountStr = args.<String>getOne("amount").get();
+        Optional<String> optCurrencyName = args.getOne("currencyName");
 
-        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+        Pattern amountPattern = Pattern.compile("^[+]?(\\d*\\.)?\\d+$");
+        Matcher m = amountPattern.matcher(amountStr);
 
-        recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        if (m.matches()) {
+            BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
+            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            Text amountText;
+            TransactionResult transactionResult;
 
-        src.sendMessage(Text.of(TextColors.GRAY, "You set ", recipient.getName(), "\'s balance to ", TextColors.GOLD, defaultCurrency.format(amount)));
+            if (optCurrencyName.isPresent()) {
+                Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
-        return CommandResult.success();
+                if (optCurrency.isPresent()) {
+                    amountText = Text.of(optCurrency.get().format(amount));
+                    transactionResult = recipientAccount.setBalance(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                } else {
+                    throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+                }
+            } else {
+                amountText = Text.of(defaultCurrency.format(amount));
+                transactionResult = recipientAccount.setBalance(defaultCurrency, amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            }
+
+            if (transactionResult.getResult() == ResultType.SUCCESS) {
+                Map<String, String> messageValues = new HashMap<>();
+                messageValues.put("recipient", recipient.getName());
+                messageValues.put("amount", amountText.toPlain());
+
+                src.sendMessage(messageHandler.getMessage("command.setbalance", messageValues));
+
+                return CommandResult.success();
+            } else {
+                throw new CommandException(Text.of("[TE] An error occurred while setting a player's balance!"));
+            }
+        } else {
+            throw new CommandException(Text.of("[TE] Invalid amount! Must be a positive number!"));
+        }
     }
 }

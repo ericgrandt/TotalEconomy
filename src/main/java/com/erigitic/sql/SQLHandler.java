@@ -40,14 +40,13 @@ public class SQLHandler {
     private Logger logger;
     public DataSource dataSource;
     private SqlService sql;
-    private final String dbName = "totaleconomy";
 
     public SQLHandler(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
 
         try {
-            dataSource = getDataSource(totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword());
+            dataSource = getDataSource("jdbc:" + totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword());
         } catch (SQLException e) {
             logger.warn("Error getting data source!");
         } catch (UncheckedExecutionException e) {
@@ -70,28 +69,11 @@ public class SQLHandler {
         return sql.getDataSource(jdbcUrl);
     }
 
-    public boolean createDatabase() {
-        try {
-            Connection conn = dataSource.getConnection();
-
-            boolean result = conn.prepareStatement("CREATE DATABASE IF NOT EXISTS totaleconomy").execute();
-
-            conn.close();
-
-            return result;
-        } catch (SQLException e) {
-            logger.warn("[TE] An error occurred while creating the totaleconomy database!");
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
     public boolean createTable(String tableName, String cols) {
         try {
             Connection conn = dataSource.getConnection();
 
-            boolean result =  conn.prepareStatement("CREATE TABLE IF NOT EXISTS " + dbName + "." + tableName + " (" + cols + ")").execute();
+            boolean result =  conn.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName + " (" + cols + ")").execute();
 
             conn.close();
 

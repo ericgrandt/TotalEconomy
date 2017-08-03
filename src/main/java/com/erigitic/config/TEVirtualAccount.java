@@ -60,8 +60,9 @@ public class TEVirtualAccount implements VirtualAccount {
         accountConfig = accountManager.getAccountConfig();
         databaseActive = totalEconomy.isDatabaseActive();
 
-        if (databaseActive)
+        if (databaseActive) {
             sqlHandler = totalEconomy.getSqlHandler();
+        }
     }
 
     @Override
@@ -71,7 +72,7 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public BigDecimal getDefaultBalance(Currency currency) {
-        return totalEconomy.getStartingBalance();
+        return ((TECurrency) currency).getStartingBalance();
     }
 
     @Override
@@ -81,7 +82,7 @@ public class TEVirtualAccount implements VirtualAccount {
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                     .select(currencyName + "_balance")
-                    .from("totaleconomy.virtual_accounts")
+                    .from("virtual_accounts")
                     .where("uid")
                     .equals(identifier)
                     .build();
@@ -100,7 +101,7 @@ public class TEVirtualAccount implements VirtualAccount {
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
                         .select(currencyName + "_balance")
-                        .from("totaleconomy.virtual_accounts")
+                        .from("virtual_accounts")
                         .where("uid")
                         .equals(identifier)
                         .build();
@@ -138,7 +139,7 @@ public class TEVirtualAccount implements VirtualAccount {
 
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.virtual_accounts")
+                        .update("virtual_accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
                         .where("uid")
@@ -152,7 +153,7 @@ public class TEVirtualAccount implements VirtualAccount {
                 }
             } else {
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
-                accountManager.saveAccountConfig();
+                accountManager.saveAccountConfig(false);
 
                 transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
             }
