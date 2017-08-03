@@ -1,3 +1,11 @@
+v1.7.0
+
++ Multi-Currency support
++ Messages can now be changed in the messages_en configuration file
++ CHANGE: A custom database name can now be set instead of being forced to use `totaleconomy` as the database
++ FIX: Account configuration file now properly saves when the server is stopped
++ FIX: Number Format Exception no longer occurs when setting a balance to a large number
+
 v1.6.0
 
 + SQL Support

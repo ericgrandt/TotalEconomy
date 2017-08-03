@@ -23,35 +23,37 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.config;
 
-import com.erigitic.jobs.JobBasedRequirement;
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.main.TotalEconomy;
+import org.spongepowered.api.registry.CatalogRegistryModule;
+import org.spongepowered.api.service.economy.Currency;
 
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
-public class MinerJob implements Job {
+public class TECurrencyRegistryModule implements CatalogRegistryModule<Currency> {
 
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
+    private TotalEconomy totalEconomy;
 
-    @Override
-    public String getName() {
-        return NAME;
+    public TECurrencyRegistryModule(TotalEconomy totalEconomy) {
+        this.totalEconomy = totalEconomy;
     }
 
     @Override
-    public String[] getSets() {
-        return SETS;
+    public Optional<Currency> getById(String id) {
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            if (currency.getId().equals(id)) {
+                return Optional.of(currency);
+            }
+        }
+
+        return Optional.empty();
     }
 
     @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
-
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-
-        new JobBasedRequirement("", 0, "totaleconomy.job.miner").addTo(node);
+    public Collection<Currency> getAll() {
+        return totalEconomy.getCurrencies();
     }
 }

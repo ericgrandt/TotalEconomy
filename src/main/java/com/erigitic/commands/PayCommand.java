@@ -27,7 +27,9 @@ package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
+import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.util.MessageHandler;
 import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -47,63 +49,92 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PayCommand implements CommandExecutor {
-    private Logger logger;
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageHandler messageHandler;
     private Currency defaultCurrency;
 
     public PayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
-        logger = totalEconomy.getLogger();
 
         accountManager = totalEconomy.getAccountManager();
+        messageHandler = totalEconomy.getMessageHandler();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        String strAmount = (String) args.getOne("amount").get();
+        String amountStr = (String) args.getOne("amount").get();
         Player recipient = (Player) args.getOne("player").get();
+        Optional<String> optCurrencyName = args.getOne("currencyName");
 
         if (src instanceof Player) {
             Player sender = (Player) src;
 
             if (sender.getUniqueId().equals(recipient.getUniqueId())) {
-                throw new CommandException(Text.of("You cannot pay yourself!"));
+                throw new CommandException(Text.of("[TE] You cannot pay yourself!"));
             }
 
             Pattern amountPattern = Pattern.compile("^[+]?(\\d*\\.)?\\d+$");
-            Matcher m = amountPattern.matcher(strAmount);
+            Matcher m = amountPattern.matcher(amountStr);
 
             if (m.matches()) {
-                BigDecimal amount = new BigDecimal(strAmount).setScale(2, BigDecimal.ROUND_DOWN);
+                BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
+                Text amountText;
+                TransferResult transferResult;
 
                 TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
                 TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
 
-                TransferResult transferResult = playerAccount.transfer(recipientAccount, totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                if (optCurrencyName.isPresent()) {
+                    Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+                    if (optCurrency.isPresent()) {
+                        TECurrency teCurrency = (TECurrency) optCurrency.get();
+
+                        if (teCurrency.isTransferable()) {
+                            amountText = Text.of(optCurrency.get().format(amount));
+                            transferResult = playerAccount.transfer(recipientAccount, optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        } else {
+                            throw new CommandException(Text.of("[TE] ", teCurrency.getPluralDisplayName(), " can't be transferred!"));
+                        }
+                    } else {
+                        throw new CommandException(Text.of("[TE] The specified currency does not exist!"));
+                    }
+                } else {
+                    amountText = Text.of(defaultCurrency.format(amount));
+                    transferResult = playerAccount.transfer(recipientAccount, totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                }
 
                 if (transferResult.getResult() == ResultType.SUCCESS) {
-                    sender.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, defaultCurrency.format(amount),
-                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
+                    Map<String, String> messageValues = new HashMap<>();
+                    messageValues.put("sender", src.getName());
+                    messageValues.put("recipient", recipient.getName());
+                    messageValues.put("amount", amountText.toPlain());
 
-                    recipient.sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, defaultCurrency.format(amount),
-                            TextColors.GRAY, " from ", TextColors.GOLD, sender.getName(), TextColors.GRAY, "."));
+                    sender.sendMessage(messageHandler.getMessage("command.pay.sender", messageValues));
+
+                    recipient.sendMessage(messageHandler.getMessage("command.pay.recipient", messageValues));
 
                     return CommandResult.success();
                 } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {
-                    throw new CommandException(Text.of("Insufficient funds!"));
+                    throw new CommandException(Text.of("[TE] Insufficient funds!"));
+                } else {
+                    throw new CommandException(Text.of("[TE] An error occurred while paying another player!"));
                 }
             } else {
-                throw new CommandException(Text.of("Invalid amount! Must be a positive number!"));
+                throw new CommandException(Text.of("[TE] Invalid amount! Must be a positive number!"));
             }
+        } else {
+            throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
         }
-
-        return CommandResult.empty();
     }
 }

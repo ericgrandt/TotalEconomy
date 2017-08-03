@@ -28,13 +28,12 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import org.slf4j.Logger;
+import com.erigitic.util.MessageHandler;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
@@ -45,65 +44,82 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AdminPayCommand implements CommandExecutor {
-    private Logger logger;
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageHandler messageHandler;
     private Currency defaultCurrency;
 
     public AdminPayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
-        logger = totalEconomy.getLogger();
 
         accountManager = totalEconomy.getAccountManager();
+        messageHandler = totalEconomy.getMessageHandler();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        String strAmount = (String) args.getOne("amount").get();
+        String amountStr = (String) args.getOne("amount").get();
         User recipient = args.<User>getOne("player").get();
-
+        Optional<String> optCurrencyName = args.getOne("currencyName");
 
         Pattern amountPattern = Pattern.compile("^[+-]?(\\d*\\.)?\\d+$");
-        Matcher m = amountPattern.matcher(strAmount);
+        Matcher m = amountPattern.matcher(amountStr);
 
         if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-            Text amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
+            Text amountText;
+            TransactionResult transactionResult;
 
-            TransactionResult transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            if (optCurrencyName.isPresent()) {
+                Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+                if (optCurrency.isPresent()) {
+                    amountText = Text.of(optCurrency.get().format(amount).toPlain().replace("-", ""));
+                    transactionResult = recipientAccount.deposit(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                } else {
+                    throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+                }
+            } else {
+                amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
+                transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            }
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
-                if (!strAmount.contains("-")) {
-                    src.sendMessage(Text.of(TextColors.GRAY, "You have sent ", TextColors.GOLD, amountText,
-                            TextColors.GRAY, " to ", TextColors.GOLD, recipient.getName(), TextColors.GRAY, "."));
+                Map<String, String> messageValues = new HashMap<>();
+                messageValues.put("sender", src.getName());
+                messageValues.put("recipient", recipient.getName());
+                messageValues.put("amount", amountText.toPlain());
+
+                if (!amountStr.contains("-")) {
+                    src.sendMessage(messageHandler.getMessage("command.adminpay.send.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GRAY, "You have received ", TextColors.GOLD, amountText,
-                                TextColors.GRAY, " from ", TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                        recipient.getPlayer().get().sendMessage(messageHandler.getMessage("command.adminpay.send.recipient", messageValues));
                     }
                 } else {
-                    src.sendMessage(Text.of(TextColors.GRAY, "You have removed ", TextColors.GOLD, amountText,
-                            TextColors.GRAY, " from ", TextColors.GOLD, recipient.getName(), "'s", TextColors.GRAY, " account."));
+                    src.sendMessage(messageHandler.getMessage("command.adminpay.remove.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(Text.of(TextColors.GOLD, amountText, TextColors.GRAY, " has been removed from your account by ",
-                                TextColors.GOLD, src.getName(), TextColors.GRAY, "."));
+                        recipient.getPlayer().get().sendMessage(messageHandler.getMessage("command.adminpay.remove.recipient", messageValues));
                     }
                 }
 
                 return CommandResult.success();
+            } else {
+                throw new CommandException(Text.of("[TE] An error occurred while paying a player!"));
             }
         } else {
-            throw new CommandException(Text.of("Invalid amount! Must be a number!"));
+            throw new CommandException(Text.of("[TE] Invalid amount! Must be a number!"));
         }
-
-        return CommandResult.empty();
     }
 }

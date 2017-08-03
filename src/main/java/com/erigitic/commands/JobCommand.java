@@ -25,9 +25,9 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.config.TECurrency;
 import com.erigitic.jobs.*;
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.util.MessageHandler;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -43,19 +43,20 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class JobCommand implements CommandExecutor {
 
     private TotalEconomy totalEconomy;
+    private TEJobManager jobManager;
+    private MessageHandler messageHandler;
 
     public JobCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
+
+        jobManager = totalEconomy.getTEJobManager();
+        messageHandler = totalEconomy.getMessageHandler();
     }
 
     public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
@@ -77,11 +78,15 @@ public class JobCommand implements CommandExecutor {
             Player player = ((Player) src).getPlayer().get();
             String jobName = totalEconomy.getTEJobManager().getPlayerJob(player);
 
-            player.sendMessage(Text.of(TextColors.GRAY, "Current Job: ", TextColors.GOLD, totalEconomy.getTEJobManager().titleize(jobName)));
-            player.sendMessage(Text.of(TextColors.GRAY, totalEconomy.getTEJobManager().titleize(jobName),
-                    " Level: ", TextColors.GOLD, totalEconomy.getTEJobManager().getJobLevel(jobName, player)));
-            player.sendMessage(Text.of(TextColors.GRAY, totalEconomy.getTEJobManager().titleize(jobName),
-                    " Exp: ", TextColors.GOLD, totalEconomy.getTEJobManager().getJobExp(jobName, player), "/", totalEconomy.getTEJobManager().getExpToLevel(player), " exp\n"));
+            Map<String, String> messageValues = new HashMap<>();
+            messageValues.put("job", jobManager.titleize(jobName));
+            messageValues.put("curlevel", String.valueOf(jobManager.getJobLevel(jobName, player)));
+            messageValues.put("curexp", String.valueOf(jobManager.getJobExp(jobName, player)));
+            messageValues.put("exptolevel", String.valueOf(jobManager.getExpToLevel(player)));
+
+            player.sendMessage(messageHandler.getMessage("command.job.current", messageValues));
+            player.sendMessage(messageHandler.getMessage("command.job.level", messageValues));
+            player.sendMessage(messageHandler.getMessage("command.job.exp", messageValues));
             player.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, totalEconomy.getTEJobManager().getJobList()));
 
             return CommandResult.success();
@@ -93,9 +98,14 @@ public class JobCommand implements CommandExecutor {
     public static class Set implements CommandExecutor {
 
         private TotalEconomy totalEconomy;
+        private MessageHandler messageHandler;
+        private TEJobManager jobManager;
 
         public Set(TotalEconomy totalEconomy) {
             this.totalEconomy = totalEconomy;
+
+            messageHandler = totalEconomy.getMessageHandler();
+            jobManager = totalEconomy.getTEJobManager();
         }
 
         public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
@@ -142,7 +152,10 @@ public class JobCommand implements CommandExecutor {
             if (!totalEconomy.getTEJobManager().setJob(user, jobName)) {
                 throw new CommandException(Text.of("Failed to set job. Contact your administrator."));
             } else if (user.getPlayer().isPresent()) {
-                user.getPlayer().get().sendMessage(Text.of(TextColors.GRAY, "Job set to: ", TextColors.GOLD, totalEconomy.getTEJobManager().titleize(jobName)));
+                Map<String, String> messageValues = new HashMap<>();
+                messageValues.put("job", jobManager.titleize(jobName));
+
+                user.getPlayer().get().sendMessage(messageHandler.getMessage("command.job.set", messageValues));
             }
 
             // Only send additional feedback if CommandSource isn't the target.
@@ -171,7 +184,6 @@ public class JobCommand implements CommandExecutor {
                     .build();
         }
 
-        // Setup pagination
         private PaginationService paginationService = Sponge.getServiceManager().provideUnchecked(PaginationService.class);
         private PaginationList.Builder pageBuilder = paginationService.builder();
 
@@ -271,9 +283,9 @@ public class JobCommand implements CommandExecutor {
                 totalEconomy.getAccountManager().toggleNotifications(sender);
 
                 return CommandResult.success();
+            } else {
+                throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
             }
-
-            return CommandResult.empty();
         }
     }
 }
