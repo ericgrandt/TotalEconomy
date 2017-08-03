@@ -200,7 +200,7 @@ public class SQLQuery {
     public BigDecimal getBigDecimal(BigDecimal def) {
         try {
             if (resultSet.next()) {
-                return resultSet.getBigDecimal(1).max(new BigDecimal(Double.MAX_VALUE));
+                return resultSet.getBigDecimal(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
