@@ -132,7 +132,7 @@ public class AccountManager implements EconomyService {
                 "PRIMARY KEY (uid)");
 
         sqlHandler.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
-                getDefaultCurrency().getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + totalEconomy.getDefaultCurrency().getStartingBalance() + "'," +
+                currencyCols +
                 "PRIMARY KEY (uid)");
 
         sqlHandler.createTable("levels", "uid varchar(60)," +
@@ -211,6 +211,16 @@ public class AccountManager implements EconomyService {
                     accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
                     loader.save(accountConfig);
                 }
+            } else if (!databaseActive) { // If the user has an account, and a database is not being used, let's make sure they have a balance for each currency.
+                for (Currency currency : totalEconomy.getCurrencies()) {
+                    TECurrency teCurrency = (TECurrency) currency;
+
+                    if (!playerAccount.hasBalance(teCurrency)) {
+                        accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
+                    }
+                }
+
+                loader.save(accountConfig);
             }
         } catch (IOException e) {
             logger.warn("[TE] An error occurred while creating a new account!");
@@ -227,20 +237,38 @@ public class AccountManager implements EconomyService {
      */
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
-        String currencyName = getDefaultCurrency().getDisplayName().toPlain().toLowerCase();
         TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
 
         try {
             if (!hasAccount(identifier)) {
                 if (databaseActive) {
-                    SQLQuery.builder(sqlHandler.dataSource).insert("virtual_accounts")
-                            .columns("uid", currencyName + "_balance")
-                            .values(identifier, virtualAccount.getDefaultBalance(getDefaultCurrency()).toString())
-                            .build();
+                    for (Currency currency : totalEconomy.getCurrencies()) {
+                        TECurrency teCurrency = (TECurrency) currency;
+
+                        SQLQuery.builder(sqlHandler.dataSource).insert("virtual_accounts")
+                                .columns("uid", teCurrency.getName().toLowerCase() + "_balance")
+                                .values(identifier, virtualAccount.getDefaultBalance(teCurrency).toString())
+                                .build();
+                    }
                 } else {
-                    accountConfig.getNode(identifier, currencyName + "-balance").setValue(virtualAccount.getDefaultBalance(getDefaultCurrency()));
+                    for (Currency currency : totalEconomy.getCurrencies()) {
+                        TECurrency teCurrency = (TECurrency) currency;
+
+                        accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
+                    }
+
                     loader.save(accountConfig);
                 }
+            } else if (!databaseActive) { // If the virtual account exists, and a database is not being used, let's make sure it has a balance for each currency.
+                for (Currency currency : totalEconomy.getCurrencies()) {
+                    TECurrency teCurrency = (TECurrency) currency;
+
+                    if (!virtualAccount.hasBalance(teCurrency)) {
+                        accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
+                    }
+                }
+
+                loader.save(accountConfig);
             }
         } catch (IOException e) {
             logger.warn("[TE] An error occurred while creating a new virtual account!");
