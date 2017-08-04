@@ -250,34 +250,11 @@ public class TotalEconomy {
      */
     private void setupConfig() {
         try {
-            config = loader.load();
-
             if (!defaultConf.exists()) {
-                config.getNode("database", "enable").setValue(databaseActive);
-                config.getNode("database", "url").setValue("mysql://[IP]:[PORT]/[DATABASE]");
-                config.getNode("database", "user").setValue("");
-                config.getNode("database", "password").setValue("");
-
-                config.getNode("features", "jobs", "enable").setValue(loadJobs);
-                config.getNode("features", "jobs", "salary").setValue(loadSalary);
-                config.getNode("features", "jobs", "permissions").setValue(jobPermissions);
-                config.getNode("features", "jobs", "notifications").setValue(true);
-                config.getNode("features", "moneycap", "enable").setValue(loadMoneyCap);
-                config.getNode("features", "moneycap", "amount").setValue(10000000);
-
-                config.getNode("currency", "dollar", "currency-singular").setValue("Dollar");
-                config.getNode("currency", "dollar", "currency-plural").setValue("Dollars");
-                config.getNode("currency", "dollar", "symbol").setValue("$");
-                config.getNode("currency", "dollar", "default").setValue(true);
-                config.getNode("currency", "dollar", "prefix-symbol").setValue(true);
-                config.getNode("currency", "dollar", "transferable").setValue(true);
-                config.getNode("currency", "dollar", "startbalance").setValue("100");
-
-                config.getNode("language").setValue("en");
-                config.getNode("save-interval").setValue(30);
-
-                loader.save(config);
+                pluginContainer.getAsset("totaleconomy.conf").get().copyToFile(defaultConf.toPath());
             }
+
+            config = loader.load();
         } catch (IOException e) {
             logger.warn("[TE] Main configuration file could not be loaded/created/changed!");
         }
