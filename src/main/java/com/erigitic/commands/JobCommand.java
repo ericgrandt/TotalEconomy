@@ -111,13 +111,13 @@ public class JobCommand implements CommandExecutor {
         public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
             return CommandSpec.builder()
                     .description(Text.of("Set your job"))
-                    .permission(TEPermissions.JOB_SET)
+                    .permission("totaleconomy.command.job.set")
                     .executor(new Set(totalEconomy))
                     .arguments(
                             GenericArguments.string(Text.of("jobName")),
                             GenericArguments.requiringPermission(
                                     GenericArguments.userOrSource(Text.of("user")),
-                                    TEPermissions.JOB_SET_OTHERS
+                                    "totaleconomy.command.job.setother"
                             )
                     )
                     .build();
