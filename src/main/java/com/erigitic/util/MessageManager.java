@@ -52,11 +52,11 @@ public class MessageManager {
     private File messagesFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode messagesConfig;
+
     /**
-     * Grabs a message from the messages-[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
+     * Grabs a message from the messages_[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
      * are changed, and aliases are changed to their corresponding values which are passed in.
      */
-
     public MessageManager(TotalEconomy totalEconomy, Locale locale) {
         this.totalEconomy = totalEconomy;
 
@@ -67,7 +67,7 @@ public class MessageManager {
 
     // TODO: If no messages_{lang} file is found, default to messages_en
     /**
-     * Setup the config file that will contain the user accounts
+     * Setup the config file that will contain the messages
      */
     private void setupConfig(Locale locale) {
         messagesFile = new File(totalEconomy.getConfigDir(), "messages_" + locale.getLanguage() + ".conf");
@@ -76,14 +76,14 @@ public class MessageManager {
         try {
             messagesConfig = loader.load();
 
-            ResourceBundle rb = ResourceBundle.getBundle("messages", locale);
-            rb.keySet().forEach(key -> {
-                String value = rb.getString(key);
-
-                messagesConfig.getNode(key.toString()).setValue(value);
-            });
-
             if (!messagesFile.exists()) {
+                ResourceBundle rb = ResourceBundle.getBundle("messages", locale);
+                rb.keySet().forEach(key -> {
+                    String value = rb.getString(key);
+
+                    messagesConfig.getNode(key.toString()).setValue(value);
+                });
+
                 loader.save(messagesConfig);
             }
         } catch (IOException e) {
