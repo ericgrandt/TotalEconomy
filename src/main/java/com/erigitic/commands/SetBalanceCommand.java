@@ -28,7 +28,7 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -53,14 +53,14 @@ import java.util.regex.Pattern;
 public class SetBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Currency defaultCurrency;
 
     public SetBalanceCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
+        messageManager = totalEconomy.getMessageManager();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -99,7 +99,7 @@ public class SetBalanceCommand implements CommandExecutor {
                 messageValues.put("recipient", recipient.getName());
                 messageValues.put("amount", amountText.toPlain());
 
-                src.sendMessage(messageHandler.getMessage("command.setbalance", messageValues));
+                src.sendMessage(messageManager.getMessage("command.setbalance", messageValues));
 
                 return CommandResult.success();
             } else {

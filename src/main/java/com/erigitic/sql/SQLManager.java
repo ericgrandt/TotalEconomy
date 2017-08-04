@@ -35,13 +35,13 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class SQLHandler {
+public class SQLManager {
     private TotalEconomy totalEconomy;
     private Logger logger;
     public DataSource dataSource;
     private SqlService sql;
 
-    public SQLHandler(TotalEconomy totalEconomy) {
+    public SQLManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
 

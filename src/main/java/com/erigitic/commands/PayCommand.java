@@ -29,24 +29,19 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageHandler;
-import org.slf4j.Logger;
+import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.source.CommandBlockSource;
-import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -58,14 +53,14 @@ import java.util.regex.Pattern;
 public class PayCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Currency defaultCurrency;
 
     public PayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
+        messageManager = totalEconomy.getMessageManager();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -120,9 +115,9 @@ public class PayCommand implements CommandExecutor {
                     messageValues.put("recipient", recipient.getName());
                     messageValues.put("amount", amountText.toPlain());
 
-                    sender.sendMessage(messageHandler.getMessage("command.pay.sender", messageValues));
+                    sender.sendMessage(messageManager.getMessage("command.pay.sender", messageValues));
 
-                    recipient.sendMessage(messageHandler.getMessage("command.pay.recipient", messageValues));
+                    recipient.sendMessage(messageManager.getMessage("command.pay.recipient", messageValues));
 
                     return CommandResult.success();
                 } else if (transferResult.getResult() == ResultType.ACCOUNT_NO_FUNDS) {

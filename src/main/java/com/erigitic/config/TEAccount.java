@@ -26,7 +26,7 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
@@ -46,7 +46,7 @@ public class TEAccount implements UniqueAccount {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private UUID uuid;
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     private ConfigurationNode accountConfig;
 
@@ -68,7 +68,7 @@ public class TEAccount implements UniqueAccount {
         databaseActive = totalEconomy.isDatabaseActive();
 
         if (databaseActive)
-            sqlHandler = totalEconomy.getSqlHandler();
+            sqlManager = totalEconomy.getSqlManager();
     }
 
     /**
@@ -107,7 +107,7 @@ public class TEAccount implements UniqueAccount {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .select(currencyName + "_balance")
                     .from("accounts")
                     .where("uid")
@@ -133,7 +133,7 @@ public class TEAccount implements UniqueAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(currencyName + "_balance")
                         .from("accounts")
                         .where("uid")
@@ -184,7 +184,7 @@ public class TEAccount implements UniqueAccount {
             }
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .update("accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
