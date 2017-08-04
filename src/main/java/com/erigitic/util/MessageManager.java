@@ -65,7 +65,6 @@ public class MessageManager {
         setupConfig(locale);
     }
 
-    // TODO: If no messages_{lang} file is found, default to messages_en
     /**
      * Setup the config file that will contain the messages
      */
