@@ -215,7 +215,7 @@ public class TotalEconomy {
         logger.info("Total Economy Stopping");
 
         if (!databaseActive) {
-            accountManager.saveAccountConfig(true);
+            accountManager.requestConfigurationSave();
         }
     }
 

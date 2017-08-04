@@ -86,10 +86,7 @@ public class AccountManager implements EconomyService {
             setupConfig();
 
             if (totalEconomy.getSaveInterval() > 0) {
-                Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
-                        .execute(() -> {
-                            writeToDisk(false);
-                        }).submit(totalEconomy);
+                setupAutosave();
             }
         }
     }
@@ -147,6 +144,19 @@ public class AccountManager implements EconomyService {
                 "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
                 "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
                 "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
+    }
+
+    /**
+     * Setup a scheduler that handles the saving of the account configuration file
+     */
+    private void setupAutosave() {
+        Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
+                .execute(() -> {
+                    if (confSaveRequested) {
+                        saveConfiguration();
+                        confSaveRequested = false;
+                    }
+                }).submit(totalEconomy);
     }
 
     /**
@@ -407,29 +417,22 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Save the account configuration file
-     *
-     * @param forceSave Whether to force a save regardless of if conditions are met or not
+     * Request for the account configuration file to be saved
      */
-    public void saveAccountConfig(boolean forceSave) {
-        confSaveRequested = true;
-
-        if (totalEconomy.getSaveInterval() <= 0 || forceSave) {
-            writeToDisk(forceSave);
+    public void requestConfigurationSave() {
+        if (totalEconomy.getSaveInterval() > 0) {
+            confSaveRequested = true;
+        } else {
+            saveConfiguration();
         }
     }
 
     /**
      * Save the account configuration file
      */
-    public void writeToDisk(boolean forceSave) {
-        if (!forceSave && !confSaveRequested) {
-            return;
-        }
-
+    private void saveConfiguration() {
         try {
             loader.save(accountConfig);
-            confSaveRequested = false;
         } catch (IOException e) {
             logger.error("[TE] An error occurred while saving the account configuration file!");
         }
