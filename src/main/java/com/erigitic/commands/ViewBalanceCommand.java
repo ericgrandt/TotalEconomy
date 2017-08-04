@@ -28,13 +28,12 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
@@ -52,14 +51,14 @@ import java.util.Optional;
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Currency defaultCurrency;
 
     public ViewBalanceCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
+        messageManager = totalEconomy.getMessageManager();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -98,7 +97,7 @@ public class ViewBalanceCommand implements CommandExecutor {
             messageValues.put("recipient", recipient.getName());
             messageValues.put("amount", balanceText.toPlain());
 
-            sender.sendMessage(messageHandler.getMessage("command.viewbalance", messageValues));
+            sender.sendMessage(messageManager.getMessage("command.viewbalance", messageValues));
 
             return CommandResult.success();
         } else {

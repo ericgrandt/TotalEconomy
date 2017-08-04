@@ -26,9 +26,9 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -46,7 +46,6 @@ import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -54,13 +53,13 @@ import java.util.concurrent.TimeUnit;
 
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Logger logger;
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
 
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     private boolean databaseActive;
 
@@ -75,12 +74,12 @@ public class AccountManager implements EconomyService {
     public AccountManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
-        messageHandler = totalEconomy.getMessageHandler();
+        messageManager = totalEconomy.getMessageManager();
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
 
         if (databaseActive) {
-            sqlHandler = totalEconomy.getSqlHandler();
+            sqlManager = totalEconomy.getSqlManager();
 
             setupDatabase();
         } else {
@@ -125,24 +124,24 @@ public class AccountManager implements EconomyService {
             currencyCols += teCurrency.getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + teCurrency.getStartingBalance() + "',";
         }
 
-        sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
+        sqlManager.createTable("accounts", "uid varchar(60) NOT NULL," +
                 currencyCols +
                 "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
                 "job_notifications boolean NOT NULL DEFAULT TRUE," +
                 "PRIMARY KEY (uid)");
 
-        sqlHandler.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
+        sqlManager.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
                 currencyCols +
                 "PRIMARY KEY (uid)");
 
-        sqlHandler.createTable("levels", "uid varchar(60)," +
+        sqlManager.createTable("levels", "uid varchar(60)," +
                 "miner int(10) unsigned NOT NULL DEFAULT '1'," +
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
                 "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
                 "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
                 "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
 
-        sqlHandler.createTable("experience", "uid varchar(60)," +
+        sqlManager.createTable("experience", "uid varchar(60)," +
                 "miner int(10) unsigned NOT NULL DEFAULT '0'," +
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
                 "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
@@ -175,17 +174,17 @@ public class AccountManager implements EconomyService {
         try {
             if (!hasAccount(uuid)) {
                 if (databaseActive) {
-                    SQLQuery.builder(sqlHandler.dataSource).insert("accounts")
+                    SQLQuery.builder(sqlManager.dataSource).insert("accounts")
                             .columns("uid", "job", "job_notifications")
                             .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
                             .build();
 
-                    SQLQuery.builder(sqlHandler.dataSource).insert("levels")
+                    SQLQuery.builder(sqlManager.dataSource).insert("levels")
                             .columns("uid")
                             .values(uuid.toString())
                             .build();
 
-                    SQLQuery.builder(sqlHandler.dataSource).insert("experience")
+                    SQLQuery.builder(sqlManager.dataSource).insert("experience")
                             .columns("uid")
                             .values(uuid.toString())
                             .build();
@@ -193,7 +192,7 @@ public class AccountManager implements EconomyService {
                     for (Currency currency : totalEconomy.getCurrencies()) {
                         TECurrency teCurrency = (TECurrency) currency;
 
-                        SQLQuery.builder(sqlHandler.dataSource).update("accounts")
+                        SQLQuery.builder(sqlManager.dataSource).update("accounts")
                                 .set(teCurrency.getName().toLowerCase() + "_balance")
                                 .equals(playerAccount.getDefaultBalance(teCurrency).toString())
                                 .where("uid")
@@ -245,7 +244,7 @@ public class AccountManager implements EconomyService {
                     for (Currency currency : totalEconomy.getCurrencies()) {
                         TECurrency teCurrency = (TECurrency) currency;
 
-                        SQLQuery.builder(sqlHandler.dataSource).insert("virtual_accounts")
+                        SQLQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
                                 .columns("uid", teCurrency.getName().toLowerCase() + "_balance")
                                 .values(identifier, virtualAccount.getDefaultBalance(teCurrency).toString())
                                 .build();
@@ -286,7 +285,7 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
                     .select("uid")
                     .from("accounts")
                     .where("uid")
@@ -308,7 +307,7 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(String identifier) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
                     .select("uid")
                     .from("virtual_accounts")
                     .where("uid")
@@ -356,7 +355,7 @@ public class AccountManager implements EconomyService {
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).select("job_notifications")
                     .from("accounts")
                     .where("uid")
                     .equals(playerUUID.toString())
@@ -378,7 +377,7 @@ public class AccountManager implements EconomyService {
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("accounts")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
                     .set("job_notifications")
                     .equals(jobNotifications ? "1":"0")
                     .where("uid")
@@ -401,9 +400,9 @@ public class AccountManager implements EconomyService {
         }
 
         if (jobNotifications == true) {
-            player.sendMessage(messageHandler.getMessage("notifications.on"));
+            player.sendMessage(messageManager.getMessage("notifications.on"));
         } else {
-            player.sendMessage(messageHandler.getMessage("notifications.off"));
+            player.sendMessage(messageManager.getMessage("notifications.off"));
         }
     }
 

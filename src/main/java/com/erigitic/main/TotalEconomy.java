@@ -30,8 +30,8 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.TEJobManager;
-import com.erigitic.sql.SQLHandler;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.sql.SQLManager;
+import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -56,7 +56,6 @@ import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -93,7 +92,7 @@ public class TotalEconomy {
 
     private AccountManager accountManager;
     private TEJobManager teJobManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
 
     private TECurrencyRegistryModule teCurrencyRegistryModule;
 
@@ -116,7 +115,7 @@ public class TotalEconomy {
 
     private int saveInterval;
 
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     @Listener
     public void preInit(GamePreInitializationEvent event) {
@@ -166,12 +165,12 @@ public class TotalEconomy {
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
 
-            sqlHandler = new SQLHandler(this);
+            sqlManager = new SQLManager(this);
         }
 
         saveInterval = config.getNode("save-interval").getInt(30);
 
-        messageHandler = new MessageHandler(this, Locale.forLanguageTag(languageTag));
+        messageManager = new MessageManager(this, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this);
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
@@ -358,7 +357,7 @@ public class TotalEconomy {
         return teJobManager;
     }
 
-    public MessageHandler getMessageHandler() { return messageHandler; }
+    public MessageManager getMessageManager() { return messageManager; }
 
     public TECurrencyRegistryModule getTECurrencyRegistryModule() { return teCurrencyRegistryModule; }
 
@@ -406,6 +405,6 @@ public class TotalEconomy {
 
     public String getDatabasePassword() { return databasePassword; }
 
-    public SQLHandler getSqlHandler() { return sqlHandler; }
+    public SQLManager getSqlManager() { return sqlManager; }
 
 }

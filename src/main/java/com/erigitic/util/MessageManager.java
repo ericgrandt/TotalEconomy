@@ -44,7 +44,7 @@ import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MessageHandler {
+public class MessageManager {
 
     private TotalEconomy totalEconomy;
     private Logger logger;
@@ -57,7 +57,7 @@ public class MessageHandler {
      * are changed, and aliases are changed to their corresponding values which are passed in.
      */
 
-    public MessageHandler(TotalEconomy totalEconomy, Locale locale) {
+    public MessageManager(TotalEconomy totalEconomy, Locale locale) {
         this.totalEconomy = totalEconomy;
 
         logger = totalEconomy.getLogger();

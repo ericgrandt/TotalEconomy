@@ -30,9 +30,9 @@ import com.erigitic.config.TEAccount;
 import com.erigitic.jobs.jobs.*;
 import com.erigitic.jobs.jobsets.*;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -43,7 +43,6 @@ import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.block.trait.BlockTrait;
-import org.spongepowered.api.block.trait.IntegerTrait;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.manipulator.mutable.item.FishData;
 import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
@@ -99,7 +98,7 @@ public class TEJobManager {
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private ConfigurationNode accountConfig;
     private Logger logger;
 
@@ -114,19 +113,19 @@ public class TEJobManager {
     private Map<String, TEJob> jobsMap;
 
     private boolean databaseActive;
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     public TEJobManager(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
+        messageManager = totalEconomy.getMessageManager();
         accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseActive();
 
         if (databaseActive)
-            sqlHandler = totalEconomy.getSqlHandler();
+            sqlManager = totalEconomy.getSqlManager();
 
         setupConfig();
 
@@ -161,7 +160,7 @@ public class TEJobManager {
                             Map<String, String> messageValues = new HashMap<>();
                             messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
 
-                            player.sendMessage(messageHandler.getMessage("jobs.salary", messageValues));
+                            player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
                         } else {
                             player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                         }
@@ -282,7 +281,7 @@ public class TEJobManager {
         if (databaseActive) {
             int newExp = getJobExp(jobName, player) + expAmount;
 
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .update("experience")
                     .set(jobName)
                     .equals(String.valueOf(newExp))
@@ -292,7 +291,7 @@ public class TEJobManager {
 
             if (sqlQuery.getRowsAffected() > 0) {
                 if (jobNotifications) {
-                    player.sendMessage(messageHandler.getMessage("jobs.addexp", messageValues));
+                    player.sendMessage(messageManager.getMessage("jobs.addexp", messageValues));
                 }
             } else {
                 logger.warn("[TE] An error occurred while updating job experience in the database!");
@@ -304,7 +303,7 @@ public class TEJobManager {
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
 
             if (jobNotifications) {
-                player.sendMessage(messageHandler.getMessage("jobs.addexp", messageValues));
+                player.sendMessage(messageManager.getMessage("jobs.addexp", messageValues));
             }
 
             try {
@@ -337,7 +336,7 @@ public class TEJobManager {
             messageValues.put("level", String.valueOf(playerLevel));
 
             if (databaseActive) {
-                SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery.builder(sqlManager.dataSource)
                         .update("levels")
                         .set(jobName)
                         .equals(String.valueOf(playerLevel))
@@ -345,7 +344,7 @@ public class TEJobManager {
                         .equals(playerUUID.toString())
                         .build();
 
-                SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery.builder(sqlManager.dataSource)
                         .update("experience")
                         .set(jobName)
                         .equals(String.valueOf(playerCurExp))
@@ -357,7 +356,7 @@ public class TEJobManager {
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
             }
 
-            player.sendMessage(messageHandler.getMessage("jobs.levelup", messageValues));
+            player.sendMessage(messageManager.getMessage("jobs.levelup", messageValues));
         }
     }
 
@@ -397,7 +396,7 @@ public class TEJobManager {
         Map<String, String> messageValues = new HashMap<>();
         messageValues.put("amount", amountText.toPlain());
 
-        player.sendMessage(messageHandler.getMessage("jobs.notify", messageValues));
+        player.sendMessage(messageManager.getMessage("jobs.notify", messageValues));
     }
 
     /**
@@ -413,7 +412,7 @@ public class TEJobManager {
         jobName = jobName.toLowerCase();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .update("accounts")
                     .set("job")
                     .equals(jobName)
@@ -466,7 +465,7 @@ public class TEJobManager {
         UUID uuid = user.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .select("job")
                     .from("accounts")
                     .where("uid")
@@ -510,7 +509,7 @@ public class TEJobManager {
 
         if (!jobName.equals("unemployed")) {
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(jobName)
                         .from("levels")
                         .where("uid")
@@ -541,7 +540,7 @@ public class TEJobManager {
 
         if (!jobName.equals("unemployed")) {
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(jobName)
                         .from("experience")
                         .where("uid")
@@ -670,7 +669,7 @@ public class TEJobManager {
                                         Map<String, String> messageValues = new HashMap<>();
                                         messageValues.put("job", titleize(jobName));
 
-                                        player.sendMessage(messageHandler.getMessage("jobs.sign", messageValues));
+                                        player.sendMessage(messageManager.getMessage("jobs.sign", messageValues));
                                     } else {
                                         player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to set job. Contact your administrator."));
                                     }

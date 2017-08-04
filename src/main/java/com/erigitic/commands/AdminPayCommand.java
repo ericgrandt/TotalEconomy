@@ -28,7 +28,7 @@ package com.erigitic.commands;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -53,14 +53,14 @@ import java.util.regex.Pattern;
 public class AdminPayCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Currency defaultCurrency;
 
     public AdminPayCommand(TotalEconomy totalEconomy) {
         this.totalEconomy = totalEconomy;
 
         accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
+        messageManager = totalEconomy.getMessageManager();
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -101,16 +101,16 @@ public class AdminPayCommand implements CommandExecutor {
                 messageValues.put("amount", amountText.toPlain());
 
                 if (!amountStr.contains("-")) {
-                    src.sendMessage(messageHandler.getMessage("command.adminpay.send.sender", messageValues));
+                    src.sendMessage(messageManager.getMessage("command.adminpay.send.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(messageHandler.getMessage("command.adminpay.send.recipient", messageValues));
+                        recipient.getPlayer().get().sendMessage(messageManager.getMessage("command.adminpay.send.recipient", messageValues));
                     }
                 } else {
-                    src.sendMessage(messageHandler.getMessage("command.adminpay.remove.sender", messageValues));
+                    src.sendMessage(messageManager.getMessage("command.adminpay.remove.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(messageHandler.getMessage("command.adminpay.remove.recipient", messageValues));
+                        recipient.getPlayer().get().sendMessage(messageManager.getMessage("command.adminpay.remove.recipient", messageValues));
                     }
                 }
 
