@@ -32,17 +32,16 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
+import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.FormattingCodeTextSerializer;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MessageManager {
 
@@ -73,18 +72,14 @@ public class MessageManager {
         loader = HoconConfigurationLoader.builder().setFile(messagesFile).build();
 
         try {
-            messagesConfig = loader.load();
-
             if (!messagesFile.exists()) {
-                ResourceBundle rb = ResourceBundle.getBundle("messages", locale);
-                rb.keySet().forEach(key -> {
-                    String value = rb.getString(key);
+                Asset defaultMessagesAsset = totalEconomy.getPluginContainer().getAsset("messages_en.conf").get();
+                Optional<Asset> optMessagesAsset = totalEconomy.getPluginContainer().getAsset("messages_" + locale.getLanguage() + ".conf");
 
-                    messagesConfig.getNode(key.toString()).setValue(value);
-                });
-
-                loader.save(messagesConfig);
+                optMessagesAsset.orElse(defaultMessagesAsset).copyToFile(messagesFile.toPath());
             }
+
+            messagesConfig = loader.load();
         } catch (IOException e) {
             logger.warn("[TE] Error loading/creating the messages configuration file!");
         }
