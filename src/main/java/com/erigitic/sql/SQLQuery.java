@@ -244,6 +244,11 @@ public class SQLQuery {
         return def;
     }
 
+    /**
+     * Get the number of rows that were affected by a query
+     *
+     * @return int Number of rows that were affected by the query
+     */
     public int getRowsAffected() {
         return rowsAffected;
     }

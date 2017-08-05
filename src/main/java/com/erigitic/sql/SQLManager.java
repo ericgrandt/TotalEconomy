@@ -69,6 +69,13 @@ public class SQLManager {
         return sql.getDataSource(jdbcUrl);
     }
 
+    /**
+     * Create a new table in the database
+     *
+     * @param tableName Name of the table to be created
+     * @param cols The columns that the table should have
+     * @return boolean Result of the query
+     */
     public boolean createTable(String tableName, String cols) {
         try {
             Connection conn = dataSource.getConnection();
