@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 public class MessageManager {
 
@@ -54,7 +53,7 @@ public class MessageManager {
 
     /**
      * Grabs a message from the messages_[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
-     * are changed, and aliases are changed to their corresponding values which are passed in.
+     * are changed, and value placeholders are changed to their corresponding values which are passed in.
      */
     public MessageManager(TotalEconomy totalEconomy, Locale locale) {
         this.totalEconomy = totalEconomy;
@@ -65,7 +64,7 @@ public class MessageManager {
     }
 
     /**
-     * Setup the config file that will contain the messages
+     * Setup the messages_[lang].conf file
      */
     private void setupConfig(Locale locale) {
         messagesFile = new File(totalEconomy.getConfigDir(), "messages_" + locale.getLanguage() + ".conf");
@@ -85,12 +84,25 @@ public class MessageManager {
         }
     }
 
+    /**
+     * Get a message from the messages_[lang].conf file and deserialize it for printing
+     *
+     * @param messageKey The key to grab a value from
+     * @return Text The deserialized message
+     */
     public Text getMessage(String messageKey) {
         String message = messagesConfig.getNode(messageKey).getString();
 
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }
 
+    /**
+     * Get a message from the messages_[lang].conf file, replace value placeholders, and deserialize it for printing
+     *
+     * @param messageKey The key to grab a value from
+     * @param values Map of values that will replace value placeholders (ex. {amount}, {name})
+     * @return Text The deserialized message
+     */
     public Text getMessage(String messageKey, Map<String, String> values) {
         StrSubstitutor sub = new StrSubstitutor(values, "{", "}");
         String message = sub.replace(messagesConfig.getNode(messageKey).getString());
