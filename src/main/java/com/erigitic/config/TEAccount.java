@@ -151,9 +151,21 @@ public class TEAccount implements UniqueAccount {
         return BigDecimal.ZERO;
     }
 
+    /**
+     * Get a player's balance for each currency type
+     *
+     * @param contexts
+     * @return Map A map of the balances of each currency
+     */
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return new HashMap<>();
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            balances.put(currency, getBalance(currency, contexts));
+        }
+
+        return balances;
     }
 
     /**
@@ -163,7 +175,7 @@ public class TEAccount implements UniqueAccount {
      * @param amount Amount to set the balance to
      * @param cause
      * @param contexts
-     * @return
+     * @return TransactionResult Result of the transaction
      */
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
