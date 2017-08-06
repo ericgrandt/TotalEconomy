@@ -30,6 +30,7 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.TEJobManager;
+import com.erigitic.shops.ShopManager;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
@@ -61,7 +62,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.1", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.0", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -94,6 +95,7 @@ public class TotalEconomy {
     private AccountManager accountManager;
     private TEJobManager teJobManager;
     private MessageManager messageManager;
+    private ShopManager shopManager;
 
     private TECurrencyRegistryModule teCurrencyRegistryModule;
 
@@ -109,6 +111,10 @@ public class TotalEconomy {
     private boolean jobNotificationEnabled = true;
     private boolean jobSalaryEnabled = true;
     // End Job Variables
+
+    // Shop Variables
+    private boolean chestShopEnabled = true;
+    // End Shop Variables
 
     // Database Variables
     private boolean databaseEnabled = false;
@@ -338,6 +344,10 @@ public class TotalEconomy {
         if (jobFeatureEnabled) {
             eventManager.registerListeners(this, teJobManager);
         }
+
+        if (chestShopEnabled) {
+            eventManager.registerListeners(this, shopManager);
+        }
     }
 
     /**
@@ -352,6 +362,8 @@ public class TotalEconomy {
         databaseEnabled = config.getNode("database", "enable").getBoolean();
 
         moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean();
+
+        chestShopEnabled = config.getNode("features", "shops", "chestshops", "enable").getBoolean();
     }
 
     public HashSet<Currency> getCurrencies() {
