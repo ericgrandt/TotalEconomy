@@ -76,7 +76,7 @@ public class AccountManager implements EconomyService {
 
         messageManager = totalEconomy.getMessageManager();
         logger = totalEconomy.getLogger();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {
             sqlManager = totalEconomy.getSqlManager();
@@ -186,7 +186,7 @@ public class AccountManager implements EconomyService {
                 if (databaseActive) {
                     SQLQuery.builder(sqlManager.dataSource).insert("accounts")
                             .columns("uid", "job", "job_notifications")
-                            .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
+                            .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.isJobNotificationEnabled()))
                             .build();
 
                     SQLQuery.builder(sqlManager.dataSource).insert("levels")
@@ -217,7 +217,7 @@ public class AccountManager implements EconomyService {
                     }
 
                     accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
-                    accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
+                    accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.isJobNotificationEnabled());
                     loader.save(accountConfig);
                 }
             } else if (!databaseActive) { // If the user has an account, and a database is not being used, let's make sure they have a balance for each currency.
