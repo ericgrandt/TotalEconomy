@@ -77,7 +77,6 @@ import java.util.concurrent.TimeUnit;
 
 public class TEJobManager {
 
-    // We only need one instance of this
     public final JobSet[] defaultJobSets = {
             new FishermanJobSet(),
             new LumberjackJobSet(),
@@ -86,7 +85,6 @@ public class TEJobManager {
             new FarmerJobSet()
     };
 
-    // We only need one instance of this
     private final Job[] defaultJobsArr = {
             new UnemployedJob(),
             new FishermanJob(),
@@ -112,7 +110,7 @@ public class TEJobManager {
     private ConfigurationNode jobsConfig;
     private Map<String, TEJob> jobsMap;
 
-    private boolean databaseActive;
+    private boolean databaseEnabled;
     private SQLManager sqlManager;
 
     public TEJobManager(TotalEconomy totalEconomy) {
@@ -120,17 +118,20 @@ public class TEJobManager {
 
         accountManager = totalEconomy.getAccountManager();
         messageManager = totalEconomy.getMessageManager();
-        accountConfig = accountManager.getAccountConfig();
         logger = totalEconomy.getLogger();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseEnabled = totalEconomy.isDatabaseEnabled();
 
-        if (databaseActive)
+        accountConfig = accountManager.getAccountConfig();
+
+        if (databaseEnabled) {
             sqlManager = totalEconomy.getSqlManager();
+        }
 
         setupConfig();
 
-        if (totalEconomy.isLoadSalary())
+        if (totalEconomy.isJobSalaryEnabled()) {
             startSalaryTask();
+        }
     }
 
     /**
@@ -278,7 +279,7 @@ public class TEJobManager {
         messageValues.put("job", titleize(jobName));
         messageValues.put("exp", String.valueOf(expAmount));
 
-        if (databaseActive) {
+        if (databaseEnabled) {
             int newExp = getJobExp(jobName, player) + expAmount;
 
             SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
@@ -335,7 +336,7 @@ public class TEJobManager {
             messageValues.put("job", titleize(jobName));
             messageValues.put("level", String.valueOf(playerLevel));
 
-            if (databaseActive) {
+            if (databaseEnabled) {
                 SQLQuery.builder(sqlManager.dataSource)
                         .update("levels")
                         .set(jobName)
@@ -411,7 +412,7 @@ public class TEJobManager {
         // Just in case the job name was not passed in as lowercase, make it lowercase
         jobName = jobName.toLowerCase();
 
-        if (databaseActive) {
+        if (databaseEnabled) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .update("accounts")
                     .set("job")
@@ -464,7 +465,7 @@ public class TEJobManager {
     public String getPlayerJob(User user) {
         UUID uuid = user.getUniqueId();
 
-        if (databaseActive) {
+        if (databaseEnabled) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .select("job")
                     .from("accounts")
@@ -508,7 +509,7 @@ public class TEJobManager {
         jobName = jobName.toLowerCase();
 
         if (!jobName.equals("unemployed")) {
-            if (databaseActive) {
+            if (databaseEnabled) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(jobName)
                         .from("levels")
@@ -539,7 +540,7 @@ public class TEJobManager {
         jobName = jobName.toLowerCase();
 
         if (!jobName.equals("unemployed")) {
-            if (databaseActive) {
+            if (databaseEnabled) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(jobName)
                         .from("experience")

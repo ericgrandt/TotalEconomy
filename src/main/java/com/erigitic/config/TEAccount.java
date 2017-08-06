@@ -65,7 +65,7 @@ public class TEAccount implements UniqueAccount {
         this.uuid = uuid;
 
         accountConfig = accountManager.getAccountConfig();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive)
             sqlManager = totalEconomy.getSqlManager();
