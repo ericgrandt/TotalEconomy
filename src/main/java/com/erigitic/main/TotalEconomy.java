@@ -44,6 +44,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.*;
@@ -89,7 +90,7 @@ public class TotalEconomy {
     private ConfigurationNode config;
 
     private TECurrency defaultCurrency;
-
+    private SQLManager sqlManager;
     private AccountManager accountManager;
     private TEJobManager teJobManager;
     private MessageManager messageManager;
@@ -98,69 +99,43 @@ public class TotalEconomy {
 
     private HashSet<Currency> currencies = new HashSet<>();
 
-    private boolean loadJobs = true;
-    private boolean jobPermissions = false;
-    private boolean jobNotifications = true;
-    private boolean loadSalary = true;
-    private boolean loadMoneyCap = false;
-    private boolean databaseActive = false;
-
     private String languageTag;
+
+    private int saveInterval;
+
+    // Job Variables
+    private boolean jobFeatureEnabled = true;
+    private boolean jobPermissionRequired = false;
+    private boolean jobNotificationEnabled = true;
+    private boolean jobSalaryEnabled = true;
+    // End Job Variables
+
+    // Database Variables
+    private boolean databaseEnabled = false;
 
     private String databaseUrl;
     private String databaseUser;
     private String databasePassword;
+    // End Database Variables
 
+    // Money Cap Variables
+    private boolean moneyCapEnabled = false;
     private BigDecimal moneyCap;
-
-    private int saveInterval;
-
-    private SQLManager sqlManager;
+    // End Money Cap Variables
 
     @Listener
     public void preInit(GamePreInitializationEvent event) {
-        setupConfig();
+        loadConfig();
 
-        // Loop through each currency and store them in a Collection<Currency>. Sets the default currency as well.
-        config.getNode("currency").getChildrenMap().keySet().forEach(currencyName -> {
-            ConfigurationNode currencyNode = config.getNode("currency", currencyName.toString());
+        loadCurrencies();
 
-            String currencySingular = currencyNode.getNode("currency-singular").getString();
-            String currencyPlural = currencyNode.getNode("currency-plural").getString();
-            String currencySymbol = currencyNode.getNode("symbol").getString();
-            boolean isDefault = currencyNode.getNode("default").getBoolean();
-            boolean prefixSymbol = currencyNode.getNode("prefix-symbol").getBoolean();
-            boolean isTransferable = currencyNode.getNode("transferable").getBoolean();
-            BigDecimal startBalance = new BigDecimal(currencyNode.getNode("startbalance").getDouble());
-
-            TECurrency currency = new TECurrency(
-                    Text.of(currencySingular),
-                    Text.of(currencyPlural),
-                    Text.of(currencySymbol),
-                    2,
-                    isDefault,
-                    prefixSymbol,
-                    isTransferable,
-                    startBalance
-            );
-
-            if (isDefault) {
-                defaultCurrency = currency;
-            }
-
-            currencies.add(currency);
-        });
-
-        loadJobs = config.getNode("features", "jobs", "enable").getBoolean();
-        loadSalary = config.getNode("features", "jobs", "salary").getBoolean();
-        databaseActive = config.getNode("database", "enable").getBoolean();
-        jobPermissions = config.getNode("features", "jobs", "permissions").getBoolean();
-        jobNotifications = config.getNode("features", "jobs", "notifications").getBoolean();
-        loadMoneyCap = config.getNode("features", "moneycap", "enable").getBoolean();
+        setFeaturesEnabledStatus();
 
         languageTag = config.getNode("language").getString("en");
 
-        if (databaseActive) {
+        saveInterval = config.getNode("save-interval").getInt(30);
+
+        if (databaseEnabled) {
             databaseUrl = config.getNode("database", "url").getString();
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
@@ -168,20 +143,18 @@ public class TotalEconomy {
             sqlManager = new SQLManager(this);
         }
 
-        saveInterval = config.getNode("save-interval").getInt(30);
-
         messageManager = new MessageManager(this, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this);
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
 
-        //Only setup job stuff if config is set to load jobs
-        if (loadJobs) {
+        // Only create JobManager
+        if (jobFeatureEnabled) {
             teJobManager = new TEJobManager(this);
         }
 
-        if (loadMoneyCap) {
+        if (moneyCapEnabled) {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat()).setScale(2, BigDecimal.ROUND_DOWN);
         }
 
@@ -192,10 +165,7 @@ public class TotalEconomy {
     @Listener
     public void init(GameInitializationEvent event) {
         createAndRegisterCommands();
-
-        if (loadJobs) {
-            game.getEventManager().registerListeners(this, teJobManager);
-        }
+        registerListeners();
     }
 
     @Listener
@@ -214,7 +184,7 @@ public class TotalEconomy {
     public void onServerStopping(GameStoppingServerEvent event) {
         logger.info("Total Economy Stopping");
 
-        if (!databaseActive) {
+        if (!databaseEnabled) {
             accountManager.requestConfigurationSave();
         }
     }
@@ -238,7 +208,7 @@ public class TotalEconomy {
      */
     @Listener
     public void onGameReload(GameReloadEvent event) {
-        if (loadJobs) {
+        if (jobFeatureEnabled) {
             teJobManager.reloadJobsAndSets();
         }
 
@@ -248,7 +218,7 @@ public class TotalEconomy {
     /**
      * Setup the default config file, totaleconomy.conf.
      */
-    private void setupConfig() {
+    private void loadConfig() {
         try {
             if (!defaultConf.exists()) {
                 pluginContainer.getAsset("totaleconomy.conf").get().copyToFile(defaultConf.toPath());
@@ -260,6 +230,9 @@ public class TotalEconomy {
         }
     }
 
+    /**
+     * Create commands and registers them with the CommandManager
+     */
     private void createAndRegisterCommands() {
         CommandSpec adminPayCommand = CommandSpec.builder()
                 .description(Text.of("Pay a player without removing money from your balance."))
@@ -310,7 +283,7 @@ public class TotalEconomy {
                 .build();
 
         //Only enables job commands if the value for jobs in config is set to true
-        if (loadJobs) {
+        if (jobFeatureEnabled) {
             game.getCommandManager().register(this, JobCommand.commandSpec(this), "job");
         }
 
@@ -320,6 +293,65 @@ public class TotalEconomy {
         game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
         game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
         game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
+    }
+
+    /**
+     * Load each currency from the default configuration file. Sets the default currency.
+     */
+    private void loadCurrencies() {
+        config.getNode("currency").getChildrenMap().keySet().forEach(currencyName -> {
+            ConfigurationNode currencyNode = config.getNode("currency", currencyName.toString());
+
+            String currencySingular = currencyNode.getNode("currency-singular").getString();
+            String currencyPlural = currencyNode.getNode("currency-plural").getString();
+            String currencySymbol = currencyNode.getNode("symbol").getString();
+            boolean isDefault = currencyNode.getNode("default").getBoolean();
+            boolean prefixSymbol = currencyNode.getNode("prefix-symbol").getBoolean();
+            boolean isTransferable = currencyNode.getNode("transferable").getBoolean();
+            BigDecimal startBalance = new BigDecimal(currencyNode.getNode("startbalance").getDouble());
+
+            TECurrency currency = new TECurrency(
+                    Text.of(currencySingular),
+                    Text.of(currencyPlural),
+                    Text.of(currencySymbol),
+                    2,
+                    isDefault,
+                    prefixSymbol,
+                    isTransferable,
+                    startBalance
+            );
+
+            if (isDefault) {
+                defaultCurrency = currency;
+            }
+
+            currencies.add(currency);
+        });
+    }
+
+    /**
+     * Registers event listeners
+     */
+    private void registerListeners() {
+        EventManager eventManager = game.getEventManager();
+
+        if (jobFeatureEnabled) {
+            eventManager.registerListeners(this, teJobManager);
+        }
+    }
+
+    /**
+     * Determines what features to enable in the main configuration file
+     */
+    private void setFeaturesEnabledStatus() {
+        jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean();
+        jobPermissionRequired = config.getNode("features", "jobs", "permissions").getBoolean();
+        jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean();
+        jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean();
+
+        databaseEnabled = config.getNode("database", "enable").getBoolean();
+
+        moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean();
     }
 
     public HashSet<Currency> getCurrencies() {
@@ -358,19 +390,19 @@ public class TotalEconomy {
         return defaultCurrency;
     }
 
-    public boolean isLoadSalary() {
-        return loadSalary;
+    public boolean isJobSalaryEnabled() {
+        return jobSalaryEnabled;
     }
 
-    public boolean isDatabaseActive() { return databaseActive; }
+    public boolean isDatabaseEnabled() { return databaseEnabled; }
+
+    public boolean isJobNotificationEnabled() { return jobNotificationEnabled; }
 
     public int getSaveInterval() {
         return saveInterval;
     }
 
-    public boolean hasJobNotifications() { return jobNotifications; }
-
-    public BigDecimal getMoneyCap() { return loadMoneyCap ? moneyCap : new BigDecimal(Double.MAX_VALUE); }
+    public BigDecimal getMoneyCap() { return moneyCapEnabled ? moneyCap : new BigDecimal(Double.MAX_VALUE); }
 
     public UserStorageService getUserStorageService() {
         return userStorageService;

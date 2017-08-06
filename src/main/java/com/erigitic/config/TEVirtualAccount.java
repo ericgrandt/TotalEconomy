@@ -58,7 +58,7 @@ public class TEVirtualAccount implements VirtualAccount {
         this.identifier = identifier;
 
         accountConfig = accountManager.getAccountConfig();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {
             sqlManager = totalEconomy.getSqlManager();
