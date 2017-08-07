@@ -67,8 +67,9 @@ public class TEAccount implements UniqueAccount {
         accountConfig = accountManager.getAccountConfig();
         databaseActive = totalEconomy.isDatabaseEnabled();
 
-        if (databaseActive)
+        if (databaseActive) {
             sqlManager = totalEconomy.getSqlManager();
+        }
     }
 
     /**
@@ -78,8 +79,9 @@ public class TEAccount implements UniqueAccount {
      */
     @Override
     public Text getDisplayName() {
-        if (totalEconomy.getUserStorageService().get(uuid).isPresent())
+        if (totalEconomy.getUserStorageService().get(uuid).isPresent()) {
             return Text.of(totalEconomy.getUserStorageService().get(uuid).get().getName());
+        }
 
         return Text.of("PLAYER NAME");
     }

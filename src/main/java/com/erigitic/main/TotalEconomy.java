@@ -29,7 +29,7 @@ import com.erigitic.commands.*;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
-import com.erigitic.jobs.TEJobManager;
+import com.erigitic.jobs.JobManager;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
@@ -92,7 +92,7 @@ public class TotalEconomy {
     private TECurrency defaultCurrency;
     private SQLManager sqlManager;
     private AccountManager accountManager;
-    private TEJobManager teJobManager;
+    private JobManager jobManager;
     private MessageManager messageManager;
 
     private TECurrencyRegistryModule teCurrencyRegistryModule;
@@ -140,18 +140,18 @@ public class TotalEconomy {
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
 
-            sqlManager = new SQLManager(this);
+            sqlManager = new SQLManager(this, logger);
         }
 
-        messageManager = new MessageManager(this, Locale.forLanguageTag(languageTag));
-        accountManager = new AccountManager(this);
+        messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
+        accountManager = new AccountManager(this, messageManager, logger);
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
 
         // Only create JobManager
         if (jobFeatureEnabled) {
-            teJobManager = new TEJobManager(this);
+            jobManager = new JobManager(this, accountManager, messageManager, logger);
         }
 
         if (moneyCapEnabled) {
@@ -209,7 +209,7 @@ public class TotalEconomy {
     @Listener
     public void onGameReload(GameReloadEvent event) {
         if (jobFeatureEnabled) {
-            teJobManager.reloadJobsAndSets();
+            jobManager.reloadJobsAndSets();
         }
 
         accountManager.reloadConfig();
@@ -237,7 +237,7 @@ public class TotalEconomy {
         CommandSpec adminPayCommand = CommandSpec.builder()
                 .description(Text.of("Pay a player without removing money from your balance."))
                 .permission("totaleconomy.command.adminpay")
-                .executor(new AdminPayCommand(this))
+                .executor(new AdminPayCommand(this, accountManager, messageManager))
                 .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.string(Text.of("amount")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
@@ -246,20 +246,20 @@ public class TotalEconomy {
         CommandSpec balanceCommand = CommandSpec.builder()
                 .description(Text.of("Display your balance"))
                 .permission("totaleconomy.command.balance")
-                .executor(new BalanceCommand(this))
+                .executor(new BalanceCommand(this, accountManager, messageManager))
                 .arguments(GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
 
         CommandSpec balanceTopCommand = CommandSpec.builder()
                 .description(Text.of("Display top balances"))
                 .permission("totaleconomy.command.balancetop")
-                .executor(new BalanceTopCommand(this))
+                .executor(new BalanceTopCommand(this, accountManager))
                 .build();
 
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
                 .permission("totaleconomy.command.pay")
-                .executor(new PayCommand(this))
+                .executor(new PayCommand(this, accountManager, messageManager))
                 .arguments(GenericArguments.player(Text.of("player")),
                         GenericArguments.string(Text.of("amount")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
@@ -268,7 +268,7 @@ public class TotalEconomy {
         CommandSpec setBalanceCommand = CommandSpec.builder()
                 .description(Text.of("Set a player's balance"))
                 .permission("totaleconomy.command.setbalance")
-                .executor(new SetBalanceCommand(this))
+                .executor(new SetBalanceCommand(this, accountManager, messageManager))
                 .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.string(Text.of("amount")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
@@ -277,14 +277,13 @@ public class TotalEconomy {
         CommandSpec viewBalanceCommand = CommandSpec.builder()
                 .description(Text.of("View the balance of another player"))
                 .permission("totaleconomy.command.viewbalance")
-                .executor(new ViewBalanceCommand(this))
+                .executor(new ViewBalanceCommand(this, accountManager, messageManager))
                 .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
 
-        //Only enables job commands if the value for jobs in config is set to true
         if (jobFeatureEnabled) {
-            game.getCommandManager().register(this, JobCommand.commandSpec(this), "job");
+            game.getCommandManager().register(this, new JobCommand(this, accountManager, jobManager, messageManager).commandSpec(), "job");
         }
 
         game.getCommandManager().register(this, payCommand, "pay");
@@ -336,12 +335,12 @@ public class TotalEconomy {
         EventManager eventManager = game.getEventManager();
 
         if (jobFeatureEnabled) {
-            eventManager.registerListeners(this, teJobManager);
+            eventManager.registerListeners(this, jobManager);
         }
     }
 
     /**
-     * Determines what features to enable in the main configuration file
+     * Determines what features to enable in the main configuration file. Sets the corresponding variable to true/false (enabled/disabled).
      */
     private void setFeaturesEnabledStatus() {
         jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean();
@@ -358,21 +357,11 @@ public class TotalEconomy {
         return currencies;
     }
 
-    public AccountManager getAccountManager() {
-        return accountManager;
+    public JobManager getJobManager() {
+        return jobManager;
     }
-
-    public TEJobManager getTEJobManager() {
-        return teJobManager;
-    }
-
-    public MessageManager getMessageManager() { return messageManager; }
 
     public TECurrencyRegistryModule getTECurrencyRegistryModule() { return teCurrencyRegistryModule; }
-
-    public Logger getLogger() {
-        return logger;
-    }
 
     public File getConfigDir() {
         return configDir;

@@ -55,10 +55,9 @@ public class MessageManager {
      * Grabs a message from the messages_[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
      * are changed, and value placeholders are changed to their corresponding values which are passed in.
      */
-    public MessageManager(TotalEconomy totalEconomy, Locale locale) {
+    public MessageManager(TotalEconomy totalEconomy, Logger logger, Locale locale) {
         this.totalEconomy = totalEconomy;
-
-        logger = totalEconomy.getLogger();
+        this.logger = logger;
 
         setupConfig(locale);
     }

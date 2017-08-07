@@ -50,18 +50,15 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class BalanceTopCommand implements CommandExecutor {
-    private Logger logger;
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
 
     private PaginationService paginationService = Sponge.getServiceManager().provideUnchecked(PaginationService.class);
     private PaginationList.Builder builder = paginationService.builder();
 
-    public BalanceTopCommand(TotalEconomy totalEconomy) {
+    public BalanceTopCommand(TotalEconomy totalEconomy, AccountManager accountManager) {
         this.totalEconomy = totalEconomy;
-        logger = totalEconomy.getLogger();
-
-        accountManager = totalEconomy.getAccountManager();
+        this.accountManager = accountManager;
     }
 
     @Override

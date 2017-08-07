@@ -75,7 +75,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class TEJobManager {
+public class JobManager {
 
     public final JobSet[] defaultJobSets = {
             new FishermanJobSet(),
@@ -113,15 +113,15 @@ public class TEJobManager {
     private boolean databaseEnabled;
     private SQLManager sqlManager;
 
-    public TEJobManager(TotalEconomy totalEconomy) {
+    public JobManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager, Logger logger) {
         this.totalEconomy = totalEconomy;
-
-        accountManager = totalEconomy.getAccountManager();
-        messageManager = totalEconomy.getMessageManager();
-        logger = totalEconomy.getLogger();
-        databaseEnabled = totalEconomy.isDatabaseEnabled();
+        this.accountManager = accountManager;
+        this.messageManager = messageManager;
+        this.logger = logger;
 
         accountConfig = accountManager.getAccountConfig();
+
+        databaseEnabled = totalEconomy.isDatabaseEnabled();
 
         if (databaseEnabled) {
             sqlManager = totalEconomy.getSqlManager();
