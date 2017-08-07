@@ -71,11 +71,11 @@ public class AccountManager implements EconomyService {
      *
      * @param totalEconomy Main plugin class
      */
-    public AccountManager(TotalEconomy totalEconomy) {
+    public AccountManager(TotalEconomy totalEconomy, MessageManager messageManager, Logger logger) {
         this.totalEconomy = totalEconomy;
+        this.messageManager = messageManager;
+        this.logger = logger;
 
-        messageManager = totalEconomy.getMessageManager();
-        logger = totalEconomy.getLogger();
         databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {

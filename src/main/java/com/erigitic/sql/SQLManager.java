@@ -41,9 +41,9 @@ public class SQLManager {
     public DataSource dataSource;
     private SqlService sql;
 
-    public SQLManager(TotalEconomy totalEconomy) {
+    public SQLManager(TotalEconomy totalEconomy, Logger logger) {
         this.totalEconomy = totalEconomy;
-        logger = totalEconomy.getLogger();
+        this.logger = logger;
 
         try {
             dataSource = getDataSource("jdbc:" + totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword());
