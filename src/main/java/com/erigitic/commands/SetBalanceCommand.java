@@ -56,11 +56,10 @@ public class SetBalanceCommand implements CommandExecutor {
     private MessageManager messageManager;
     private Currency defaultCurrency;
 
-    public SetBalanceCommand(TotalEconomy totalEconomy) {
+    public SetBalanceCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
-
-        accountManager = totalEconomy.getAccountManager();
-        messageManager = totalEconomy.getMessageManager();
+        this.accountManager = accountManager;
+        this.messageManager = messageManager;
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }

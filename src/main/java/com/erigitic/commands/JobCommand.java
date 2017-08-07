@@ -25,6 +25,7 @@
 
 package com.erigitic.commands;
 
+import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.*;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
@@ -49,26 +50,32 @@ import java.util.*;
 public class JobCommand implements CommandExecutor {
 
     private TotalEconomy totalEconomy;
-    private TEJobManager jobManager;
+    private AccountManager accountManager;
+    private JobManager jobManager;
     private MessageManager messageManager;
 
-    public JobCommand(TotalEconomy totalEconomy) {
+    public JobCommand(TotalEconomy totalEconomy, AccountManager accountManager, JobManager jobManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
-
-        jobManager = totalEconomy.getTEJobManager();
-        messageManager = totalEconomy.getMessageManager();
+        this.accountManager = accountManager;
+        this.jobManager = jobManager;
+        this.messageManager = messageManager;
     }
 
-    public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
+    public CommandSpec commandSpec() {
+        Set jobSetCommand = new Set(totalEconomy, jobManager, messageManager);
+        Info jobInfoCommand = new Info(totalEconomy, jobManager);
+        Reload jobReloadCommand = new Reload(jobManager);
+        Toggle jobToggleCommand = new Toggle(accountManager);
+
         return CommandSpec.builder()
-                .child(Set.commandSpec(totalEconomy), "set", "s")
-                .child(Toggle.commandSpec(totalEconomy), "toggle", "t")
-                .child(Info.commandSpec(totalEconomy), "info", "i")
-                .child(Reload.commandSpec(totalEconomy), "reload")
-                .description(Text.of("Display list of jobs."))
+                .child(jobSetCommand.commandSpec(), "set", "s")
+                .child(jobInfoCommand.commandSpec(), "info", "i")
+                .child(jobReloadCommand.commandSpec(), "reload")
+                .child(jobToggleCommand.commandSpec(), "toggle", "t")
+                .description(Text.of("Display job information"))
                 .permission("totaleconomy.command.job")
                 .arguments(GenericArguments.none())
-                .executor(new JobCommand(totalEconomy))
+                .executor(this)
                 .build();
     }
 
@@ -76,7 +83,7 @@ public class JobCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player player = ((Player) src).getPlayer().get();
-            String jobName = totalEconomy.getTEJobManager().getPlayerJob(player);
+            String jobName = totalEconomy.getJobManager().getPlayerJob(player);
 
             Map<String, String> messageValues = new HashMap<>();
             messageValues.put("job", jobManager.titleize(jobName));
@@ -87,7 +94,7 @@ public class JobCommand implements CommandExecutor {
             player.sendMessage(messageManager.getMessage("command.job.current", messageValues));
             player.sendMessage(messageManager.getMessage("command.job.level", messageValues));
             player.sendMessage(messageManager.getMessage("command.job.exp", messageValues));
-            player.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, totalEconomy.getTEJobManager().getJobList()));
+            player.sendMessage(Text.of(TextColors.GRAY, "Available Jobs: ", TextColors.GOLD, totalEconomy.getJobManager().getJobList()));
 
             return CommandResult.success();
         } else {
@@ -95,24 +102,23 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    public static class Set implements CommandExecutor {
+    private class Set implements CommandExecutor {
 
         private TotalEconomy totalEconomy;
         private MessageManager messageManager;
-        private TEJobManager jobManager;
+        private JobManager jobManager;
 
-        public Set(TotalEconomy totalEconomy) {
+        public Set(TotalEconomy totalEconomy, JobManager jobManager, MessageManager messageManager) {
             this.totalEconomy = totalEconomy;
-
-            messageManager = totalEconomy.getMessageManager();
-            jobManager = totalEconomy.getTEJobManager();
+            this.jobManager = jobManager;
+            this.messageManager = messageManager;
         }
 
-        public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
+        public CommandSpec commandSpec() {
             return CommandSpec.builder()
                     .description(Text.of("Set your job"))
                     .permission("totaleconomy.command.job.set")
-                    .executor(new Set(totalEconomy))
+                    .executor(this)
                     .arguments(
                             GenericArguments.string(Text.of("jobName")),
                             GenericArguments.requiringPermission(
@@ -130,7 +136,7 @@ public class JobCommand implements CommandExecutor {
             String jobName = args.getOne("jobName").get().toString().toLowerCase();
             User user = args.<User>getOne("user").get();
 
-            Optional<TEJob> optJob = totalEconomy.getTEJobManager().getJob(jobName, false);
+            Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobName, false);
             if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
 
             TEJob job = optJob.get();
@@ -142,14 +148,14 @@ public class JobCommand implements CommandExecutor {
                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.GOLD, jobName, TextColors.RED, "\""));
                 }
 
-                if (req.jobNeeded() != null && req.jobLevelNeeded() > totalEconomy.getTEJobManager().getJobLevel(req.jobNeeded().toLowerCase(), user)) {
+                if (req.jobNeeded() != null && req.jobLevelNeeded() > totalEconomy.getJobManager().getJobLevel(req.jobNeeded().toLowerCase(), user)) {
                      throw new CommandException(Text.of("Insufficient level! Level ",
                              TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
                              TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
                 }
             }
 
-            if (!totalEconomy.getTEJobManager().setJob(user, jobName)) {
+            if (!jobManager.setJob(user, jobName)) {
                 throw new CommandException(Text.of("Failed to set job. Contact your administrator."));
             } else if (user.getPlayer().isPresent()) {
                 Map<String, String> messageValues = new HashMap<>();
@@ -167,39 +173,39 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    public static class Info implements CommandExecutor {
+    private class Info implements CommandExecutor {
 
         private TotalEconomy totalEconomy;
-
-        public Info(TotalEconomy totalEconomy) {
-            this.totalEconomy = totalEconomy;
-        }
-
-        public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
-            return CommandSpec.builder()
-                    .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
-                    .permission("totaleconomy.command.job.info")
-                    .executor(new Info(totalEconomy))
-                    .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
-                    .build();
-        }
+        private JobManager jobManager;
 
         private PaginationService paginationService = Sponge.getServiceManager().provideUnchecked(PaginationService.class);
         private PaginationList.Builder pageBuilder = paginationService.builder();
 
+        public Info(TotalEconomy totalEconomy, JobManager jobManager) {
+            this.totalEconomy = totalEconomy;
+            this.jobManager = jobManager;
+        }
+
+        public CommandSpec commandSpec() {
+            return CommandSpec.builder()
+                    .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
+                    .permission("totaleconomy.command.job.info")
+                    .executor(this)
+                    .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
+                    .build();
+        }
+
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            TEJobManager teJobManager = totalEconomy.getTEJobManager();
-
             Optional<String> optJobName = args.getOne("jobName");
             Optional<TEJob> optJob = Optional.empty();
 
             if (!optJobName.isPresent() && (src instanceof Player)) {
-                optJob = teJobManager.getJob(teJobManager.getPlayerJob((Player) src), true);
+                optJob = jobManager.getJob(jobManager.getPlayerJob((Player) src), true);
             }
 
             if (optJobName.isPresent()) {
-                optJob = teJobManager.getJob(optJobName.get(), false);
+                optJob = jobManager.getJob(optJobName.get(), false);
             }
 
             if (!optJob.isPresent()) {
@@ -209,20 +215,20 @@ public class JobCommand implements CommandExecutor {
             List<Text> lines = new ArrayList();
 
             for (String s : optJob.get().getSets()) {
-                Optional<TEJobSet> optSet = teJobManager.getJobSet(s);
+                Optional<TEJobSet> optSet = jobManager.getJobSet(s);
 
                 if (optSet.isPresent()) {
                     TEJobSet jobSet = optSet.get();
                     Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
                     for (TEActionReward actionReward : jobSet.getActionRewards()) {
-                        lines.add(Text.of(TextColors.GOLD, "[", teJobManager.titleize(actionReward.getAction()), "] ", TextColors.GRAY, actionReward.getTargetID(), TextColors.GOLD, " (", actionReward.getExpReward(), " EXP) (", defaultCurrency.format(actionReward.getMoneyReward()), ")"));
+                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(actionReward.getAction()), "] ", TextColors.GRAY, actionReward.getTargetID(), TextColors.GOLD, " (", actionReward.getExpReward(), " EXP) (", defaultCurrency.format(actionReward.getMoneyReward()), ")"));
                     }
                 }
             }
 
             pageBuilder.reset()
-                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> teJobManager.getPlayerJob(((Player) src))),"\n"))
+                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob(((Player) src))),"\n"))
                     .contents(lines.toArray(new Text[lines.size()]))
                     .sendTo(src);
 
@@ -230,26 +236,26 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    public static class Reload implements CommandExecutor {
+    private class Reload implements CommandExecutor {
 
-        private TotalEconomy totalEconomy;
+        private JobManager jobManager;
 
-        public Reload(TotalEconomy totalEconomy) {
-            this.totalEconomy = totalEconomy;
+        public Reload(JobManager jobManager) {
+            this.jobManager = jobManager;
         }
 
-        public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
+        public CommandSpec commandSpec() {
             return CommandSpec.builder()
                     .description(Text.of("Reloads sets and jobs"))
                     .permission("totaleconomy.command.job.reload")
-                    .executor(new Reload(totalEconomy))
+                    .executor(this)
                     .arguments(GenericArguments.none())
                     .build();
         }
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            if (totalEconomy.getTEJobManager().reloadJobsAndSets()) {
+            if (jobManager.reloadJobsAndSets()) {
                 src.sendMessage(Text.of(TextColors.GRAY, "[TE] Sets and jobs reloaded."));
             } else {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] Failed to reload sets and/or jobs!"));
@@ -259,19 +265,19 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    public static class Toggle implements CommandExecutor {
+    private class Toggle implements CommandExecutor {
 
-        private TotalEconomy totalEconomy;
+        private AccountManager accountManager;
 
-        public Toggle(TotalEconomy totalEconomy) {
-            this.totalEconomy = totalEconomy;
+        public Toggle(AccountManager accountManager) {
+            this.accountManager = accountManager;
         }
 
-        public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
+        public CommandSpec commandSpec() {
             return CommandSpec.builder()
                     .description(Text.of("Toggle job notifications on/off"))
                     .permission("totaleconomy.command.job.toggle")
-                    .executor(new Toggle(totalEconomy))
+                    .executor(this)
                     .build();
         }
 
@@ -280,7 +286,7 @@ public class JobCommand implements CommandExecutor {
             if (src instanceof Player) {
                 Player sender = ((Player) src).getPlayer().get();
 
-                totalEconomy.getAccountManager().toggleNotifications(sender);
+                accountManager.toggleNotifications(sender);
 
                 return CommandResult.success();
             } else {
