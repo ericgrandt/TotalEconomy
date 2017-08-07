@@ -13,10 +13,9 @@ public class ShopManager {
     private TotalEconomy totalEconomy;
     private Logger logger;
 
-    public ShopManager(TotalEconomy totalEconomy) {
+    public ShopManager(TotalEconomy totalEconomy, Logger logger) {
         this.totalEconomy = totalEconomy;
-
-        logger = totalEconomy.getLogger();
+        this.logger = logger;
     }
 
     @Listener
