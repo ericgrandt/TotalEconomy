@@ -2,32 +2,33 @@
 
 All in one economy plugin for Minecraft and Sponge.
 
++ [Source](https://github.com/Erigitic/TotalEconomy)
++ [Issues](https://github.com/Erigitic/TotalEconomy/issues)
++ [Downloads](https://ore.spongepowered.org/Erigitic/Total-Economy/versions)
 
+## Features
 
-## Commands
-```
-/pay [player] [amount] - Pay another player
-/balance - Display your balance (/bal)
-/job - Display information about your current job as well as a job list
-/job set [jobName] - Set your job
-/job toggle - Toggle job reward notifications on/off
-/job info - Displays a paginated list of all items/blocks/mobs that reward exp/money for the player's current job
-/setbalance [player] [amount] - Set a player's balance (/setbal)
-/adminpay [player] [amount] - Pay a player without having money removed from your balance
-/viewbalance [player] - View the balance of another player (/vbal)
-/balancetop - Display a paginated list of top balances (/baltop)
-```
++ Easily pay other players
++ Jobs and the ability to create your own jobs
++ Ability to enable/disable every feature
++ SQL Support
++ Multi-Currency Support
 
-## Permissions
-```
-totaleconomy.command.pay
-totaleconomy.command.balance
-totaleconomy.command.job
-totaleconomy.command.jobset
-totaleconomy.command.jobtoggle
-totaleconomy.command.jobinfo
-totaleconomy.command.setbalance
-totaleconomy.command.adminpay
-totaleconomy.command.viewbalance
-totaleconomy.command.balancetop
-```
+## Contributions
+Interested in contributing code? Doing some translation? Or maybe you have an issue or suggestion you'd like to let us to know about? We appreciate and welcome all contributions. To get started:
+
++ Read the [contribution guide](https://github.com/Erigitic/TotalEconomy/blob/develop/CONTRIBUTING.md).
++ Open an issue for your contribution.
+
+## Getting and Building Total Economy
+Grabbing a copy of Total Economy's source is as simple as having Git installed and running the following command from a command prompt or terminal window:
+
+`git clone https://github.com/Erigitic/TotalEconomy.git`
+
+When you are ready to build Total Economy, do so using gradle:
+
++ `./gradlew build` (Unix-like systems such as Linux and macOS)
++ `gradlew build` (Windows)
++ Or using your favorite IDE
+
+If the build was successful, you can find the `TotalEconomy-x.x.x.jar` in `build/libs/`
