@@ -15,7 +15,7 @@ Total Economy is a Sponge plugin that aims to provide a full fledged economy for
 + Multi-Currency Support
 
 ## Contributions
-Interested in contributing code? Doing some translation? Or maybe you have an issue or suggestion you'd like to let us to know about? We appreciate and welcome all contributions. To get started:
+Interested in contributing code? Doing some translation? Or maybe you have an issue or suggestion you'd like to let us know about? We appreciate and welcome all contributions. To get started:
 
 + Read the [contribution guide](https://github.com/Erigitic/TotalEconomy/blob/develop/CONTRIBUTING.md).
 + Open an issue for your contribution.
