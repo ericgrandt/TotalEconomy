@@ -110,24 +110,19 @@ public class TotalEconomy {
     private boolean jobPermissionRequired = false;
     private boolean jobNotificationEnabled = true;
     private boolean jobSalaryEnabled = true;
-    // End Job Variables
 
     // Shop Variables
     private boolean chestShopEnabled = true;
-    // End Shop Variables
 
     // Database Variables
     private boolean databaseEnabled = false;
-
     private String databaseUrl;
     private String databaseUser;
     private String databasePassword;
-    // End Database Variables
 
     // Money Cap Variables
     private boolean moneyCapEnabled = false;
     private BigDecimal moneyCap;
-    // End Money Cap Variables
 
     @Listener
     public void preInit(GamePreInitializationEvent event) {
