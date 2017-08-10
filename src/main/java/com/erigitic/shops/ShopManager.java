@@ -1,5 +1,6 @@
 package com.erigitic.shops;
 
+import com.erigitic.config.AccountManager;
 import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 import org.spongepowered.api.event.Listener;
@@ -11,10 +12,12 @@ import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 public class ShopManager {
 
     private TotalEconomy totalEconomy;
+    private AccountManager accountManager;
     private Logger logger;
 
-    public ShopManager(TotalEconomy totalEconomy, Logger logger) {
+    public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, Logger logger) {
         this.totalEconomy = totalEconomy;
+        this.accountManager = accountManager;
         this.logger = logger;
     }
 

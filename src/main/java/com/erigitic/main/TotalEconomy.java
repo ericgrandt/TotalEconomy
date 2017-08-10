@@ -151,6 +151,8 @@ public class TotalEconomy {
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this, messageManager, logger);
+        shopManager = new ShopManager(this, accountManager, logger);
+
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
