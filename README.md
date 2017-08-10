@@ -1,3 +1,6 @@
+[![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TotalEconomy/TotalEconomy)
+[![Build Status](https://travis-ci.org/Erigitic/TotalEconomy.svg?branch=develop)](https://travis-ci.org/Erigitic/TotalEconomy)
+
 # TotalEconomy
 
 + [Source](https://github.com/Erigitic/TotalEconomy)
