@@ -1,16 +1,16 @@
 # TotalEconomy
 
-All in one economy plugin for Minecraft and Sponge.
-
 + [Source](https://github.com/Erigitic/TotalEconomy)
 + [Issues](https://github.com/Erigitic/TotalEconomy/issues)
 + [Downloads](https://ore.spongepowered.org/Erigitic/Total-Economy/versions)
+
+Total Economy is a Sponge plugin that aims to provide a full fledged economy for your server. Each feature can be enabled/disabled and configured to your liking. This allows you to continue using your favorite plugins alongside Total Economy without any issue.
 
 ## Features
 
 + Easily pay other players
 + Jobs and the ability to create your own jobs
-+ Ability to enable/disable every feature
++ Ability to enable/disable any feature
 + SQL Support
 + Multi-Currency Support
 
