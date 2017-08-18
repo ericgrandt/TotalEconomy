@@ -30,7 +30,9 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.JobManager;
-import com.erigitic.shops.ShopManager;
+import com.erigitic.shops.*;
+import com.erigitic.shops.data.ImmutableShopData;
+import com.erigitic.shops.data.ShopData;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
@@ -40,10 +42,13 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.DataManager;
+import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
@@ -166,6 +171,19 @@ public class TotalEconomy {
 
     @Listener
     public void init(GameInitializationEvent event) {
+        DataManager dm = Sponge.getDataManager();
+
+        dm.registerBuilder(MultiItemShop.class, new MultiItemShop.Builder());
+        dm.registerBuilder(SingleItemShop.class, new SingleItemShop.Builder());
+
+        DataRegistration.builder()
+                .dataClass(ShopData.class)
+                .immutableClass(ImmutableShopData.class)
+                .builder(new ShopData.Builder())
+                .manipulatorId("shop")
+                .dataName("shop")
+                .buildAndRegister(pluginContainer);
+
         createAndRegisterCommands();
         registerListeners();
     }

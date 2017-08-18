@@ -25,5 +25,66 @@
 
 package com.erigitic.shops;
 
-public interface MultiItemShop extends Shop {
+import com.erigitic.shops.data.ShopData;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.Queries;
+import org.spongepowered.api.data.persistence.AbstractDataBuilder;
+import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.item.inventory.ItemStack;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public class MultiItemShop extends Shop {
+
+    private List<ItemStack> stock;
+
+    public MultiItemShop(UUID owner, String title, List<ItemStack> stock) {
+        super(owner, title);
+
+        this.stock = stock;
+    }
+
+    public List<ItemStack> getStock() {
+        return stock;
+    }
+
+    public void setStock(List<ItemStack> stock) {
+        this.stock = stock;
+    }
+
+    public void addItem(ItemStack item) {
+        stock.add(item);
+    }
+
+    @Override
+    public DataContainer toContainer() {
+        return DataContainer.createNew()
+                .set(OWNER_QUERY, getOwner())
+                .set(TITLE_QUERY, getTitle())
+                .set(STOCK_QUERY, stock)
+                .set(Queries.CONTENT_VERSION, ShopData.CONTENT_VERSION);
+    }
+
+    public static class Builder extends AbstractDataBuilder<MultiItemShop> {
+
+        public Builder() {
+            super(MultiItemShop.class, ShopData.CONTENT_VERSION);
+        }
+
+        @Override
+        public Optional<MultiItemShop> buildContent(DataView container) throws InvalidDataException {
+            if (container.contains(Shop.OWNER_QUERY, Shop.TITLE_QUERY, Shop.STOCK_QUERY)) {
+                UUID owner = container.getObject(Shop.OWNER_QUERY, UUID.class).get();
+                String title = container.getString(Shop.TITLE_QUERY).get();
+                List<ItemStack> stock = container.getObject(Shop.STOCK_QUERY, List.class).get();
+
+                return Optional.of(new MultiItemShop(owner, title, stock));
+            }
+
+            return Optional.empty();
+        }
+    }
 }

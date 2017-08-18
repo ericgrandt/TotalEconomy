@@ -25,24 +25,40 @@
 
 package com.erigitic.shops;
 
-import org.spongepowered.api.entity.living.player.User;
+import com.erigitic.shops.data.ShopData;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataSerializable;
 
-public interface Shop {
+import java.util.UUID;
 
-    /**
-     * Get's the title of the shop
-     *
-     * @return The shop's title
-     */
-    String getTitle();
+public abstract class Shop implements DataSerializable {
 
-    void setTitle(String title);
+    public static final DataQuery OWNER_QUERY = DataQuery.of("Owner");
+    public static final DataQuery TITLE_QUERY = DataQuery.of("Title");
+    public static final DataQuery STOCK_QUERY = DataQuery.of("Stock");
 
-    /**
-     * Get's the owner of the shop
-     *
-     * @return The shop's owner
-     */
-    User getOwner();
+    private UUID owner;
+    private String title;
 
+    protected Shop(UUID owner, String title) {
+        this.owner = owner;
+        this.title = title;
+    }
+
+    public UUID getOwner() {
+        return owner;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    @Override
+    public int getContentVersion() {
+        return ShopData.CONTENT_VERSION;
+    }
 }

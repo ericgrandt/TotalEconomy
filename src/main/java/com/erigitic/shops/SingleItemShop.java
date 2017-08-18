@@ -25,5 +25,61 @@
 
 package com.erigitic.shops;
 
-public interface SingleItemShop extends Shop {
+import com.erigitic.shops.data.ShopData;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.Queries;
+import org.spongepowered.api.data.persistence.AbstractDataBuilder;
+import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.item.inventory.ItemStack;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public class SingleItemShop extends Shop {
+
+    private ItemStack stock;
+
+    public SingleItemShop(UUID owner, String title, ItemStack stock) {
+        super(owner, title);
+
+        this.stock = stock;
+    }
+
+    public ItemStack getStock() {
+        return stock;
+    }
+
+    public void setStock(ItemStack stock) {
+        this.stock = stock;
+    }
+
+    @Override
+    public DataContainer toContainer() {
+        return DataContainer.createNew()
+                .set(OWNER_QUERY, getOwner())
+                .set(TITLE_QUERY, getTitle())
+                .set(STOCK_QUERY, stock)
+                .set(Queries.CONTENT_VERSION, ShopData.CONTENT_VERSION);
+    }
+
+    public static class Builder extends AbstractDataBuilder<SingleItemShop> {
+
+        public Builder() {
+            super(SingleItemShop.class, ShopData.CONTENT_VERSION);
+        }
+
+        @Override
+        public Optional<SingleItemShop> buildContent(DataView container) throws InvalidDataException {
+            if (container.contains(Shop.OWNER_QUERY, Shop.TITLE_QUERY, Shop.STOCK_QUERY)) {
+                UUID owner = container.getObject(Shop.OWNER_QUERY, UUID.class).get();
+                String title = container.getString(Shop.TITLE_QUERY).get();
+                ItemStack stock = container.getObject(Shop.STOCK_QUERY, ItemStack.class).get();
+
+                return Optional.of(new SingleItemShop(owner, title, stock));
+            }
+
+            return Optional.empty();
+        }
+    }
 }
