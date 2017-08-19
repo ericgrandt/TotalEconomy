@@ -189,13 +189,7 @@ public class TEAccount implements UniqueAccount {
 
         if (hasBalance(currency, contexts)) {
             BigDecimal delta = amount.subtract(getBalance(currency));
-            TransactionType transactionType;
-
-            if (delta.compareTo(BigDecimal.ZERO) >= 0) {
-                transactionType = TransactionTypes.DEPOSIT;
-            } else {
-                transactionType = TransactionTypes.WITHDRAW;
-            }
+            TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
 
             if (databaseActive) {
                 SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
