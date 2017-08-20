@@ -105,7 +105,6 @@ public class TotalEconomy {
 
     // Job Variables
     private boolean jobFeatureEnabled = true;
-    private boolean jobPermissionRequired = false;
     private boolean jobNotificationEnabled = true;
     private boolean jobSalaryEnabled = true;
     // End Job Variables
@@ -340,11 +339,10 @@ public class TotalEconomy {
     }
 
     /**
-     * Determines what features to enable in the main configuration file. Sets the corresponding variable to true/false (enabled/disabled).
+     * Determines what features to enable from the main configuration file. Sets the corresponding features boolean to true/false (enabled/disabled).
      */
     private void setFeaturesEnabledStatus() {
         jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean();
-        jobPermissionRequired = config.getNode("features", "jobs", "permissions").getBoolean();
         jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean();
         jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean();
 
