@@ -64,7 +64,6 @@ public class BalanceCommand implements CommandExecutor {
             Player sender = (Player) src;
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
             Optional<String> optCurrencyName = args.getOne("currencyName");
-
             Map<String, String> messageValues = new HashMap<>();
 
             if (optCurrencyName.isPresent()) {
