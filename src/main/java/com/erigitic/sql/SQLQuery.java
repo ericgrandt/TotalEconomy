@@ -92,6 +92,11 @@ public class SQLQuery {
         return 0;
     }
 
+    /**
+     * Determines if a record was returned by an SQL query.
+     *
+     * @return boolean Does the record exist
+     */
     public boolean recordExists() {
         try {
             if (resultSet.isBeforeFirst()) {

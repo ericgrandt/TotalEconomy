@@ -339,7 +339,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Determines what features to enable in the main configuration file. Sets the corresponding variable to true/false (enabled/disabled).
+     * Determines what features to enable from the main configuration file. Sets the corresponding features boolean to true/false (enabled/disabled).
      */
     private void setFeaturesEnabledStatus() {
         jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean();
