@@ -77,38 +77,18 @@ public class PayCommand implements CommandExecutor {
                 throw new CommandException(Text.of("[TE] You cannot pay yourself!"));
             }
 
+            // Positive numbers only
             Pattern amountPattern = Pattern.compile("^[+]?(\\d*\\.)?\\d+$");
             Matcher m = amountPattern.matcher(amountStr);
 
             if (m.matches()) {
                 BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
-                Text amountText;
-                TransferResult transferResult;
-
-                TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
+                TEAccount senderAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
                 TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-
-                if (optCurrencyName.isPresent()) {
-                    Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
-
-                    if (optCurrency.isPresent()) {
-                        TECurrency teCurrency = (TECurrency) optCurrency.get();
-
-                        if (teCurrency.isTransferable()) {
-                            amountText = Text.of(optCurrency.get().format(amount));
-                            transferResult = playerAccount.transfer(recipientAccount, optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                        } else {
-                            throw new CommandException(Text.of("[TE] ", teCurrency.getPluralDisplayName(), " can't be transferred!"));
-                        }
-                    } else {
-                        throw new CommandException(Text.of("[TE] The specified currency does not exist!"));
-                    }
-                } else {
-                    amountText = Text.of(defaultCurrency.format(amount));
-                    transferResult = playerAccount.transfer(recipientAccount, totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                }
+                TransferResult transferResult = getTransferResult(senderAccount, recipientAccount, amount, optCurrencyName);
 
                 if (transferResult.getResult() == ResultType.SUCCESS) {
+                    Text amountText = Text.of(transferResult.getCurrency().format(amount));
                     Map<String, String> messageValues = new HashMap<>();
                     messageValues.put("sender", src.getName());
                     messageValues.put("recipient", recipient.getName());
@@ -129,6 +109,26 @@ public class PayCommand implements CommandExecutor {
             }
         } else {
             throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
+        }
+    }
+
+    private TransferResult getTransferResult(TEAccount senderAccount, TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+        if (optCurrencyName.isPresent()) {
+            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+            if (optCurrency.isPresent()) {
+                TECurrency teCurrency = (TECurrency) optCurrency.get();
+
+                if (teCurrency.isTransferable()) {
+                    return senderAccount.transfer(recipientAccount, optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                } else {
+                    throw new CommandException(Text.of("[TE] ", teCurrency.getPluralDisplayName(), " can't be transferred!"));
+                }
+            } else {
+                throw new CommandException(Text.of("[TE] The specified currency does not exist!"));
+            }
+        } else {
+            return senderAccount.transfer(recipientAccount, totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
         }
     }
 }

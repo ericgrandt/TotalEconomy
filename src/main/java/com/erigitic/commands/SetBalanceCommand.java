@@ -76,24 +76,10 @@ public class SetBalanceCommand implements CommandExecutor {
         if (m.matches()) {
             BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-            Text amountText;
-            TransactionResult transactionResult;
-
-            if (optCurrencyName.isPresent()) {
-                Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
-
-                if (optCurrency.isPresent()) {
-                    amountText = Text.of(optCurrency.get().format(amount));
-                    transactionResult = recipientAccount.setBalance(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                } else {
-                    throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
-                }
-            } else {
-                amountText = Text.of(defaultCurrency.format(amount));
-                transactionResult = recipientAccount.setBalance(defaultCurrency, amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-            }
+            TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, optCurrencyName);
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
+                Text amountText = Text.of(transactionResult.getCurrency().format(amount));
                 Map<String, String> messageValues = new HashMap<>();
                 messageValues.put("recipient", recipient.getName());
                 messageValues.put("amount", amountText.toPlain());
@@ -106,6 +92,29 @@ public class SetBalanceCommand implements CommandExecutor {
             }
         } else {
             throw new CommandException(Text.of("[TE] Invalid amount! Must be a positive number!"));
+        }
+    }
+
+    /**
+     * Get the transaction result returned from setting a player's balance.
+     *
+     * @param recipientAccount The account
+     * @param amount
+     * @param optCurrencyName
+     * @return TransactionResult Result of the transaction
+     * @throws CommandException
+     */
+    private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+        if (optCurrencyName.isPresent()) {
+            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+            if (optCurrency.isPresent()) {
+                return recipientAccount.setBalance(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            } else {
+                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+            }
+        } else {
+            return recipientAccount.setBalance(defaultCurrency, amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
         }
     }
 }

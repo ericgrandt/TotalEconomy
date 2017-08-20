@@ -33,5 +33,10 @@ public interface Job {
 
     String[] getSets();
 
+    /**
+     * Populates a configuration node with a jobs information.
+     *
+     * @param node The base/parent configuration node for jobs
+     */
     void populateNode(ConfigurationNode node);
 }

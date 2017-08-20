@@ -54,14 +54,11 @@ public class AdminPayCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private MessageManager messageManager;
-    private Currency defaultCurrency;
 
     public AdminPayCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
         this.accountManager = accountManager;
         this.messageManager = messageManager;
-
-        defaultCurrency = totalEconomy.getDefaultCurrency();
     }
 
     @Override
@@ -76,24 +73,10 @@ public class AdminPayCommand implements CommandExecutor {
         if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
             TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-            Text amountText;
-            TransactionResult transactionResult;
-
-            if (optCurrencyName.isPresent()) {
-                Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
-
-                if (optCurrency.isPresent()) {
-                    amountText = Text.of(optCurrency.get().format(amount).toPlain().replace("-", ""));
-                    transactionResult = recipientAccount.deposit(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                } else {
-                    throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
-                }
-            } else {
-                amountText = Text.of(defaultCurrency.format(amount).toPlain().replace("-", ""));
-                transactionResult = recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-            }
+            TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, optCurrencyName);
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
+                Text amountText = Text.of(transactionResult.getCurrency().format(amount).toPlain().replace("-", ""));
                 Map<String, String> messageValues = new HashMap<>();
                 messageValues.put("sender", src.getName());
                 messageValues.put("recipient", recipient.getName());
@@ -119,6 +102,29 @@ public class AdminPayCommand implements CommandExecutor {
             }
         } else {
             throw new CommandException(Text.of("[TE] Invalid amount! Must be a number!"));
+        }
+    }
+
+    /**
+     *
+     *
+     * @param recipientAccount The account
+     * @param amount
+     * @param optCurrencyName
+     * @return TransactionResult Result of the transaction
+     * @throws CommandException
+     */
+    private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+        if (optCurrencyName.isPresent()) {
+            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+            if (optCurrency.isPresent()) {
+                return recipientAccount.deposit(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            } else {
+                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+            }
+        } else {
+            return recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
         }
     }
 }

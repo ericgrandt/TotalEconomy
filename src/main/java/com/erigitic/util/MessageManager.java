@@ -46,9 +46,6 @@ public class MessageManager {
 
     private TotalEconomy totalEconomy;
     private Logger logger;
-
-    private File messagesFile;
-    private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode messagesConfig;
 
     /**
@@ -66,8 +63,8 @@ public class MessageManager {
      * Setup the messages_[lang].conf file
      */
     private void setupConfig(Locale locale) {
-        messagesFile = new File(totalEconomy.getConfigDir(), "messages_" + locale.getLanguage() + ".conf");
-        loader = HoconConfigurationLoader.builder().setFile(messagesFile).build();
+        File messagesFile = new File(totalEconomy.getConfigDir(), "messages_" + locale.getLanguage() + ".conf");
+        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(messagesFile).build();
 
         try {
             if (!messagesFile.exists()) {
