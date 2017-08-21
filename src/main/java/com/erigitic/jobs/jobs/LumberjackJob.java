@@ -51,6 +51,7 @@ public class LumberjackJob implements Job {
 
         node.getNode("salary").setValue(20);
         node.getNode("sets").setValue(Arrays.asList(SETS));
-        new JobBasedRequirement(null, 0, "totaleconomy.job.lumberjack").addTo(node);
+
+        new JobBasedRequirement("", 0, "totaleconomy.job.lumberjack").addTo(node);
     }
 }

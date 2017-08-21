@@ -44,10 +44,11 @@ public class SQLQuery {
         errorMessage = builder.errorMessage;
         dataSource = builder.dataSource;
 
-        if (builder.update)
+        if (builder.update) {
             executeUpdate();
-        else
+        } else {
             executeQuery();
+        }
     }
 
     public static SQLQuery.Builder builder(DataSource dataSource) {
@@ -60,8 +61,9 @@ public class SQLQuery {
 
             Optional<ResultSet> resultSetOpt = Optional.of(conn.prepareStatement(statement).executeQuery());
 
-            if (resultSetOpt.isPresent())
+            if (resultSetOpt.isPresent()) {
                 resultSet = resultSetOpt.get();
+            }
 
             conn.close();
         } catch (SQLException e) {
@@ -90,10 +92,16 @@ public class SQLQuery {
         return 0;
     }
 
+    /**
+     * Determines if a record was returned by an SQL query.
+     *
+     * @return boolean Does the record exist
+     */
     public boolean recordExists() {
         try {
-            if (resultSet.isBeforeFirst())
+            if (resultSet.isBeforeFirst()) {
                 return true;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -108,8 +116,9 @@ public class SQLQuery {
      */
     public boolean getBoolean() {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getBoolean(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -125,8 +134,9 @@ public class SQLQuery {
      */
     public boolean getBoolean(boolean def) {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getBoolean(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -141,8 +151,9 @@ public class SQLQuery {
      */
     public int getInt() {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -158,8 +169,9 @@ public class SQLQuery {
      */
     public int getInt(int def) {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -174,8 +186,9 @@ public class SQLQuery {
      */
     public BigDecimal getBigDecimal() {
         try {
-            if (resultSet.next())
-                return resultSet.getBigDecimal(1);
+            if (resultSet.next()) {
+                return resultSet.getBigDecimal(1).max(new BigDecimal(Double.MAX_VALUE));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -191,8 +204,9 @@ public class SQLQuery {
      */
     public BigDecimal getBigDecimal(BigDecimal def) {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getBigDecimal(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -207,8 +221,9 @@ public class SQLQuery {
      */
     public String getString() {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getString(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -224,8 +239,9 @@ public class SQLQuery {
      */
     public String getString(String def) {
         try {
-            if (resultSet.next())
+            if (resultSet.next()) {
                 return resultSet.getString(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -233,6 +249,11 @@ public class SQLQuery {
         return def;
     }
 
+    /**
+     * Get the number of rows that were affected by a query
+     *
+     * @return int Number of rows that were affected by the query
+     */
     public int getRowsAffected() {
         return rowsAffected;
     }
@@ -266,7 +287,6 @@ public class SQLQuery {
             return this;
         }
 
-        // TODO: Not really needed anymore
         public Builder equals(String val) {
             statement += "='" + val + "'";
 

@@ -26,7 +26,7 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
@@ -46,45 +46,72 @@ public class TEAccount implements UniqueAccount {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private UUID uuid;
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     private ConfigurationNode accountConfig;
 
     private boolean databaseActive;
 
+    /**
+     * Constructor for the TEAccount class. Manages a unique account, identified by a {@link UUID}, that contains balances for each {@link Currency}.
+     *
+     * @param totalEconomy Main plugin class
+     * @param accountManager {@link AccountManager} object
+     * @param uuid The UUID of the account
+     */
     public TEAccount(TotalEconomy totalEconomy, AccountManager accountManager, UUID uuid) {
         this.totalEconomy = totalEconomy;
         this.accountManager = accountManager;
         this.uuid = uuid;
 
         accountConfig = accountManager.getAccountConfig();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseActive = totalEconomy.isDatabaseEnabled();
 
-        if (databaseActive)
-            sqlHandler = totalEconomy.getSqlHandler();
+        if (databaseActive) {
+            sqlManager = totalEconomy.getSqlManager();
+        }
     }
 
+    /**
+     * Gets the display name associated with the account
+     *
+     * @return Text The display name
+     */
     @Override
     public Text getDisplayName() {
-        if (totalEconomy.getUserStorageService().get(uuid).isPresent())
+        if (totalEconomy.getUserStorageService().get(uuid).isPresent()) {
             return Text.of(totalEconomy.getUserStorageService().get(uuid).get().getName());
+        }
 
         return Text.of("PLAYER NAME");
     }
 
+    /**
+     * Gets the default balance
+     *
+     * @param currency Currency to get the default balance for
+     * @return BigDecimal Default balance
+     */
     @Override
     public BigDecimal getDefaultBalance(Currency currency) {
-        return totalEconomy.getStartingBalance();
+        return ((TECurrency) currency).getStartingBalance();
     }
 
+    /**
+     * Determines if a balance exists for a {@link Currency}
+     *
+     * @param currency Currency type to be checked for
+     * @param contexts
+     * @return boolean If a balance exists for the specified currency
+     */
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .select(currencyName + "_balance")
-                    .from("totaleconomy.accounts")
+                    .from("accounts")
                     .where("uid")
                     .equals(uuid.toString())
                     .build();
@@ -95,15 +122,22 @@ public class TEAccount implements UniqueAccount {
         }
     }
 
+    /**
+     * Gets the balance of a {@link Currency}
+     *
+     * @param currency The currency to get the balance of
+     * @param contexts
+     * @return BigDecimal The balance
+     */
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
         if (hasBalance(currency, contexts)) {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(currencyName + "_balance")
-                        .from("totaleconomy.accounts")
+                        .from("accounts")
                         .where("uid")
                         .equals(uuid.toString())
                         .build();
@@ -119,29 +153,47 @@ public class TEAccount implements UniqueAccount {
         return BigDecimal.ZERO;
     }
 
+    /**
+     * Get a player's balance for each currency type
+     *
+     * @param contexts
+     * @return Map A map of the balances of each currency
+     */
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return new HashMap<>();
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            balances.put(currency, getBalance(currency, contexts));
+        }
+
+        return balances;
     }
 
+    /**
+     * Sets the balance of a {@link Currency}
+     *
+     * @param currency Currency to set the balance of
+     * @param amount Amount to set the balance to
+     * @param cause
+     * @param contexts
+     * @return TransactionResult Result of the transaction
+     */
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         TransactionResult transactionResult;
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
+        // If the amount is greater then the money cap, set the amount to the money cap
+        amount = amount.min(totalEconomy.getMoneyCap());
+
         if (hasBalance(currency, contexts)) {
             BigDecimal delta = amount.subtract(getBalance(currency));
-            TransactionType transactionType;
-
-            if (delta.compareTo(BigDecimal.ZERO) >= 0) {
-                transactionType = TransactionTypes.DEPOSIT;
-            } else {
-                transactionType = TransactionTypes.WITHDRAW;
-            }
+            TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.accounts")
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                        .update("accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
                         .where("uid")
@@ -155,7 +207,7 @@ public class TEAccount implements UniqueAccount {
                 }
             } else {
                 accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
-                accountManager.saveAccountConfig();
+                accountManager.requestConfigurationSave();
 
                 transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
             }
@@ -168,22 +220,46 @@ public class TEAccount implements UniqueAccount {
         return transactionResult;
     }
 
+    /**
+     * Resets all currency balances to their starting balances
+     *
+     * @param cause
+     * @param contexts
+     * @return Map<Currency, TransactionResult> Map of transaction results
+     */
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        TransactionResult transactionResult = new TETransactionResult(this, totalEconomy.getDefaultCurrency(), BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
-        totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
+        Map<Currency, TransactionResult> result = new HashMap<>();
 
-        Map result = new HashMap<>();
-        result.put(totalEconomy.getDefaultCurrency(), transactionResult);
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            result.put(currency, resetBalance(currency, cause, contexts));
+        }
 
         return result;
     }
 
+    /**
+     * Reset a currencies balance to its starting balance
+     *
+     * @param currency The balance to reset
+     * @param cause
+     * @param contexts
+     * @return TransactionResult Result of the reset
+     */
     @Override
     public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
-        return setBalance(currency, BigDecimal.ZERO, cause);
+        return setBalance(currency, ((TECurrency) currency).getStartingBalance(), cause);
     }
 
+    /**
+     * Add money to a balance
+     *
+     * @param currency The balance to deposit money into
+     * @param amount Amount to deposit
+     * @param cause
+     * @param contexts
+     * @return TransactionResult Result of the deposit
+     */
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         BigDecimal curBalance = getBalance(currency, contexts);
@@ -192,6 +268,15 @@ public class TEAccount implements UniqueAccount {
         return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
     }
 
+    /**
+     * Remove money from a balance
+     *
+     * @param currency The balance to withdraw money from
+     * @param amount Amount to withdraw
+     * @param cause
+     * @param contexts
+     * @return TransactionResult Result of the withdrawal
+     */
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         BigDecimal curBalance =  getBalance(currency, contexts);
@@ -204,6 +289,16 @@ public class TEAccount implements UniqueAccount {
         return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
     }
 
+    /**
+     * Transfer money between two TEAccount's
+     *
+     * @param to Account to transfer money to
+     * @param currency Type of currency to transfer
+     * @param amount Amount to transfer
+     * @param cause
+     * @param contexts
+     * @return TransactionResult Result of the reset
+     */
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         TransferResult transferResult;
@@ -242,11 +337,21 @@ public class TEAccount implements UniqueAccount {
         return transferResult;
     }
 
+    /**
+     * Get the account identifier
+     *
+     * @return String The identifier
+     */
     @Override
     public String getIdentifier() {
         return uuid.toString();
     }
 
+    /**
+     * Get the {@link UUID} of the account
+     *
+     * @return UUID The UUID of the account
+     */
     @Override
     public UUID getUniqueId() {
         return uuid;

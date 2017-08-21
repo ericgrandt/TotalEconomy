@@ -23,54 +23,37 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs;
+package com.erigitic.config;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.main.TotalEconomy;
+import org.spongepowered.api.registry.CatalogRegistryModule;
+import org.spongepowered.api.service.economy.Currency;
 
-import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
-public class TEActionReward {
-    private String action;
-    private String targetID;
-    private int expReward;
-    private BigDecimal moneyReward;
-    private String growthTrait;
-    private Integer growthMeta;
+public class TECurrencyRegistryModule implements CatalogRegistryModule<Currency> {
 
-    private boolean isValid = false;
+    private TotalEconomy totalEconomy;
 
-    public TEActionReward(String action, String targetID, String expReward, String moneyReward, String growthTrait) {
-        this.action = action;
-        this.targetID = targetID;
-        this.expReward = Integer.parseInt(expReward);
-        this.moneyReward = new BigDecimal(moneyReward);
-        this.growthTrait = growthTrait;
-
-        isValid = (action != null && !action.isEmpty() && targetID != null && !targetID.isEmpty());
+    public TECurrencyRegistryModule(TotalEconomy totalEconomy) {
+        this.totalEconomy = totalEconomy;
     }
 
-    public String getAction() {
-        return action;
+    @Override
+    public Optional<Currency> getById(String id) {
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            if (currency.getId().equals(id)) {
+                return Optional.of(currency);
+            }
+        }
+
+        return Optional.empty();
     }
 
-    public String getTargetID() {
-        return targetID;
-    }
-
-    public int getExpReward() {
-        return expReward;
-    }
-
-    public BigDecimal getMoneyReward() {
-        return moneyReward;
-    }
-
-    public boolean isValid() {
-        return isValid;
-    }
-
-    public Optional<String> getGrowthTrait() {
-        return Optional.ofNullable(growthTrait);
+    @Override
+    public Collection<Currency> getAll() {
+        return totalEconomy.getCurrencies();
     }
 }

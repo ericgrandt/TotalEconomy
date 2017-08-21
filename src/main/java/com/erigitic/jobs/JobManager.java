@@ -30,16 +30,19 @@ import com.erigitic.config.TEAccount;
 import com.erigitic.jobs.jobs.*;
 import com.erigitic.jobs.jobsets.*;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
+import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.block.tileentity.TileEntity;
+import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.manipulator.mutable.item.FishData;
 import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
@@ -72,27 +75,28 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class TEJobManager {
+public class JobManager {
 
-    // We only need one instance of this
-    public static final JobSet[] defaultJobSets = {
+    public final JobSet[] defaultJobSets = {
             new FishermanJobSet(),
             new LumberjackJobSet(),
             new MinerJobSet(),
-            new WarriorJobSet()
+            new WarriorJobSet(),
+            new FarmerJobSet()
     };
 
-    // We only need one instance of this
     private final Job[] defaultJobsArr = {
             new UnemployedJob(),
             new FishermanJob(),
             new LumberjackJob(),
             new MinerJob(),
-            new WarriorJob()
+            new WarriorJob(),
+            new FarmerJob()
     };
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageManager messageManager;
     private ConfigurationNode accountConfig;
     private Logger logger;
 
@@ -106,24 +110,28 @@ public class TEJobManager {
     private ConfigurationNode jobsConfig;
     private Map<String, TEJob> jobsMap;
 
-    private boolean databaseActive;
-    private SQLHandler sqlHandler;
+    private boolean databaseEnabled;
+    private SQLManager sqlManager;
 
-    public TEJobManager(TotalEconomy totalEconomy) {
+    public JobManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager, Logger logger) {
         this.totalEconomy = totalEconomy;
+        this.accountManager = accountManager;
+        this.messageManager = messageManager;
+        this.logger = logger;
 
-        accountManager = totalEconomy.getAccountManager();
         accountConfig = accountManager.getAccountConfig();
-        logger = totalEconomy.getLogger();
-        databaseActive = totalEconomy.isDatabaseActive();
 
-        if (databaseActive)
-            sqlHandler = totalEconomy.getSqlHandler();
+        databaseEnabled = totalEconomy.isDatabaseEnabled();
+
+        if (databaseEnabled) {
+            sqlManager = totalEconomy.getSqlManager();
+        }
 
         setupConfig();
 
-        if (totalEconomy.isLoadSalary())
+        if (totalEconomy.isJobSalaryEnabled()) {
             startSalaryTask();
+        }
     }
 
     /**
@@ -150,7 +158,10 @@ public class TEJobManager {
                         TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
                         if (result.getResult() == ResultType.SUCCESS) {
-                            player.sendMessage(Text.of(TextColors.GRAY, "Your salary of ", TextColors.GOLD, totalEconomy.getDefaultCurrency().format(salary), TextColors.GRAY, " has just been paid."));
+                            Map<String, String> messageValues = new HashMap<>();
+                            messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
+
+                            player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
                         } else {
                             player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                         }
@@ -264,11 +275,15 @@ public class TEJobManager {
         UUID playerUUID = player.getUniqueId();
         boolean jobNotifications = accountManager.getJobNotificationState(player);
 
-        if (databaseActive) {
+        Map<String, String> messageValues = new HashMap<>();
+        messageValues.put("job", titleize(jobName));
+        messageValues.put("exp", String.valueOf(expAmount));
+
+        if (databaseEnabled) {
             int newExp = getJobExp(jobName, player) + expAmount;
 
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                    .update("totaleconomy.experience")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                    .update("experience")
                     .set(jobName)
                     .equals(String.valueOf(newExp))
                     .where("uid")
@@ -277,7 +292,7 @@ public class TEJobManager {
 
             if (sqlQuery.getRowsAffected() > 0) {
                 if (jobNotifications) {
-                    player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+                    player.sendMessage(messageManager.getMessage("jobs.addexp", messageValues));
                 }
             } else {
                 logger.warn("[TE] An error occurred while updating job experience in the database!");
@@ -288,8 +303,9 @@ public class TEJobManager {
 
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
 
-            if (jobNotifications)
-                player.sendMessage(Text.of(TextColors.GRAY, "You have gained ", TextColors.GOLD, expAmount, TextColors.GRAY, " exp in the ", TextColors.GOLD, jobName, TextColors.GRAY, " job."));
+            if (jobNotifications) {
+                player.sendMessage(messageManager.getMessage("jobs.addexp", messageValues));
+            }
 
             try {
                 accountManager.getConfigManager().save(accountConfig);
@@ -316,31 +332,32 @@ public class TEJobManager {
             playerLevel += 1;
             playerCurExp -= expToLevel;
 
-            if (databaseActive) {
-                SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.levels")
+            Map<String, String> messageValues = new HashMap<>();
+            messageValues.put("job", titleize(jobName));
+            messageValues.put("level", String.valueOf(playerLevel));
+
+            if (databaseEnabled) {
+                SQLQuery.builder(sqlManager.dataSource)
+                        .update("levels")
                         .set(jobName)
                         .equals(String.valueOf(playerLevel))
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
 
-                SQLQuery.builder(sqlHandler.dataSource)
-                        .update("totaleconomy.experience")
+                SQLQuery.builder(sqlManager.dataSource)
+                        .update("experience")
                         .set(jobName)
                         .equals(String.valueOf(playerCurExp))
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
-
-                // TODO: Handle any issues that arise whilst updating
             } else {
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel);
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
             }
 
-            player.sendMessage(Text.of(TextColors.GRAY, "Congratulations, you are now a level ", TextColors.GOLD,
-                    playerLevel, " ", titleize(jobName)));
+            player.sendMessage(messageManager.getMessage("jobs.levelup", messageValues));
         }
     }
 
@@ -351,7 +368,7 @@ public class TEJobManager {
      * @return boolean if the job exists or not
      */
     public boolean jobExists(String jobName) {
-        if (jobsConfig.getNode(jobName.toLowerCase()).getValue() != null) {
+        if (jobsConfig.getNode("jobs", jobName.toLowerCase()).getValue() != null) {
             return true;
         }
 
@@ -375,8 +392,12 @@ public class TEJobManager {
      */
     private void notifyPlayer(Player player, BigDecimal amount) {
         Currency defaultCurrency = totalEconomy.getDefaultCurrency();
+        Text amountText = defaultCurrency.format(amount, defaultCurrency.getDefaultFractionDigits());
 
-        player.sendMessage(Text.of(TextColors.GOLD, defaultCurrency.format(amount, defaultCurrency.getDefaultFractionDigits()), TextColors.GRAY, " has been added to your balance."));
+        Map<String, String> messageValues = new HashMap<>();
+        messageValues.put("amount", amountText.toPlain());
+
+        player.sendMessage(messageManager.getMessage("jobs.notify", messageValues));
     }
 
     /**
@@ -391,9 +412,9 @@ public class TEJobManager {
         // Just in case the job name was not passed in as lowercase, make it lowercase
         jobName = jobName.toLowerCase();
 
-        if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
-                    .update("totaleconomy.accounts")
+        if (databaseEnabled) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                    .update("accounts")
                     .set("job")
                     .equals(jobName)
                     .where("uid")
@@ -444,10 +465,10 @@ public class TEJobManager {
     public String getPlayerJob(User user) {
         UUID uuid = user.getUniqueId();
 
-        if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+        if (databaseEnabled) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .select("job")
-                    .from("totaleconomy.accounts")
+                    .from("accounts")
                     .where("uid")
                     .equals(uuid.toString())
                     .build();
@@ -488,10 +509,10 @@ public class TEJobManager {
         jobName = jobName.toLowerCase();
 
         if (!jobName.equals("unemployed")) {
-            if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            if (databaseEnabled) {
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(jobName)
-                        .from("totaleconomy.levels")
+                        .from("levels")
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
@@ -519,10 +540,10 @@ public class TEJobManager {
         jobName = jobName.toLowerCase();
 
         if (!jobName.equals("unemployed")) {
-            if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            if (databaseEnabled) {
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(jobName)
-                        .from("totaleconomy.experience")
+                        .from("experience")
                         .where("uid")
                         .equals(playerUUID.toString())
                         .build();
@@ -641,12 +662,15 @@ public class TEJobManager {
                             Text lineOneText = signData.lines().get(0);
                             Text lineTwoText = signData.lines().get(1);
                             String lineOne = lineOneText.toPlain();
-                            String lineTwo = lineTwoText.toPlain().toLowerCase();
+                            String jobName = lineTwoText.toPlain().toLowerCase();
 
                             if (lineOne.equals("[TEJobs]")) {
-                                if (jobExists(lineTwo)) {
-                                    if (setJob(player, lineTwo)) {
-                                        player.sendMessage(Text.of(TextColors.GRAY, "Job changed to: ", TextColors.GOLD, lineTwo));
+                                if (jobExists(jobName)) {
+                                    if (setJob(player, jobName)) {
+                                        Map<String, String> messageValues = new HashMap<>();
+                                        messageValues.put("job", titleize(jobName));
+
+                                        player.sendMessage(messageManager.getMessage("jobs.sign", messageValues));
                                     } else {
                                         player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to set job. Contact your administrator."));
                                     }
@@ -677,41 +701,83 @@ public class TEJobManager {
             String playerJob = getPlayerJob(player);
             Optional<TEJob> optPlayerJob = getJob(playerJob, true);
 
-            String blockName = event.getTransactions().get(0).getOriginal().getState().getType().getName();
+            BlockState state = event.getTransactions().get(0).getOriginal().getState();
+            String blockName = state.getType().getName();
             Optional<UUID> blockCreator = event.getTransactions().get(0).getOriginal().getCreator();
 
             if (optPlayerJob.isPresent()) {
-                // Prevent blocks placed by other players from counting towards a job
-                if (!blockCreator.isPresent()) {
-                    Optional<TEActionReward> reward = Optional.empty();
-                    List<String> sets = optPlayerJob.get().getSets();
+                Optional<TEActionReward> reward = Optional.empty();
+                List<String> sets = optPlayerJob.get().getSets();
 
-                    for (String s : sets) {
-                        Optional<TEJobSet> optSet = getJobSet(s);
-                        if (!optSet.isPresent()) {
-                            logger.warn("[TE] Job " + getPlayerJob(player) + " has the nonexistent set \"" + s + "\"");
+                for (String s : sets) {
+                    Optional<TEJobSet> optSet = getJobSet(s);
 
-                            continue;
-                        }
-
-                        reward = optSet.get().getRewardFor("break", blockName);
+                    if (!optSet.isPresent()) {
+                        logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
+                        continue;
                     }
 
-                    if (reward.isPresent()) {
-                        int expAmount = reward.get().getExpReward();
-                        BigDecimal payAmount = reward.get().getMoneyReward();
-                        boolean notify = accountManager.getJobNotificationState(player);
+                    Optional<TEActionReward> currentReward = optSet.get().getRewardFor("break", blockName);
 
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                    // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                    if (reward.isPresent() && currentReward.isPresent()) {
+                        if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                            reward = currentReward;
+                        }
+                    } else {
+                        reward = currentReward;
+                    }
+                }
 
-                        if (notify) {
-                            notifyPlayer(player, payAmount);
+                if (reward.isPresent()) {
+                    int expAmount = reward.get().getExpReward();
+                    BigDecimal payAmount = reward.get().getMoneyReward();
+                    Optional<String> growthTrait = reward.get().getGrowthTrait();
+
+                    // If there is a growth trait calculate a percentage to compensate only partly grown crops
+                    if (growthTrait.isPresent()) {
+                        Optional<BlockTrait<?>> optTrait = state.getTrait(growthTrait.get());
+
+                        if (!optTrait.isPresent()) {
+                            logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that couldn't be found on the block.");
+                            return;
                         }
 
-                        addExp(player, expAmount);
-                        playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-                        checkForLevel(player);
+                        if (!Integer.class.isAssignableFrom(optTrait.get().getValueClass())) {
+                            logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that cannot be read as Integer.");
+                            return;
+                        }
+
+                        Optional<Integer> optVal = state.getTraitValue((BlockTrait<Integer>) optTrait.get());
+
+                        if (!optVal.isPresent()) {
+                            logger.warn("Job " + playerJob + " break \"" + blockName + "\" has trait entry that couldn't be read as Integer.");
+                            return;
+                        }
+
+                        // Calculate percentages
+                        Integer val = optVal.get();
+                        Collection<Integer> optValues = (Collection<Integer>) optTrait.get().getPossibleValues();
+                        Integer max = optValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+                        Integer min = optValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
+                        double perc = (double) (val - min) / (double) (max - min);
+                        payAmount = payAmount.multiply(BigDecimal.valueOf(perc));
+                        expAmount = (int) (expAmount * perc);
+                    } else if (blockCreator.isPresent()) {
+                        // A player placed the block and it doesn't indicate growth -> Do not pay to prevent exploits
+                        return;
                     }
+
+                    boolean notify = accountManager.getJobNotificationState(player);
+                    TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+
+                    if (notify) {
+                        notifyPlayer(player, payAmount);
+                    }
+
+                    addExp(player, expAmount);
+                    playerAccount.deposit(totalEconomy.getDefaultCurrency(), payAmount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                    checkForLevel(player);
                 }
             }
         }
@@ -743,12 +809,20 @@ public class TEJobManager {
                     Optional<TEJobSet> optSet = getJobSet(s);
 
                     if (!optSet.isPresent()) {
-                        logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
-
+                        logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                         continue;
                     }
 
-                    reward = optSet.get().getRewardFor("place", blockName);
+                    Optional<TEActionReward> currentReward = optSet.get().getRewardFor("place", blockName);
+
+                    // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                    if (reward.isPresent() && currentReward.isPresent()) {
+                        if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                            reward = currentReward;
+                        }
+                    } else {
+                        reward = currentReward;
+                    }
                 }
 
                 if (reward.isPresent()) {
@@ -810,12 +884,20 @@ public class TEJobManager {
                         Optional<TEJobSet> optSet = getJobSet(s);
 
                         if (!optSet.isPresent()) {
-                            logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
-
+                            logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
                         }
 
-                        reward = optSet.get().getRewardFor("kill", victimName);
+                        Optional<TEActionReward> currentReward = optSet.get().getRewardFor("kill", victimName);
+
+                        // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                        if (reward.isPresent() && currentReward.isPresent()) {
+                            if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                                reward = currentReward;
+                            }
+                        } else {
+                            reward = currentReward;
+                        }
                     }
 
                     if (reward.isPresent()) {
@@ -873,12 +955,20 @@ public class TEJobManager {
                         Optional<TEJobSet> optSet = getJobSet(s);
 
                         if (!optSet.isPresent()) {
-                            logger.warn("[TE] Job " + getPlayerJob(player) + " has nonexistent set \"" + s + "\"");
-
+                            logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
                         }
 
-                        reward = optSet.get().getRewardFor("catch", fishName);
+                        Optional<TEActionReward> currentReward = optSet.get().getRewardFor("catch", fishName);
+
+                        // Use the one giving higher exp in case of duplicates (faster comparision than BD)
+                        if (reward.isPresent() && currentReward.isPresent()) {
+                            if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
+                                reward = currentReward;
+                            }
+                        } else {
+                            reward = currentReward;
+                        }
                     }
 
                     if (reward.isPresent()) {
