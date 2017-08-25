@@ -31,19 +31,19 @@ public class LumberjackJobSet implements JobSet {
 
     private final String SETNAME = "lumberjackSet";
 
-    private final String[][] REWARDS = {
+    private final Object[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"break", "minecraft:log", "10", "1.00"},
-            {"break", "minecraft:log2", "10", "1.00"},
-            {"break", "minecraft:leaves", "1", "0.01"},
-            {"place", "minecraft:sapling", "1", "0.10"}
+            {"break", "minecraft:log", 10, 1.00d},
+            {"break", "minecraft:log2", 10, 1.00d},
+            {"break", "minecraft:leaves", 1, 0.01d},
+            {"place", "minecraft:sapling", 1, 0.10d}
     };
 
     @Override
     public void populateNode(ConfigurationNode node) {
         ConfigurationNode myNode = node.getNode(SETNAME);
 
-        for (String[] a : REWARDS) {
+        for (Object[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
             n.getNode("money").setValue(a[3]);

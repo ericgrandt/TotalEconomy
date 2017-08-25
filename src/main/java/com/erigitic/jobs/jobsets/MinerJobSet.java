@@ -31,23 +31,23 @@ public class MinerJobSet implements JobSet {
 
     private final String SETNAME = "ores";
 
-    private final String[][] REWARDS = {
+    private final Object[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"break", "minecraft:coal_ore", "5", "0.25"},
-            {"break", "minecraft:iron_ore", "10", "0.50"},
-            {"break", "minecraft:lapis_ore", "20", "4.00"},
-            {"break", "minecraft:gold_ore", "40", "5.00"},
-            {"break", "minecraft:diamond_ore", "100", "25.00"},
-            {"break", "minecraft:emerald_ore", "50", "12.50"},
-            {"break", "minecraft:quartz_ore", "5", "0.15"},
-            {"break", "minecraft:redstone_ore", "25", "2.00"}
+            {"break", "minecraft:coal_ore", 5, 0.25d},
+            {"break", "minecraft:iron_ore", 10, 0.50d},
+            {"break", "minecraft:lapis_ore", 20, 4.00d},
+            {"break", "minecraft:gold_ore", 40, 5.00d},
+            {"break", "minecraft:diamond_ore", 100, 25.00d},
+            {"break", "minecraft:emerald_ore", 50, 12.50d},
+            {"break", "minecraft:quartz_ore", 5, 0.15d},
+            {"break", "minecraft:redstone_ore", 25, 2.00d}
     };
 
     @Override
     public void populateNode(ConfigurationNode node) {
         ConfigurationNode myNode = node.getNode(SETNAME);
 
-        for (String[] a : REWARDS) {
+        for (Object[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
             n.getNode("money").setValue(a[3]);

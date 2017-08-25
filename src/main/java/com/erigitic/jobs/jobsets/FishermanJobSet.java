@@ -31,18 +31,18 @@ public class FishermanJobSet implements JobSet {
 
     private final String SETNAME = "fish";
 
-    private final String[][] REWARDS = {
+    private final Object[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"catch", "cod", "25", "50.00"},
-            {"catch", "salmon", "100", "150.00"},
-            {"catch", "pufferfish", "250", "300.00"}
+            {"catch", "cod", 25, 50.00d},
+            {"catch", "salmon", 100, 150.00d},
+            {"catch", "pufferfish", 250, 300.00d}
     };
 
     @Override
     public void populateNode(ConfigurationNode node) {
         ConfigurationNode myNode = node.getNode(SETNAME);
 
-        for (String[] a : REWARDS) {
+        for (Object[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
             n.getNode("money").setValue(a[3]);

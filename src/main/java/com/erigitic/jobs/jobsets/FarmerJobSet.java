@@ -31,34 +31,34 @@ public class FarmerJobSet implements JobSet {
 
     private final String SETNAME = "crops";
 
-    private final String[][] REWARDS = {
-            //{"<event>", "<target>", "<expReward>", "<moneyReward>", "<growTrait>"}
+    private final Object[][] REWARDS = {
+            //{"<event>", "<target>", <expReward>, <moneyReward>, "<growTrait>"}
             // Plants having an age
-            {"break", "minecraft:wheat", "25", "50.00", "age"},
-            {"break", "minecraft:cocoa", "30", "60.00", "age"},
+            {"break", "minecraft:wheat", 25, 50.00d, "age"},
+            {"break", "minecraft:cocoa", 30, 60.00d, "age"},
 
-            {"break", "minecraft:cactus", "10", "15.00", null},
-            {"break", "minecraft:reeds", "5", "7.50", null},
+            {"break", "minecraft:cactus", 10, 15.00d, null},
+            {"break", "minecraft:reeds", 5, 7.50d, null},
 
             //These plants aren't hard to grow or harvest thus the low gains
-            {"break", "minecraft:red_flower", "1", "0.10", null},
-            {"break", "minecraft:yellow_flower", "1", "0.10", null},
-            {"break", "minecraft:vine", "0", "0.05", null},
-            {"break", "minecraft:waterlily", "1", "0.10", null},
+            {"break", "minecraft:red_flower", 1, 0.10d, null},
+            {"break", "minecraft:yellow_flower", 1, 0.10d, null},
+            {"break", "minecraft:vine", 0, 0.05d, null},
+            {"break", "minecraft:waterlily", 1, 0.10d, null},
 
-            {"break", "minecraft:red_mushroom", "8", "5.00", null},
-            {"break", "minecraft:brown_mushroom", "8", "5.00", null}
+            {"break", "minecraft:red_mushroom", 8, 5.00d, null},
+            {"break", "minecraft:brown_mushroom", 8, 5.00d, null}
     };
 
     @Override
     public void populateNode(ConfigurationNode node) {
         ConfigurationNode myNode = node.getNode(SETNAME);
 
-        for (String[] a : REWARDS) {
+        for (Object[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
             n.getNode("money").setValue(a[3]);
-            n.getNode("growthTrait").setValue(a[4]);
+            n.getNode("growth-trait").setValue(a[4]);
         }
     }
 }
