@@ -107,6 +107,7 @@ public class TotalEconomy {
     private boolean jobFeatureEnabled = true;
     private boolean jobNotificationEnabled = true;
     private boolean jobSalaryEnabled = true;
+    private boolean jobIncludeMeta = false;
     // End Job Variables
 
     // Database Variables
@@ -342,13 +343,15 @@ public class TotalEconomy {
      * Determines what features to enable from the main configuration file. Sets the corresponding features boolean to true/false (enabled/disabled).
      */
     private void setFeaturesEnabledStatus() {
-        jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean();
-        jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean();
-        jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean();
+        jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean(true);
+        jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean(true);
+        jobIncludeMeta = config.getNode("features", "jobs", "inclue-metadata").getBoolean(false);
 
-        databaseEnabled = config.getNode("database", "enable").getBoolean();
+        jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean(true);
 
-        moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean();
+        databaseEnabled = config.getNode("database", "enable").getBoolean(false);
+
+        moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean(true);
     }
 
     public HashSet<Currency> getCurrencies() {
@@ -384,6 +387,8 @@ public class TotalEconomy {
     public boolean isDatabaseEnabled() { return databaseEnabled; }
 
     public boolean isJobNotificationEnabled() { return jobNotificationEnabled; }
+
+    public boolean isJobInclueMeta() { return jobIncludeMeta; }
 
     public int getSaveInterval() {
         return saveInterval;

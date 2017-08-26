@@ -31,19 +31,19 @@ public class WarriorJobSet implements JobSet {
 
     private final String SETNAME = "mobs";
 
-    private final String[][] REWARDS = {
+    private final Object[][] REWARDS = {
             //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"kill", "skeleton", "10", "1.00"},
-            {"kill", "zombie", "10", "1.00"},
-            {"kill", "creeper", "10", "1.00"},
-            {"kill", "spider", "10", "1.00"}
+            {"kill", "skeleton", 10, 1.00d},
+            {"kill", "zombie", 10, 1.00d},
+            {"kill", "creeper", 10, 1.00d},
+            {"kill", "spider", 10, 1.00d}
     };
 
     @Override
     public void populateNode(ConfigurationNode node) {
         ConfigurationNode myNode = node.getNode(SETNAME);
 
-        for (String[] a : REWARDS) {
+        for (Object[] a : REWARDS) {
             ConfigurationNode n = myNode.getNode(a[0], a[1]);
             n.getNode("exp").setValue(a[2]);
             n.getNode("money").setValue(a[3]);

@@ -40,11 +40,13 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public class JobCommand implements CommandExecutor {
@@ -221,8 +223,28 @@ public class JobCommand implements CommandExecutor {
                     TEJobSet jobSet = optSet.get();
                     Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
-                    for (TEActionReward actionReward : jobSet.getActionRewards()) {
-                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(actionReward.getAction()), "] ", TextColors.GRAY, actionReward.getTargetID(), TextColors.GOLD, " (", actionReward.getExpReward(), " EXP) (", defaultCurrency.format(actionReward.getMoneyReward()), ")"));
+                    for (TEAction action : jobSet.getActions()) {
+                        EconomyService service = Sponge.getServiceManager().provideUnchecked(EconomyService.class);
+                        Optional<Currency> c = Optional.empty();
+                        Text listText;
+                        if (action.isIDTraited()) {
+                            // MC does not support '\t'
+                            String tab = new String(new char[action.getAction().length() + 2]).replace("\0", " ");
+                            List<Text> texts = new ArrayList<>(action.getRewards().size());
+                            action.getRewards().forEach((k, v) -> {
+                                Text t1 = Text.of("");
+                                if (action.isGrowing())
+                                    t1 = Text.of(",growing=1");
+                                Text t2 = (Text.of('\n', tab,  TextColors.GRAY, "{", action.getIDTrait(), '=', k, t1, "} ", TextColors.GOLD, format_reward(v)));
+                                texts.add(t2);
+                            });
+                            listText = Text.join(texts.toArray(new Text[texts.size()]));
+                        } else {
+                            listText = format_reward(action.getReward().get());
+                            if (action.isGrowing())
+                                listText = Text.of(TextColors.GRAY, "{growing=1} ", listText);
+                        }
+                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(action.getAction()), "] ", TextColors.GRAY, action.getTargetID(), TextColors.GOLD, " [", listText, "]"));
                     }
                 }
             }
@@ -234,6 +256,13 @@ public class JobCommand implements CommandExecutor {
 
             return CommandResult.success();
         }
+    }
+
+    private Text format_reward(TEActionReward reward) {
+        Optional<Currency> c = Optional.empty();
+        if (reward.getCurrencyID() != null)
+            c = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.getCurrencyID());
+        return Text.of('(',reward.getExpReward(), " EXP) (", c.orElse(totalEconomy.getDefaultCurrency()).format(new BigDecimal(reward.getMoneyReward())), ')');
     }
 
     private class Reload implements CommandExecutor {
@@ -265,7 +294,11 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
+    private static String[] TOGGLE_PLAYER_OPTIONS = {"block-break-info", "block-place-info", "entity-kill-info", "entity-fish-info"};
+    private static List<String> TOGGLE_PLAYER_OPTIONS_LIST = Arrays.asList(TOGGLE_PLAYER_OPTIONS);
+
     private class Toggle implements CommandExecutor {
+
 
         private AccountManager accountManager;
 
@@ -277,6 +310,13 @@ public class JobCommand implements CommandExecutor {
             return CommandSpec.builder()
                     .description(Text.of("Toggle job notifications on/off"))
                     .permission("totaleconomy.command.job.toggle")
+                    .arguments(
+                            GenericArguments.optional(
+                                GenericArguments.requiringPermission(
+                                    GenericArguments.string(Text.of("option")),
+                                    "totaleconomy.command.job.block_info")
+                            )
+                    )
                     .executor(this)
                     .build();
         }
@@ -284,11 +324,22 @@ public class JobCommand implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (src instanceof Player) {
-                Player sender = ((Player) src).getPlayer().get();
+                Player sender = ((Player) src);
+                Optional<String> optOption = args.<String>getOne("option");
 
-                accountManager.toggleNotifications(sender);
-
-                return CommandResult.success();
+                if (!optOption.isPresent()) {
+                    accountManager.toggleNotifications(sender);
+                    return CommandResult.success();
+                } else {
+                    String option = optOption.get();
+                    int i = TOGGLE_PLAYER_OPTIONS_LIST.indexOf(option);
+                    if (i < 0)
+                        throw new CommandException(Text.of("[TE] Unknown option: ", option));
+                    String value = accountManager.getUserOption("totaleconomy:" + option, sender).orElse("0");
+                    value = (value.equals("0") ? "1" : "0");
+                    accountManager.setUserOption("totaleconomy:" + option, sender, value);
+                    return CommandResult.success();
+                }
             } else {
                 throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
             }
