@@ -36,30 +36,6 @@ import java.util.*;
 
 public class TEAction {
 
-    public static TEAction fromActionNode(String action, ConfigurationNode node) {
-        ConfigurationNode growthTraitNode = node.getNode("growthTrait");
-        if (growthTraitNode == null)
-            growthTraitNode = node.getNode("growth-trait");
-        ConfigurationNode idTraitNode = node.getNode("id-trait");
-        if (idTraitNode.isVirtual()) {
-            return new TEAction(action, node.getKey().toString(), TEActionReward.getFromNode(node), growthTraitNode.getString(null));
-        }
-        String traitName = idTraitNode.getString("type");
-        if (traitName == null)
-            return new TEAction();
-        ConfigurationNode idTraits = node.getNode(traitName);
-        Map<String, TEActionReward> rewardMap = new HashMap<>();
-        if (idTraits.hasMapChildren()) {
-            idTraits.getChildrenMap().forEach((k, v) -> {
-                if (!(k instanceof String))
-                    return;
-                TEActionReward reward = TEActionReward.getFromNode(v);
-                rewardMap.put(((String) k), reward);
-            });
-        }
-        return new TEAction(action, node.getKey().toString(), rewardMap, idTraitNode.getString("type"), growthTraitNode.getString(null));
-    }
-
     private String action;
     private String targetID;
 
@@ -71,30 +47,59 @@ public class TEAction {
     /* Simple stuff where we don't */
     private TEActionReward reward;
 
-    private boolean isValid = false;
+    public void loadConfigNode(String action, ConfigurationNode node) {
 
-    // Just construct an invalid one
-    protected TEAction() {}
+        ConfigurationNode idTraitNode = node.getNode("id-trait");
+        ConfigurationNode growthTraitNode = node.getNode("growthTrait");
 
-    public TEAction(String action, String targetID, TEActionReward reward, String growthTrait) {
+        if (growthTraitNode == null) {
+            growthTraitNode = node.getNode("growth-trait");
+        }
+
+        if (idTraitNode.isVirtual()) {
+            this.action = action;
+            this.targetID = node.getKey().toString();
+            this.reward = new TEActionReward();
+            this.reward.loadConfigNode(node);
+            this.growthTrait = growthTraitNode.getString(null);
+            return;
+        }
+
+        String traitName = idTraitNode.getString("type");
+
+        ConfigurationNode idTraits = node.getNode(traitName);
+        Map<String, TEActionReward> rewardMap = new HashMap<>();
+
+        if (idTraits.hasMapChildren()) {
+            idTraits.getChildrenMap().forEach((k, v) -> {
+
+                if (!(k instanceof String)) {
+                    return;
+                }
+
+                TEActionReward reward = new TEActionReward();
+                reward.loadConfigNode(v);
+                rewardMap.put(((String) k), reward);
+            });
+        }
         this.action = action;
-        this.targetID = targetID;
-        this.growthTrait = growthTrait;
-        this.reward = reward;
-        isValid = (action != null && !action.isEmpty() && targetID != null && !targetID.isEmpty());
+        this.targetID = node.getKey().toString();
+        this.rewards = rewardMap;
+        this.idTrait = idTraitNode.getString("type");
+        this.growthTrait = growthTraitNode.getString(null);
     }
 
-    public TEAction(String action, String target, Map<String, TEActionReward> rewards, String idTrait, String growthTrait) {
-        this(action, target, null, growthTrait);
-        this.idTrait = idTrait;
-        this.rewards = rewards;
+    public boolean isGrowing() {
+        return growthTrait != null;
     }
 
-    public boolean isGrowing() { return growthTrait != null; }
+    public boolean isIDTraited() {
+        return idTrait != null;
+    }
 
-    public boolean isIDTraited() { return idTrait != null; }
-
-    public String getIDTrait() { return idTrait; }
+    public String getIDTrait() {
+        return idTrait;
+    }
 
     public String getAction() {
         return action;
@@ -104,65 +109,89 @@ public class TEAction {
         return targetID;
     }
 
-    public Optional<TEActionReward> getReward() { return Optional.ofNullable(reward); }
+    public Optional<TEActionReward> getReward() {
+        return Optional.ofNullable(reward);
+    }
 
     public Map<String, TEActionReward> getRewards() {
         return rewards;
     }
 
     public boolean isValid() {
-        return isValid;
+        return (action != null
+                && !action.trim().isEmpty()
+                && targetID != null
+                && !targetID.trim().isEmpty());
     }
 
     public Optional<TEActionReward> evaluateBreak(Logger logger, BlockState state, UUID blockCreator) {
+
         // Disqualifying checks first for performance
-        if (!state.getType().getId().equals(this.targetID))
+        if (!state.getType().getId().equals(this.targetID)) {
             return Optional.empty();
-        if (growthTrait == null && blockCreator != null)
+        }
+
+        if (growthTrait == null && blockCreator != null) {
             // A player placed the block and it doesn't indicate growth -> Do not pay to prevent exploits
             return Optional.empty();
+        }
 
         // Determine base reward - Use complicated way if this block has an ID trait
         TEActionReward reward = null;
+
         if (idTrait != null) {
             Optional<BlockTrait<?>> trait = state.getTrait(idTrait);
+
             if (trait.isPresent()) {
                 Optional<?> traitVal = state.getTraitValue(trait.get());
+
                 if (traitVal.isPresent()) {
                     String key = traitVal.get().toString();
                     reward = rewards.getOrDefault(key, null);
                 }
+
             } else {
                 logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetID);
             }
+
         } else {
             reward = this.reward;
         }
-        if (reward == null)
+
+        if (reward == null) {
             return Optional.empty();
+        }
 
         // Base reward is determined - Now check if we need to apply modifiers
         // # GrowthTrait #
         if (growthTrait != null) {
+
             Optional<BlockTrait<?>> trait = state.getTrait(growthTrait);
+
             if (trait.isPresent()) {
+
                 if (Integer.class.isAssignableFrom(trait.get().getValueClass())) {
+
                     Optional<?> traitVal = state.getTraitValue(trait.get());
+
                     if (traitVal.isPresent()) {
+
                         Integer val = ((Integer) traitVal.get());
                         Collection<Integer> coll = (Collection<Integer>) trait.get().getPossibleValues();
                         Integer max = coll.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
                         Integer min = coll.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
                         Double perc = (double) (val - min) / (double) (max - min);
-                        reward = new TEActionReward(
-                                (int) (reward.getExpReward() * perc),
-                                reward.getMoneyReward() * perc,
-                                reward.getCurrencyID()
-                        );
-                    } else
-                        logger.warn("Growth trait \"", growthTrait,"\" has missing value during action: ", action, ':', targetID);
-                } else
+                        reward = new TEActionReward() ;
+                        reward.setValues((int) (reward.getExpReward() * perc),reward.getMoneyReward() * perc, reward.getCurrencyID());
+
+                    } else {
+                        logger.warn("Growth trait \"", growthTrait, "\" has missing value during action: ", action, ':', targetID);
+                    }
+
+                } else {
                     logger.warn("Growth trait \"", growthTrait, "\" is not numeric!");
+                }
+
             } else {
                 logger.warn("Growth trait \"", growthTrait, "\" not found during action: ", action, ':', targetID);
             }
@@ -171,26 +200,36 @@ public class TEAction {
     }
 
     public Optional<TEActionReward> evaluatePlace(Logger logger, BlockState state) {
+
         // Disqualifying checks first for performance
-        if (!state.getType().getId().equals(this.targetID))
+        if (!state.getType().getId().equals(this.targetID)) {
             return Optional.empty();
+        }
 
         // Determine base reward - Use complicated way if this block has an ID trait
         TEActionReward reward = null;
+
         if (idTrait != null) {
+
             Optional<BlockTrait<?>> trait = state.getTrait(idTrait);
+
             if (trait.isPresent()) {
+
                 Optional<?> traitVal = state.getTraitValue(trait.get());
+
                 if (traitVal.isPresent()) {
                     String key = traitVal.get().toString();
                     reward = rewards.getOrDefault(key, null);
                 }
+
             } else {
                 logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetID);
             }
+
         } else {
             reward = this.reward;
         }
+
         return Optional.ofNullable(reward);
     }
 }

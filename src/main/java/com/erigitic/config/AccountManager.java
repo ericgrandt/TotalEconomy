@@ -467,7 +467,7 @@ public class AccountManager implements EconomyService {
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
                     .set("job_notifications")
-                    .equals(jobNotifications ? "1": "0")
+                    .equals(jobNotifications ? "1" : "0")
                     .where("uid")
                     .equals(playerUUID.toString())
                     .build();
@@ -499,14 +499,20 @@ public class AccountManager implements EconomyService {
      * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs
      */
     public Optional<String> getUserOption(String option, User user) {
+
         // Currently no db support for this - Shouldn't be that necessary anyways
-        if (databaseActive) return Optional.empty();
+        if (databaseActive) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(accountConfig.getNode(user.getUniqueId().toString(), "options", option).getString(null));
     }
 
     public void setUserOption(String option, User user, String value) {
+
         // Currently no db support for this - Shouldn't be that necessary anyways
-        if (databaseActive) return;
+        if (databaseActive) {
+            return;
+        }
         accountConfig.getNode(user.getUniqueId().toString(), "options", option).setValue(value);
     }
 

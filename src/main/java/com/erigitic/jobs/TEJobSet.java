@@ -34,10 +34,15 @@ public class TEJobSet {
 
     public TEJobSet(ConfigurationNode node) {
         node.getChildrenMap().forEach((actionStr, targetNode) -> {
+
             if ((actionStr instanceof String) &&  targetNode != null) {
                 targetNode.getChildrenMap().forEach((targetID, actionNode) -> {
+
                     if ((targetID instanceof String) && actionNode != null) {
-                        TEAction action = TEAction.fromActionNode((String)actionStr, actionNode);
+
+                        TEAction action = new TEAction();
+                        action.loadConfigNode((String) actionStr, actionNode);
+
                         if (action.isValid()) {
                             actions.add(action);
                         }

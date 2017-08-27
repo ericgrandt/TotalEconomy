@@ -107,7 +107,6 @@ public class TotalEconomy {
     private boolean jobFeatureEnabled = true;
     private boolean jobNotificationEnabled = true;
     private boolean jobSalaryEnabled = true;
-    private boolean jobIncludeMeta = false;
     // End Job Variables
 
     // Database Variables
@@ -345,7 +344,6 @@ public class TotalEconomy {
     private void setFeaturesEnabledStatus() {
         jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean(true);
         jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean(true);
-        jobIncludeMeta = config.getNode("features", "jobs", "inclue-metadata").getBoolean(false);
 
         jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean(true);
 
@@ -387,8 +385,6 @@ public class TotalEconomy {
     public boolean isDatabaseEnabled() { return databaseEnabled; }
 
     public boolean isJobNotificationEnabled() { return jobNotificationEnabled; }
-
-    public boolean isJobInclueMeta() { return jobIncludeMeta; }
 
     public int getSaveInterval() {
         return saveInterval;

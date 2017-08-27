@@ -227,22 +227,31 @@ public class JobCommand implements CommandExecutor {
                         EconomyService service = Sponge.getServiceManager().provideUnchecked(EconomyService.class);
                         Optional<Currency> c = Optional.empty();
                         Text listText;
+
                         if (action.isIDTraited()) {
                             // MC does not support '\t'
                             String tab = new String(new char[action.getAction().length() + 2]).replace("\0", " ");
                             List<Text> texts = new ArrayList<>(action.getRewards().size());
+
                             action.getRewards().forEach((k, v) -> {
                                 Text t1 = Text.of("");
-                                if (action.isGrowing())
+
+                                if (action.isGrowing()) {
                                     t1 = Text.of(",growing=1");
+                                }
+
                                 Text t2 = (Text.of('\n', tab,  TextColors.GRAY, "{", action.getIDTrait(), '=', k, t1, "} ", TextColors.GOLD, format_reward(v)));
                                 texts.add(t2);
                             });
+
                             listText = Text.join(texts.toArray(new Text[texts.size()]));
                         } else {
+
                             listText = format_reward(action.getReward().get());
-                            if (action.isGrowing())
+
+                            if (action.isGrowing()) {
                                 listText = Text.of(TextColors.GRAY, "{growing=1} ", listText);
+                            }
                         }
                         lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(action.getAction()), "] ", TextColors.GRAY, action.getTargetID(), TextColors.GOLD, " [", listText, "]"));
                     }
@@ -260,8 +269,11 @@ public class JobCommand implements CommandExecutor {
 
     private Text format_reward(TEActionReward reward) {
         Optional<Currency> c = Optional.empty();
-        if (reward.getCurrencyID() != null)
+
+        if (reward.getCurrencyID() != null) {
             c = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.getCurrencyID());
+        }
+
         return Text.of('(',reward.getExpReward(), " EXP) (", c.orElse(totalEconomy.getDefaultCurrency()).format(new BigDecimal(reward.getMoneyReward())), ')');
     }
 
