@@ -58,6 +58,7 @@ public class TEJob {
                 if (job != null && (job.trim().isEmpty())) {
                     job = null;
                 }
+                
                 requirement = new JobBasedRequirement(job, level, permission);
             }
 
