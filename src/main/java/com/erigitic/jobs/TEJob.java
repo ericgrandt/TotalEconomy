@@ -48,6 +48,19 @@ public class TEJob {
 
         try {
             sets = node.getNode("sets").getList(TypeToken.of(String.class), new ArrayList<>());
+            ConfigurationNode req = node.getNode("require");
+
+            if (!req.isVirtual()) {
+                String job = req.getNode("job").getString(null);
+                int level = req.getNode("level").getInt(0);
+                String permission = req.getNode("permission").getString(null);
+
+                if (job != null && (job.trim().isEmpty())) {
+                    job = null;
+                }
+                
+                requirement = new JobBasedRequirement(job, level, permission);
+            }
 
             isValid = true;
         } catch (ObjectMappingException e) {
