@@ -35,15 +35,15 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class SQLHandler {
+public class SQLManager {
     private TotalEconomy totalEconomy;
     private Logger logger;
     public DataSource dataSource;
     private SqlService sql;
 
-    public SQLHandler(TotalEconomy totalEconomy) {
+    public SQLManager(TotalEconomy totalEconomy, Logger logger) {
         this.totalEconomy = totalEconomy;
-        logger = totalEconomy.getLogger();
+        this.logger = logger;
 
         try {
             dataSource = getDataSource("jdbc:" + totalEconomy.getDatabaseUrl() + "?user=" + totalEconomy.getDatabaseUser() + "&password=" + totalEconomy.getDatabasePassword());
@@ -69,6 +69,13 @@ public class SQLHandler {
         return sql.getDataSource(jdbcUrl);
     }
 
+    /**
+     * Create a new table in the database
+     *
+     * @param tableName Name of the table to be created
+     * @param cols The columns that the table should have
+     * @return boolean Result of the query
+     */
     public boolean createTable(String tableName, String cols) {
         try {
             Connection conn = dataSource.getConnection();

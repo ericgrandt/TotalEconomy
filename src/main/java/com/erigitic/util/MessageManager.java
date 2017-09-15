@@ -32,71 +32,73 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
+import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.FormattingCodeTextSerializer;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
-public class MessageHandler {
+public class MessageManager {
 
     private TotalEconomy totalEconomy;
     private Logger logger;
-
-    private File messagesFile;
-    private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode messagesConfig;
+
     /**
-     * Grabs a message from the messages-[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
-     * are changed, and aliases are changed to their corresponding values which are passed in.
+     * Grabs a message from the messages_[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
+     * are changed, and value placeholders are changed to their corresponding values which are passed in.
      */
-
-    public MessageHandler(TotalEconomy totalEconomy, Locale locale) {
+    public MessageManager(TotalEconomy totalEconomy, Logger logger, Locale locale) {
         this.totalEconomy = totalEconomy;
-
-        logger = totalEconomy.getLogger();
+        this.logger = logger;
 
         setupConfig(locale);
     }
 
-    // TODO: If no messages_{lang} file is found, default to messages_en
     /**
-     * Setup the config file that will contain the user accounts
+     * Setup the messages_[lang].conf file
      */
     private void setupConfig(Locale locale) {
-        messagesFile = new File(totalEconomy.getConfigDir(), "messages_" + locale.getLanguage() + ".conf");
-        loader = HoconConfigurationLoader.builder().setFile(messagesFile).build();
+        File messagesFile = new File(totalEconomy.getConfigDir(), "messages_" + locale.getLanguage() + ".conf");
+        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(messagesFile).build();
 
         try {
-            messagesConfig = loader.load();
-
-            ResourceBundle rb = ResourceBundle.getBundle("messages", locale);
-            rb.keySet().forEach(key -> {
-                String value = rb.getString(key);
-
-                messagesConfig.getNode(key.toString()).setValue(value);
-            });
-
             if (!messagesFile.exists()) {
-                loader.save(messagesConfig);
+                Asset defaultMessagesAsset = totalEconomy.getPluginContainer().getAsset("messages_en.conf").get();
+                Optional<Asset> optMessagesAsset = totalEconomy.getPluginContainer().getAsset("messages_" + locale.getLanguage() + ".conf");
+
+                optMessagesAsset.orElse(defaultMessagesAsset).copyToFile(messagesFile.toPath());
             }
+
+            messagesConfig = loader.load();
         } catch (IOException e) {
             logger.warn("[TE] Error loading/creating the messages configuration file!");
         }
     }
 
+    /**
+     * Get a message from the messages_[lang].conf file and deserialize it for printing
+     *
+     * @param messageKey The key to grab a value from
+     * @return Text The deserialized message
+     */
     public Text getMessage(String messageKey) {
         String message = messagesConfig.getNode(messageKey).getString();
 
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }
 
+    /**
+     * Get a message from the messages_[lang].conf file, replace value placeholders, and deserialize it for printing
+     *
+     * @param messageKey The key to grab a value from
+     * @param values Map of values that will replace value placeholders (ex. {amount}, {name})
+     * @return Text The deserialized message
+     */
     public Text getMessage(String messageKey, Map<String, String> values) {
         StrSubstitutor sub = new StrSubstitutor(values, "{", "}");
         String message = sub.replace(messagesConfig.getNode(messageKey).getString());

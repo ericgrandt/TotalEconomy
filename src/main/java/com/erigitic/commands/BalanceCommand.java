@@ -29,7 +29,7 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -47,14 +47,13 @@ import java.util.Optional;
 public class BalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Currency defaultCurrency;
 
-    public BalanceCommand(TotalEconomy totalEconomy) {
+    public BalanceCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
-
-        accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
+        this.accountManager = accountManager;
+        this.messageManager = messageManager;
 
         defaultCurrency = totalEconomy.getDefaultCurrency();
     }
@@ -65,7 +64,6 @@ public class BalanceCommand implements CommandExecutor {
             Player sender = (Player) src;
             TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
             Optional<String> optCurrencyName = args.getOne("currencyName");
-
             Map<String, String> messageValues = new HashMap<>();
 
             if (optCurrencyName.isPresent()) {
@@ -77,14 +75,14 @@ public class BalanceCommand implements CommandExecutor {
                     messageValues.put("currency", currency.getName());
                     messageValues.put("amount", currency.format(playerAccount.getBalance(currency)).toPlain());
 
-                    sender.sendMessage(messageHandler.getMessage("command.balance.other", messageValues));
+                    sender.sendMessage(messageManager.getMessage("command.balance.other", messageValues));
                 } else {
                     throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
                 }
             } else {
                 messageValues.put("amount", defaultCurrency.format(playerAccount.getBalance(defaultCurrency)).toPlain());
 
-                sender.sendMessage(messageHandler.getMessage("command.balance.default", messageValues));
+                sender.sendMessage(messageManager.getMessage("command.balance.default", messageValues));
             }
 
             return CommandResult.success();

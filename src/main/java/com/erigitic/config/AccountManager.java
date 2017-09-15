@@ -26,9 +26,9 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -46,7 +46,6 @@ import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -54,13 +53,13 @@ import java.util.concurrent.TimeUnit;
 
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
-    private MessageHandler messageHandler;
+    private MessageManager messageManager;
     private Logger logger;
     private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
 
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     private boolean databaseActive;
 
@@ -72,25 +71,22 @@ public class AccountManager implements EconomyService {
      *
      * @param totalEconomy Main plugin class
      */
-    public AccountManager(TotalEconomy totalEconomy) {
+    public AccountManager(TotalEconomy totalEconomy, MessageManager messageManager, Logger logger) {
         this.totalEconomy = totalEconomy;
+        this.messageManager = messageManager;
+        this.logger = logger;
 
-        messageHandler = totalEconomy.getMessageHandler();
-        logger = totalEconomy.getLogger();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {
-            sqlHandler = totalEconomy.getSqlHandler();
+            sqlManager = totalEconomy.getSqlManager();
 
             setupDatabase();
         } else {
             setupConfig();
 
             if (totalEconomy.getSaveInterval() > 0) {
-                Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
-                        .execute(() -> {
-                            writeToDisk(false);
-                        }).submit(totalEconomy);
+                setupAutosave();
             }
         }
     }
@@ -125,29 +121,42 @@ public class AccountManager implements EconomyService {
             currencyCols += teCurrency.getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + teCurrency.getStartingBalance() + "',";
         }
 
-        sqlHandler.createTable("accounts", "uid varchar(60) NOT NULL," +
+        sqlManager.createTable("accounts", "uid varchar(60) NOT NULL," +
                 currencyCols +
                 "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
                 "job_notifications boolean NOT NULL DEFAULT TRUE," +
                 "PRIMARY KEY (uid)");
 
-        sqlHandler.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
+        sqlManager.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
                 currencyCols +
                 "PRIMARY KEY (uid)");
 
-        sqlHandler.createTable("levels", "uid varchar(60)," +
+        sqlManager.createTable("levels", "uid varchar(60)," +
                 "miner int(10) unsigned NOT NULL DEFAULT '1'," +
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
                 "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
                 "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
                 "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
 
-        sqlHandler.createTable("experience", "uid varchar(60)," +
+        sqlManager.createTable("experience", "uid varchar(60)," +
                 "miner int(10) unsigned NOT NULL DEFAULT '0'," +
                 "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
                 "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
                 "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
                 "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
+    }
+
+    /**
+     * Setup a scheduler that handles the saving of the account configuration file
+     */
+    private void setupAutosave() {
+        Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
+                .execute(() -> {
+                    if (confSaveRequested) {
+                        saveConfiguration();
+                        confSaveRequested = false;
+                    }
+                }).submit(totalEconomy);
     }
 
     /**
@@ -171,56 +180,17 @@ public class AccountManager implements EconomyService {
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
         TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
+        boolean hasAccount = hasAccount(uuid);
 
         try {
-            if (!hasAccount(uuid)) {
+            if (!hasAccount) {
                 if (databaseActive) {
-                    SQLQuery.builder(sqlHandler.dataSource).insert("accounts")
-                            .columns("uid", "job", "job_notifications")
-                            .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.hasJobNotifications()))
-                            .build();
-
-                    SQLQuery.builder(sqlHandler.dataSource).insert("levels")
-                            .columns("uid")
-                            .values(uuid.toString())
-                            .build();
-
-                    SQLQuery.builder(sqlHandler.dataSource).insert("experience")
-                            .columns("uid")
-                            .values(uuid.toString())
-                            .build();
-
-                    for (Currency currency : totalEconomy.getCurrencies()) {
-                        TECurrency teCurrency = (TECurrency) currency;
-
-                        SQLQuery.builder(sqlHandler.dataSource).update("accounts")
-                                .set(teCurrency.getName().toLowerCase() + "_balance")
-                                .equals(playerAccount.getDefaultBalance(teCurrency).toString())
-                                .where("uid")
-                                .equals(uuid.toString())
-                                .build();
-                    }
+                    createAccountInDatabase(playerAccount);
                 } else {
-                    for (Currency currency : totalEconomy.getCurrencies()) {
-                        TECurrency teCurrency = (TECurrency) currency;
-
-                        accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
-                    }
-
-                    accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
-                    accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.hasJobNotifications());
-                    loader.save(accountConfig);
+                    createAccountInConfig(playerAccount);
                 }
-            } else if (!databaseActive) { // If the user has an account, and a database is not being used, let's make sure they have a balance for each currency.
-                for (Currency currency : totalEconomy.getCurrencies()) {
-                    TECurrency teCurrency = (TECurrency) currency;
-
-                    if (!playerAccount.hasBalance(teCurrency)) {
-                        accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
-                    }
-                }
-
-                loader.save(accountConfig);
+            } else if (hasAccount && !databaseActive) {
+                addNewCurrenciesToAccount(playerAccount);
             }
         } catch (IOException e) {
             logger.warn("[TE] An error occurred while creating a new account!");
@@ -228,7 +198,6 @@ public class AccountManager implements EconomyService {
 
         return Optional.of(playerAccount);
     }
-
     /**
      * Gets or creates a virtual account for the passed in identifier
      *
@@ -238,37 +207,17 @@ public class AccountManager implements EconomyService {
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
         TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
+        boolean hasAccount = hasAccount(identifier);
 
         try {
-            if (!hasAccount(identifier)) {
+            if (!hasAccount) {
                 if (databaseActive) {
-                    for (Currency currency : totalEconomy.getCurrencies()) {
-                        TECurrency teCurrency = (TECurrency) currency;
-
-                        SQLQuery.builder(sqlHandler.dataSource).insert("virtual_accounts")
-                                .columns("uid", teCurrency.getName().toLowerCase() + "_balance")
-                                .values(identifier, virtualAccount.getDefaultBalance(teCurrency).toString())
-                                .build();
-                    }
+                    createAccountInDatabase(virtualAccount);
                 } else {
-                    for (Currency currency : totalEconomy.getCurrencies()) {
-                        TECurrency teCurrency = (TECurrency) currency;
-
-                        accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
-                    }
-
-                    loader.save(accountConfig);
+                    createAccountInConfig(virtualAccount);
                 }
-            } else if (!databaseActive) { // If the virtual account exists, and a database is not being used, let's make sure it has a balance for each currency.
-                for (Currency currency : totalEconomy.getCurrencies()) {
-                    TECurrency teCurrency = (TECurrency) currency;
-
-                    if (!virtualAccount.hasBalance(teCurrency)) {
-                        accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
-                    }
-                }
-
-                loader.save(accountConfig);
+            } else if (hasAccount && !databaseActive) {
+                addNewCurrenciesToAccount(virtualAccount);
             }
         } catch (IOException e) {
             logger.warn("[TE] An error occurred while creating a new virtual account!");
@@ -286,7 +235,7 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
                     .select("uid")
                     .from("accounts")
                     .where("uid")
@@ -308,7 +257,7 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(String identifier) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
                     .select("uid")
                     .from("virtual_accounts")
                     .where("uid")
@@ -347,6 +296,143 @@ public class AccountManager implements EconomyService {
     }
 
     /**
+     * Creates a new unique account in the database.
+     *
+     * @param playerAccount A player's account
+     * @throws IOException
+     */
+    private void createAccountInDatabase(TEAccount playerAccount) {
+        UUID uuid = playerAccount.getUniqueId();
+
+        SQLQuery.builder(sqlManager.dataSource).insert("accounts")
+                .columns("uid", "job", "job_notifications")
+                .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.isJobNotificationEnabled()))
+                .build();
+
+        SQLQuery.builder(sqlManager.dataSource).insert("levels")
+                .columns("uid")
+                .values(uuid.toString())
+                .build();
+
+        SQLQuery.builder(sqlManager.dataSource).insert("experience")
+                .columns("uid")
+                .values(uuid.toString())
+                .build();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            SQLQuery.builder(sqlManager.dataSource).update("accounts")
+                    .set(teCurrency.getName().toLowerCase() + "_balance")
+                    .equals(playerAccount.getDefaultBalance(teCurrency).toString())
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
+        }
+    }
+
+    /**
+     * Creates a new virtual account in the database.
+     *
+     * @param virtualAccount A virtual account
+     * @throws IOException
+     */
+    private void createAccountInDatabase(TEVirtualAccount virtualAccount) {
+        String identifier = virtualAccount.getIdentifier();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            SQLQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
+                    .columns(teCurrency.getName().toLowerCase() + "_balance")
+                    .values(virtualAccount.getDefaultBalance(teCurrency).toString())
+                    .where("uid")
+                    .equals(identifier)
+                    .build();
+        }
+    }
+
+    /**
+     * Creates a new unique account in the accounts configuration file.
+     *
+     * @param playerAccount A player's account
+     * @throws IOException
+     */
+    private void createAccountInConfig(TEAccount playerAccount) throws IOException {
+        UUID uuid = playerAccount.getUniqueId();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
+        }
+
+        accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
+        accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.isJobNotificationEnabled());
+        loader.save(accountConfig);
+    }
+
+    /**
+     * Creates a new virtual account in the accounts configuration file.
+     *
+     * @param virtualAccount A virtual account
+     * @throws IOException
+     */
+    private void createAccountInConfig(TEVirtualAccount virtualAccount) throws IOException {
+        String identifier = virtualAccount.getIdentifier();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
+        }
+
+        loader.save(accountConfig);
+    }
+
+    /**
+     * Checks if a unique account has a balance for each currency. If one doesn't exist, a new balance for that currency will be
+     * added and set to that currencies starting balance.
+     *
+     * @param playerAccount The unique account to add the balance to
+     * @throws IOException
+     */
+    private void addNewCurrenciesToAccount(TEAccount playerAccount) throws IOException {
+        UUID uuid = playerAccount.getUniqueId();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            if (!playerAccount.hasBalance(teCurrency)) {
+                accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
+            }
+        }
+
+        loader.save(accountConfig);
+    }
+
+    /**
+     * Checks if a virtual account has a balance for each currency. If one doesn't exist, a new balance for that currency will be
+     * added and set to that currencies starting balance.
+     *
+     * @param virtualAccount The virtual account to add the balance to
+     * @throws IOException
+     */
+    private void addNewCurrenciesToAccount(TEVirtualAccount virtualAccount) throws IOException {
+        String identifier = virtualAccount.getIdentifier();
+
+        for (Currency currency : totalEconomy.getCurrencies()) {
+            TECurrency teCurrency = (TECurrency) currency;
+
+            if (!virtualAccount.hasBalance(teCurrency)) {
+                accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
+            }
+        }
+
+        loader.save(accountConfig);
+    }
+
+    /**
      * Gets the passed in player's notification state
      *
      * @param player The {@link Player} who's notification state to get
@@ -356,7 +442,7 @@ public class AccountManager implements EconomyService {
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).select("job_notifications")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).select("job_notifications")
                     .from("accounts")
                     .where("uid")
                     .equals(playerUUID.toString())
@@ -378,7 +464,7 @@ public class AccountManager implements EconomyService {
         UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource).update("accounts")
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
                     .set("job_notifications")
                     .equals(jobNotifications ? "1":"0")
                     .where("uid")
@@ -400,37 +486,30 @@ public class AccountManager implements EconomyService {
             }
         }
 
-        if (jobNotifications == true) {
-            player.sendMessage(messageHandler.getMessage("notifications.on"));
+        if (jobNotifications) {
+            player.sendMessage(messageManager.getMessage("notifications.on"));
         } else {
-            player.sendMessage(messageHandler.getMessage("notifications.off"));
+            player.sendMessage(messageManager.getMessage("notifications.off"));
         }
     }
 
     /**
-     * Save the account configuration file
-     *
-     * @param forceSave Whether to force a save regardless of if conditions are met or not
+     * Request for the account configuration file to be saved
      */
-    public void saveAccountConfig(boolean forceSave) {
-        confSaveRequested = true;
-
-        if (totalEconomy.getSaveInterval() <= 0 || forceSave) {
-            writeToDisk(forceSave);
+    public void requestConfigurationSave() {
+        if (totalEconomy.getSaveInterval() > 0) {
+            confSaveRequested = true;
+        } else {
+            saveConfiguration();
         }
     }
 
     /**
      * Save the account configuration file
      */
-    public void writeToDisk(boolean forceSave) {
-        if (!forceSave && !confSaveRequested) {
-            return;
-        }
-
+    private void saveConfiguration() {
         try {
             loader.save(accountConfig);
-            confSaveRequested = false;
         } catch (IOException e) {
             logger.error("[TE] An error occurred while saving the account configuration file!");
         }
