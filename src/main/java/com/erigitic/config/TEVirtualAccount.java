@@ -26,7 +26,7 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLHandler;
+import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
@@ -46,7 +46,7 @@ public class TEVirtualAccount implements VirtualAccount {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private String identifier;
-    private SQLHandler sqlHandler;
+    private SQLManager sqlManager;
 
     private ConfigurationNode accountConfig;
 
@@ -58,10 +58,10 @@ public class TEVirtualAccount implements VirtualAccount {
         this.identifier = identifier;
 
         accountConfig = accountManager.getAccountConfig();
-        databaseActive = totalEconomy.isDatabaseActive();
+        databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {
-            sqlHandler = totalEconomy.getSqlHandler();
+            sqlManager = totalEconomy.getSqlManager();
         }
     }
 
@@ -80,7 +80,7 @@ public class TEVirtualAccount implements VirtualAccount {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                     .select(currencyName + "_balance")
                     .from("virtual_accounts")
                     .where("uid")
@@ -99,7 +99,7 @@ public class TEVirtualAccount implements VirtualAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .select(currencyName + "_balance")
                         .from("virtual_accounts")
                         .where("uid")
@@ -129,16 +129,10 @@ public class TEVirtualAccount implements VirtualAccount {
 
         if (hasBalance(currency, contexts)) {
             BigDecimal delta = amount.subtract(getBalance(currency));
-            TransactionType transactionType;
-
-            if (delta.compareTo(BigDecimal.ZERO) >= 0) {
-                transactionType = TransactionTypes.DEPOSIT;
-            } else {
-                transactionType = TransactionTypes.WITHDRAW;
-            }
+            TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlHandler.dataSource)
+                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
                         .update("virtual_accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
@@ -153,7 +147,7 @@ public class TEVirtualAccount implements VirtualAccount {
                 }
             } else {
                 accountConfig.getNode(identifier, currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
-                accountManager.saveAccountConfig(false);
+                accountManager.requestConfigurationSave();
 
                 transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
             }

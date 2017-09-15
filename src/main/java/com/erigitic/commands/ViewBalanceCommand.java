@@ -27,14 +27,14 @@ package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
+import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageHandler;
+import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
@@ -52,16 +52,12 @@ import java.util.Optional;
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
-    private MessageHandler messageHandler;
-    private Currency defaultCurrency;
+    private MessageManager messageManager;
 
-    public ViewBalanceCommand(TotalEconomy totalEconomy) {
+    public ViewBalanceCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
-
-        accountManager = totalEconomy.getAccountManager();
-        messageHandler = totalEconomy.getMessageHandler();
-
-        defaultCurrency = totalEconomy.getDefaultCurrency();
+        this.accountManager = accountManager;
+        this.messageManager = messageManager;
     }
 
     @Override
@@ -69,40 +65,47 @@ public class ViewBalanceCommand implements CommandExecutor {
         User recipient = args.<User>getOne("player").get();
         Optional<String> optCurrencyName = args.getOne("currencyName");
         TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-        BigDecimal balance;
-        Text balanceText;
-        TransactionResult transactionResult;
-
-        if (optCurrencyName.isPresent()) {
-            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
-
-            if (optCurrency.isPresent()) {
-                Currency currency = optCurrency.get();
-
-                balance = recipientAccount.getBalance(currency);
-                balanceText = currency.format(balance);
-
-                transactionResult = recipientAccount.setBalance(optCurrency.get(), balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-            } else {
-                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
-            }
-        } else {
-            balance = recipientAccount.getBalance(defaultCurrency);
-            balanceText = defaultCurrency.format(balance);
-
-            transactionResult = recipientAccount.setBalance(defaultCurrency, balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
-        }
+        TransactionResult transactionResult = getTransactionResult(recipientAccount, optCurrencyName);
 
         if (transactionResult.getResult() == ResultType.SUCCESS) {
+            TECurrency currency = (TECurrency) transactionResult.getCurrency();
+            Text balanceText = currency.format(recipientAccount.getBalance(currency));
             Map<String, String> messageValues = new HashMap<>();
             messageValues.put("recipient", recipient.getName());
             messageValues.put("amount", balanceText.toPlain());
 
-            sender.sendMessage(messageHandler.getMessage("command.viewbalance", messageValues));
+            sender.sendMessage(messageManager.getMessage("command.viewbalance", messageValues));
 
             return CommandResult.success();
         } else {
             throw new CommandException(Text.of("[TE] An error occurred setting a player's balance!"));
+        }
+    }
+
+    /**
+     * Get the transaction result returned from setting a player's balance.
+     *
+     * @param recipientAccount The account
+     * @param optCurrencyName The currency name
+     * @return TransactionResult Result of set balance
+     * @throws CommandException
+     */
+    private TransactionResult getTransactionResult(TEAccount recipientAccount, Optional<String> optCurrencyName) throws CommandException {
+        if (optCurrencyName.isPresent()) {
+            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+
+            if (optCurrency.isPresent()) {
+                TECurrency currency = (TECurrency) optCurrency.get();
+                BigDecimal balance = recipientAccount.getBalance(currency);
+
+                return recipientAccount.setBalance(currency, balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            } else {
+                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
+            }
+        } else {
+            BigDecimal balance = recipientAccount.getBalance(totalEconomy.getDefaultCurrency());
+
+            return recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
         }
     }
 }

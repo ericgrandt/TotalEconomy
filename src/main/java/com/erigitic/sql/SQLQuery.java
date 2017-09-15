@@ -92,6 +92,11 @@ public class SQLQuery {
         return 0;
     }
 
+    /**
+     * Determines if a record was returned by an SQL query.
+     *
+     * @return boolean Does the record exist
+     */
     public boolean recordExists() {
         try {
             if (resultSet.isBeforeFirst()) {
@@ -244,6 +249,11 @@ public class SQLQuery {
         return def;
     }
 
+    /**
+     * Get the number of rows that were affected by a query
+     *
+     * @return int Number of rows that were affected by the query
+     */
     public int getRowsAffected() {
         return rowsAffected;
     }

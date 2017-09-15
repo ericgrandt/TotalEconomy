@@ -29,5 +29,10 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 public interface JobSet {
 
+    /**
+     * Populates a configuration node with a job sets information.
+     *
+     * @param node The base/parent configuration node for job sets
+     */
     void populateNode(ConfigurationNode node);
 }
