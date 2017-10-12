@@ -1,6 +1,7 @@
 package com.erigitic.shops.data;
 
 import com.erigitic.shops.Shop;
+import com.erigitic.shops.ShopItem;
 import com.google.common.reflect.TypeToken;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Key;
@@ -15,5 +16,13 @@ public class ShopKeys {
             DataQuery.of("shop"),
             "totaleconomy:shop",
             "shop"
+    );
+
+    public static Key<Value<ShopItem>> SHOP_ITEM = KeyFactory.makeSingleKey(
+            TypeToken.of(ShopItem.class),
+            new TypeToken<Value<ShopItem>>() {},
+            DataQuery.of("shopitem"),
+            "totaleconomy:shopitem",
+            "shopitem"
     );
 }

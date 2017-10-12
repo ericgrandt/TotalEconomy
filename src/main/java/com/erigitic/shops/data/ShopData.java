@@ -1,14 +1,11 @@
 package com.erigitic.shops.data;
 
-import com.erigitic.shops.MultiItemShop;
 import com.erigitic.shops.Shop;
-import com.erigitic.shops.SingleItemShop;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.data.manipulator.DataManipulator;
 import org.spongepowered.api.data.manipulator.DataManipulatorBuilder;
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractSingleData;
 import org.spongepowered.api.data.merge.MergeFunction;
@@ -48,12 +45,12 @@ public class ShopData extends AbstractSingleData<Shop, ShopData, ImmutableShopDa
     @Override
     public Optional<ShopData> from(DataContainer container) {
         if (container.contains(ShopKeys.SINGLE_SHOP.getQuery())) {
-            Optional<MultiItemShop> multiItemShopOptional = container.getSerializable(ShopKeys.SINGLE_SHOP.getQuery(), MultiItemShop.class);
+            Optional<Shop> shopOpt = container.getSerializable(ShopKeys.SINGLE_SHOP.getQuery(), Shop.class);
 
-            if (multiItemShopOptional.isPresent()) {
-                return Optional.of(new ShopData(multiItemShopOptional.get()));
-            } else {
-                return Optional.of(new ShopData(container.getSerializable(ShopKeys.SINGLE_SHOP.getQuery(), SingleItemShop.class).get()));
+            if (shopOpt.isPresent()) {
+                Optional<ShopData> shopDataOpt = Optional.of(new ShopData(shopOpt.get()));
+
+                return shopDataOpt;
             }
         }
 
@@ -85,12 +82,12 @@ public class ShopData extends AbstractSingleData<Shop, ShopData, ImmutableShopDa
         @Override
         public Optional<ShopData> buildContent(DataView container) throws InvalidDataException {
             if (container.contains(ShopKeys.SINGLE_SHOP.getQuery())) {
-                Optional<MultiItemShop> multiItemShopOptional = container.getSerializable(ShopKeys.SINGLE_SHOP.getQuery(), MultiItemShop.class);
+                Optional<Shop> shopOpt = container.getSerializable(ShopKeys.SINGLE_SHOP.getQuery(), Shop.class);
 
-                if (multiItemShopOptional.isPresent()) {
-                    return Optional.of(new ShopData(multiItemShopOptional.get()));
-                } else {
-                    return Optional.of(new ShopData(container.getSerializable(ShopKeys.SINGLE_SHOP.getQuery(), SingleItemShop.class).get()));
+                if (shopOpt.isPresent()) {
+                    Optional<ShopData> shopDataOpt = Optional.of(new ShopData(shopOpt.get()));
+
+                    return shopDataOpt;
                 }
             }
 
