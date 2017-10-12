@@ -32,7 +32,9 @@ import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.JobManager;
 import com.erigitic.shops.*;
 import com.erigitic.shops.data.ImmutableShopData;
+import com.erigitic.shops.data.ImmutableShopItemData;
 import com.erigitic.shops.data.ShopData;
+import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
@@ -173,8 +175,8 @@ public class TotalEconomy {
     public void init(GameInitializationEvent event) {
         DataManager dm = Sponge.getDataManager();
 
-        dm.registerBuilder(MultiItemShop.class, new MultiItemShop.Builder());
-        dm.registerBuilder(SingleItemShop.class, new SingleItemShop.Builder());
+        dm.registerBuilder(Shop.class, new Shop.Builder());
+        dm.registerBuilder(ShopItem.class, new ShopItem.Builder());
 
         DataRegistration.builder()
                 .dataClass(ShopData.class)
@@ -182,6 +184,14 @@ public class TotalEconomy {
                 .builder(new ShopData.Builder())
                 .manipulatorId("shop")
                 .dataName("shop")
+                .buildAndRegister(pluginContainer);
+
+        DataRegistration.builder()
+                .dataClass(ShopItemData.class)
+                .immutableClass(ImmutableShopItemData.class)
+                .builder(new ShopItemData.Builder())
+                .manipulatorId("shopitem")
+                .dataName("shopitem")
                 .buildAndRegister(pluginContainer);
 
         createAndRegisterCommands();
@@ -301,6 +311,8 @@ public class TotalEconomy {
                 .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
+
+        game.getCommandManager().register(this, new ShopCommand(this, messageManager).getCommandSpec(), "shop");
 
         if (jobFeatureEnabled) {
             game.getCommandManager().register(this, new JobCommand(this, accountManager, jobManager, messageManager).commandSpec(), "job");
