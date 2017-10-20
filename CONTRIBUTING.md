@@ -22,7 +22,7 @@ We are always looking for talented people to help continue making Total Economy 
 
 ### Getting Started
 
-+ Create an issue for your contribution if one is not already created. Be sure to follow the guidelines for contributing issues.
++ Find an issue with the `help wanted` label that you'd like to work on.
 + Create a branch off the branch you are targeting, most of the time `develop`, and name it `issue/[ISSUE#]-short-description-of-issue`. The short description should be no more than 4 words long.
 
 ### Code Style
