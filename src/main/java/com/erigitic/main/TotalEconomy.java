@@ -312,7 +312,7 @@ public class TotalEconomy {
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
 
-        game.getCommandManager().register(this, new ShopCommand(this, messageManager).getCommandSpec(), "shop");
+        game.getCommandManager().register(this, new ShopCommand(this, shopManager, messageManager).getCommandSpec(), "shop");
 
         if (jobFeatureEnabled) {
             game.getCommandManager().register(this, new JobCommand(this, accountManager, jobManager, messageManager).commandSpec(), "job");

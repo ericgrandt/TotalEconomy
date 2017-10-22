@@ -3,6 +3,7 @@ package com.erigitic.commands;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.Shop;
 import com.erigitic.shops.ShopItem;
+import com.erigitic.shops.ShopManager;
 import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
@@ -23,10 +24,13 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
+import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,16 +38,18 @@ import java.util.Optional;
 public class ShopCommand implements CommandExecutor {
 
     private TotalEconomy totalEconomy;
+    private ShopManager shopManager;
     private MessageManager messageManager;
 
-    public ShopCommand(TotalEconomy totalEconomy, MessageManager messageManager) {
+    public ShopCommand(TotalEconomy totalEconomy, ShopManager shopManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
+        this.shopManager = shopManager;
         this.messageManager = messageManager;
     }
 
     public CommandSpec getCommandSpec() {
-        Add shopAddCommand = new Add(totalEconomy, messageManager);
-        Buy shopBuyCommand = new Buy(totalEconomy, messageManager);
+        Add shopAddCommand = new Add();
+        Buy shopBuyCommand = new Buy();
 
         return CommandSpec.builder()
                 .child(shopAddCommand.getCommandSpec(), "add", "a")
@@ -61,12 +67,8 @@ public class ShopCommand implements CommandExecutor {
 
     private class Add implements CommandExecutor {
 
-        private TotalEconomy totalEconomy;
-        private MessageManager messageManager;
+        public Add() {
 
-        public Add(TotalEconomy totalEconomy, MessageManager messageManager) {
-            this.totalEconomy = totalEconomy;
-            this.messageManager = messageManager;
         }
 
         public CommandSpec getCommandSpec() {
@@ -83,67 +85,74 @@ public class ShopCommand implements CommandExecutor {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            // Must be looking at your shop to add the item
-            // Quantity must be between, and including, 1-64. If lower or higher, default to the min or max.
             Player player = ((Player) src).getPlayer().get();
 
-            Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
+            Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromRaycast(player);
 
-            if (optHit.isPresent()) {
-                BlockRayHit<World> hitBlock = optHit.get();
-                Optional<TileEntity> tileEntityOpt = hitBlock.getLocation().getTileEntity();
+            if (tileEntityOpt.isPresent()) {
+                TileEntity tileEntity = tileEntityOpt.get();
+                Optional<Shop> shopOpt = tileEntity.get(ShopKeys.SINGLE_SHOP);
 
-                if (tileEntityOpt.isPresent()) {
-                    Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
+                if (shopOpt.isPresent()) {
+                    Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
 
-                    if (shopOpt.isPresent()) {
+                    if (itemInHandOpt.isPresent()) {
                         Shop shop = shopOpt.get();
-                        List<ItemStack> stock = shop.getStock();
+                        ItemStack itemToStock = itemInHandOpt.get();
 
-                        Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
+                        int itemInHandQuantity = itemToStock.getQuantity();
 
-                        if (itemInHandOpt.isPresent()) {
-                            ItemStack itemToStock = itemInHandOpt.get();
-                            int itemInHandQuantity = itemToStock.getQuantity();
+                        double price = args.<Double>getOne(Text.of("price")).get();
+                        int quantity = args.<Integer>getOne(Text.of("quantity")).get();
 
-                            double price = args.<Double>getOne(Text.of("price")).get();
-                            int quantity = args.<Integer>getOne(Text.of("quantity")).get();
+                        if (hasQuantity(itemToStock, quantity)) {
+                            itemInHandQuantity -= quantity;
+                            itemToStock.setQuantity(1);
 
-                            if (hasQuantity(itemToStock, quantity)) {
-                                ShopItem shopItem = new ShopItem(quantity, price);
-                                ItemStack itemToRemove = ItemStack.empty();
-                                itemToStock.setQuantity(1);
+                            shop = addItemToShop(shop, itemToStock, quantity, price);
 
-                                // Loop through the shop stock and check for duplicate item
-                                for (ItemStack itemStack : stock) {
-                                    if (itemStack.getItem().equals(itemToStock.getItem())) {
-                                        if (itemStack.get(ShopKeys.SHOP_ITEM).get().getPrice() == price) {
-                                            itemToRemove = itemStack;
-                                            shopItem.setQuantity(shopItem.getQuantity() + itemStack.get(ShopKeys.SHOP_ITEM).get().getQuantity());
-                                            break;
-                                        }
-                                    }
-                                }
+                            tileEntity.offer(new ShopData(shop));
 
-                                // Removes duplicate item from stock.
-                                // This has to be done outside the above loop to avoid a ConcurrentModificationException.
-                                if (itemToRemove != ItemStack.empty()) {
-                                    stock.remove(itemToRemove);
-                                }
+                            updateHeldAmount(player, itemInHandQuantity);
 
-                                itemToStock.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
-                                itemToStock.offer(new ShopItemData(shopItem));
+                            player.sendMessage(Text.of(
+                                    TextColors.GRAY, "You've added ",
+                                    TextColors.GOLD, quantity, "x", itemToStock.getItem().getName().split(":")[1],
+                                    TextColors.GRAY, " priced at ",
+                                    TextColors.GOLD, totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2),
+                                    TextColors.GRAY, " each."));
 
-                                stock.add(itemToStock);
-                                shop.setStock(stock);
-                                tileEntityOpt.get().offer(new ShopData(shop));
-
-                                updateHeldAmount(player, itemInHandQuantity - quantity);
-
-                                player.sendMessage(Text.of("Item added to shop"));
-                            } else {
-                                throw new CommandException(Text.of("You do not have that many items to sell!"));
-                            }
+                            // TODO: I'll deal with this later as it is more of a visual thing then anything else
+                            // Loop through the shop stock and check for duplicate item
+//                            for (ItemStack itemStack : shopStock) {
+//                                if (itemStack.getItem().equals(itemToStock.getItem())) {
+//                                    if (itemStack.get(ShopKeys.SHOP_ITEM).get().getPrice() == price) {
+//                                        ItemStack itemToRemove = itemStack; // Store duplicate item in a different variable to avoid a ConcurrentModificationException
+//
+//                                        shopStock.remove(itemToRemove);
+//                                        quantity += itemStack.get(ShopKeys.SHOP_ITEM).get().getQuantity();
+//
+//                                        // If the quantity is over the max stack size, split it up
+//                                        if (quantity > 64) {
+//                                            ItemStack excessItemStack = itemToStock.copy();
+//                                            int excessQuantity = quantity - 64;
+//                                            excess = true;
+//                                            quantity = 64;
+//
+//                                            shop = addItemToShop(shop, itemToStock, quantity, price);
+//                                            shop = addItemToShop(shop, excessItemStack, excessQuantity, price);
+//                                        }
+//
+//                                        break;
+//                                    }
+//                                }
+//                            }
+//
+//                            if (!excess) {
+//                                shop = addItemToShop(shop, itemToStock, quantity, price);
+//                            }
+                        } else {
+                            throw new CommandException(Text.of("You do not have that many items to sell!"));
                         }
                     }
                 }
@@ -166,16 +175,34 @@ public class ShopCommand implements CommandExecutor {
 
             player.setItemInHand(HandTypes.MAIN_HAND, itemInHand);
         }
+
+        /**
+         * Add an item to a shop's stock
+         *
+         * @param shop The shop to add an item to
+         * @param itemToStock The item to add
+         * @param quantity The amount to add
+         * @param price The price of the item
+         * @return The updated shop
+         */
+        private Shop addItemToShop(Shop shop, ItemStack itemToStock, int quantity, double price) {
+            List<ItemStack> shopStock = shop.getStock();
+            ShopItem shopItem = new ShopItem(quantity, price);
+
+            itemToStock.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
+            itemToStock.offer(new ShopItemData(shopItem));
+
+            shopStock.add(itemToStock);
+            shop.setStock(shopStock);
+
+            return shop;
+        }
     }
 
     private class Buy implements CommandExecutor {
 
-        private TotalEconomy totalEconomy;
-        private MessageManager messageManager;
+        public Buy() {
 
-        public Buy(TotalEconomy totalEconomy, MessageManager messageManager) {
-            this.totalEconomy = totalEconomy;
-            this.messageManager = messageManager;
         }
 
         public CommandSpec getCommandSpec() {
@@ -190,19 +217,19 @@ public class ShopCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             Player player = ((Player) src).getPlayer().get();
 
-            Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
+            Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromRaycast(player);
 
-            if (optHit.isPresent()) {
-                BlockRayHit<World> hitBlock = optHit.get();
-                BlockType hitBlockType = hitBlock.getLocation().getBlockType();
+            if (tileEntityOpt.isPresent()) {
+                TileEntity tileEntity = tileEntityOpt.get();
+                BlockType blockType = tileEntity.getBlock().getType();
 
-                if (hitBlockType == BlockTypes.CHEST) {
+                if (blockType == BlockTypes.CHEST) {
                     List<ItemStack> stock = new ArrayList<>();
 
                     Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", stock);
                     ShopData shopData = new ShopData(shop);
 
-                    hitBlock.getLocation().getTileEntity().get().offer(shopData);
+                    tileEntity.offer(shopData);
 
                     player.sendMessage(Text.of("Shop purchased!"));
                 }

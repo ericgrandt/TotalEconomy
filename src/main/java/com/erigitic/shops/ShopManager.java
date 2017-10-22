@@ -53,56 +53,32 @@ public class ShopManager {
     // TODO: Put some of this code in a seperate function as it will be reused in the ClickInventoryEvent.Secondary function
     @Listener
     public void onItemPurchase(ClickInventoryEvent.Primary event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
-        Slot clickedSlot = event.getTransactions().get(0).getSlot();
-        ItemStack itemStack = ItemStack.builder().fromSnapshot(event.getCursorTransaction().getDefault()).build();
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
 
-        if (itemStack.get(ShopKeys.SHOP_ITEM).isPresent()) {
-            event.getCursorTransaction().setValid(false);
+        if (tileEntityOpt.isPresent()) {
+            Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
 
-            ShopItem shopItem = itemStack.get(ShopKeys.SHOP_ITEM).get();
+            if (shopOpt.isPresent()) {
+                Shop shop = shopOpt.get();
+                Slot clickedSlot = event.getTransactions().get(0).getSlot();
+                ItemStack clickedItem = ItemStack.builder().fromSnapshot(event.getCursorTransaction().getDefault()).build();
+                Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
-            player.getInventory().offer(ItemStack.of(itemStack.getItem(), 1));
+                if (shopItemOpt.isPresent()) {
+                    // Invalidate the cursor transaction
+                    event.getCursorTransaction().setValid(false);
 
-            shopItem.setQuantity(shopItem.getQuantity() - 1);
+                    ItemStack purchasedItem = ItemStack.of(clickedItem.getItem(), 1);
+                    player.getInventory().offer(purchasedItem);
 
-            if (shopItem.getQuantity() <= 0) {
-                clickedSlot.set(ItemStack.empty());
-            } else {
-                itemStack.offer(new ShopItemData(shopItem));
-                itemStack.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
-                clickedSlot.set(itemStack);
-            }
+                    ShopItem shopItem = shopItemOpt.get();
+                    shopItem.setQuantity(shopItem.getQuantity() - 1);
 
-            List<ItemStack> stock = new ArrayList<>();
+                    updateSlotItem(shopItem, clickedSlot, clickedItem);
 
-            int upperSize = event.getTargetInventory().iterator().next().capacity();
-            for (Inventory slot : inventory.slots()) {
-                Integer affectedSlot = slot.getProperty(SlotIndex.class, "slotindex").map(SlotIndex::getValue).orElse(-1);
-                boolean upperInventory = affectedSlot != -1 && affectedSlot < upperSize;
-
-                if (upperInventory) {
-                    if (slot.peek().isPresent()) {
-                        stock.add(slot.peek().get());
-                    }
-                }
-            }
-
-            Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
-
-            if (optHit.isPresent()) {
-                BlockRayHit<World> hitBlock = optHit.get();
-                Optional<TileEntity> tileEntityOpt = hitBlock.getLocation().getTileEntity();
-
-                if (tileEntityOpt.isPresent()) {
-                    Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
-
-                    if (shopOpt.isPresent()) {
-                        Shop shop = shopOpt.get();
-
-                        shop.setStock(stock);
-
-                        tileEntityOpt.get().offer(new ShopData(shop));
-                    }
+                    // Set the stock of the shop to that of the open inventory
+                    shop.setStock(getShopStockFromInventory(inventory));
+                    tileEntityOpt.get().offer(new ShopData(shop));
                 }
             }
         }
@@ -113,11 +89,14 @@ public class ShopManager {
         // TODO: This may still work in the above event. Check if the transaction occurs, if so, cancel event.
         ItemStack itemStack = ItemStack.builder().fromSnapshot(event.getTransactions().get(0).getOriginal()).build();
 
+        // TODO: If shop owner, remove the item from the shop stock and return the item to the player's inventory without the lore
         if (itemStack.get(ShopKeys.SHOP_ITEM).isPresent()) {
             event.setCancelled(true);
         }
     }
 
+    // TODO: Handle right click to sell item to shop. Not really sure how to go about this one as a separate inventory would have to be used, or maybe just
+    // TODO: some more data would have to be added to the shop inventory to keep track of the amount.
     @Listener
     public void onInventoryOpen(InteractInventoryEvent.Open event, @First Player player) {
         Optional<BlockSnapshot> blockSnapshotOpt = event.getCause().get("HitTarget", BlockSnapshot.class);
@@ -152,5 +131,52 @@ public class ShopManager {
                 }
             }
         }
+    }
+
+    private List<ItemStack> getShopStockFromInventory(Inventory inventory) {
+        List<ItemStack> stock = new ArrayList<>();
+
+        int upperSize = inventory.iterator().next().capacity();
+        for (Inventory slot : inventory.slots()) {
+            int affectedSlot = slot.getProperty(SlotIndex.class, "slotindex").map(SlotIndex::getValue).orElse(-1);
+            boolean upperInventory = affectedSlot != -1 && affectedSlot < upperSize;
+
+            if (upperInventory) {
+                if (slot.peek().isPresent()) {
+                    stock.add(slot.peek().get());
+                }
+            }
+        }
+
+        return stock;
+    }
+
+    private Slot updateSlotItem(ShopItem shopItem, Slot slot, ItemStack slotItem) {
+        if (shopItem.getQuantity() <= 0) { // If the item's quantity is 0, empty the slot
+            slot.set(ItemStack.empty());
+        } else { // Otherwise, update the shop item
+            slotItem.offer(new ShopItemData(shopItem));
+            slotItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
+            slot.set(slotItem);
+        }
+
+        return slot;
+    }
+
+    /**
+     * Get the TileEntity that a ray from a player intersects with
+     *
+     * @param player The player the ray is coming from
+     *
+     * @return The tile entity that the raycast hit, otherwise an empty optional if no tile entity was hit
+     */
+    public Optional<TileEntity> getTileEntityFromRaycast(Player player) {
+        Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
+
+        if (optHit.isPresent()) {
+            return optHit.get().getLocation().getTileEntity();
+        }
+
+        return Optional.empty();
     }
 }
