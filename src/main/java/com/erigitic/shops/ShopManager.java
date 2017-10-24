@@ -85,18 +85,39 @@ public class ShopManager {
     }
 
     @Listener
-    public void onShiftClickInventory(ClickInventoryEvent.Shift event) {
-        // TODO: This may still work in the above event. Check if the transaction occurs, if so, cancel event.
-        ItemStack itemStack = ItemStack.builder().fromSnapshot(event.getTransactions().get(0).getOriginal()).build();
+    public void onShiftClickInventory(ClickInventoryEvent.Shift event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
+        ItemStack clickedItem = ItemStack.builder().fromSnapshot(event.getTransactions().get(0).getOriginal()).build();
+        Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
-        // TODO: If shop owner, remove the item from the shop stock and return the item to the player's inventory without the lore
-        if (itemStack.get(ShopKeys.SHOP_ITEM).isPresent()) {
-            event.setCancelled(true);
+        if (shopItemOpt.isPresent()) {
+            Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
+
+            if (tileEntityOpt.isPresent()) {
+                Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
+
+                if (shopOpt.isPresent()) {
+                    Shop shop = shopOpt.get();
+                    Slot clickedSlot = event.getTransactions().get(0).getSlot();
+
+                    if (player.getUniqueId().equals(shop.getOwner())) {
+                        ShopItem shopItem = shopItemOpt.get();
+                        ItemStack returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
+                        player.getInventory().offer(returnedItem);
+
+                        // This may be very bad practice but it works for now. It's probably fine...?
+                        event.getTransactions().get(1).setCustom(ItemStack.empty().createSnapshot());
+
+                        // Set the stock of the shop to that of the open inventory
+                        shop.setStock(getShopStockFromInventory(inventory));
+                        tileEntityOpt.get().offer(new ShopData(shop));
+                    } else {
+                        event.setCancelled(true);
+                    }
+                }
+            }
         }
     }
 
-    // TODO: Handle right click to sell item to shop. Not really sure how to go about this one as a separate inventory would have to be used, or maybe just
-    // TODO: some more data would have to be added to the shop inventory to keep track of the amount.
     @Listener
     public void onInventoryOpen(InteractInventoryEvent.Open event, @First Player player) {
         Optional<BlockSnapshot> blockSnapshotOpt = event.getCause().get("HitTarget", BlockSnapshot.class);
@@ -151,7 +172,7 @@ public class ShopManager {
         return stock;
     }
 
-    private Slot updateSlotItem(ShopItem shopItem, Slot slot, ItemStack slotItem) {
+    private void updateSlotItem(ShopItem shopItem, Slot slot, ItemStack slotItem) {
         if (shopItem.getQuantity() <= 0) { // If the item's quantity is 0, empty the slot
             slot.set(ItemStack.empty());
         } else { // Otherwise, update the shop item
@@ -159,8 +180,6 @@ public class ShopManager {
             slotItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
             slot.set(slotItem);
         }
-
-        return slot;
     }
 
     /**
