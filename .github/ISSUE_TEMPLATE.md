@@ -1,3 +1,8 @@
-*Description of Issue*
+Sponge Version:  
+Total Economy Version:  
 
-*Console Errors*
+### Description of issue
+
+### Console errors
+
+### Steps to reproduce
