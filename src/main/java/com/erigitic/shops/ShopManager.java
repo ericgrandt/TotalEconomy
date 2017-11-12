@@ -11,6 +11,7 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.*;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.manipulator.mutable.item.BlockItemData;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -18,11 +19,15 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.inventory.*;
+import org.spongepowered.api.item.inventory.entity.Hotbar;
 import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
+import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.blockray.BlockRay;
@@ -31,10 +36,7 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class ShopManager {
 
@@ -55,8 +57,9 @@ public class ShopManager {
      * @param player The player clicking within an inventory
      * @param inventory The inventory being clicked
      */
-    // TODO: Put some of this code in a seperate function as it will be reused in the ClickInventoryEvent.Secondary function
+    // TODO: Put some of this code in a separate function as it will be reused in the ClickInventoryEvent.Secondary function
     @Listener
+    @Exclude(ClickInventoryEvent.Shift.class)
     public void onItemPurchase(ClickInventoryEvent.Primary event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
         Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
 
@@ -70,33 +73,56 @@ public class ShopManager {
                 Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
                 if (shopItemOpt.isPresent()) {
-                    // Invalidate the cursor transaction
-                    event.getCursorTransaction().setValid(false);
-
                     ShopItem shopItem = shopItemOpt.get();
                     TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
                     TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     // TODO: Use the transfer result instead of checking if the balance is greater than the price
                     if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
-                        customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                        // Invalidate cursor transaction
+                        event.getCursorTransaction().setValid(false);
 
-                        ItemStack purchasedItem = ItemStack.of(clickedItem.getItem(), 1);
-                        player.getInventory().offer(purchasedItem);
+                        ItemStack purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).itemData(clickedItem.get(BlockItemData.class).get()).build();
+                        Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
 
-                        shopItem.setQuantity(shopItem.getQuantity() - 1);
+                        if (rejectedItems.size() <= 0) {
+                            customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                        updateSlotItem(shopItem, clickedSlot, clickedItem);
+                            shopItem.setQuantity(shopItem.getQuantity() - 1);
 
-                        // Set the stock of the shop to that of the open inventory
-                        shop.setStock(getShopStockFromInventory(inventory));
-                        tileEntityOpt.get().offer(new ShopData(shop));
+                            updateSlotItem(shopItem, clickedSlot, clickedItem);
 
-                        player.sendMessage(Text.of(TextColors.GRAY, "Purchased item"));
+                            // Set the stock of the shop to that of the open inventory
+                            shop.setStock(getShopStockFromInventory(inventory));
+                            tileEntityOpt.get().offer(new ShopData(shop));
+
+                            player.sendMessage(Text.of(TextColors.GRAY, "Purchased item"));
+                        } else {
+                            event.getTransactions().get(0).setValid(false);
+
+                            player.sendMessage(Text.of(TextColors.RED, "You do not have enough room for this item!"));
+                        }
                     } else {
-                        event.setCancelled(true);
                         player.sendMessage(Text.of(TextColors.RED, "Insufficient funds!"));
                     }
+                } else {
+                    event.getTransactions().get(0).setValid(false);
+                }
+            }
+        }
+    }
+
+    @Listener
+    public void onShopSecondaryClick(ClickInventoryEvent.Secondary event, @First Player player) {
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
+
+        if (tileEntityOpt.isPresent()) {
+            Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
+
+            if (shopOpt.isPresent()) {
+                // Cancel all of the slot transactions as we don't want the default behavior
+                for (SlotTransaction slotTransaction : event.getTransactions()) {
+                    slotTransaction.setValid(false);
                 }
             }
         }
@@ -104,32 +130,29 @@ public class ShopManager {
 
     @Listener
     public void onShiftClickInventory(ClickInventoryEvent.Shift event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
-        ItemStack clickedItem = ItemStack.builder().fromSnapshot(event.getTransactions().get(0).getOriginal()).build();
-        Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
 
-        if (shopItemOpt.isPresent()) {
-            Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
+        if (tileEntityOpt.isPresent()) {
+            Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
 
-            if (tileEntityOpt.isPresent()) {
-                Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
+            if (shopOpt.isPresent()) {
+                Shop shop = shopOpt.get();
+                ItemStack clickedItem = ItemStack.builder().fromSnapshot(event.getTransactions().get(0).getOriginal()).build();
+                Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
-                if (shopOpt.isPresent()) {
-                    Shop shop = shopOpt.get();
+                if (player.getUniqueId().equals(shop.getOwner()) && shopItemOpt.isPresent()) {
+                    ShopItem shopItem = shopItemOpt.get();
+                    ItemStack returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
+                    player.getInventory().offer(returnedItem);
 
-                    if (player.getUniqueId().equals(shop.getOwner())) {
-                        ShopItem shopItem = shopItemOpt.get();
-                        ItemStack returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
-                        player.getInventory().offer(returnedItem);
+                    // This may be very bad practice but it works for now. It's probably fine...?
+                    event.getTransactions().get(1).setCustom(ItemStack.empty().createSnapshot());
 
-                        // This may be very bad practice but it works for now. It's probably fine...?
-                        event.getTransactions().get(1).setCustom(ItemStack.empty().createSnapshot());
-
-                        // Set the stock of the shop to that of the open inventory
-                        shop.setStock(getShopStockFromInventory(inventory));
-                        tileEntityOpt.get().offer(new ShopData(shop));
-                    } else {
-                        event.setCancelled(true);
-                    }
+                    // Set the stock of the shop to that of the open inventory
+                    shop.setStock(getShopStockFromInventory(inventory));
+                    tileEntityOpt.get().offer(new ShopData(shop));
+                } else {
+                    event.setCancelled(true);
                 }
             }
         }
