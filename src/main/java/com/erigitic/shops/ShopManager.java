@@ -1,6 +1,7 @@
 package com.erigitic.shops;
 
 import com.erigitic.config.AccountManager;
+import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
@@ -12,6 +13,7 @@ import org.spongepowered.api.block.tileentity.*;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.filter.Getter;
@@ -25,11 +27,14 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
+import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class ShopManager {
 
@@ -68,17 +73,30 @@ public class ShopManager {
                     // Invalidate the cursor transaction
                     event.getCursorTransaction().setValid(false);
 
-                    ItemStack purchasedItem = ItemStack.of(clickedItem.getItem(), 1);
-                    player.getInventory().offer(purchasedItem);
-
                     ShopItem shopItem = shopItemOpt.get();
-                    shopItem.setQuantity(shopItem.getQuantity() - 1);
+                    TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
+                    TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                    updateSlotItem(shopItem, clickedSlot, clickedItem);
+                    // TODO: Use the transfer result instead of checking if the balance is greater than the price
+                    if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
+                        customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                    // Set the stock of the shop to that of the open inventory
-                    shop.setStock(getShopStockFromInventory(inventory));
-                    tileEntityOpt.get().offer(new ShopData(shop));
+                        ItemStack purchasedItem = ItemStack.of(clickedItem.getItem(), 1);
+                        player.getInventory().offer(purchasedItem);
+
+                        shopItem.setQuantity(shopItem.getQuantity() - 1);
+
+                        updateSlotItem(shopItem, clickedSlot, clickedItem);
+
+                        // Set the stock of the shop to that of the open inventory
+                        shop.setStock(getShopStockFromInventory(inventory));
+                        tileEntityOpt.get().offer(new ShopData(shop));
+
+                        player.sendMessage(Text.of(TextColors.GRAY, "Purchased item"));
+                    } else {
+                        event.setCancelled(true);
+                        player.sendMessage(Text.of(TextColors.RED, "Insufficient funds!"));
+                    }
                 }
             }
         }
@@ -97,7 +115,6 @@ public class ShopManager {
 
                 if (shopOpt.isPresent()) {
                     Shop shop = shopOpt.get();
-                    Slot clickedSlot = event.getTransactions().get(0).getSlot();
 
                     if (player.getUniqueId().equals(shop.getOwner())) {
                         ShopItem shopItem = shopItemOpt.get();
@@ -124,32 +141,51 @@ public class ShopManager {
 
         if (blockSnapshotOpt.isPresent()) {
             BlockSnapshot blockSnapshot = blockSnapshotOpt.get();
-            Optional<TileEntity> tileEntityOpt = blockSnapshot.getLocation().get().getTileEntity();
+            Optional<Shop> shopOpt = blockSnapshot.get(ShopKeys.SINGLE_SHOP);
 
-            if (tileEntityOpt.isPresent()) {
-                TileEntity tileEntity = tileEntityOpt.get();
-                Optional<Shop> shopOpt = tileEntity.get(ShopKeys.SINGLE_SHOP);
+            if (shopOpt.isPresent()) {
+                Shop shop = shopOpt.get();
 
-                if (shopOpt.isPresent()) {
-                    Shop shop = tileEntity.get(ShopKeys.SINGLE_SHOP).get();
+                Inventory shopInventory = Inventory.builder().of(InventoryArchetypes.CHEST)
+                        .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(TextColors.GOLD, shop.getTitle())))
+                        .build(totalEconomy.getPluginContainer());
 
-                    Inventory shopInventory = Inventory.builder().of(InventoryArchetypes.CHEST)
-                            .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(TextColors.GOLD, shop.getTitle())))
-                            .build(totalEconomy.getPluginContainer());
+                int counter = 0;
 
-                    int counter = 0;
+                for (Inventory slot : shopInventory.slots()) {
+                    if (counter >= shop.getStock().size()) break;
 
-                    for (Inventory slot : shopInventory.slots()) {
-                        if (counter >= shop.getStock().size()) break;
+                    slot.set(shop.getStock().get(counter));
 
-                        slot.set(shop.getStock().get(counter));
-
-                        counter++;
-                    }
-
-                    // Using a custom inventory as they are a lot easier to work with for this
-                    player.openInventory(shopInventory, Cause.of(NamedCause.source(totalEconomy.getPluginContainer())));
+                    counter++;
                 }
+
+                // Using a custom inventory as they are a lot easier to work with for this
+                player.openInventory(shopInventory, Cause.of(NamedCause.source(totalEconomy.getPluginContainer())));
+            }
+        }
+    }
+
+    @Listener
+    public void onShopDestroy(ChangeBlockEvent.Break event, @First Player player) {
+        BlockSnapshot blockSnapshot = event.getTransactions().get(0).getOriginal();
+        Optional<Shop> shopOpt = blockSnapshot.get(ShopKeys.SINGLE_SHOP);
+
+        if (shopOpt.isPresent()) {
+            Shop shop = shopOpt.get();
+            UUID shopOwner = shop.getOwner();
+            List<ItemStack> shopStock = shop.getStock();
+
+            if (!player.getUniqueId().equals(shopOwner)) {
+                event.setCancelled(true);
+
+                player.sendMessage(Text.of(TextColors.RED, "You don't own this shop!"));
+            } else if (player.getUniqueId().equals(shopOwner) && !shopStock.isEmpty()) {
+                event.setCancelled(true);
+
+                player.sendMessage(Text.of(TextColors.RED, "You can't remove a shop that still has items in it!"));
+            } else {
+                player.sendMessage(Text.of(TextColors.GRAY, "Shop successfully removed!"));
             }
         }
     }
@@ -175,7 +211,7 @@ public class ShopManager {
     private void updateSlotItem(ShopItem shopItem, Slot slot, ItemStack slotItem) {
         if (shopItem.getQuantity() <= 0) { // If the item's quantity is 0, empty the slot
             slot.set(ItemStack.empty());
-        } else { // Otherwise, update the shop item
+        } else { // Otherwise, update the item in the slot
             slotItem.offer(new ShopItemData(shopItem));
             slotItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
             slot.set(slotItem);
@@ -194,6 +230,16 @@ public class ShopManager {
 
         if (optHit.isPresent()) {
             return optHit.get().getLocation().getTileEntity();
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<BlockSnapshot> getBlockSnapshotFromRaycast(Player player) {
+        Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
+
+        if (optHit.isPresent()) {
+            return Optional.of(optHit.get().getLocation().createSnapshot());
         }
 
         return Optional.empty();
