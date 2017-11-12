@@ -8,9 +8,11 @@ import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.MessageManager;
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.TileEntity;
+import org.spongepowered.api.block.tileentity.carrier.TileEntityCarrier;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -21,19 +23,16 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.blockray.BlockRay;
-import org.spongepowered.api.util.blockray.BlockRayHit;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
+import org.spongepowered.api.text.format.TextStyles;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class ShopCommand implements CommandExecutor {
 
@@ -61,6 +60,7 @@ public class ShopCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+        // TODO: Display information for shops and shop commands
 
         return CommandResult.success();
     }
@@ -77,8 +77,8 @@ public class ShopCommand implements CommandExecutor {
                     .permission("totaleconomy.command.shop.add")
                     .executor(this)
                     .arguments(
-                            GenericArguments.doubleNum(Text.of("price")),
-                            GenericArguments.integer(Text.of("quantity"))
+                            GenericArguments.integer(Text.of("quantity")),
+                            GenericArguments.doubleNum(Text.of("price"))
                     )
                     .build();
         }
@@ -102,8 +102,8 @@ public class ShopCommand implements CommandExecutor {
 
                         int itemInHandQuantity = itemToStock.getQuantity();
 
-                        double price = args.<Double>getOne(Text.of("price")).get();
                         int quantity = args.<Integer>getOne(Text.of("quantity")).get();
+                        double price = args.<Double>getOne(Text.of("price")).get();
 
                         if (hasQuantity(itemToStock, quantity)) {
                             itemInHandQuantity -= quantity;
@@ -120,37 +120,8 @@ public class ShopCommand implements CommandExecutor {
                                     TextColors.GOLD, quantity, "x", itemToStock.getItem().getName().split(":")[1],
                                     TextColors.GRAY, " priced at ",
                                     TextColors.GOLD, totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2),
-                                    TextColors.GRAY, " each."));
-
-                            // TODO: I'll deal with this later as it is more of a visual thing then anything else
-                            // Loop through the shop stock and check for duplicate item
-//                            for (ItemStack itemStack : shopStock) {
-//                                if (itemStack.getItem().equals(itemToStock.getItem())) {
-//                                    if (itemStack.get(ShopKeys.SHOP_ITEM).get().getPrice() == price) {
-//                                        ItemStack itemToRemove = itemStack; // Store duplicate item in a different variable to avoid a ConcurrentModificationException
-//
-//                                        shopStock.remove(itemToRemove);
-//                                        quantity += itemStack.get(ShopKeys.SHOP_ITEM).get().getQuantity();
-//
-//                                        // If the quantity is over the max stack size, split it up
-//                                        if (quantity > 64) {
-//                                            ItemStack excessItemStack = itemToStock.copy();
-//                                            int excessQuantity = quantity - 64;
-//                                            excess = true;
-//                                            quantity = 64;
-//
-//                                            shop = addItemToShop(shop, itemToStock, quantity, price);
-//                                            shop = addItemToShop(shop, excessItemStack, excessQuantity, price);
-//                                        }
-//
-//                                        break;
-//                                    }
-//                                }
-//                            }
-//
-//                            if (!excess) {
-//                                shop = addItemToShop(shop, itemToStock, quantity, price);
-//                            }
+                                    TextColors.GRAY, " each."
+                            ));
                         } else {
                             throw new CommandException(Text.of("You do not have that many items to sell!"));
                         }
@@ -224,14 +195,34 @@ public class ShopCommand implements CommandExecutor {
                 BlockType blockType = tileEntity.getBlock().getType();
 
                 if (blockType == BlockTypes.CHEST) {
-                    List<ItemStack> stock = new ArrayList<>();
+                    BlockSnapshot blockSnapshot = shopManager.getBlockSnapshotFromRaycast(player).get();
+                    Optional<UUID> creatorOpt = blockSnapshot.getCreator();
 
-                    Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", stock);
-                    ShopData shopData = new ShopData(shop);
+                    if (creatorOpt.isPresent()) {
+                        UUID creatorUUID = creatorOpt.get();
 
-                    tileEntity.offer(shopData);
+                        if (player.getUniqueId().equals(creatorUUID)) {
 
-                    player.sendMessage(Text.of("Shop purchased!"));
+                            int numItemsInChest = ((TileEntityCarrier) tileEntity).getInventory().totalItems();
+
+                            if (numItemsInChest == 0) {
+                                List<ItemStack> stock = new ArrayList<>();
+
+                                Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", stock);
+                                ShopData shopData = new ShopData(shop);
+
+                                tileEntity.offer(shopData);
+
+                                player.sendMessage(Text.of(TextColors.GRAY, "Shop purchased!"));
+                            } else {
+                                player.sendMessage(Text.of(TextColors.RED, "The chest must be empty before it can be purchased!"));
+                            }
+                        } else {
+                            player.sendMessage(Text.of(TextColors.RED, "You don't own this chest!"));
+                        }
+                    } else {
+                        player.sendMessage(Text.of(TextColors.RED, "You don't own this chest!"));
+                    }
                 }
             }
 
