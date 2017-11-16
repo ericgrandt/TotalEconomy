@@ -26,7 +26,9 @@
 package com.erigitic.shops;
 
 import com.erigitic.shops.data.ShopData;
+import com.erigitic.shops.data.ShopItemData;
 import org.spongepowered.api.data.*;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -69,6 +71,10 @@ public class Shop implements DataSerializable {
 
     public void setStock(List<ItemStack> stock) {
         this.stock = stock;
+    }
+
+    public void addItem(ItemStack itemToAdd) {
+        stock.add(itemToAdd);
     }
 
     @Override
