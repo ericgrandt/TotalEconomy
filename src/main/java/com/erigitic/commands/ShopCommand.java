@@ -12,7 +12,7 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.TileEntity;
-import org.spongepowered.api.block.tileentity.carrier.TileEntityCarrier;
+import org.spongepowered.api.block.tileentity.carrier.Chest;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -25,14 +25,9 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class ShopCommand implements CommandExecutor {
 
@@ -47,11 +42,11 @@ public class ShopCommand implements CommandExecutor {
     }
 
     public CommandSpec getCommandSpec() {
-        Add shopAddCommand = new Add();
+        Stock shopAddCommand = new Stock();
         Buy shopBuyCommand = new Buy();
 
         return CommandSpec.builder()
-                .child(shopAddCommand.getCommandSpec(), "add", "a")
+                .child(shopAddCommand.getCommandSpec(), "stock", "s")
                 .child(shopBuyCommand.getCommandSpec(), "buy", "b")
                 .permission("totaleconomy.command.shop")
                 .executor(this)
@@ -60,21 +55,19 @@ public class ShopCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        // TODO: Display information for shops and shop commands
-
         return CommandResult.success();
     }
 
-    private class Add implements CommandExecutor {
+    private class Stock implements CommandExecutor {
 
-        public Add() {
+        public Stock() {
 
         }
 
         public CommandSpec getCommandSpec() {
             return CommandSpec.builder()
                     .description(Text.of("Add an item to a shop"))
-                    .permission("totaleconomy.command.shop.add")
+                    .permission("totaleconomy.command.shop.stock")
                     .executor(this)
                     .arguments(
                             GenericArguments.integer(Text.of("quantity")),
@@ -87,7 +80,7 @@ public class ShopCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             Player player = ((Player) src).getPlayer().get();
 
-            Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromRaycast(player);
+            Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromPlayerRaycast(player);
 
             if (tileEntityOpt.isPresent()) {
                 TileEntity tileEntity = tileEntityOpt.get();
@@ -100,28 +93,24 @@ public class ShopCommand implements CommandExecutor {
                         Shop shop = shopOpt.get();
                         ItemStack itemToStock = itemInHandOpt.get();
 
-                        int itemInHandQuantity = itemToStock.getQuantity();
-
                         int quantity = args.<Integer>getOne(Text.of("quantity")).get();
                         double price = args.<Double>getOne(Text.of("price")).get();
 
                         if (hasQuantity(itemToStock, quantity)) {
-                            itemInHandQuantity -= quantity;
-                            itemToStock.setQuantity(1);
+                            itemToStock = prepareItemStackForShop(itemToStock, quantity, price);
 
-                            shop = addItemToShop(shop, itemToStock, quantity, price);
+                            shop.addItem(itemToStock);
 
                             tileEntity.offer(new ShopData(shop));
 
-                            updateHeldAmount(player, itemInHandQuantity);
+                            removeItemsFromHand(player, quantity);
 
-                            player.sendMessage(Text.of(
-                                    TextColors.GRAY, "You've added ",
-                                    TextColors.GOLD, quantity, "x", itemToStock.getItem().getName().split(":")[1],
-                                    TextColors.GRAY, " priced at ",
-                                    TextColors.GOLD, totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2),
-                                    TextColors.GRAY, " each."
-                            ));
+                            Map<String, String> messageValues = new HashMap<>();
+                            messageValues.put("quantity", String.valueOf(quantity));
+                            messageValues.put("item", itemToStock.getItem().getName().split(":")[1]);
+                            messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
+
+                            player.sendMessage(messageManager.getMessage("shops.stock", messageValues));
                         } else {
                             throw new CommandException(Text.of("You do not have that many items to sell!"));
                         }
@@ -140,33 +129,23 @@ public class ShopCommand implements CommandExecutor {
             return false;
         }
 
-        private void updateHeldAmount(Player player, int quantity) {
+        private void removeItemsFromHand(Player player, int numItemsToRemove) {
             ItemStack itemInHand = player.getItemInHand(HandTypes.MAIN_HAND).get();
-            itemInHand.setQuantity(quantity);
+            int numItemsInHand = itemInHand.getQuantity();
+
+            itemInHand.setQuantity(numItemsInHand - numItemsToRemove);
 
             player.setItemInHand(HandTypes.MAIN_HAND, itemInHand);
         }
 
-        /**
-         * Add an item to a shop's stock
-         *
-         * @param shop The shop to add an item to
-         * @param itemToStock The item to add
-         * @param quantity The amount to add
-         * @param price The price of the item
-         * @return The updated shop
-         */
-        private Shop addItemToShop(Shop shop, ItemStack itemToStock, int quantity, double price) {
-            List<ItemStack> shopStock = shop.getStock();
+        private ItemStack prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
             ShopItem shopItem = new ShopItem(quantity, price);
 
-            itemToStock.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
-            itemToStock.offer(new ShopItemData(shopItem));
+            itemStack.setQuantity(1);
+            itemStack.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
+            itemStack.offer(new ShopItemData(shopItem));
 
-            shopStock.add(itemToStock);
-            shop.setStock(shopStock);
-
-            return shop;
+            return itemStack;
         }
     }
 
@@ -188,45 +167,67 @@ public class ShopCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             Player player = ((Player) src).getPlayer().get();
 
-            Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromRaycast(player);
+            Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromPlayerRaycast(player);
 
             if (tileEntityOpt.isPresent()) {
                 TileEntity tileEntity = tileEntityOpt.get();
-                BlockType blockType = tileEntity.getBlock().getType();
 
-                if (blockType == BlockTypes.CHEST) {
-                    BlockSnapshot blockSnapshot = shopManager.getBlockSnapshotFromRaycast(player).get();
+                if (isTileEntityAChest(tileEntity)) {
+                    Chest chest = (Chest) tileEntity;
+                    BlockSnapshot blockSnapshot = chest.getLocation().createSnapshot();
                     Optional<UUID> creatorOpt = blockSnapshot.getCreator();
 
                     if (creatorOpt.isPresent()) {
                         UUID creatorUUID = creatorOpt.get();
 
                         if (player.getUniqueId().equals(creatorUUID)) {
+                            if (isChestEmpty(chest)) {
+                                ShopData shopData = createShopDataFromPlayer(player);
 
-                            int numItemsInChest = ((TileEntityCarrier) tileEntity).getInventory().totalItems();
+                                chest.offer(shopData);
 
-                            if (numItemsInChest == 0) {
-                                List<ItemStack> stock = new ArrayList<>();
-
-                                Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", stock);
-                                ShopData shopData = new ShopData(shop);
-
-                                tileEntity.offer(shopData);
-
-                                player.sendMessage(Text.of(TextColors.GRAY, "Shop purchased!"));
+                                player.sendMessage(messageManager.getMessage("shops.buy"));
                             } else {
-                                player.sendMessage(Text.of(TextColors.RED, "The chest must be empty before it can be purchased!"));
+                                throw new CommandException(Text.of("The chest must be empty before it can be purchased!"));
                             }
                         } else {
-                            player.sendMessage(Text.of(TextColors.RED, "You don't own this chest!"));
+                            throw new CommandException(Text.of("You don't own this chest!"));
                         }
                     } else {
-                        player.sendMessage(Text.of(TextColors.RED, "You don't own this chest!"));
+                        throw new CommandException(Text.of("You don't own this chest!"));
                     }
                 }
             }
 
             return CommandResult.success();
+        }
+
+        private boolean isTileEntityAChest(TileEntity tileEntity) {
+            BlockType blockType = tileEntity.getBlock().getType();
+
+            if (blockType == BlockTypes.CHEST) {
+                return true;
+            }
+
+            return false;
+        }
+
+        private boolean isChestEmpty(Chest chest) {
+            int totalItems = chest.getInventory().totalItems();
+
+            if (totalItems <= 0) {
+                return true;
+            }
+
+            return false;
+        }
+
+        private ShopData createShopDataFromPlayer(Player player) {
+            List<ItemStack> stock = new ArrayList<>();
+
+            Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", stock);
+
+            return new ShopData(shop);
         }
     }
 }

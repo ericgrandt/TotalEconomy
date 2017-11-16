@@ -6,6 +6,7 @@ import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
+import com.erigitic.util.MessageManager;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
@@ -32,7 +33,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
-import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.math.BigDecimal;
@@ -42,11 +42,13 @@ public class ShopManager {
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
+    private MessageManager messageManager;
     private Logger logger;
 
-    public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, Logger logger) {
+    public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager, Logger logger) {
         this.totalEconomy = totalEconomy;
         this.accountManager = accountManager;
+        this.messageManager = messageManager;
         this.logger = logger;
     }
 
@@ -61,7 +63,7 @@ public class ShopManager {
     @Listener
     @Exclude(ClickInventoryEvent.Shift.class)
     public void onItemPurchase(ClickInventoryEvent.Primary event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
-        Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
 
         if (tileEntityOpt.isPresent()) {
             Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
@@ -73,15 +75,14 @@ public class ShopManager {
                 Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
                 if (shopItemOpt.isPresent()) {
+                    event.getCursorTransaction().setValid(false);
+
                     ShopItem shopItem = shopItemOpt.get();
                     TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
                     TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     // TODO: Use the transfer result instead of checking if the balance is greater than the price
                     if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
-                        // Invalidate cursor transaction
-                        event.getCursorTransaction().setValid(false);
-
                         ItemStack purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).itemData(clickedItem.get(BlockItemData.class).get()).build();
                         Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
 
@@ -90,20 +91,19 @@ public class ShopManager {
 
                             shopItem.setQuantity(shopItem.getQuantity() - 1);
 
-                            updateSlotItem(shopItem, clickedSlot, clickedItem);
+                            updateItemInSlot(shopItem, clickedSlot, clickedItem);
 
-                            // Set the stock of the shop to that of the open inventory
                             shop.setStock(getShopStockFromInventory(inventory));
                             tileEntityOpt.get().offer(new ShopData(shop));
-
-                            player.sendMessage(Text.of(TextColors.GRAY, "Purchased item"));
                         } else {
                             event.getTransactions().get(0).setValid(false);
 
-                            player.sendMessage(Text.of(TextColors.RED, "You do not have enough room for this item!"));
+                            player.sendMessage(messageManager.getMessage("shops.purchase.noroom"));
                         }
                     } else {
-                        player.sendMessage(Text.of(TextColors.RED, "Insufficient funds!"));
+                        event.getTransactions().get(0).setValid(false);
+
+                        player.sendMessage(messageManager.getMessage("shops.purchase.insufficientfunds"));
                     }
                 } else {
                     event.getTransactions().get(0).setValid(false);
@@ -114,7 +114,7 @@ public class ShopManager {
 
     @Listener
     public void onShopSecondaryClick(ClickInventoryEvent.Secondary event, @First Player player) {
-        Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
 
         if (tileEntityOpt.isPresent()) {
             Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
@@ -130,7 +130,7 @@ public class ShopManager {
 
     @Listener
     public void onShiftClickInventory(ClickInventoryEvent.Shift event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
-        Optional<TileEntity> tileEntityOpt = getTileEntityFromRaycast(player);
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
 
         if (tileEntityOpt.isPresent()) {
             Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
@@ -202,13 +202,11 @@ public class ShopManager {
             if (!player.getUniqueId().equals(shopOwner)) {
                 event.setCancelled(true);
 
-                player.sendMessage(Text.of(TextColors.RED, "You don't own this shop!"));
+                player.sendMessage(messageManager.getMessage("shops.remove.notowner"));
             } else if (player.getUniqueId().equals(shopOwner) && !shopStock.isEmpty()) {
                 event.setCancelled(true);
 
-                player.sendMessage(Text.of(TextColors.RED, "You can't remove a shop that still has items in it!"));
-            } else {
-                player.sendMessage(Text.of(TextColors.GRAY, "Shop successfully removed!"));
+                player.sendMessage(messageManager.getMessage("shops.remove.stocked"));
             }
         }
     }
@@ -231,24 +229,21 @@ public class ShopManager {
         return stock;
     }
 
-    private void updateSlotItem(ShopItem shopItem, Slot slot, ItemStack slotItem) {
-        if (shopItem.getQuantity() <= 0) { // If the item's quantity is 0, empty the slot
-            slot.set(ItemStack.empty());
-        } else { // Otherwise, update the item in the slot
+    private void updateItemInSlot(ShopItem shopItem, Slot slot, ItemStack slotItem) {
+        if (shopItem.getQuantity() <= 0) {
+            clearSlot(slot);
+        } else {
             slotItem.offer(new ShopItemData(shopItem));
             slotItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
             slot.set(slotItem);
         }
     }
 
-    /**
-     * Get the TileEntity that a ray from a player intersects with
-     *
-     * @param player The player the ray is coming from
-     *
-     * @return The tile entity that the raycast hit, otherwise an empty optional if no tile entity was hit
-     */
-    public Optional<TileEntity> getTileEntityFromRaycast(Player player) {
+    private void clearSlot(Slot slot) {
+        slot.set(ItemStack.empty());
+    }
+
+    public Optional<TileEntity> getTileEntityFromPlayerRaycast(Player player) {
         Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
 
         if (optHit.isPresent()) {
@@ -258,7 +253,7 @@ public class ShopManager {
         return Optional.empty();
     }
 
-    public Optional<BlockSnapshot> getBlockSnapshotFromRaycast(Player player) {
+    public Optional<BlockSnapshot> getBlockSnapshotFromPlayerRaycast(Player player) {
         Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
 
         if (optHit.isPresent()) {

@@ -69,7 +69,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.0", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.0-dev.1", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -152,7 +152,7 @@ public class TotalEconomy {
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this, messageManager, logger);
-        shopManager = new ShopManager(this, accountManager, logger);
+        shopManager = new ShopManager(this, accountManager, messageManager, logger);
 
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
