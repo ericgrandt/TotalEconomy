@@ -23,8 +23,6 @@ public class ShopItem implements DataSerializable {
     public ShopItem(int quantity, double price) {
         this.quantity = quantity;
         this.price = price;
-
-        // TODO: Set the item lore or some other data to the price variable
     }
 
     @Override
