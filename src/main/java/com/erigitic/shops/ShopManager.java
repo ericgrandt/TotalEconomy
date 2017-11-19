@@ -7,7 +7,6 @@ import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.MessageManager;
-import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.*;
@@ -43,13 +42,17 @@ public class ShopManager {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private MessageManager messageManager;
-    private Logger logger;
 
-    public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager, Logger logger) {
+    private final double minPrice;
+    private final double maxPrice;
+
+    public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
         this.accountManager = accountManager;
         this.messageManager = messageManager;
-        this.logger = logger;
+
+        minPrice = this.totalEconomy.getShopNode().getNode("min-price").getDouble();
+        maxPrice = this.totalEconomy.getShopNode().getNode("max-price").getDouble();
     }
 
     /**
@@ -81,7 +84,6 @@ public class ShopManager {
                     TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
                     TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                    // TODO: Use the transfer result instead of checking if the balance is greater than the price
                     if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
                         ItemStack purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).itemData(clickedItem.get(BlockItemData.class).get()).build();
                         Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
@@ -142,10 +144,9 @@ public class ShopManager {
 
                 if (player.getUniqueId().equals(shop.getOwner()) && shopItemOpt.isPresent()) {
                     ShopItem shopItem = shopItemOpt.get();
-                    ItemStack returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
+                    ItemStack returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).itemData(clickedItem.get(BlockItemData.class).get()).build();
                     player.getInventory().offer(returnedItem);
 
-                    // This may be very bad practice but it works for now. It's probably fine...?
                     event.getTransactions().get(1).setCustom(ItemStack.empty().createSnapshot());
 
                     // Set the stock of the shop to that of the open inventory
@@ -187,6 +188,10 @@ public class ShopManager {
                 player.openInventory(shopInventory, Cause.of(NamedCause.source(totalEconomy.getPluginContainer())));
             }
         }
+    }
+
+    public void onInventoryNumberPress(ClickInventoryEvent.NumberPress event) {
+        // TODO: If in shop, cancel it
     }
 
     @Listener
@@ -261,5 +266,13 @@ public class ShopManager {
         }
 
         return Optional.empty();
+    }
+
+    public double getMinPrice() {
+        return minPrice;
+    }
+
+    public double getMaxPrice() {
+        return maxPrice;
     }
 }

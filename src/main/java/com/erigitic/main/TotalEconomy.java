@@ -69,7 +69,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.0-dev.1", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.0-dev.2", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -152,7 +152,6 @@ public class TotalEconomy {
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this, messageManager, logger);
-        shopManager = new ShopManager(this, accountManager, messageManager, logger);
 
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
@@ -165,6 +164,10 @@ public class TotalEconomy {
 
         if (moneyCapEnabled) {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat()).setScale(2, BigDecimal.ROUND_DOWN);
+        }
+
+        if (chestShopEnabled) {
+            shopManager = new ShopManager(this, accountManager, messageManager);
         }
 
         // Allows for retrieving of all/individual currencies in Total Economy by other plugins
@@ -312,10 +315,12 @@ public class TotalEconomy {
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
 
-        game.getCommandManager().register(this, new ShopCommand(this, shopManager, messageManager).getCommandSpec(), "shop");
-
         if (jobFeatureEnabled) {
             game.getCommandManager().register(this, new JobCommand(this, accountManager, jobManager, messageManager).commandSpec(), "job");
+        }
+
+        if (chestShopEnabled) {
+            game.getCommandManager().register(this, new ShopCommand(this, shopManager, messageManager).getCommandSpec(), "shop");
         }
 
         game.getCommandManager().register(this, payCommand, "pay");
@@ -388,6 +393,10 @@ public class TotalEconomy {
         moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean();
 
         chestShopEnabled = config.getNode("features", "shops", "chestshops", "enable").getBoolean();
+    }
+
+    public ConfigurationNode getShopNode() {
+        return config.getNode("features", "shops");
     }
 
     public HashSet<Currency> getCurrencies() {

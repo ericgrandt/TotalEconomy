@@ -94,7 +94,7 @@ public class ShopCommand implements CommandExecutor {
                         ItemStack itemToStock = itemInHandOpt.get();
 
                         int quantity = args.<Integer>getOne(Text.of("quantity")).get();
-                        double price = args.<Double>getOne(Text.of("price")).get();
+                        double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
 
                         if (hasQuantity(itemToStock, quantity)) {
                             itemToStock = prepareItemStackForShop(itemToStock, quantity, price);
@@ -146,6 +146,16 @@ public class ShopCommand implements CommandExecutor {
             itemStack.offer(new ShopItemData(shopItem));
 
             return itemStack;
+        }
+
+        private double clampPrice(double price, double minValue, double maxValue) {
+            if (price < minValue) {
+                return minValue;
+            } else if (price > maxValue) {
+                return maxValue;
+            }
+
+            return price;
         }
     }
 
