@@ -320,7 +320,7 @@ public class TotalEconomy {
         }
 
         if (chestShopEnabled) {
-            game.getCommandManager().register(this, new ShopCommand(this, shopManager, messageManager).getCommandSpec(), "shop");
+            game.getCommandManager().register(this, new ShopCommand(this, accountManager, shopManager, messageManager).getCommandSpec(), "shop");
         }
 
         game.getCommandManager().register(this, payCommand, "pay");
@@ -392,7 +392,7 @@ public class TotalEconomy {
 
         moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean();
 
-        chestShopEnabled = config.getNode("features", "shops", "chestshops", "enable").getBoolean();
+        chestShopEnabled = config.getNode("features", "shops", "chestshop", "enable").getBoolean();
     }
 
     public ConfigurationNode getShopNode() {

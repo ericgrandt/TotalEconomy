@@ -45,14 +45,16 @@ public class ShopManager {
 
     private final double minPrice;
     private final double maxPrice;
+    private final double chestShopPrice;
 
     public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
         this.accountManager = accountManager;
         this.messageManager = messageManager;
 
-        minPrice = this.totalEconomy.getShopNode().getNode("min-price").getDouble();
-        maxPrice = this.totalEconomy.getShopNode().getNode("max-price").getDouble();
+        minPrice = this.totalEconomy.getShopNode().getNode("min-item-price").getDouble();
+        maxPrice = this.totalEconomy.getShopNode().getNode("max-item-price").getDouble();
+        chestShopPrice = this.totalEconomy.getShopNode().getNode("chestshop", "price").getDouble();
     }
 
     /**
@@ -85,7 +87,14 @@ public class ShopManager {
                     TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
-                        ItemStack purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).itemData(clickedItem.get(BlockItemData.class).get()).build();
+                        ItemStack purchasedItem;
+
+                        if (clickedItem.get(BlockItemData.class).isPresent()) {
+                            purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).itemData(clickedItem.get(BlockItemData.class).get()).build();
+                        } else {
+                            purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).build();
+                        }
+
                         Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
 
                         if (rejectedItems.size() <= 0) {
@@ -144,10 +153,15 @@ public class ShopManager {
 
                 if (player.getUniqueId().equals(shop.getOwner()) && shopItemOpt.isPresent()) {
                     ShopItem shopItem = shopItemOpt.get();
-                    ItemStack returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).itemData(clickedItem.get(BlockItemData.class).get()).build();
-                    player.getInventory().offer(returnedItem);
+                    ItemStack returnedItem;
 
-                    event.getTransactions().get(1).setCustom(ItemStack.empty().createSnapshot());
+                    if (clickedItem.get(BlockItemData.class).isPresent()) {
+                        returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).itemData(clickedItem.get(BlockItemData.class).get()).build();
+                    } else {
+                        returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
+                    }
+
+                    event.getTransactions().get(1).setCustom(returnedItem);
 
                     // Set the stock of the shop to that of the open inventory
                     shop.setStock(getShopStockFromInventory(inventory));
@@ -190,8 +204,17 @@ public class ShopManager {
         }
     }
 
-    public void onInventoryNumberPress(ClickInventoryEvent.NumberPress event) {
-        // TODO: If in shop, cancel it
+    @Listener
+    public void onInventoryNumberPress(ClickInventoryEvent.NumberPress event, @First Player player) {
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
+
+        if (tileEntityOpt.isPresent()) {
+            Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
+
+            if (shopOpt.isPresent()) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     @Listener
@@ -212,6 +235,8 @@ public class ShopManager {
                 event.setCancelled(true);
 
                 player.sendMessage(messageManager.getMessage("shops.remove.stocked"));
+            } else {
+                player.sendMessage(messageManager.getMessage("shops.remove.success"));
             }
         }
     }
@@ -274,5 +299,9 @@ public class ShopManager {
 
     public double getMaxPrice() {
         return maxPrice;
+    }
+
+    public double getChestShopPrice() {
+        return chestShopPrice;
     }
 }

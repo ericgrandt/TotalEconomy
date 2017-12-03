@@ -1,5 +1,7 @@
 package com.erigitic.commands;
 
+import com.erigitic.config.AccountManager;
+import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.Shop;
 import com.erigitic.shops.ShopItem;
@@ -23,7 +25,11 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
@@ -32,11 +38,13 @@ import java.util.*;
 public class ShopCommand implements CommandExecutor {
 
     private TotalEconomy totalEconomy;
+    private AccountManager accountManager;
     private ShopManager shopManager;
     private MessageManager messageManager;
 
-    public ShopCommand(TotalEconomy totalEconomy, ShopManager shopManager, MessageManager messageManager) {
+    public ShopCommand(TotalEconomy totalEconomy, AccountManager accountManager, ShopManager shopManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
+        this.accountManager = accountManager;
         this.shopManager = shopManager;
         this.messageManager = messageManager;
     }
@@ -105,14 +113,15 @@ public class ShopCommand implements CommandExecutor {
 
                             removeItemsFromHand(player, quantity);
 
+                            // TODO: Create a helper function for this to avoid ugly blocks of code like this?
                             Map<String, String> messageValues = new HashMap<>();
                             messageValues.put("quantity", String.valueOf(quantity));
                             messageValues.put("item", itemToStock.getItem().getName().split(":")[1]);
                             messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
 
-                            player.sendMessage(messageManager.getMessage("shops.stock", messageValues));
+                            player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
                         } else {
-                            throw new CommandException(Text.of("You do not have that many items to sell!"));
+                            throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.insufficientitems")));
                         }
                     }
                 }
@@ -187,24 +196,38 @@ public class ShopCommand implements CommandExecutor {
                     BlockSnapshot blockSnapshot = chest.getLocation().createSnapshot();
                     Optional<UUID> creatorOpt = blockSnapshot.getCreator();
 
-                    if (creatorOpt.isPresent()) {
-                        UUID creatorUUID = creatorOpt.get();
+                    if (!chest.get(ShopKeys.SINGLE_SHOP).isPresent()) {
+                        if (creatorOpt.isPresent()) {
+                            UUID creatorUUID = creatorOpt.get();
 
-                        if (player.getUniqueId().equals(creatorUUID)) {
-                            if (isChestEmpty(chest)) {
-                                ShopData shopData = createShopDataFromPlayer(player);
+                            if (player.getUniqueId().equals(creatorUUID)) {
+                                if (isChestEmpty(chest)) {
+                                    TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUUID).get();
+                                    TransactionResult transactionResult = account.withdraw(totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopManager.getChestShopPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                                chest.offer(shopData);
+                                    if (transactionResult.getResult().equals(ResultType.SUCCESS)) {
+                                        ShopData shopData = createShopDataFromPlayer(player);
 
-                                player.sendMessage(messageManager.getMessage("shops.buy"));
-                            } else {
-                                throw new CommandException(Text.of("The chest must be empty before it can be purchased!"));
+                                        chest.offer(shopData);
+
+                                        player.sendMessage(messageManager.getMessage("command.shop.buy.success"));
+                                    } else {
+                                        Map<String, String> messageValues = new HashMap<>();
+                                        messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(shopManager.getChestShopPrice())).toPlain());
+
+                                        throw new CommandException(messageManager.getMessage("command.shop.buy.insufficientfunds", messageValues));
+                                    }
+                                } else { // Chest is not empty
+                                    throw new CommandException(messageManager.getMessage("command.shop.buy.notempty"));
+                                }
+                            } else { // Chest was placed by someone other then the player executing the command
+                                throw new CommandException(messageManager.getMessage("command.shop.buy.notowner"));
                             }
-                        } else {
-                            throw new CommandException(Text.of("You don't own this chest!"));
+                        } else { // Chest was placed by someone other then the player executing the command
+                            throw new CommandException(messageManager.getMessage("command.shop.buy.notowner"));
                         }
-                    } else {
-                        throw new CommandException(Text.of("You don't own this chest!"));
+                    } else { // Chest has already been purchased
+                        throw new CommandException(messageManager.getMessage("command.shop.buy.alreadypurchased"));
                     }
                 }
             }

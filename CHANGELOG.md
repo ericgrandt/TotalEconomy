@@ -1,6 +1,6 @@
 v1.8.0
 
-+ Chest shops
++ Added: Chest shops
 
 v1.7.0
 
