@@ -174,6 +174,19 @@ public class ShopManager {
     }
 
     @Listener
+    public void onInventoryNumberPress(ClickInventoryEvent.NumberPress event, @First Player player) {
+        Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
+
+        if (tileEntityOpt.isPresent()) {
+            Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
+
+            if (shopOpt.isPresent()) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @Listener
     public void onInventoryOpen(InteractInventoryEvent.Open event, @First Player player) {
         Optional<BlockSnapshot> blockSnapshotOpt = event.getCause().get("HitTarget", BlockSnapshot.class);
 
@@ -200,19 +213,6 @@ public class ShopManager {
 
                 // Using a custom inventory as they are a lot easier to work with for this
                 player.openInventory(shopInventory, Cause.of(NamedCause.source(totalEconomy.getPluginContainer())));
-            }
-        }
-    }
-
-    @Listener
-    public void onInventoryNumberPress(ClickInventoryEvent.NumberPress event, @First Player player) {
-        Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
-
-        if (tileEntityOpt.isPresent()) {
-            Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
-
-            if (shopOpt.isPresent()) {
-                event.setCancelled(true);
             }
         }
     }

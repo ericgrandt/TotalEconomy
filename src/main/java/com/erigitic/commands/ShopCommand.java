@@ -203,7 +203,11 @@ public class ShopCommand implements CommandExecutor {
                             if (player.getUniqueId().equals(creatorUUID)) {
                                 if (isChestEmpty(chest)) {
                                     TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUUID).get();
-                                    TransactionResult transactionResult = account.withdraw(totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopManager.getChestShopPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                                    TransactionResult transactionResult = account.withdraw(
+                                            totalEconomy.getDefaultCurrency(),
+                                            BigDecimal.valueOf(shopManager.getChestShopPrice()),
+                                            Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer()))
+                                    );
 
                                     if (transactionResult.getResult().equals(ResultType.SUCCESS)) {
                                         ShopData shopData = createShopDataFromPlayer(player);
