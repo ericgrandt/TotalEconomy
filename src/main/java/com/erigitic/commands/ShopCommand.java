@@ -105,21 +105,25 @@ public class ShopCommand implements CommandExecutor {
                         double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
 
                         if (hasQuantity(itemToStock, quantity)) {
-                            itemToStock = prepareItemStackForShop(itemToStock, quantity, price);
+                            if (shop.hasEmptySlot()) {
+                                itemToStock = prepareItemStackForShop(itemToStock, quantity, price);
 
-                            shop.addItem(itemToStock);
+                                shop.addItem(itemToStock);
 
-                            tileEntity.offer(new ShopData(shop));
+                                tileEntity.offer(new ShopData(shop));
 
-                            removeItemsFromHand(player, quantity);
+                                removeItemsFromHand(player, quantity);
 
-                            // TODO: Create a helper function for this to avoid ugly blocks of code like this?
-                            Map<String, String> messageValues = new HashMap<>();
-                            messageValues.put("quantity", String.valueOf(quantity));
-                            messageValues.put("item", itemToStock.getItem().getName().split(":")[1]);
-                            messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
+                                // TODO: Create a helper function for this to avoid ugly blocks of code like this?
+                                Map<String, String> messageValues = new HashMap<>();
+                                messageValues.put("quantity", String.valueOf(quantity));
+                                messageValues.put("item", itemToStock.getItem().getName().split(":")[1]);
+                                messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
 
-                            player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
+                                player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
+                            } else {
+                                throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.noslots")));
+                            }
                         } else {
                             throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.insufficientitems")));
                         }

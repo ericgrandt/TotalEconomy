@@ -43,6 +43,8 @@ public class Shop implements DataSerializable {
     public static final DataQuery TITLE_QUERY = DataQuery.of("Title");
     public static final DataQuery STOCK_QUERY = DataQuery.of("Stock");
 
+    private final int MAX_STOCK = 27;
+
     private UUID owner;
     private String title;
     private List<ItemStack> stock;
@@ -75,6 +77,14 @@ public class Shop implements DataSerializable {
 
     public void addItem(ItemStack itemToAdd) {
         stock.add(itemToAdd);
+    }
+
+    public boolean hasEmptySlot() {
+        if (stock.size() < MAX_STOCK) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
