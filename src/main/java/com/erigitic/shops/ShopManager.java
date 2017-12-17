@@ -202,9 +202,10 @@ public class ShopManager {
                         .build(totalEconomy.getPluginContainer());
 
                 int counter = 0;
-
                 for (Inventory slot : shopInventory.slots()) {
-                    if (counter >= shop.getStock().size()) break;
+                    if (counter >= shop.getStock().size()) {
+                        break;
+                    }
 
                     slot.set(shop.getStock().get(counter));
 
