@@ -31,18 +31,18 @@ public class TEActionReward {
 
     private Integer expReward;
     private Double moneyReward;
-    private String currencyID;
+    private String currencyId;
 
     public void loadConfigNode(ConfigurationNode node) {
         this.expReward = node.getNode("exp").getInt(0);
         this.moneyReward = node.getNode("money").getDouble(0.00d);
-        this.currencyID = node.getNode("currency").getString(null);
+        this.currencyId = node.getNode("currency").getString(null);
     }
 
     public void setValues(Integer expReward, Double moneyReward, String currencyID) {
         this.expReward = expReward;
         this.moneyReward = moneyReward;
-        this.currencyID = currencyID;
+        this.currencyId = currencyID;
     }
 
     public Integer getExpReward() {
@@ -53,7 +53,7 @@ public class TEActionReward {
         return moneyReward;
     }
 
-    public String getCurrencyID() {
-        return currencyID;
+    public String getCurrencyId() {
+        return currencyId;
     }
 }

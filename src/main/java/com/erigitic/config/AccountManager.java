@@ -499,20 +499,20 @@ public class AccountManager implements EconomyService {
      * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs
      */
     public Optional<String> getUserOption(String option, User user) {
-
         // Currently no db support for this - Shouldn't be that necessary anyways
         if (databaseActive) {
             return Optional.empty();
         }
+
         return Optional.ofNullable(accountConfig.getNode(user.getUniqueId().toString(), "options", option).getString(null));
     }
 
     public void setUserOption(String option, User user, String value) {
-
         // Currently no db support for this - Shouldn't be that necessary anyways
         if (databaseActive) {
             return;
         }
+
         accountConfig.getNode(user.getUniqueId().toString(), "options", option).setValue(value);
     }
 

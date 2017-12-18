@@ -709,10 +709,12 @@ public class JobManager {
                 List<BlockTrait<?>> traits = new ArrayList<>(state.getTraits());
                 int count = traits.size();
                 List<Text> traitTexts = new ArrayList<>(count);
+
                 for (int i = 0; i < count; i++) {
                     Object v = state.getTraitValue(traits.get(i)).orElse(null);
                     traitTexts.add(i, Text.of(traits.get(i).getName(), '=', v != null ? v.toString() : "null"));
                 }
+
                 Text t = Text.of(TextColors.GRAY, "TRAITS:\n    ", Text.joinWith(Text.of(",\n    "), traitTexts.toArray(new Text[traits.size()])));
                 player.sendMessage(Text.of("Block-Name: ", blockName));
                 player.sendMessage(t);
@@ -723,23 +725,28 @@ public class JobManager {
                 List<String> sets = optPlayerJob.get().getSets();
 
                 for (String s : sets) {
-                    Optional<TEJobSet> optSet = getJobSet(s);
 
+                    Optional<TEJobSet> optSet = getJobSet(s);
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                         continue;
                     }
 
                     Optional<TEAction> action = optSet.get().getActionFor("break", blockName);
-                    if (!action.isPresent()) continue;
+                    if (!action.isPresent()) {
+                        continue;
+                    }
+
                     Optional<TEActionReward> currentReward = action.get().evaluateBreak(logger, state, blockCreator.orElse(null));
                     if (!reward.isPresent()) {
                         reward = currentReward;
                         continue;
                     }
+
                     if (!currentReward.isPresent()) {
                         continue;
                     }
+
                     // Use the one giving higher exp in case of duplicates
                     if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
                         reward = currentReward;
@@ -752,10 +759,12 @@ public class JobManager {
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                     Currency currency = totalEconomy.getDefaultCurrency();
-                    if (reward.get().getCurrencyID() != null) {
-                        Optional<Currency> optC = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyID());
-                        if (optC.isPresent())
-                            currency = optC.get();
+
+                    if (reward.get().getCurrencyId() != null) {
+                        Optional<Currency> currencyOpt = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyId());
+                        if (currencyOpt.isPresent()) {
+                            currency = currencyOpt.get();
+                        }
                     }
 
                     if (notify) {
@@ -794,10 +803,12 @@ public class JobManager {
                 List<BlockTrait<?>> traits = new ArrayList<>(state.getTraits());
                 int count = traits.size();
                 List<Text> traitTexts = new ArrayList<>(count);
+
                 for (int i = 0; i < count; i++) {
                     Object v = state.getTraitValue(traits.get(i)).orElse(null);
                     traitTexts.add(i, Text.of(traits.get(i).getName(), '=', v != null ? v.toString() : "null"));
                 }
+
                 Text t = Text.of(TextColors.GRAY, "TRAITS:\n    ", Text.joinWith(Text.of(",\n    "), traitTexts.toArray(new Text[traits.size()])));
                 player.sendMessage(Text.of("Block-Name: ", blockName));
                 player.sendMessage(t);
@@ -808,23 +819,28 @@ public class JobManager {
                 List<String> sets = optPlayerJob.get().getSets();
 
                 for (String s : sets) {
-                    Optional<TEJobSet> optSet = getJobSet(s);
 
+                    Optional<TEJobSet> optSet = getJobSet(s);
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                         continue;
                     }
 
                     Optional<TEAction> action = optSet.get().getActionFor("place", blockName);
-                    if (!action.isPresent()) continue;
+                    if (!action.isPresent()) {
+                        continue;
+                    }
+
                     Optional<TEActionReward> currentReward = action.get().evaluatePlace(logger, state);
                     if (!reward.isPresent()) {
                         reward = currentReward;
                         continue;
                     }
+
                     if (!currentReward.isPresent()) {
                         continue;
                     }
+
                     // Use the one giving higher exp in case of duplicates
                     if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
                         reward = currentReward;
@@ -837,10 +853,12 @@ public class JobManager {
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                     Currency currency = totalEconomy.getDefaultCurrency();
-                    if (reward.get().getCurrencyID() != null) {
-                        Optional<Currency> optC = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyID());
-                        if (optC.isPresent())
-                            currency = optC.get();
+
+                    if (reward.get().getCurrencyId() != null) {
+                        Optional<Currency> currencyOpt = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyId());
+                        if (currencyOpt.isPresent()) {
+                            currency = currencyOpt.get();
+                        }
                     }
 
                     if (notify) {
@@ -875,10 +893,10 @@ public class JobManager {
                 // If a projectile was shot to kill an entity, this will grab the player who shot it
                 Optional<UUID> damageCreator = damageSource.getSource().getCreator();
 
-                if (damageCreator.isPresent())
+                if (damageCreator.isPresent()) {
                     killer = Sponge.getServer().getPlayer(damageCreator.get()).get();
+                }
             }
-
 
             if (killer instanceof Player) {
                 Player player = (Player) killer;
@@ -906,15 +924,20 @@ public class JobManager {
                         }
 
                         Optional<TEAction> action = optSet.get().getActionFor("kill", victimName);
-                        if (!action.isPresent()) continue;
+                        if (!action.isPresent()) {
+                            continue;
+                        }
+
                         Optional<TEActionReward> currentReward = action.get().getReward();
                         if (!reward.isPresent()) {
                             reward = currentReward;
                             continue;
                         }
+
                         if (!currentReward.isPresent()) {
                             continue;
                         }
+
                         // Use the one giving higher exp in case of duplicates
                         if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
                             reward = currentReward;
@@ -927,10 +950,12 @@ public class JobManager {
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                         Currency currency = totalEconomy.getDefaultCurrency();
-                        if (reward.get().getCurrencyID() != null) {
-                            Optional<Currency> optC = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyID());
-                            if (optC.isPresent())
-                                currency = optC.get();
+
+                        if (reward.get().getCurrencyId() != null) {
+                            Optional<Currency> currencyOpt = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyId());
+                            if (currencyOpt.isPresent()) {
+                                currency = currencyOpt.get();
+                            }
                         }
 
                         if (notify) {
@@ -969,8 +994,6 @@ public class JobManager {
             String playerJob = getPlayerJob(player);
             Optional<TEJob> optPlayerJob = getJob(playerJob, true);
 
-
-
             if (optPlayerJob.isPresent()) {
                 if (itemStack.get(FishData.class).isPresent()) {
                     FishData fishData = itemStack.get(FishData.class).get();
@@ -993,15 +1016,20 @@ public class JobManager {
                         }
 
                         Optional<TEAction> action = optSet.get().getActionFor("catch", fishName);
-                        if (!action.isPresent()) continue;
+                        if (!action.isPresent()) {
+                            continue;
+                        }
+
                         Optional<TEActionReward> currentReward = action.get().getReward();
                         if (!reward.isPresent()) {
                             reward = currentReward;
                             continue;
                         }
+
                         if (!currentReward.isPresent()) {
                             continue;
                         }
+
                         // Use the one giving higher exp in case of duplicates
                         if (currentReward.get().getExpReward() > reward.get().getExpReward()) {
                             reward = currentReward;
@@ -1014,10 +1042,12 @@ public class JobManager {
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                         Currency currency = totalEconomy.getDefaultCurrency();
-                        if (reward.get().getCurrencyID() != null) {
-                            Optional<Currency> optC = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyID());
-                            if (optC.isPresent())
-                                currency = optC.get();
+
+                        if (reward.get().getCurrencyId() != null) {
+                            Optional<Currency> currencyOpt = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.get().getCurrencyId());
+                            if (currencyOpt.isPresent()) {
+                                currency = currencyOpt.get();
+                            }
                         }
 
                         if (notify) {

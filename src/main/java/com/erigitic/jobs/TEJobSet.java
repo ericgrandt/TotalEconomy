@@ -34,12 +34,9 @@ public class TEJobSet {
 
     public TEJobSet(ConfigurationNode node) {
         node.getChildrenMap().forEach((actionStr, targetNode) -> {
-
             if ((actionStr instanceof String) &&  targetNode != null) {
                 targetNode.getChildrenMap().forEach((targetID, actionNode) -> {
-
                     if ((targetID instanceof String) && actionNode != null) {
-
                         TEAction action = new TEAction();
                         action.loadConfigNode((String) actionStr, actionNode);
 
@@ -55,7 +52,7 @@ public class TEJobSet {
     public Optional<TEAction> getActionFor(String action, String targetID) {
         return actions.stream()
                 .filter(teAction -> teAction.getAction().equals(action))
-                .filter(teAction -> teAction.getTargetID().equals(targetID))
+                .filter(teAction -> teAction.getTargetId().equals(targetID))
                 .findFirst();
     }
 

@@ -40,7 +40,6 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
@@ -221,39 +220,37 @@ public class JobCommand implements CommandExecutor {
 
                 if (optSet.isPresent()) {
                     TEJobSet jobSet = optSet.get();
-                    Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
                     for (TEAction action : jobSet.getActions()) {
-                        EconomyService service = Sponge.getServiceManager().provideUnchecked(EconomyService.class);
-                        Optional<Currency> c = Optional.empty();
                         Text listText;
 
-                        if (action.isIDTraited()) {
+                        if (action.isIdTraited()) {
                             // MC does not support '\t'
                             String tab = new String(new char[action.getAction().length() + 2]).replace("\0", " ");
                             List<Text> texts = new ArrayList<>(action.getRewards().size());
 
                             action.getRewards().forEach((k, v) -> {
-                                Text t1 = Text.of("");
+                                Text metaText = Text.of("");
 
                                 if (action.isGrowing()) {
-                                    t1 = Text.of(",growing=1");
+                                    metaText = Text.of(",growing=1");
                                 }
 
-                                Text t2 = (Text.of('\n', tab,  TextColors.GRAY, "{", action.getIDTrait(), '=', k, t1, "} ", TextColors.GOLD, format_reward(v)));
-                                texts.add(t2);
+                                Text rewardText = (Text.of('\n', tab,  TextColors.GRAY, "{", action.getIdTrait(), '=', k, metaText, "} ", TextColors.GOLD, formatReward(v)));
+                                texts.add(rewardText);
                             });
 
                             listText = Text.join(texts.toArray(new Text[texts.size()]));
                         } else {
 
-                            listText = format_reward(action.getReward().get());
+                            listText = formatReward(action.getReward().get());
 
                             if (action.isGrowing()) {
                                 listText = Text.of(TextColors.GRAY, "{growing=1} ", listText);
                             }
+
                         }
-                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(action.getAction()), "] ", TextColors.GRAY, action.getTargetID(), TextColors.GOLD, " [", listText, "]"));
+                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(action.getAction()), "] ", TextColors.GRAY, action.getTargetId(), TextColors.GOLD, listText));
                     }
                 }
             }
@@ -267,14 +264,14 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    private Text format_reward(TEActionReward reward) {
-        Optional<Currency> c = Optional.empty();
+    private Text formatReward(TEActionReward reward) {
+        Optional<Currency> rewardCurrencyOpt = Optional.empty();
 
-        if (reward.getCurrencyID() != null) {
-            c = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.getCurrencyID());
+        if (reward.getCurrencyId() != null) {
+            rewardCurrencyOpt = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.getCurrencyId());
         }
 
-        return Text.of('(',reward.getExpReward(), " EXP) (", c.orElse(totalEconomy.getDefaultCurrency()).format(new BigDecimal(reward.getMoneyReward())), ')');
+        return Text.of("(", reward.getExpReward(), " EXP) (", rewardCurrencyOpt.orElse(totalEconomy.getDefaultCurrency()).format(new BigDecimal(reward.getMoneyReward())), ")");
     }
 
     private class Reload implements CommandExecutor {
@@ -306,11 +303,10 @@ public class JobCommand implements CommandExecutor {
         }
     }
 
-    private static String[] TOGGLE_PLAYER_OPTIONS = {"block-break-info", "block-place-info", "entity-kill-info", "entity-fish-info"};
-    private static List<String> TOGGLE_PLAYER_OPTIONS_LIST = Arrays.asList(TOGGLE_PLAYER_OPTIONS);
-
     private class Toggle implements CommandExecutor {
 
+        private final String[] TOGGLE_PLAYER_OPTIONS = {"block-break-info", "block-place-info", "entity-kill-info", "entity-fish-info"};
+        private final List<String> TOGGLE_PLAYER_OPTIONS_LIST = Arrays.asList(TOGGLE_PLAYER_OPTIONS);
 
         private AccountManager accountManager;
 
@@ -337,21 +333,29 @@ public class JobCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (src instanceof Player) {
                 Player sender = ((Player) src);
-                Optional<String> optOption = args.<String>getOne("option");
+                Optional<String> optionOpt = args.<String>getOne("option");
 
-                if (!optOption.isPresent()) {
+                if (!optionOpt.isPresent()) {
+
                     accountManager.toggleNotifications(sender);
                     return CommandResult.success();
+
                 } else {
-                    String option = optOption.get();
+
+                    String option = optionOpt.get();
                     int i = TOGGLE_PLAYER_OPTIONS_LIST.indexOf(option);
-                    if (i < 0)
+
+                    if (i < 0) {
                         throw new CommandException(Text.of("[TE] Unknown option: ", option));
+                    }
+
                     String value = accountManager.getUserOption("totaleconomy:" + option, sender).orElse("0");
                     value = (value.equals("0") ? "1" : "0");
                     accountManager.setUserOption("totaleconomy:" + option, sender, value);
+                    src.sendMessage(messageManager.getMessage("jobs.toggle"));
                     return CommandResult.success();
                 }
+
             } else {
                 throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
             }
