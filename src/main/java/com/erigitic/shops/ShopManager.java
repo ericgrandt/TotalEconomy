@@ -155,13 +155,17 @@ public class ShopManager {
                     ShopItem shopItem = shopItemOpt.get();
                     ItemStack returnedItem;
 
+                    for (SlotTransaction transaction : event.getTransactions()) {
+                        transaction.setCustom(ItemStack.empty());
+                    }
+
                     if (clickedItem.get(BlockItemData.class).isPresent()) {
                         returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).itemData(clickedItem.get(BlockItemData.class).get()).build();
                     } else {
                         returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
                     }
 
-                    event.getTransactions().get(1).setCustom(returnedItem);
+                    player.getInventory().offer(returnedItem);
 
                     // Set the stock of the shop to that of the open inventory
                     shop.setStock(getShopStockFromInventory(inventory));
