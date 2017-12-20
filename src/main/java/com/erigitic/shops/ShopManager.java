@@ -8,6 +8,7 @@ import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.*;
 import org.spongepowered.api.data.key.Keys;
@@ -30,8 +31,10 @@ import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
+import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.math.BigDecimal;
@@ -244,6 +247,44 @@ public class ShopManager {
                 player.sendMessage(messageManager.getMessage("shops.remove.success"));
             }
         }
+    }
+
+    @Listener
+    public void onChestPlace(ChangeBlockEvent.Place event) {
+        BlockSnapshot blockSnapshot = event.getTransactions().get(0).getDefault();
+        BlockType blockType = blockSnapshot.getState().getType();
+        Location location = blockSnapshot.getLocation().get();
+
+        if (blockType.equals(BlockTypes.CHEST) && isPlacedNextToShop(location)) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean isPlacedNextToShop(Location location) {
+        boolean isPlacedNextToShop = false;
+
+        Optional<TileEntity> northTileEntity = location.getBlockRelative(Direction.NORTH).getTileEntity();
+        Optional<TileEntity> eastTileEntity = location.getBlockRelative(Direction.EAST).getTileEntity();
+        Optional<TileEntity> southTileEntity = location.getBlockRelative(Direction.SOUTH).getTileEntity();
+        Optional<TileEntity> westTileEntity = location.getBlockRelative(Direction.WEST).getTileEntity();
+
+        if (northTileEntity.isPresent()) {
+            isPlacedNextToShop = northTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
+        }
+
+        if (eastTileEntity.isPresent()) {
+            isPlacedNextToShop = eastTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
+        }
+
+        if (southTileEntity.isPresent()) {
+            isPlacedNextToShop = southTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
+        }
+
+        if (westTileEntity.isPresent()) {
+            isPlacedNextToShop = westTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
+        }
+
+        return isPlacedNextToShop;
     }
 
     private List<ItemStack> getShopStockFromInventory(Inventory inventory) {
