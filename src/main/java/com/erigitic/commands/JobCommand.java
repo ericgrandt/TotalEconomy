@@ -192,7 +192,10 @@ public class JobCommand implements CommandExecutor {
                     .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
                     .permission("totaleconomy.command.job.info")
                     .executor(this)
-                    .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
+                    .arguments(
+                        GenericArguments.optional(GenericArguments.flags().flag("e").buildWith(GenericArguments.none())),
+                        GenericArguments.optional(GenericArguments.string(Text.of("jobName")))
+                    )
                     .build();
         }
 
@@ -200,6 +203,7 @@ public class JobCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             Optional<String> optJobName = args.getOne("jobName");
             Optional<TEJob> optJob = Optional.empty();
+            boolean extended = args.hasAny("e");
 
             if (!optJobName.isPresent() && (src instanceof Player)) {
                 optJob = jobManager.getJob(jobManager.getPlayerJob((Player) src), true);
@@ -232,7 +236,7 @@ public class JobCommand implements CommandExecutor {
                             action.getRewards().forEach((k, v) -> {
                                 Text metaText = Text.of("");
 
-                                if (action.isGrowing()) {
+                                if (action.isGrowing() && extended) {
                                     metaText = Text.of(",growing=1");
                                 }
 
@@ -245,7 +249,7 @@ public class JobCommand implements CommandExecutor {
 
                             listText = formatReward(action.getReward().get());
 
-                            if (action.isGrowing()) {
+                            if (action.isGrowing() && extended) {
                                 listText = Text.of(TextColors.GRAY, "{growing=1} ", listText);
                             }
 
@@ -256,9 +260,10 @@ public class JobCommand implements CommandExecutor {
             }
 
             pageBuilder.reset()
-                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob(((Player) src))),"\n"))
-                    .contents(lines.toArray(new Text[lines.size()]))
-                    .sendTo(src);
+                       .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob(((Player) src))),"\n"))
+                       .contents(lines.toArray(new Text[lines.size()]))
+                       .build()
+                       .sendTo(src);
 
             return CommandResult.success();
         }
