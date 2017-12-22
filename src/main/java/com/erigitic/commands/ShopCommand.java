@@ -200,6 +200,11 @@ public class ShopCommand implements CommandExecutor {
                     BlockSnapshot blockSnapshot = chest.getLocation().createSnapshot();
                     Optional<UUID> creatorOpt = blockSnapshot.getCreator();
 
+                    // If double chest, throw exception
+                    if (chest.getDoubleChestInventory().isPresent()) {
+                        throw new CommandException(messageManager.getMessage("command.shop.buy.doublechest"));
+                    }
+
                     if (!chest.get(ShopKeys.SINGLE_SHOP).isPresent()) {
                         if (creatorOpt.isPresent()) {
                             UUID creatorUUID = creatorOpt.get();
