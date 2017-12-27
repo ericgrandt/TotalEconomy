@@ -344,7 +344,6 @@ public class TotalEconomy {
     private void setFeaturesEnabledStatus() {
         jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean(true);
         jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean(true);
-
         jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean(true);
 
         databaseEnabled = config.getNode("database", "enable").getBoolean(false);

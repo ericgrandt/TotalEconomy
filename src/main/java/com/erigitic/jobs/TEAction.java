@@ -72,10 +72,112 @@ public class TEAction {
                 rewards.put(((String) k), reward);
             });
         }
+
         this.action = action;
         this.targetId = node.getKey().toString();
         this.idTrait = idTraitNode.getString("type");
         this.growthTrait = growthTraitNode.getString(null);
+    }
+
+    public Optional<TEActionReward> evaluateBreak(Logger logger, BlockState state, UUID blockCreator) {
+        // Disqualifying checks first for performance
+        if (!state.getType().getId().equals(this.targetId)) {
+            return Optional.empty();
+        }
+
+        // A player placed the block and it doesn't indicate growth -> Do not pay to prevent exploits
+        if (growthTrait == null && blockCreator != null) {
+            return Optional.empty();
+        }
+
+        // Determine base reward - Use complicated way if this block has an ID trait
+        TEActionReward reward = null;
+
+        if (idTrait != null) {
+            Optional<BlockTrait<?>> trait = state.getTrait(idTrait);
+
+            if (trait.isPresent()) {
+                Optional<?> traitVal = state.getTraitValue(trait.get());
+
+                if (traitVal.isPresent()) {
+                    String key = traitVal.get().toString();
+                    reward = rewards.getOrDefault(key, null);
+                }
+            } else {
+                logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetId);
+            }
+
+        } else {
+            reward = this.reward;
+        }
+
+        if (reward == null) {
+            return Optional.empty();
+        }
+
+        // Base reward is determined - Now check if we need to apply modifiers
+        // # GrowthTrait #
+        if (growthTrait != null) {
+            Optional<BlockTrait<?>> trait = state.getTrait(growthTrait);
+
+            if (trait.isPresent()) {
+                if (Integer.class.isAssignableFrom(trait.get().getValueClass())) {
+                    Optional<?> traitVal = state.getTraitValue(trait.get());
+
+                    if (traitVal.isPresent()) {
+                        reward = generateReward((Integer) traitVal.get(), (Collection<Integer>) trait.get().getPossibleValues());
+                    } else {
+                        logger.warn("Growth trait \"", growthTrait, "\" has missing value during action: ", action, ':', targetId);
+                    }
+                } else {
+                    logger.warn("Growth trait \"", growthTrait, "\" is not numeric!");
+                }
+            } else {
+                logger.warn("Growth trait \"", growthTrait, "\" not found during action: ", action, ':', targetId);
+            }
+        }
+
+        return Optional.ofNullable(reward);
+    }
+
+    private TEActionReward generateReward(Integer traitValue, Collection<Integer> possibleValues) {
+        Integer max = possibleValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+        Integer min = possibleValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
+        Double perc = (double) (traitValue - min) / (double) (max - min);
+
+        reward = new TEActionReward() ;
+        reward.setValues((int) (reward.getExpReward() * perc), reward.getMoneyReward() * perc, reward.getCurrencyId());
+
+        return reward;
+    }
+
+    public Optional<TEActionReward> evaluatePlace(Logger logger, BlockState state) {
+        // Disqualifying checks first for performance
+        if (!state.getType().getId().equals(this.targetId)) {
+            return Optional.empty();
+        }
+
+        // Determine base reward - Use complicated way if this block has an ID trait
+        TEActionReward reward = null;
+
+        if (idTrait != null) {
+            Optional<BlockTrait<?>> trait = state.getTrait(idTrait);
+
+            if (trait.isPresent()) {
+                Optional<?> traitVal = state.getTraitValue(trait.get());
+
+                if (traitVal.isPresent()) {
+                    String key = traitVal.get().toString();
+                    reward = rewards.getOrDefault(key, null);
+                }
+            } else {
+                logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetId);
+            }
+        } else {
+            reward = this.reward;
+        }
+
+        return Optional.ofNullable(reward);
     }
 
     public boolean isGrowing() {
@@ -111,97 +213,5 @@ public class TEAction {
                && !action.trim().isEmpty()
                && targetId != null
                && !targetId.trim().isEmpty();
-    }
-
-    public Optional<TEActionReward> evaluateBreak(Logger logger, BlockState state, UUID blockCreator) {
-        // Disqualifying checks first for performance
-        if (!state.getType().getId().equals(this.targetId)) {
-            return Optional.empty();
-        }
-
-        // A player placed the block and it doesn't indicate growth -> Do not pay to prevent exploits
-        if (growthTrait == null && blockCreator != null) {
-            return Optional.empty();
-        }
-
-        // Determine base reward - Use complicated way if this block has an ID trait
-        TEActionReward reward = null;
-
-        if (idTrait != null) {
-            Optional<BlockTrait<?>> trait = state.getTrait(idTrait);
-            if (trait.isPresent()) {
-                Optional<?> traitVal = state.getTraitValue(trait.get());
-                if (traitVal.isPresent()) {
-                    String key = traitVal.get().toString();
-                    reward = rewards.getOrDefault(key, null);
-                }
-            } else {
-                logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetId);
-            }
-
-        } else {
-            reward = this.reward;
-        }
-
-        if (reward == null) {
-            return Optional.empty();
-        }
-
-        // Base reward is determined - Now check if we need to apply modifiers
-        // # GrowthTrait #
-        if (growthTrait != null) {
-            Optional<BlockTrait<?>> trait = state.getTrait(growthTrait);
-            if (trait.isPresent()) {
-                if (Integer.class.isAssignableFrom(trait.get().getValueClass())) {
-                    Optional<?> traitVal = state.getTraitValue(trait.get());
-                    if (traitVal.isPresent()) {
-                        reward = generateReward((Integer) traitVal.get(), (Collection<Integer>) trait.get().getPossibleValues());
-                    } else {
-                        logger.warn("Growth trait \"", growthTrait, "\" has missing value during action: ", action, ':', targetId);
-                    }
-                } else {
-                    logger.warn("Growth trait \"", growthTrait, "\" is not numeric!");
-                }
-            } else {
-                logger.warn("Growth trait \"", growthTrait, "\" not found during action: ", action, ':', targetId);
-            }
-        }
-        return Optional.ofNullable(reward);
-    }
-
-    private TEActionReward generateReward(Integer traitValue, Collection<Integer> possibleValues) {
-        Integer max = possibleValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
-        Integer min = possibleValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
-        Double perc = (double) (traitValue - min) / (double) (max - min);
-        reward = new TEActionReward() ;
-        reward.setValues((int) (reward.getExpReward() * perc), reward.getMoneyReward() * perc, reward.getCurrencyId());
-        return reward;
-    }
-
-    public Optional<TEActionReward> evaluatePlace(Logger logger, BlockState state) {
-        // Disqualifying checks first for performance
-        if (!state.getType().getId().equals(this.targetId)) {
-            return Optional.empty();
-        }
-
-        // Determine base reward - Use complicated way if this block has an ID trait
-        TEActionReward reward = null;
-
-        if (idTrait != null) {
-            Optional<BlockTrait<?>> trait = state.getTrait(idTrait);
-            if (trait.isPresent()) {
-                Optional<?> traitVal = state.getTraitValue(trait.get());
-                if (traitVal.isPresent()) {
-                    String key = traitVal.get().toString();
-                    reward = rewards.getOrDefault(key, null);
-                }
-            } else {
-                logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetId);
-            }
-        } else {
-            reward = this.reward;
-        }
-
-        return Optional.ofNullable(reward);
     }
 }

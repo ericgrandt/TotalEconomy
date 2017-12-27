@@ -32,7 +32,7 @@ public class FarmerJobSet implements JobSet {
     private final String SETNAME = "crops";
 
     private final Object[][] REWARDS = {
-            //{"<event>", "<target>", <expReward>, <moneyReward>, "<growTrait>"}
+            //{"<event>", "<target>", <expReward>, <moneyReward>, "<growth-trait>"}
             // Plants having an age
             {"break", "minecraft:wheat", 25, 50.00d, "age"},
             {"break", "minecraft:cocoa", 30, 60.00d, "age"},

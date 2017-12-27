@@ -210,7 +210,7 @@ public class JobCommand implements CommandExecutor {
             }
 
             if (optJobName.isPresent()) {
-                optJob = jobManager.getJob(optJobName.get(), false);
+                optJob = jobManager.getJob(optJobName.get().toLowerCase(), false);
             }
 
             if (!optJob.isPresent()) {
@@ -240,27 +240,27 @@ public class JobCommand implements CommandExecutor {
                                     metaText = Text.of(",growing=1");
                                 }
 
-                                Text rewardText = (Text.of('\n', tab,  TextColors.GRAY, "{", action.getIdTrait(), '=', k, metaText, "} ", TextColors.GOLD, formatReward(v)));
+                                Text rewardText = Text.of('\n', tab, TextColors.GRAY, "{", action.getIdTrait(), '=', k, metaText, "} ", TextColors.GOLD, formatReward(v));
                                 texts.add(rewardText);
                             });
 
                             listText = Text.join(texts.toArray(new Text[texts.size()]));
                         } else {
 
-                            listText = formatReward(action.getReward().get());
+                            listText = Text.of(" ", formatReward(action.getReward().get()));
 
                             if (action.isGrowing() && extended) {
-                                listText = Text.of(TextColors.GRAY, "{growing=1} ", listText);
+                                listText = Text.of(TextColors.GRAY, "{growing=1}", TextColors.GOLD,  listText);
                             }
-
                         }
+
                         lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(action.getAction()), "] ", TextColors.GRAY, action.getTargetId(), TextColors.GOLD, listText));
                     }
                 }
             }
 
             pageBuilder.reset()
-                       .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob(((Player) src))),"\n"))
+                       .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob((Player) src)),"\n"))
                        .contents(lines.toArray(new Text[lines.size()]))
                        .build()
                        .sendTo(src);
@@ -337,16 +337,14 @@ public class JobCommand implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (src instanceof Player) {
-                Player sender = ((Player) src);
+                Player sender = (Player) src;
                 Optional<String> optionOpt = args.<String>getOne("option");
 
                 if (!optionOpt.isPresent()) {
-
                     accountManager.toggleNotifications(sender);
+
                     return CommandResult.success();
-
                 } else {
-
                     String option = optionOpt.get();
                     int i = TOGGLE_PLAYER_OPTIONS_LIST.indexOf(option);
 
@@ -355,9 +353,12 @@ public class JobCommand implements CommandExecutor {
                     }
 
                     String value = accountManager.getUserOption("totaleconomy:" + option, sender).orElse("0");
-                    value = (value.equals("0") ? "1" : "0");
+                    value = value.equals("0") ? "1" : "0";
+
                     accountManager.setUserOption("totaleconomy:" + option, sender, value);
+
                     src.sendMessage(messageManager.getMessage("jobs.toggle"));
+
                     return CommandResult.success();
                 }
 

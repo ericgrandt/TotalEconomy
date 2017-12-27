@@ -496,7 +496,7 @@ public class AccountManager implements EconomyService {
 
     /**
      * Used for the debugging information provided by the listeners in the JobManager.
-     * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs
+     * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs.
      */
     public Optional<String> getUserOption(String option, User user) {
         // Currently no db support for this - Shouldn't be that necessary anyways

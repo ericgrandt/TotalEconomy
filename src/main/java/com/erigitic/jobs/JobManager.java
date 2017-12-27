@@ -711,8 +711,8 @@ public class JobManager {
                 List<Text> traitTexts = new ArrayList<>(count);
 
                 for (int i = 0; i < count; i++) {
-                    Object v = state.getTraitValue(traits.get(i)).orElse(null);
-                    traitTexts.add(i, Text.of(traits.get(i).getName(), '=', v != null ? v.toString() : "null"));
+                    Object traitValue = state.getTraitValue(traits.get(i)).orElse(null);
+                    traitTexts.add(i, Text.of(traits.get(i).getName(), '=', traitValue != null ? traitValue.toString() : "null"));
                 }
 
                 Text t = Text.of(TextColors.GRAY, "TRAITS:\n    ", Text.joinWith(Text.of(",\n    "), traitTexts.toArray(new Text[traits.size()])));
@@ -725,7 +725,6 @@ public class JobManager {
                 List<String> sets = optPlayerJob.get().getSets();
 
                 for (String s : sets) {
-
                     Optional<TEJobSet> optSet = getJobSet(s);
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
@@ -819,7 +818,6 @@ public class JobManager {
                 List<String> sets = optPlayerJob.get().getSets();
 
                 for (String s : sets) {
-
                     Optional<TEJobSet> optSet = getJobSet(s);
                     if (!optSet.isPresent()) {
                         logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
@@ -906,7 +904,7 @@ public class JobManager {
                 String playerJob = getPlayerJob(player);
                 Optional<TEJob> optPlayerJob = getJob(playerJob, true);
 
-                // Enable admins to determine block information by displaying it to them - WHEN they have the flag enabled
+                // Enable admins to determine victim information by displaying it to them - WHEN they have the flag enabled
                 if (accountManager.getUserOption("totaleconomy:entity-kill-info", player).orElse("0").equals("1")) {
                     player.sendMessage(Text.of("Victim-Name: ", victimName));
                 }
@@ -917,7 +915,6 @@ public class JobManager {
 
                     for (String s : sets) {
                         Optional<TEJobSet> optSet = getJobSet(s);
-
                         if (!optSet.isPresent()) {
                             logger.warn("Job " + playerJob + " has the nonexistent set \"" + s + "\"");
                             continue;
