@@ -31,6 +31,7 @@ import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
@@ -205,7 +206,7 @@ public class ShopManager {
                 Shop shop = shopOpt.get();
 
                 Inventory shopInventory = Inventory.builder().of(InventoryArchetypes.CHEST)
-                        .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(TextColors.GOLD, shop.getTitle())))
+                        .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(TextStyles.BOLD, TextColors.BLUE, shop.getTitle())))
                         .build(totalEconomy.getPluginContainer());
 
                 int counter = 0;
