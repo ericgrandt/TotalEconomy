@@ -240,7 +240,7 @@ public class JobCommand implements CommandExecutor {
                                     metaText = Text.of(",growing=1");
                                 }
 
-                                Text rewardText = Text.of('\n', tab, TextColors.GRAY, "{", action.getIdTrait(), '=', k, metaText, "} ", TextColors.GOLD, formatReward(v));
+                                Text rewardText = Text.of("\n", tab, TextColors.GRAY, "{", action.getIdTrait(), '=', k, metaText, "} ", TextColors.GOLD, formatReward(v));
                                 texts.add(rewardText);
                             });
 
