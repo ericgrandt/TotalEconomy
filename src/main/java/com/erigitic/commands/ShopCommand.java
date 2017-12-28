@@ -99,14 +99,14 @@ public class ShopCommand implements CommandExecutor {
 
                     if (itemInHandOpt.isPresent()) {
                         Shop shop = shopOpt.get();
-                        ItemStack itemToStock = itemInHandOpt.get();
+                        ItemStack itemToStock = itemInHandOpt.get().copy();
 
                         int quantity = args.<Integer>getOne(Text.of("quantity")).get();
                         double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
 
                         if (hasQuantity(itemToStock, quantity)) {
                             if (shop.hasEmptySlot()) {
-                                itemToStock = prepareItemStackForShop(itemToStock, quantity, price);
+                                prepareItemStackForShop(itemToStock, quantity, price);
 
                                 shop.addItem(itemToStock);
 
@@ -150,14 +150,12 @@ public class ShopCommand implements CommandExecutor {
             player.setItemInHand(HandTypes.MAIN_HAND, itemInHand);
         }
 
-        private ItemStack prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
+        private void prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
             ShopItem shopItem = new ShopItem(quantity, price);
 
             itemStack.setQuantity(1);
             itemStack.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
             itemStack.offer(new ShopItemData(shopItem));
-
-            return itemStack;
         }
 
         private double clampPrice(double price, double minValue, double maxValue) {
