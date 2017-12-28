@@ -6,6 +6,7 @@ import org.spongepowered.api.data.*;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,8 +57,8 @@ public class ShopItem implements DataSerializable {
 
     public List<Text> getLore(TECurrency currency) {
         List<Text> lore = new ArrayList<>();
-        lore.add(Text.of(currency.format(BigDecimal.valueOf(price), 2)));
-        lore.add(Text.of("Stock: ", quantity));
+        lore.add(Text.of(TextColors.GRAY, "Price: ", TextColors.GOLD, currency.format(BigDecimal.valueOf(price), 2)));
+        lore.add(Text.of(TextColors.GRAY, "Stock: ", TextColors.GOLD, quantity));
 
         return lore;
     }
