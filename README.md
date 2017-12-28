@@ -16,6 +16,7 @@ Total Economy is a Sponge plugin that aims to provide a full-fledged economy for
 + Ability to enable/disable any feature
 + SQL Support
 + Multi-Currency Support
++ Chest Shops
 
 ## Contributions
 Interested in contributing code? Doing some translation? Or maybe you have an issue or suggestion you'd like to let us know about? We appreciate and welcome all contributions. To get started:
