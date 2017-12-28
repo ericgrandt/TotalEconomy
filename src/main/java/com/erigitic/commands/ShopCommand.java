@@ -116,7 +116,7 @@ public class ShopCommand implements CommandExecutor {
 
                                 Map<String, String> messageValues = new HashMap<>();
                                 messageValues.put("quantity", String.valueOf(quantity));
-                                messageValues.put("item", itemToStock.get(Keys.DISPLAY_NAME).orElse(Text.of(itemToStock.getTranslation())).toPlain().toLowerCase());
+                                messageValues.put("item", itemToStock.get(Keys.DISPLAY_NAME).orElse(Text.of(itemToStock.getTranslation())).toPlain());
                                 messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
 
                                 player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
