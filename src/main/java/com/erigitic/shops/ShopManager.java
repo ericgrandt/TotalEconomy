@@ -11,6 +11,8 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.*;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -67,7 +69,6 @@ public class ShopManager {
      * @param player The player clicking within an inventory
      * @param inventory The inventory being clicked
      */
-    // TODO: Put some of this code in a separate function as it will be reused in the ClickInventoryEvent.Secondary function
     @Listener
     @Exclude(ClickInventoryEvent.Shift.class)
     public void onItemPurchase(ClickInventoryEvent.Primary event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
@@ -90,14 +91,12 @@ public class ShopManager {
                     TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
-                        removeShopItemData(clickedItem);
-
                         ItemStack purchasedItem = clickedItem.copy();
-                        purchasedItem.setQuantity(1);
+                        purchasedItem = removeShopItemData(purchasedItem);
 
                         Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
 
-                        if (rejectedItems.size() <= 0) {
+                        if (rejectedItems.size() == 0) {
                             customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
                             shopItem.setQuantity(shopItem.getQuantity() - 1);
@@ -158,9 +157,8 @@ public class ShopManager {
                         transaction.setCustom(ItemStack.empty());
                     }
 
-                    removeShopItemData(clickedItem);
-
                     ItemStack returnedItem = clickedItem.copy();
+                    returnedItem = removeShopItemData(returnedItem);
                     returnedItem.setQuantity(shopItem.getQuantity());
 
                     player.getInventory().offer(returnedItem);
@@ -238,8 +236,6 @@ public class ShopManager {
                 event.setCancelled(true);
 
                 player.sendMessage(messageManager.getMessage("shops.remove.stocked"));
-            } else {
-                player.sendMessage(messageManager.getMessage("shops.remove.success"));
             }
         }
     }
@@ -255,9 +251,15 @@ public class ShopManager {
         }
     }
 
-    private void removeShopItemData(ItemStack itemStack) {
+    private ItemStack removeShopItemData(ItemStack itemStack) {
         itemStack.remove(Keys.ITEM_LORE);
         itemStack.remove(ShopKeys.SHOP_ITEM);
+
+        // Remove the DataQuery for lore, otherwise an empty NBT tag will be attached to the item
+        DataContainer dataContainer = itemStack.toContainer().remove(DataQuery.of("DefaultReplacement", "UnsafeData", "display", "Lore")).copy();
+        itemStack = ItemStack.builder().fromContainer(dataContainer).itemType(itemStack.getItem()).build();
+
+        return itemStack;
     }
 
     private boolean isPlacedNextToShop(Location location) {
@@ -309,8 +311,8 @@ public class ShopManager {
         if (shopItem.getQuantity() <= 0) {
             clearSlot(slot);
         } else {
-            slotItem.offer(new ShopItemData(shopItem));
             slotItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
+            slotItem.offer(new ShopItemData(shopItem));
             slot.set(slotItem);
         }
     }
