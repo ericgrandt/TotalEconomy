@@ -114,10 +114,9 @@ public class ShopCommand implements CommandExecutor {
 
                                 removeItemsFromHand(player, quantity);
 
-                                // TODO: Create a helper function for this to avoid ugly blocks of code like this?
                                 Map<String, String> messageValues = new HashMap<>();
                                 messageValues.put("quantity", String.valueOf(quantity));
-                                messageValues.put("item", itemToStock.getItem().getName().split(":")[1]);
+                                messageValues.put("item", itemToStock.get(Keys.DISPLAY_NAME).orElse(Text.of(itemToStock.getTranslation())).toPlain().toLowerCase());
                                 messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
 
                                 player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
