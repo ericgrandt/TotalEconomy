@@ -12,7 +12,6 @@ import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.*;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.manipulator.mutable.item.BlockItemData;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -91,13 +90,10 @@ public class ShopManager {
                     TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                     if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
-                        ItemStack purchasedItem;
+                        removeShopItemData(clickedItem);
 
-                        if (clickedItem.get(BlockItemData.class).isPresent()) {
-                            purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).itemData(clickedItem.get(BlockItemData.class).get()).build();
-                        } else {
-                            purchasedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(1).build();
-                        }
+                        ItemStack purchasedItem = clickedItem.copy();
+                        purchasedItem.setQuantity(1);
 
                         Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
 
@@ -157,17 +153,15 @@ public class ShopManager {
 
                 if (player.getUniqueId().equals(shop.getOwner()) && shopItemOpt.isPresent()) {
                     ShopItem shopItem = shopItemOpt.get();
-                    ItemStack returnedItem;
 
                     for (SlotTransaction transaction : event.getTransactions()) {
                         transaction.setCustom(ItemStack.empty());
                     }
 
-                    if (clickedItem.get(BlockItemData.class).isPresent()) {
-                        returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).itemData(clickedItem.get(BlockItemData.class).get()).build();
-                    } else {
-                        returnedItem = ItemStack.builder().itemType(clickedItem.getItem()).quantity(shopItem.getQuantity()).build();
-                    }
+                    removeShopItemData(clickedItem);
+
+                    ItemStack returnedItem = clickedItem.copy();
+                    returnedItem.setQuantity(shopItem.getQuantity());
 
                     player.getInventory().offer(returnedItem);
 
@@ -259,6 +253,11 @@ public class ShopManager {
         if (blockType.equals(BlockTypes.CHEST) && isPlacedNextToShop(location)) {
             event.setCancelled(true);
         }
+    }
+
+    private void removeShopItemData(ItemStack itemStack) {
+        itemStack.remove(Keys.ITEM_LORE);
+        itemStack.remove(ShopKeys.SHOP_ITEM);
     }
 
     private boolean isPlacedNextToShop(Location location) {
