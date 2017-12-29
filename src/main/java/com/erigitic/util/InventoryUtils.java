@@ -52,14 +52,6 @@ public class InventoryUtils {
 
         ItemStack itemToRemove = itemStack.copy();
 
-        while (amount > 0) {
-            if (amount > itemToRemove.getMaxStackQuantity()) {
-                inventory.queryAny(itemToRemove).poll(itemToRemove.getMaxStackQuantity());
-                amount -= itemToRemove.getMaxStackQuantity();
-            } else {
-                inventory.queryAny(itemToRemove).poll(amount);
-                amount = 0;
-            }
-        }
+        inventory.queryAny(itemToRemove).poll(amount);
     }
 }
