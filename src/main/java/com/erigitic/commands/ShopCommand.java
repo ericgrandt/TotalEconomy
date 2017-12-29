@@ -134,6 +134,10 @@ public class ShopCommand implements CommandExecutor {
                         Inventory playerInventory = player.getInventory();
                         int itemAmountInInventory = InventoryUtils.getItemAmountInInventory(playerInventory, itemToStock);
 
+                        if (quantity > shopManager.getMaxStackSize()) {
+                            quantity = shopManager.getMaxStackSize();
+                        }
+
                         if (itemAmountInInventory >= quantity) {
                             if (shop.hasEmptySlot()) {
                                 InventoryUtils.removeItem(playerInventory, itemToStock, quantity);

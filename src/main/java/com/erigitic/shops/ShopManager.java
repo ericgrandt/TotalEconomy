@@ -76,15 +76,17 @@ public class ShopManager {
     private final double minPrice;
     private final double maxPrice;
     private final double chestShopPrice;
+    private final int maxStackSize;
 
     public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
         this.accountManager = accountManager;
         this.messageManager = messageManager;
 
-        minPrice = this.totalEconomy.getShopNode().getNode("min-item-price").getDouble();
-        maxPrice = this.totalEconomy.getShopNode().getNode("max-item-price").getDouble();
-        chestShopPrice = this.totalEconomy.getShopNode().getNode("chestshop", "price").getDouble();
+        minPrice = this.totalEconomy.getShopNode().getNode("min-item-price").getDouble(0);
+        maxPrice = this.totalEconomy.getShopNode().getNode("max-item-price").getDouble(1000000000);
+        chestShopPrice = this.totalEconomy.getShopNode().getNode("chestshop", "price").getDouble(1000);
+        maxStackSize = this.totalEconomy.getShopNode().getNode("chestshop", "max-stack").getInt(64);
     }
 
     /**
@@ -376,5 +378,9 @@ public class ShopManager {
 
     public double getChestShopPrice() {
         return chestShopPrice;
+    }
+
+    public int getMaxStackSize() {
+        return maxStackSize;
     }
 }
