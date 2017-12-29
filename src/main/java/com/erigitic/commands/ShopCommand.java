@@ -34,6 +34,7 @@ import com.erigitic.shops.ShopManager;
 import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
+import com.erigitic.util.InventoryUtils;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
@@ -52,6 +53,7 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
@@ -129,15 +131,18 @@ public class ShopCommand implements CommandExecutor {
                         int quantity = args.<Integer>getOne(Text.of("quantity")).get();
                         double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
 
-                        if (hasQuantity(itemToStock, quantity)) {
+                        Inventory playerInventory = player.getInventory();
+                        int itemAmountInInventory = InventoryUtils.getItemAmountInInventory(playerInventory, itemToStock);
+
+                        if (itemAmountInInventory >= quantity) {
                             if (shop.hasEmptySlot()) {
+                                InventoryUtils.removeItem(playerInventory, itemToStock, quantity);
+
                                 prepareItemStackForShop(itemToStock, quantity, price);
 
                                 shop.addItem(itemToStock);
 
                                 tileEntity.offer(new ShopData(shop));
-
-                                removeItemsFromHand(player, quantity);
 
                                 Map<String, String> messageValues = new HashMap<>();
                                 messageValues.put("quantity", String.valueOf(quantity));
@@ -156,23 +161,6 @@ public class ShopCommand implements CommandExecutor {
             }
 
             return CommandResult.success();
-        }
-
-        private boolean hasQuantity(ItemStack itemInHand, int quantity) {
-            if (itemInHand.getQuantity() >= quantity) {
-                return true;
-            }
-
-            return false;
-        }
-
-        private void removeItemsFromHand(Player player, int numItemsToRemove) {
-            ItemStack itemInHand = player.getItemInHand(HandTypes.MAIN_HAND).get();
-            int numItemsInHand = itemInHand.getQuantity();
-
-            itemInHand.setQuantity(numItemsInHand - numItemsToRemove);
-
-            player.setItemInHand(HandTypes.MAIN_HAND, itemInHand);
         }
 
         private void prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
