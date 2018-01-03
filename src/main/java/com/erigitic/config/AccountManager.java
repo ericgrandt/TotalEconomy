@@ -105,7 +105,7 @@ public class AccountManager implements EconomyService {
                 loader.save(accountConfig);
             }
         } catch (IOException e) {
-            logger.warn("[TE] Error creating accounts configuration file!");
+            logger.warn("Error creating accounts configuration file!");
         }
     }
 
@@ -165,9 +165,9 @@ public class AccountManager implements EconomyService {
     public void reloadConfig() {
         try {
             accountConfig = loader.load();
-            logger.info("[TE] Reloading account configuration file.");
+            logger.info("Reloading account configuration file.");
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while reloading the account configuration file!");
+            logger.warn("An error occurred while reloading the account configuration file!");
         }
     }
 
@@ -193,7 +193,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(playerAccount);
             }
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while creating a new account!");
+            logger.warn("An error occurred while creating a new account!");
         }
 
         return Optional.of(playerAccount);
@@ -220,7 +220,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(virtualAccount);
             }
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while creating a new virtual account!");
+            logger.warn("An error occurred while creating a new virtual account!");
         }
 
         return Optional.of(virtualAccount);
@@ -472,8 +472,8 @@ public class AccountManager implements EconomyService {
                     .build();
 
             if (sqlQuery.getRowsAffected() <= 0) {
-                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("[TE] An error occurred while updating the notification state in the database!");
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("An error occurred while updating the notification state in the database!");
             }
         } else {
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
@@ -481,8 +481,8 @@ public class AccountManager implements EconomyService {
             try {
                 loader.save(accountConfig);
             } catch (IOException e) {
-                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("[TE] An error occurred while updating the notification state!");
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("An error occurred while updating the notification state!");
             }
         }
 
@@ -511,7 +511,7 @@ public class AccountManager implements EconomyService {
         try {
             loader.save(accountConfig);
         } catch (IOException e) {
-            logger.error("[TE] An error occurred while saving the account configuration file!");
+            logger.error("An error occurred while saving the account configuration file!");
         }
     }
 
