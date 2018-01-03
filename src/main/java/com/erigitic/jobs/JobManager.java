@@ -66,6 +66,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.text.format.TextStyles;
 
 import java.io.File;
 import java.io.IOException;
@@ -593,11 +594,11 @@ public class JobManager {
         String lineTwoPlain = lineTwo.toPlain();
 
         if (lineOnePlain.equals("[TEJobs]")) {
-            lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
+            lineOne = lineOne.toBuilder().style(TextStyles.BOLD).color(TextColors.DARK_BLUE).build();
 
-            String jobName = lineTwoPlain.toLowerCase();
+            String jobName = titleize(lineTwoPlain);
             if (jobExists(lineTwoPlain)) {
-                lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
+                lineTwo = Text.of(jobName).toBuilder().color(TextColors.BLACK).build();
             } else {
                 lineTwo = Text.of(jobName).toBuilder().color(TextColors.RED).build();
             }
@@ -616,7 +617,7 @@ public class JobManager {
      * @param event InteractBlockEvent
      */
     @Listener
-    public void onSignInteract(InteractBlockEvent event) {
+    public void onSignInteract(InteractBlockEvent.Secondary event) {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
 
@@ -645,10 +646,10 @@ public class JobManager {
 
                                         player.sendMessage(messageManager.getMessage("jobs.sign", messageValues));
                                     } else {
-                                        player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to set job. Contact your administrator."));
+                                        player.sendMessage(Text.of(TextColors.RED, "Failed to set job. Contact your administrator."));
                                     }
                                 } else {
-                                    player.sendMessage(Text.of(TextColors.RED, "[TE] Sorry, this job does not exist"));
+                                    player.sendMessage(Text.of(TextColors.RED, "Sorry, this job does not exist"));
                                 }
                             }
                         }
