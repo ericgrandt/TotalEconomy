@@ -123,31 +123,31 @@ public class JobManager {
         Task.Builder payTask = scheduler.createTaskBuilder();
 
         payTask.execute(() -> {
-                for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
-                    Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
+            for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
+                Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
 
-                    if (!optJob.isPresent()) {
-                        player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
+                if (!optJob.isPresent()) {
+                    player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
 
-                        return;
-                    }
+                    return;
+                }
 
-                    if (optJob.get().salaryEnabled()) {
-                        BigDecimal salary = optJob.get().getSalary();
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                if (optJob.get().salaryEnabled()) {
+                    BigDecimal salary = optJob.get().getSalary();
+                    TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                    TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                        if (result.getResult() == ResultType.SUCCESS) {
-                            Map<String, String> messageValues = new HashMap<>();
-                            messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
+                    if (result.getResult() == ResultType.SUCCESS) {
+                        Map<String, String> messageValues = new HashMap<>();
+                        messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
 
-                            player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
-                        } else {
-                            player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
-                        }
+                        player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
+                    } else {
+                        player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                     }
                 }
+            }
         }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).name("Pay Day").submit(totalEconomy);
     }
 
@@ -301,7 +301,6 @@ public class JobManager {
 
         if (playerCurExp >= expToLevel) {
             playerLevel += 1;
-            playerCurExp -= expToLevel;
 
             Map<String, String> messageValues = new HashMap<>();
             messageValues.put("job", titleize(jobName));
@@ -538,8 +537,11 @@ public class JobManager {
         String jobName = getPlayerJob(user);
         int playerLevel = getJobLevel(jobName, user);
 
+        int nextLevel = playerLevel + 1;
+        int expToLevel = (int) ((Math.pow(nextLevel, 2) + nextLevel) / 2) * 100 - (nextLevel * 100);
+
         // TODO: Custom algorithm for this, set from config
-        return playerLevel * 100;
+        return expToLevel;
     }
 
     /**
