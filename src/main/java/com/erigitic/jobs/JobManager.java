@@ -79,7 +79,6 @@ public class JobManager {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private MessageManager messageManager;
-    private ConfigurationNode accountConfig;
     private Logger logger;
 
     private File jobSetsFile;
@@ -100,8 +99,6 @@ public class JobManager {
         this.accountManager = accountManager;
         this.messageManager = messageManager;
         this.logger = logger;
-
-        accountConfig = accountManager.getAccountConfig();
 
         databaseEnabled = totalEconomy.isDatabaseEnabled();
 
@@ -271,6 +268,8 @@ public class JobManager {
                 player.sendMessage(Text.of(TextColors.RED, "[TE] Error adding experience! Consult an administrator!"));
             }
         } else {
+            ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
             int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
 
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
@@ -324,6 +323,8 @@ public class JobManager {
                         .equals(playerUUID.toString())
                         .build();
             } else {
+                ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel);
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
             }
@@ -399,6 +400,8 @@ public class JobManager {
                 return false;
             }
         } else {
+            ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
             accountConfig.getNode(userUUID.toString(), "job").setValue(jobName);
 
             accountConfig.getNode(userUUID.toString(), "jobstats", jobName, "level").setValue(
@@ -446,6 +449,8 @@ public class JobManager {
 
             return sqlQuery.getString("unemployed").toLowerCase();
         } else {
+            ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
             return accountConfig.getNode(user.getUniqueId().toString(), "job").getString("unemployed").toLowerCase();
         }
     }
@@ -490,6 +495,8 @@ public class JobManager {
 
                 return sqlQuery.getInt(1);
             } else {
+                ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                 return accountConfig.getNode(user.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
             }
         }
@@ -521,6 +528,8 @@ public class JobManager {
 
                 return sqlQuery.getInt(0);
             } else {
+                ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                 return accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0);
             }
         }
@@ -800,6 +809,8 @@ public class JobManager {
                 }
 
                 if (reward.isPresent()) {
+                    ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = reward.get().getMoneyReward();
                     boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
@@ -875,6 +886,8 @@ public class JobManager {
                     }
 
                     if (reward.isPresent()) {
+                        ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
@@ -946,6 +959,8 @@ public class JobManager {
                     }
 
                     if (reward.isPresent()) {
+                        ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
