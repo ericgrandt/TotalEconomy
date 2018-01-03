@@ -27,8 +27,6 @@ package com.erigitic.jobs;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
-import com.erigitic.jobs.jobs.*;
-import com.erigitic.jobs.jobsets.*;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
@@ -76,23 +74,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class JobManager {
-
-    public final JobSet[] defaultJobSets = {
-            new FishermanJobSet(),
-            new LumberjackJobSet(),
-            new MinerJobSet(),
-            new WarriorJobSet(),
-            new FarmerJobSet()
-    };
-
-    private final Job[] defaultJobsArr = {
-            new UnemployedJob(),
-            new FishermanJob(),
-            new LumberjackJob(),
-            new MinerJob(),
-            new WarriorJob(),
-            new FarmerJob()
-    };
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
@@ -174,7 +155,7 @@ public class JobManager {
      * Setup the jobs config
      */
     public void setupConfig() {
-        jobSetsFile = new File(totalEconomy.getConfigDir(), "jobSets.conf");
+        jobSetsFile = new File(totalEconomy.getConfigDir(), "jobsets.conf");
         jobSetsLoader = HoconConfigurationLoader.builder().setFile(jobSetsFile).build();
         jobSets = new HashMap();
         reloadJobSetConfig();
@@ -190,16 +171,12 @@ public class JobManager {
      */
     public boolean reloadJobSetConfig() {
         try {
+            if (!jobSetsFile.exists()) {
+                totalEconomy.getPluginContainer().getAsset("jobsets.conf").get().copyToFile(jobSetsFile.toPath());
+            }
+
             jobSetsConfig = jobSetsLoader.load();
             ConfigurationNode sets = jobSetsConfig.getNode("sets");
-
-            if (!jobSetsFile.exists()) {
-                for (JobSet s : defaultJobSets) {
-                    s.populateNode(sets);
-                }
-
-                jobSetsLoader.save(jobSetsConfig);
-            }
 
             sets.getChildrenMap().forEach((setName, setNode) -> {
                 if (setNode != null) {
@@ -225,18 +202,12 @@ public class JobManager {
      */
     public boolean reloadJobsConfig() {
         try {
+            if (!jobsFile.exists()) {
+                totalEconomy.getPluginContainer().getAsset("jobs.conf").get().copyToFile(jobsFile.toPath());
+            }
+
             jobsConfig = jobsLoader.load();
             ConfigurationNode jobsNode = jobsConfig.getNode("jobs");
-
-            if (!jobsFile.exists()) {
-                for (Job j : defaultJobsArr) {
-                    j.populateNode(jobsNode);
-                }
-
-                jobsConfig.getNode("salarydelay").setValue(300);
-
-                jobsLoader.save(jobsConfig);
-            }
 
             // Loop through each job node in the configuration file, create a TEJob object from it, and store in a HashMap
             jobsNode.getChildrenMap().forEach((k, jobNode) -> {
