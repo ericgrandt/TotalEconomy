@@ -1,3 +1,9 @@
+v1.8.0
+
++ CHANGE: Rework job rewards
++ CHANGE: Change job sets file name from `jobSets` to `jobsets`
++ CHANGE: The `jobs` and `jobsets` configuration files are now copied from the resources folder instead of being created programmatically
+
 v1.7.0
 
 + Multi-Currency support
