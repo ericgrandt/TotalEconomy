@@ -66,6 +66,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.text.format.TextStyles;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,7 +79,6 @@ public class JobManager {
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private MessageManager messageManager;
-    private ConfigurationNode accountConfig;
     private Logger logger;
 
     private File jobSetsFile;
@@ -99,8 +99,6 @@ public class JobManager {
         this.accountManager = accountManager;
         this.messageManager = messageManager;
         this.logger = logger;
-
-        accountConfig = accountManager.getAccountConfig();
 
         databaseEnabled = totalEconomy.isDatabaseEnabled();
 
@@ -123,31 +121,31 @@ public class JobManager {
         Task.Builder payTask = scheduler.createTaskBuilder();
 
         payTask.execute(() -> {
-                for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
-                    Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
+            for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
+                Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
 
-                    if (!optJob.isPresent()) {
-                        player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
+                if (!optJob.isPresent()) {
+                    player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
 
-                        return;
-                    }
+                    return;
+                }
 
-                    if (optJob.get().salaryEnabled()) {
-                        BigDecimal salary = optJob.get().getSalary();
-                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                if (optJob.get().salaryEnabled()) {
+                    BigDecimal salary = optJob.get().getSalary();
+                    TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                        TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                    TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                        if (result.getResult() == ResultType.SUCCESS) {
-                            Map<String, String> messageValues = new HashMap<>();
-                            messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
+                    if (result.getResult() == ResultType.SUCCESS) {
+                        Map<String, String> messageValues = new HashMap<>();
+                        messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
 
-                            player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
-                        } else {
-                            player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
-                        }
+                        player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
+                    } else {
+                        player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
                     }
                 }
+            }
         }).delay(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).interval(jobsConfig.getNode("salarydelay").getInt(), TimeUnit.SECONDS).name("Pay Day").submit(totalEconomy);
     }
 
@@ -270,6 +268,8 @@ public class JobManager {
                 player.sendMessage(Text.of(TextColors.RED, "[TE] Error adding experience! Consult an administrator!"));
             }
         } else {
+            ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
             int curExp = accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt();
 
             accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(curExp + expAmount);
@@ -301,7 +301,6 @@ public class JobManager {
 
         if (playerCurExp >= expToLevel) {
             playerLevel += 1;
-            playerCurExp -= expToLevel;
 
             Map<String, String> messageValues = new HashMap<>();
             messageValues.put("job", titleize(jobName));
@@ -324,6 +323,8 @@ public class JobManager {
                         .equals(playerUUID.toString())
                         .build();
             } else {
+                ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel);
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
             }
@@ -399,6 +400,8 @@ public class JobManager {
                 return false;
             }
         } else {
+            ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
             accountConfig.getNode(userUUID.toString(), "job").setValue(jobName);
 
             accountConfig.getNode(userUUID.toString(), "jobstats", jobName, "level").setValue(
@@ -446,6 +449,8 @@ public class JobManager {
 
             return sqlQuery.getString("unemployed").toLowerCase();
         } else {
+            ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
             return accountConfig.getNode(user.getUniqueId().toString(), "job").getString("unemployed").toLowerCase();
         }
     }
@@ -490,6 +495,8 @@ public class JobManager {
 
                 return sqlQuery.getInt(1);
             } else {
+                ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                 return accountConfig.getNode(user.getUniqueId().toString(), "jobstats", jobName, "level").getInt(1);
             }
         }
@@ -521,6 +528,8 @@ public class JobManager {
 
                 return sqlQuery.getInt(0);
             } else {
+                ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                 return accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").getInt(0);
             }
         }
@@ -538,8 +547,11 @@ public class JobManager {
         String jobName = getPlayerJob(user);
         int playerLevel = getJobLevel(jobName, user);
 
+        int nextLevel = playerLevel + 1;
+        int expToLevel = (int) ((Math.pow(nextLevel, 2) + nextLevel) / 2) * 100 - (nextLevel * 100);
+
         // TODO: Custom algorithm for this, set from config
-        return playerLevel * 100;
+        return expToLevel;
     }
 
     /**
@@ -591,11 +603,11 @@ public class JobManager {
         String lineTwoPlain = lineTwo.toPlain();
 
         if (lineOnePlain.equals("[TEJobs]")) {
-            lineOne = lineOne.toBuilder().color(TextColors.GOLD).build();
+            lineOne = lineOne.toBuilder().style(TextStyles.BOLD).color(TextColors.DARK_BLUE).build();
 
-            String jobName = lineTwoPlain.toLowerCase();
+            String jobName = titleize(lineTwoPlain);
             if (jobExists(lineTwoPlain)) {
-                lineTwo = Text.of(jobName).toBuilder().color(TextColors.GRAY).build();
+                lineTwo = Text.of(jobName).toBuilder().color(TextColors.BLACK).build();
             } else {
                 lineTwo = Text.of(jobName).toBuilder().color(TextColors.RED).build();
             }
@@ -614,7 +626,7 @@ public class JobManager {
      * @param event InteractBlockEvent
      */
     @Listener
-    public void onSignInteract(InteractBlockEvent event) {
+    public void onSignInteract(InteractBlockEvent.Secondary event) {
         if (event.getCause().first(Player.class).isPresent()) {
             Player player = event.getCause().first(Player.class).get();
 
@@ -643,10 +655,10 @@ public class JobManager {
 
                                         player.sendMessage(messageManager.getMessage("jobs.sign", messageValues));
                                     } else {
-                                        player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to set job. Contact your administrator."));
+                                        player.sendMessage(Text.of(TextColors.RED, "Failed to set job. Contact your administrator."));
                                     }
                                 } else {
-                                    player.sendMessage(Text.of(TextColors.RED, "[TE] Sorry, this job does not exist"));
+                                    player.sendMessage(Text.of(TextColors.RED, "Sorry, this job does not exist"));
                                 }
                             }
                         }
@@ -797,6 +809,8 @@ public class JobManager {
                 }
 
                 if (reward.isPresent()) {
+                    ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = reward.get().getMoneyReward();
                     boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
@@ -872,6 +886,8 @@ public class JobManager {
                     }
 
                     if (reward.isPresent()) {
+                        ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
@@ -943,6 +959,8 @@ public class JobManager {
                     }
 
                     if (reward.isPresent()) {
+                        ConfigurationNode accountConfig = accountManager.getAccountConfig();
+
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = reward.get().getMoneyReward();
                         boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
