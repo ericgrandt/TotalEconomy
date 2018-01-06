@@ -194,7 +194,7 @@ public class ShopCommand implements CommandExecutor {
 
         public CommandSpec getCommandSpec() {
             return CommandSpec.builder()
-                    .description(Text.of("Buy a shop"))
+                    .description(Text.of("Buy a chest shop"))
                     .permission("totaleconomy.command.shop.buy")
                     .executor(this)
                     .build();
