@@ -247,10 +247,10 @@ public class ShopCommand implements CommandExecutor {
                                 } else { // Chest is not empty
                                     throw new CommandException(messageManager.getMessage("command.shop.buy.notempty"));
                                 }
-                            } else { // Chest was placed by someone other then the player executing the command
+                            } else { // Chest was placed by someone other than the player executing the command
                                 throw new CommandException(messageManager.getMessage("command.shop.buy.notowner"));
                             }
-                        } else { // Chest was placed by someone other then the player executing the command
+                        } else { // Chest was placed by someone other than the player executing the command
                             throw new CommandException(messageManager.getMessage("command.shop.buy.notowner"));
                         }
                     } else { // Chest has already been purchased
