@@ -90,11 +90,11 @@ public class ShopManager {
     }
 
     /**
-     * Handles a user left clicking (purchasing) an item from a shop.
+     * Handles a user purchasing an item from a shop.
      *
-     * @param event
+     * @param event Primary (Left mouse) click inventory
      * @param player The player clicking within an inventory
-     * @param inventory The inventory being clicked
+     * @param inventory The inventory being interacted with
      */
     @Listener
     @Exclude(ClickInventoryEvent.Shift.class)
@@ -149,6 +149,12 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Prevents right clicking items within a shop.
+     *
+     * @param event Secondary (Right mouse) click inventory
+     * @param player The player clicking within an inventory
+     */
     @Listener
     public void onShopSecondaryClick(ClickInventoryEvent.Secondary event, @First Player player) {
         Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
@@ -165,6 +171,14 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Handles removing items from a shop. Items will be removed if the shop owner shift clicks them, otherwise
+     * the event will be canceled.
+     *
+     * @param event Shift click inventory
+     * @param player The player shift clicking within an inventory
+     * @param inventory The inventory being interacted with
+     */
     @Listener
     public void onShiftClickInventory(ClickInventoryEvent.Shift event, @First Player player, @Getter("getTargetInventory") Inventory inventory) {
         Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
@@ -200,6 +214,12 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Prevents shop items from being swapped to hotbar slots when number keys are pressed.
+     *
+     * @param event Number press within inventory
+     * @param player The player interacting with the inventory
+     */
     @Listener
     public void onInventoryNumberPress(ClickInventoryEvent.NumberPress event, @First Player player) {
         Optional<TileEntity> tileEntityOpt = getTileEntityFromPlayerRaycast(player);
@@ -213,6 +233,12 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Handles the creation and opening of a chest shop's inventory.
+     *
+     * @param event Open inventory
+     * @param player The player opening the inventory
+     */
     @Listener
     public void onInventoryOpen(InteractInventoryEvent.Open event, @First Player player) {
         Optional<BlockSnapshot> blockSnapshotOpt = event.getCause().get("HitTarget", BlockSnapshot.class);
@@ -245,6 +271,12 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Handles a chest shop being destroyed.
+     *
+     * @param event Break block
+     * @param player The player who broke the block
+     */
     @Listener
     public void onShopDestroy(ChangeBlockEvent.Break event, @First Player player) {
         BlockSnapshot blockSnapshot = event.getTransactions().get(0).getOriginal();
@@ -267,6 +299,11 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Prevents chests from being placed next to chest shops.
+     *
+     * @param event Place block
+     */
     @Listener
     public void onChestPlace(ChangeBlockEvent.Place event) {
         BlockSnapshot blockSnapshot = event.getTransactions().get(0).getDefault();
@@ -278,6 +315,12 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Removes ShopItemData from an ItemStack.
+     *
+     * @param itemStack The ItemStack to remove ShopItemData from
+     * @return ItemStack An ItemStack with ShopItemData removed
+     */
     private ItemStack removeShopItemData(ItemStack itemStack) {
         itemStack.remove(Keys.ITEM_LORE);
         itemStack.remove(ShopKeys.SHOP_ITEM);
@@ -289,6 +332,12 @@ public class ShopManager {
         return itemStack;
     }
 
+    /**
+     * Checks if a location is adjacent to a chest shop.
+     *
+     * @param location The location to check for adjacent chest shops
+     * @return boolean If the location is adjacent to a chest shop
+     */
     private boolean isPlacedNextToShop(Location location) {
         boolean isPlacedNextToShop = false;
 
@@ -316,6 +365,12 @@ public class ShopManager {
         return isPlacedNextToShop;
     }
 
+    /**
+     * Gets a list of ItemStacks from a shop's inventory
+     *
+     * @param inventory The inventory to get the shop's stock from
+     * @return List A list of ItemStacks in a shop's stock
+     */
     private List<ItemStack> getShopStockFromInventory(Inventory inventory) {
         List<ItemStack> stock = new ArrayList<>();
 
@@ -334,6 +389,13 @@ public class ShopManager {
         return stock;
     }
 
+    /**
+     * Updates a shop item within a slot.
+     *
+     * @param shopItem The ShopItem in the slot
+     * @param slot The slot to update
+     * @param slotItem The item in the slot
+     */
     private void updateItemInSlot(ShopItem shopItem, Slot slot, ItemStack slotItem) {
         if (shopItem.getQuantity() <= 0) {
             clearSlot(slot);
@@ -348,21 +410,17 @@ public class ShopManager {
         slot.set(ItemStack.empty());
     }
 
+    /**
+     * Gets a TileEntity from a chest that a player is looking at.
+     *
+     * @param player The player to get a raycast from
+     * @return Optional The tile entity the player is looking at
+     */
     public Optional<TileEntity> getTileEntityFromPlayerRaycast(Player player) {
         Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
 
         if (optHit.isPresent()) {
             return optHit.get().getLocation().getTileEntity();
-        }
-
-        return Optional.empty();
-    }
-
-    public Optional<BlockSnapshot> getBlockSnapshotFromPlayerRaycast(Player player) {
-        Optional<BlockRayHit<World>> optHit = BlockRay.from(player).skipFilter(BlockRay.blockTypeFilter(BlockTypes.CHEST)).distanceLimit(3).build().end();
-
-        if (optHit.isPresent()) {
-            return Optional.of(optHit.get().getLocation().createSnapshot());
         }
 
         return Optional.empty();
