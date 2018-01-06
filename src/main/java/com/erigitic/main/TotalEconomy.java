@@ -176,27 +176,7 @@ public class TotalEconomy {
 
     @Listener
     public void init(GameInitializationEvent event) {
-        DataManager dm = Sponge.getDataManager();
-
-        dm.registerBuilder(Shop.class, new Shop.Builder());
-        dm.registerBuilder(ShopItem.class, new ShopItem.Builder());
-
-        DataRegistration.builder()
-                .dataClass(ShopData.class)
-                .immutableClass(ImmutableShopData.class)
-                .builder(new ShopData.Builder())
-                .manipulatorId("shop")
-                .dataName("shop")
-                .buildAndRegister(pluginContainer);
-
-        DataRegistration.builder()
-                .dataClass(ShopItemData.class)
-                .immutableClass(ImmutableShopItemData.class)
-                .builder(new ShopItemData.Builder())
-                .manipulatorId("shopitem")
-                .dataName("shopitem")
-                .buildAndRegister(pluginContainer);
-
+        createAndRegisterData();
         createAndRegisterCommands();
         registerListeners();
     }
@@ -261,6 +241,32 @@ public class TotalEconomy {
         } catch (IOException e) {
             logger.warn("[TE] Main configuration file could not be loaded/created/changed!");
         }
+    }
+
+    /**
+     * Create and register custom data
+     */
+    private void createAndRegisterData() {
+        DataManager dm = Sponge.getDataManager();
+
+        dm.registerBuilder(Shop.class, new Shop.Builder());
+        dm.registerBuilder(ShopItem.class, new ShopItem.Builder());
+
+        DataRegistration.builder()
+                .dataClass(ShopData.class)
+                .immutableClass(ImmutableShopData.class)
+                .builder(new ShopData.Builder())
+                .manipulatorId("shop")
+                .dataName("shop")
+                .buildAndRegister(pluginContainer);
+
+        DataRegistration.builder()
+                .dataClass(ShopItemData.class)
+                .immutableClass(ImmutableShopItemData.class)
+                .builder(new ShopItemData.Builder())
+                .manipulatorId("shopitem")
+                .dataName("shopitem")
+                .buildAndRegister(pluginContainer);
     }
 
     /**
