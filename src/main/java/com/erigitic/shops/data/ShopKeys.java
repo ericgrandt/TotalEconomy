@@ -25,6 +25,7 @@
 
 package com.erigitic.shops.data;
 
+import com.erigitic.shops.PlayerShopInfo;
 import com.erigitic.shops.Shop;
 import com.erigitic.shops.ShopItem;
 import com.google.common.reflect.TypeToken;
@@ -49,5 +50,13 @@ public class ShopKeys {
             DataQuery.of("shopitem"),
             "totaleconomy:shopitem",
             "shopitem"
+    );
+
+    public static Key<Value<PlayerShopInfo>> PLAYER_SHOP_INFO = KeyFactory.makeSingleKey(
+            TypeToken.of(PlayerShopInfo.class),
+            new TypeToken<Value<PlayerShopInfo>>() {},
+            DataQuery.of("playershopinfo"),
+            "totaleconomy:playershopinfo",
+            "playershopinfo"
     );
 }
