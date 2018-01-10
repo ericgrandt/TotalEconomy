@@ -31,10 +31,7 @@ import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.JobManager;
 import com.erigitic.shops.*;
-import com.erigitic.shops.data.ImmutableShopData;
-import com.erigitic.shops.data.ImmutableShopItemData;
-import com.erigitic.shops.data.ShopData;
-import com.erigitic.shops.data.ShopItemData;
+import com.erigitic.shops.data.*;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
@@ -69,7 +66,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.0-dev.4", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id="totaleconomy", name="Total Economy", version="1.8.0-dev.5", description="All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -212,6 +209,8 @@ public class TotalEconomy {
         Player player = event.getTargetEntity();
 
         accountManager.getOrCreateAccount(player.getUniqueId());
+
+        checkForAndRemovePlayerShopInfoData(player);
     }
 
     /**
@@ -229,7 +228,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Setup the default config file, totaleconomy.conf.
+     * Load the default config file, totaleconomy.conf.
      */
     private void loadConfig() {
         try {
@@ -251,6 +250,7 @@ public class TotalEconomy {
 
         dm.registerBuilder(Shop.class, new Shop.Builder());
         dm.registerBuilder(ShopItem.class, new ShopItem.Builder());
+        dm.registerBuilder(PlayerShopInfo.class, new PlayerShopInfo.Builder());
 
         DataRegistration.builder()
                 .dataClass(ShopData.class)
@@ -266,6 +266,14 @@ public class TotalEconomy {
                 .builder(new ShopItemData.Builder())
                 .manipulatorId("shopitem")
                 .dataName("shopitem")
+                .buildAndRegister(pluginContainer);
+
+        DataRegistration.builder()
+                .dataClass(PlayerShopInfoData.class)
+                .immutableClass(ImmutablePlayerShopInfoData.class)
+                .builder(new PlayerShopInfoData.Builder())
+                .manipulatorId("playershopinfo")
+                .dataName("playershopinfo")
                 .buildAndRegister(pluginContainer);
     }
 
@@ -401,6 +409,14 @@ public class TotalEconomy {
         chestShopEnabled = config.getNode("features", "shops", "chestshop", "enable").getBoolean();
     }
 
+    private void checkForAndRemovePlayerShopInfoData(Player player) {
+        Optional<PlayerShopInfo> playerShopInfoOpt = player.get(ShopKeys.PLAYER_SHOP_INFO);
+
+        if (playerShopInfoOpt.isPresent()) {
+            player.remove(ShopKeys.PLAYER_SHOP_INFO);
+        }
+    }
+
     public ConfigurationNode getShopNode() {
         return config.getNode("features", "shops");
     }
@@ -456,5 +472,4 @@ public class TotalEconomy {
     public String getDatabasePassword() { return databasePassword; }
 
     public SQLManager getSqlManager() { return sqlManager; }
-
 }

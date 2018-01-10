@@ -55,9 +55,12 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextStyles;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -93,6 +96,16 @@ public class ShopCommand implements CommandExecutor {
         return CommandResult.success();
     }
 
+    private boolean isTileEntityAChest(TileEntity tileEntity) {
+        BlockType blockType = tileEntity.getBlock().getType();
+
+        if (blockType == BlockTypes.CHEST) {
+            return true;
+        }
+
+        return false;
+    }
+
     private class Stock implements CommandExecutor {
 
         public Stock() {
@@ -119,46 +132,50 @@ public class ShopCommand implements CommandExecutor {
 
             if (tileEntityOpt.isPresent()) {
                 TileEntity tileEntity = tileEntityOpt.get();
-                Optional<Shop> shopOpt = tileEntity.get(ShopKeys.SINGLE_SHOP);
 
-                if (shopOpt.isPresent()) {
-                    Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
+                if (isTileEntityAChest(tileEntity)) {
+                    Chest chest = (Chest) tileEntity;
+                    Optional<Shop> shopOpt = chest.get(ShopKeys.SINGLE_SHOP);
 
-                    if (itemInHandOpt.isPresent()) {
+                    if (shopOpt.isPresent()) {
                         Shop shop = shopOpt.get();
-                        ItemStack itemToStock = itemInHandOpt.get().copy();
+                        Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
 
-                        int quantity = args.<Integer>getOne(Text.of("quantity")).get();
-                        double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
+                        if (itemInHandOpt.isPresent()) {
+                            ItemStack itemInHand = itemInHandOpt.get().copy();
 
-                        Inventory playerInventory = player.getInventory();
-                        int itemAmountInInventory = InventoryUtils.getItemAmountInInventory(playerInventory, itemToStock);
+                            int quantity = args.<Integer>getOne(Text.of("quantity")).get();
+                            double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
 
-                        if (quantity > shopManager.getMaxStackSize()) {
-                            quantity = shopManager.getMaxStackSize();
-                        }
+                            Inventory playerInventory = player.getInventory();
+                            int itemAmountInInventory = InventoryUtils.getItemAmountInInventory(playerInventory, itemInHand);
 
-                        if (itemAmountInInventory >= quantity) {
-                            if (shop.hasEmptySlot()) {
-                                InventoryUtils.removeItem(playerInventory, itemToStock, quantity);
-
-                                prepareItemStackForShop(itemToStock, quantity, price);
-
-                                shop.addItem(itemToStock);
-
-                                tileEntity.offer(new ShopData(shop));
-
-                                Map<String, String> messageValues = new HashMap<>();
-                                messageValues.put("quantity", String.valueOf(quantity));
-                                messageValues.put("item", itemToStock.get(Keys.DISPLAY_NAME).orElse(Text.of(itemToStock.getTranslation())).toPlain());
-                                messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
-
-                                player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
-                            } else {
-                                throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.noslots")));
+                            if (quantity > shopManager.getMaxStackSize()) {
+                                quantity = shopManager.getMaxStackSize();
                             }
-                        } else {
-                            throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.insufficientitems")));
+
+                            if (itemAmountInInventory >= quantity) {
+                                ItemStack preparedItem = prepareItemStackForShop(itemInHand, quantity, price);
+
+                                Collection<ItemStackSnapshot> rejectedItems = chest.getInventory().offer(preparedItem.copy()).getRejectedItems();
+
+                                if (rejectedItems.size() <= 0) {
+                                    InventoryUtils.removeItem(playerInventory, itemInHand, quantity);
+
+                                    shop.setCapacity(shop.getCapacity() + 1);
+
+                                    Map<String, String> messageValues = new HashMap<>();
+                                    messageValues.put("quantity", String.valueOf(quantity));
+                                    messageValues.put("item", preparedItem.get(Keys.DISPLAY_NAME).orElse(Text.of(preparedItem.getTranslation())).toPlain());
+                                    messageValues.put("price", totalEconomy.getDefaultCurrency().format(BigDecimal.valueOf(price), 2).toPlain());
+
+                                    player.sendMessage(messageManager.getMessage("command.shop.stock.success", messageValues));
+                                } else {
+                                    throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.noslots")));
+                                }
+                            } else {
+                                throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.insufficientitems")));
+                            }
                         }
                     }
                 }
@@ -167,12 +184,23 @@ public class ShopCommand implements CommandExecutor {
             return CommandResult.success();
         }
 
-        private void prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
+        /**
+         * Prepares an ItemStack to be stocked in a shop. Sets the quantity to 1, adds lore, and adds ShopItemData.
+         *
+         * @param itemStack The ItemStack to prepare
+         * @param quantity The quantity being stocked
+         * @param price The price of the ItemStack being stocked
+         * @return ItemStack An ItemStack that is prepared to be stocked in a shop
+         */
+        private ItemStack prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
             ShopItem shopItem = new ShopItem(quantity, price);
+            ItemStack preparedItem = itemStack.copy();
 
-            itemStack.setQuantity(1);
-            itemStack.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
-            itemStack.offer(new ShopItemData(shopItem));
+            preparedItem.setQuantity(1);
+            preparedItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
+            preparedItem.offer(new ShopItemData(shopItem));
+
+            return preparedItem;
         }
 
         private double clampPrice(double price, double minValue, double maxValue) {
@@ -233,9 +261,10 @@ public class ShopCommand implements CommandExecutor {
                                     );
 
                                     if (transactionResult.getResult().equals(ResultType.SUCCESS)) {
-                                        ShopData shopData = createShopDataFromPlayer(player);
+                                        Shop shop = createShopFromPlayer(player);
 
-                                        chest.offer(shopData);
+                                        chest.offer(Keys.DISPLAY_NAME, Text.of(TextStyles.BOLD, TextColors.BLUE, shop.getTitle()));
+                                        chest.offer(new ShopData(shop));
 
                                         player.sendMessage(messageManager.getMessage("command.shop.buy.success"));
                                     } else {
@@ -262,16 +291,6 @@ public class ShopCommand implements CommandExecutor {
             return CommandResult.success();
         }
 
-        private boolean isTileEntityAChest(TileEntity tileEntity) {
-            BlockType blockType = tileEntity.getBlock().getType();
-
-            if (blockType == BlockTypes.CHEST) {
-                return true;
-            }
-
-            return false;
-        }
-
         private boolean isChestEmpty(Chest chest) {
             int totalItems = chest.getInventory().totalItems();
 
@@ -282,12 +301,10 @@ public class ShopCommand implements CommandExecutor {
             return false;
         }
 
-        private ShopData createShopDataFromPlayer(Player player) {
-            List<ItemStack> stock = new ArrayList<>();
+        private Shop createShopFromPlayer(Player player) {
+            Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", 0);
 
-            Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", stock);
-
-            return new ShopData(shop);
+            return shop;
         }
     }
 }

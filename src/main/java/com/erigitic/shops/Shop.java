@@ -26,14 +26,10 @@
 package com.erigitic.shops;
 
 import com.erigitic.shops.data.ShopData;
-import com.erigitic.shops.data.ShopItemData;
 import org.spongepowered.api.data.*;
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
-import org.spongepowered.api.item.inventory.ItemStack;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,18 +37,16 @@ public class Shop implements DataSerializable {
 
     public static final DataQuery OWNER_QUERY = DataQuery.of("Owner");
     public static final DataQuery TITLE_QUERY = DataQuery.of("Title");
-    public static final DataQuery STOCK_QUERY = DataQuery.of("Stock");
-
-    private final int MAX_STOCK = 27;
+    public static final DataQuery CAPACITY_QUERY = DataQuery.of("Capacity");
 
     private UUID owner;
     private String title;
-    private List<ItemStack> stock;
+    private int capacity;
 
-    public Shop(UUID owner, String title, List<ItemStack> stock) {
+    public Shop(UUID owner, String title, int capacity) {
         this.owner = owner;
         this.title = title;
-        this.stock = stock;
+        this.capacity = capacity;
     }
 
     public UUID getOwner() {
@@ -67,24 +61,12 @@ public class Shop implements DataSerializable {
         this.title = title;
     }
 
-    public List<ItemStack> getStock() {
-        return stock;
+    public int getCapacity() {
+        return capacity;
     }
 
-    public void setStock(List<ItemStack> stock) {
-        this.stock = stock;
-    }
-
-    public void addItem(ItemStack itemToAdd) {
-        stock.add(itemToAdd);
-    }
-
-    public boolean hasEmptySlot() {
-        if (stock.size() < MAX_STOCK) {
-            return true;
-        }
-
-        return false;
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     @Override
@@ -97,7 +79,7 @@ public class Shop implements DataSerializable {
         return DataContainer.createNew()
                 .set(OWNER_QUERY, getOwner())
                 .set(TITLE_QUERY, getTitle())
-                .set(STOCK_QUERY, getStock())
+                .set(CAPACITY_QUERY, getCapacity())
                 .set(Queries.CONTENT_VERSION, ShopData.CONTENT_VERSION);
     }
 
@@ -109,12 +91,12 @@ public class Shop implements DataSerializable {
 
         @Override
         public Optional<Shop> buildContent(DataView container) throws InvalidDataException {
-            if (container.contains(Shop.OWNER_QUERY, Shop.TITLE_QUERY, Shop.STOCK_QUERY)) {
+            if (container.contains(Shop.OWNER_QUERY, Shop.TITLE_QUERY, Shop.CAPACITY_QUERY)) {
                 UUID owner = container.getObject(Shop.OWNER_QUERY, UUID.class).get();
                 String title = container.getString(Shop.TITLE_QUERY).get();
-                List<ItemStack> stock = container.getSerializableList(Shop.STOCK_QUERY, ItemStack.class).get();
+                int capacity = container.getInt(Shop.CAPACITY_QUERY).get();
 
-                return Optional.of(new Shop(owner, title, stock));
+                return Optional.of(new Shop(owner, title, capacity));
             }
 
             return Optional.empty();
