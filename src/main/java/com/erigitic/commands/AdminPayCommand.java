@@ -26,7 +26,6 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;

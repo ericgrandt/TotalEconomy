@@ -2,10 +2,7 @@ package com.erigitic.config.account;
 
 import com.erigitic.config.TEEconomyTransactionEvent;
 import com.erigitic.config.TETransactionResult;
-import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLManager;
-import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.cause.Cause;
@@ -27,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created by MarkL4YG on 08-Jan-18
@@ -36,8 +34,8 @@ public class TESqlAccount extends TEAccountBase {
     protected Logger logger;
     protected DataSource dataSource;
 
-    public TESqlAccount(TotalEconomy totalEconomy, Logger logger, DataSource dataSource) {
-        super(totalEconomy);
+    public TESqlAccount(TotalEconomy totalEconomy, Logger logger, DataSource dataSource, UUID uniqueID) {
+        super(totalEconomy, uniqueID);
         this.logger = logger;
         this.dataSource = dataSource;
     }
@@ -54,7 +52,7 @@ public class TESqlAccount extends TEAccountBase {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         try (Statement statement = dataSource.getConnection().createStatement()) {
-            String query = "SELECT `balance` FROM accounts WHERE `uid` = :account_uid AND `currency` = :currency_name";
+            String query = "SELECT `balance` FROM balances WHERE `uid` = :account_uid AND `currency` = :currency_name";
             query = query.replaceAll(":currency_name", currencyName);
             query = query.replaceAll(":account_uid", getUniqueId().toString());
 
@@ -80,7 +78,7 @@ public class TESqlAccount extends TEAccountBase {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         try (Statement statement = dataSource.getConnection().createStatement()) {
-            String query = "SELECT `balance` FROM accounts WHERE `uid` = :account_uid AND `currency` = :currency_name";
+            String query = "SELECT `balance` FROM balances WHERE `uid` = :account_uid AND `currency` = :currency_name";
             query = query.replaceAll(":currency_name", currencyName);
             query = query.replaceAll(":account_uid", getUniqueId().toString());
 
@@ -126,7 +124,7 @@ public class TESqlAccount extends TEAccountBase {
             boolean successful = false;
 
             try (Statement statement = dataSource.getConnection().createStatement()) {
-                String query = "UPDATE `accounts` SET `balance` = :balance WHERE `uid` = :account_uid AND `currency` = :currency_name";
+                String query = "UPDATE balances SET `balance` = :balance WHERE `uid` = :account_uid AND `currency` = :currency_name";
                 query = query.replaceAll(":currency_name", currencyName);
                 query = query.replaceAll(":account_uid", getUniqueId().toString());
                 query = query.replaceAll(":balance", amount.toString());
@@ -152,11 +150,10 @@ public class TESqlAccount extends TEAccountBase {
             boolean successful = false;
 
             try (Statement statement = dataSource.getConnection().createStatement()) {
-                String query = "INSERT INTO `accounts` (`uid`, `currency`, `balance`, `displayname`) VALUES(:account_uid, :currency, :balance, :displayname)";
+                String query = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES(:account_uid, :currency, :balance)";
                 query = query.replaceAll(":currency_name", currencyName);
                 query = query.replaceAll(":account_uid", getUniqueId().toString());
                 query = query.replaceAll(":balance", amount.toString());
-                query = query.replaceAll(":displayname", isVirtual() ? "NULL" : getDisplayName().toPlain());
 
                 statement.executeUpdate(query);
                 successful = statement.getUpdateCount() == 1;

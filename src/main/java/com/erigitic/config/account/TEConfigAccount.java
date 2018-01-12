@@ -20,6 +20,7 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created by MarkL4YG on 08-Jan-18
@@ -28,8 +29,8 @@ public class TEConfigAccount extends TEAccountBase {
 
     private ConfigurationNode accountNode;
 
-    public TEConfigAccount(TotalEconomy totalEconomy, ConfigurationNode accountNode) {
-        super(totalEconomy);
+    public TEConfigAccount(TotalEconomy totalEconomy, ConfigurationNode accountNode, UUID uniqueID) {
+        super(totalEconomy, uniqueID);
         this.accountNode = accountNode;
     }
 

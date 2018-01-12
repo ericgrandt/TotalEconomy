@@ -30,7 +30,7 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.JobManager;
-import com.erigitic.sql.SQLManager;
+import com.erigitic.sql.SqlManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -56,10 +56,12 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Locale;
 
 @Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.1", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
@@ -90,7 +92,7 @@ public class TotalEconomy {
     private ConfigurationNode config;
 
     private TECurrency defaultCurrency;
-    private SQLManager sqlManager;
+    private SqlManager sqlManager;
     private AccountManager accountManager;
     private JobManager jobManager;
     private MessageManager messageManager;
@@ -139,7 +141,8 @@ public class TotalEconomy {
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
 
-            sqlManager = new SQLManager(this, logger);
+            sqlManager = new SqlManager(logger);
+            sqlManager.initDataSource(databaseUrl, databaseUser, databasePassword);
         }
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
@@ -148,7 +151,7 @@ public class TotalEconomy {
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
 
-        // Only create JobManager
+        // Only create JobManager when jobs are enabled
         if (jobFeatureEnabled) {
             jobManager = new JobManager(this, accountManager, messageManager, logger);
         }
@@ -163,6 +166,11 @@ public class TotalEconomy {
 
     @Listener
     public void init(GameInitializationEvent event) {
+
+        if (databaseEnabled) {
+            sqlManager.initDatabase(this);
+        }
+
         createAndRegisterCommands();
         registerListeners();
     }
@@ -170,6 +178,9 @@ public class TotalEconomy {
     @Listener
     public void postInit(GamePostInitializationEvent event) {
 
+        if (databaseEnabled) {
+            sqlManager.postInitDatabase(jobManager);
+        }
     }
 
     @Listener
@@ -355,6 +366,14 @@ public class TotalEconomy {
         return currencies;
     }
 
+    public AccountManager getAccountManager() {
+        return accountManager;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
     public JobManager getJobManager() {
         return jobManager;
     }
@@ -385,6 +404,10 @@ public class TotalEconomy {
 
     public boolean isJobNotificationEnabled() { return jobNotificationEnabled; }
 
+    public void requestAccountConfigurationSave() {
+        accountManager.requestConfigurationSave();
+    }
+
     public int getSaveInterval() {
         return saveInterval;
     }
@@ -401,6 +424,7 @@ public class TotalEconomy {
 
     public String getDatabasePassword() { return databasePassword; }
 
-    public SQLManager getSqlManager() { return sqlManager; }
-
+    public SqlManager getSqlManager() {
+        return sqlManager;
+    }
 }

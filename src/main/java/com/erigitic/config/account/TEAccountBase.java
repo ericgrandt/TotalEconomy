@@ -29,11 +29,11 @@ public abstract class TEAccountBase implements UniqueAccount {
 
     /**
      * Constructor for the TEAccount base class. Manages a unique account, identified by a {@link UUID}, that contains balances for each {@link Currency}.
-     * Remember to set the unique ID with {@link #setUniqueID(UUID)} after initialization!
      * @param totalEconomy Main plugin class
      */
-    public TEAccountBase(TotalEconomy totalEconomy) {
+    public TEAccountBase(TotalEconomy totalEconomy, UUID uniqueID) {
         this.totalEconomy = totalEconomy;
+        this.uniqueID = uniqueID;
     }
 
     /**
@@ -102,10 +102,6 @@ public abstract class TEAccountBase implements UniqueAccount {
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transferResult));
 
         return transferResult;
-    }
-
-    protected void setUniqueID(UUID uniqueID) {
-        this.uniqueID = uniqueID;
     }
 
     @Override
@@ -197,7 +193,7 @@ public abstract class TEAccountBase implements UniqueAccount {
         BigDecimal curBalance = getBalance(currency, contexts);
         BigDecimal newBalance = curBalance.add(amount);
 
-        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        return setBalance(currency, newBalance, cause);
     }
 
     @Override
