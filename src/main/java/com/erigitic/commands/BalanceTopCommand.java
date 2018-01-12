@@ -26,6 +26,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -72,7 +73,7 @@ public class BalanceTopCommand implements CommandExecutor {
                 return;
             }
 
-            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
+            TEAccountBase playerAccount = (TEAccountBase) accountManager.getOrCreateAccount(uuid).get();
             Text playerName = playerAccount.getDisplayName();
 
             accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(defaultCurrency));

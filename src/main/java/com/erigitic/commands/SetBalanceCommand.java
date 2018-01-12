@@ -26,6 +26,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
@@ -74,7 +75,7 @@ public class SetBalanceCommand implements CommandExecutor {
 
         if (m.matches()) {
             BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
-            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            TEAccountBase recipientAccount = (TEAccountBase) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
             TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, optCurrencyName);
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -103,7 +104,7 @@ public class SetBalanceCommand implements CommandExecutor {
      * @return TransactionResult Result of the transaction
      * @throws CommandException
      */
-    private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+    private TransactionResult getTransactionResult(TEAccountBase recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
         if (optCurrencyName.isPresent()) {
             Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
