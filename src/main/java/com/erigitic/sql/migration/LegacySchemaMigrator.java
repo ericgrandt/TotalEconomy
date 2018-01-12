@@ -6,6 +6,9 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -216,6 +219,12 @@ public class LegacySchemaMigrator implements SQLMigrator {
                 logger.warn("There have been failures: " + failures.get());
             }
 
+            try {
+                PrintStream stream = new PrintStream(new FileOutputStream(new File(totalEconomy.getConfigDir(), "migration.log")));
+                exceptions.forEach(e -> e.printStackTrace(stream));
+            } catch (IOException e) {
+                logger.error("Failed to write migration log!", e);
+            }
             logger.info("Imported balance entries: " + importedBalances.get());
             logger.info("Imported progress entries: " + importedJobProgress.get());
 

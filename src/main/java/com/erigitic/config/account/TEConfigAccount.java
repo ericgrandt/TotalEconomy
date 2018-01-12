@@ -89,22 +89,17 @@ public class TEConfigAccount extends TEAccountBase {
 
         // If the amount is greater then the money cap, set the amount to the money cap
         amount = amount.min(totalEconomy.getMoneyCap());
+        BigDecimal currentBal = hasBalance(currency, contexts) ? getBalance(currency) : BigDecimal.ZERO;
 
-        if (hasBalance(currency, contexts)) {
-            BigDecimal delta = amount.subtract(getBalance(currency));
-            TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
+        // Does the balance exist?
+        // No?
+        BigDecimal delta = amount.subtract(currentBal);
+        TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
 
-            accountNode.getNode("balance", currencyName).setValue(amount.setScale(2, BigDecimal.ROUND_DOWN).toString());
-            totalEconomy.requestAccountConfigurationSave();
-
-            transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
-
-        } else {
-            transactionResult = new TETransactionResult(this, currency, BigDecimal.ZERO, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        }
-
+        accountNode.getNode("balance", currencyName).setValue(amount.setScale(2, BigDecimal.ROUND_DOWN).toString());
+        totalEconomy.requestAccountConfigurationSave();
+        transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
         totalEconomy.getGame().getEventManager().post(new TEEconomyTransactionEvent(transactionResult));
-
         return transactionResult;
     }
 

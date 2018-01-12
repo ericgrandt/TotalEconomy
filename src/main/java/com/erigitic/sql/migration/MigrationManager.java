@@ -27,8 +27,8 @@ public class MigrationManager {
         // This is to ensure a successful migration even when administrators skip versions.
         // For greater version jumps the migration may need to be re-run several times.
         switch (migrateFrom) {
-            case -1: migrator = new FlatFileMigrator();
-            case 0: migrator = new LegacySchemaMigrator();
+            case -1: migrator = new FlatFileMigrator(); break;
+            case 0: migrator = new LegacySchemaMigrator(); break;
         }
     }
 

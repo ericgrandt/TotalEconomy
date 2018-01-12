@@ -166,18 +166,15 @@ public class TotalEconomy {
 
     @Listener
     public void init(GameInitializationEvent event) {
-
         if (databaseEnabled) {
             sqlManager.initDatabase(this);
         }
-
         createAndRegisterCommands();
         registerListeners();
     }
 
     @Listener
     public void postInit(GamePostInitializationEvent event) {
-
         if (databaseEnabled) {
             sqlManager.postInitDatabase(jobManager);
         }

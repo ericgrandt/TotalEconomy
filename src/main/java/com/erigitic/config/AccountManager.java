@@ -126,7 +126,7 @@ public class AccountManager implements EconomyService {
                          return;
                      }
 
-                     if (!accountNode.getNode("balances").isVirtual()) {
+                     if (!accountNode.getNode("balance").isVirtual()) {
                          return;
                      }
                      Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> allSubNodes = accountNode.getChildrenMap().entrySet();
@@ -140,7 +140,7 @@ public class AccountManager implements EconomyService {
 
                          if (!((String) subKeyObject).endsWith("-balance")) {
                              String balance = ((String) subKeyObject).replaceAll("-balance", "");
-                             accountNode.getNode("balances", balance).setValue(subNodeEntry.getValue().getValue());
+                             accountNode.getNode("balance", balance).setValue(subNodeEntry.getValue().getValue());
                              balanceConvertCount.incrementAndGet();
                          }
                          accountNode.removeChild(subKeyObject);

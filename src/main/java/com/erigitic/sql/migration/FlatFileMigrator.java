@@ -5,19 +5,20 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,6 +44,7 @@ public class FlatFileMigrator implements SQLMigrator {
 
         final AtomicLong failures = new AtomicLong(0);
         final AtomicLong importedBalances = new AtomicLong(0);
+        final AtomicLong importedJobProgress = new AtomicLong(0);
         final List<MigrationException> exceptions = new CopyOnWriteArrayList<MigrationException>();
 
         Connection connection = null;
@@ -82,14 +84,13 @@ public class FlatFileMigrator implements SQLMigrator {
                                   exceptions.add(new MigrationException("Cannot init account uid (legacy virtual?): " + oKey, e));
                                   return;
                               }
-                              boolean isUser = Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uid).isPresent();
                               String query = "INSERT INTO accounts (`uid`, `displayname`, `job`) VALUES (?, ?, ?)";
 
                               // Insert the new account into the table
                               try (PreparedStatement statement = finalConnection.prepareStatement(query)) {
                                   statement.setString(1, uid.toString());
-                                  statement.setString(2, isUser ? "NULL" : "'" + accountNode.getNode("displayname").getString("E_ACC_NAME") + "'");
-                                  statement.setString(3, isUser ? "'" + accountNode.getNode("job").getString("unemployed") + "'" : "NULL");
+                                  statement.setString(2, accountNode.getNode("displayname").getString("E_ACC_NAME"));
+                                  statement.setString(3, accountNode.getNode("job").getString("NULL"));
 
                                   if (statement.executeUpdate() != 1) {
                                       failures.incrementAndGet();
@@ -102,11 +103,11 @@ public class FlatFileMigrator implements SQLMigrator {
                               Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> entries;
 
                               // Check if we have the new or old balance safe format
-                              if (accountNode.getNode("balances").isVirtual()) {
+                              if (accountNode.getNode("balance").isVirtual()) {
                                   entries = accountNode.getChildrenMap().entrySet();
                                   searchString = true;
                               } else {
-                                  entries = accountNode.getNode("balances").getChildrenMap().entrySet();
+                                  entries = accountNode.getNode("balance").getChildrenMap().entrySet();
                               }
                               query = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES (?, ?, ?)";
 
@@ -128,7 +129,7 @@ public class FlatFileMigrator implements SQLMigrator {
                                   // Insert balance
                                   try (PreparedStatement statement = finalConnection.prepareStatement(query)) {
                                       statement.setString(1, uid.toString());
-                                      statement.setString(2, ((String) balKey));
+                                      statement.setString(2, ((String) balKey).toLowerCase());
                                       statement.setString(3, balEntry.getValue().getString());
 
                                       if (statement.executeUpdate() != 1) {
@@ -156,11 +157,21 @@ public class FlatFileMigrator implements SQLMigrator {
             }
             throw new MigrationException("Unknown error during migration - Transaction rolled back", e);
         }
+        logger.info("Imported balance entries: " + importedBalances.get());
+        logger.info("Imported progress entries: " + importedJobProgress.get());
 
         if (failures.get() > 0) {
             Sponge.getServer().shutdown(Text.of(TextColors.RED, "[TotalEconomy] Migration partially finished. Admin: Please review your migration.log for the error list!"));
+            logger.warn("Migration partially finished. Admin: Please review your migration.log for the error list!");
         } else {
             Sponge.getServer().shutdown(Text.of(TextColors.GREEN, "[TotalEconomy] Migration finished. Admin: Please start the server."));
+            logger.info("Migration finished. Admin: Please start the server.");
+        }
+        try {
+            PrintStream stream = new PrintStream(new FileOutputStream(new File(totalEconomy.getConfigDir(), "migration.log")));
+            exceptions.forEach(e -> e.printStackTrace(stream));
+        } catch (IOException e) {
+            logger.error("Failed to write migration log", e);
         }
     }
 }

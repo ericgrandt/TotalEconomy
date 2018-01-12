@@ -73,6 +73,9 @@ public class SqlManager {
                         try (Statement statement = dataSource.getConnection().createStatement()) {
                             statement.executeQuery(query);
                             ResultSet tableCountResult = statement.getResultSet();
+                            if (tableCountResult.isBeforeFirst()) {
+                                tableCountResult.next();
+                            }
                             Integer tables = tableCountResult.getInt(1);
                             autoMigrateFrom = tables < 1 ? -1 : 0;
                         }
@@ -234,7 +237,7 @@ public class SqlManager {
 
     private void createTable(String statement) throws SQLException {
         try (Statement sqlStatement = dataSource.getConnection().createStatement()) {
-            if (sqlStatement.executeUpdate(statement) != 2) {
+            if (sqlStatement.executeUpdate(statement) != 0) {
                 throw new SQLException("Unexpected return value for query: " + statement);
             }
         }
@@ -242,34 +245,40 @@ public class SqlManager {
 
     public void postInitDatabase(JobManager jobManager) {
 
+
+        Connection connection;
+        try {
+            connection = getDataSource().getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to post-initialize database", e);
+        }
+
         // Update currencies
         logger.info("Updating currency reference in database");
         EconomyService econService = Sponge.getServiceManager().provideUnchecked(EconomyService.class);
         Set<Currency> currencies = econService.getCurrencies();
 
-        String deleteQuery = "DELETE FROM currencies WHERE NOT currency IN ?";
+        StringBuilder deleteQuery = new StringBuilder("DELETE FROM currencies WHERE NOT currency IN (");
         StringBuilder insertQuery = new StringBuilder("INSERT IGNORE INTO currencies (currency) VALUES ");
-        String[] currenciesArr = new String[currencies.size()];
         int pos = 0;
-
         for (Currency currency : currencies) {
-            currenciesArr[pos++] = currency.getId();
-            insertQuery.append("('").append(currency.getId()).append("')");
+            deleteQuery.append("'").append(currency.getName().toLowerCase()).append("'");
+            insertQuery.append("('").append(currency.getName().toLowerCase()).append("')");
 
-            if (pos != currenciesArr.length) {
+            if (++pos != currencies.size()) {
+                deleteQuery.append(",");
                 insertQuery.append(",");
+            } else {
+                deleteQuery.append(")");
             }
         }
 
         try {
-            try (PreparedStatement statement = dataSource.getConnection().prepareStatement(deleteQuery)) {
-                final java.sql.Array array = dataSource.getConnection().createArrayOf("VARCHAR", currenciesArr);
-                statement.setArray(1, array);
-
+            try (PreparedStatement statement = connection.prepareStatement(deleteQuery.toString())) {
                 statement.executeUpdate();
             }
 
-            try (Statement statement = dataSource.getConnection().createStatement()) {
+            try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate(insertQuery.toString());
             }
         } catch (SQLException e) {
@@ -279,32 +288,30 @@ public class SqlManager {
         // Update jobs
         logger.info("Updating job reference in database");
         if (jobManager != null) {
-            List<String> jobs = new ArrayList<>();
-
-            deleteQuery = "DELETE FROM jobs WHERE NOT uid IN ?";
+            Map<String, TEJob> jobs = jobManager.getJobs();
+            deleteQuery = new StringBuilder("DELETE FROM jobs WHERE NOT uid IN (");
             insertQuery = new StringBuilder("INSERT IGNORE INTO jobs (uid) VALUES ");
-            String[] jobsArr = new String[jobs.size()];
             pos = 0;
 
-            for (Map.Entry<String, TEJob> entry : jobManager.getJobs().entrySet()) {
-                jobsArr[pos++] = entry.getKey();
+            for (Map.Entry<String, TEJob> entry : jobs.entrySet()) {
+                deleteQuery.append("'").append(entry.getKey()).append("'");
                 insertQuery.append("('").append(entry.getKey()).append("')");
 
-                if (pos != jobsArr.length) {
+                if (++pos != jobs.size()) {
+                    deleteQuery.append(",");
                     insertQuery.append(",");
+                } else {
+                    deleteQuery.append(")");
                 }
             }
 
             try {
 
-                try (PreparedStatement statement = dataSource.getConnection().prepareStatement(deleteQuery)) {
-                    final java.sql.Array array = dataSource.getConnection().createArrayOf("VARCHAR", jobsArr);
-                    statement.setArray(1, array);
-
-                    statement.executeUpdate();
+                try (Statement statement = connection.createStatement()) {
+                    statement.executeUpdate(deleteQuery.toString());
                 }
 
-                try (Statement statement = dataSource.getConnection().createStatement()) {
+                try (Statement statement = connection.createStatement()) {
                     statement.executeUpdate(insertQuery.toString());
                 }
             } catch (SQLException e) {
