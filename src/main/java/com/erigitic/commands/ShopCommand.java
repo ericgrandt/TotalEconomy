@@ -80,11 +80,11 @@ public class ShopCommand implements CommandExecutor {
     }
 
     public CommandSpec getCommandSpec() {
-        Stock shopAddCommand = new Stock();
+        Stock shopStockCommand = new Stock();
         Buy shopBuyCommand = new Buy();
 
         return CommandSpec.builder()
-                .child(shopAddCommand.getCommandSpec(), "stock", "s")
+                .child(shopStockCommand.getCommandSpec(), "stock", "s")
                 .child(shopBuyCommand.getCommandSpec(), "buy", "b")
                 .permission("totaleconomy.command.shop")
                 .executor(this)
