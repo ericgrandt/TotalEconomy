@@ -114,7 +114,7 @@ public class ShopCommand implements CommandExecutor {
 
         public CommandSpec getCommandSpec() {
             return CommandSpec.builder()
-                    .description(Text.of("Add an item to a shop"))
+                    .description(Text.of("Stock a shop with the currently held item"))
                     .permission("totaleconomy.command.shop.stock")
                     .executor(this)
                     .arguments(
@@ -138,21 +138,20 @@ public class ShopCommand implements CommandExecutor {
                     Optional<Shop> shopOpt = chest.get(ShopKeys.SINGLE_SHOP);
 
                     if (shopOpt.isPresent()) {
-                        Shop shop = shopOpt.get();
                         Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
 
                         if (itemInHandOpt.isPresent()) {
-                            ItemStack itemInHand = itemInHandOpt.get().copy();
+                            ItemStack itemInHand = itemInHandOpt.get();
 
                             int quantity = args.<Integer>getOne(Text.of("quantity")).get();
                             double price = clampPrice(args.<Double>getOne(Text.of("price")).get(), shopManager.getMinPrice(), shopManager.getMaxPrice());
 
+                            if (quantity > itemInHand.getMaxStackQuantity()) {
+                                quantity = itemInHand.getMaxStackQuantity();
+                            }
+
                             Inventory playerInventory = player.getInventory();
                             int itemAmountInInventory = InventoryUtils.getItemAmountInInventory(playerInventory, itemInHand);
-
-                            if (quantity > shopManager.getMaxStackSize()) {
-                                quantity = shopManager.getMaxStackSize();
-                            }
 
                             if (itemAmountInInventory >= quantity) {
                                 ItemStack preparedItem = prepareItemStackForShop(itemInHand, quantity, price);
@@ -161,8 +160,6 @@ public class ShopCommand implements CommandExecutor {
 
                                 if (rejectedItems.size() <= 0) {
                                     InventoryUtils.removeItem(playerInventory, itemInHand, quantity);
-
-                                    shop.setCapacity(shop.getCapacity() + 1);
 
                                     Map<String, String> messageValues = new HashMap<>();
                                     messageValues.put("quantity", String.valueOf(quantity));
@@ -193,10 +190,10 @@ public class ShopCommand implements CommandExecutor {
          * @return ItemStack An ItemStack that is prepared to be stocked in a shop
          */
         private ItemStack prepareItemStackForShop(ItemStack itemStack, int quantity, double price) {
-            ShopItem shopItem = new ShopItem(quantity, price);
+            ShopItem shopItem = new ShopItem(price);
             ItemStack preparedItem = itemStack.copy();
 
-            preparedItem.setQuantity(1);
+            preparedItem.setQuantity(quantity);
             preparedItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
             preparedItem.offer(new ShopItemData(shopItem));
 
@@ -302,7 +299,7 @@ public class ShopCommand implements CommandExecutor {
         }
 
         private Shop createShopFromPlayer(Player player) {
-            Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop", 0);
+            Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop");
 
             return shop;
         }

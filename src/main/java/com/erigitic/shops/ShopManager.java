@@ -29,13 +29,13 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.data.PlayerShopInfoData;
-import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.*;
+import org.spongepowered.api.block.tileentity.carrier.Chest;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
@@ -71,7 +71,6 @@ public class ShopManager {
     private final double minPrice;
     private final double maxPrice;
     private final double chestShopPrice;
-    private final int maxStackSize;
 
     public ShopManager(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
         this.totalEconomy = totalEconomy;
@@ -81,7 +80,6 @@ public class ShopManager {
         minPrice = this.totalEconomy.getShopNode().getNode("min-item-price").getDouble(0);
         maxPrice = this.totalEconomy.getShopNode().getNode("max-item-price").getDouble(1000000000);
         chestShopPrice = this.totalEconomy.getShopNode().getNode("chestshop", "price").getDouble(1000);
-        maxStackSize = this.totalEconomy.getShopNode().getNode("chestshop", "max-stack").getInt(64);
     }
 
     /**
@@ -105,8 +103,7 @@ public class ShopManager {
 
                 if (shopOpt.isPresent()) {
                     Shop shop = shopOpt.get();
-                    Slot clickedSlot = event.getTransactions().get(0).getSlot();
-                    ItemStack clickedItem = ItemStack.builder().fromSnapshot(event.getCursorTransaction().getDefault()).build();
+                    ItemStack clickedItem = ItemStack.builder().fromSnapshot(event.getCursorTransaction().getDefault().copy()).build();
                     Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
                     if (shopItemOpt.isPresent()) {
@@ -124,13 +121,9 @@ public class ShopManager {
                             if (rejectedItems.size() == 0) {
                                 customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
-                                shopItem.setQuantity(shopItem.getQuantity() - 1);
+                                Slot clickedSlot = event.getTransactions().get(0).getSlot();
 
-                                if (shopItem.getQuantity() <= 0) {
-                                    shop.setCapacity(shop.getCapacity() - 1);
-                                }
-
-                                updateItemInSlot(shopItem, clickedSlot, clickedItem);
+                                updateItemInSlot(clickedSlot, clickedItem, clickedItem.getQuantity() - 1);
                             } else {
                                 event.getTransactions().get(0).setValid(false);
 
@@ -156,6 +149,7 @@ public class ShopManager {
      * @param player The player clicking within an inventory
      */
     @Listener
+    @Exclude(ClickInventoryEvent.Shift.class)
     public void onShopSecondaryClick(ClickInventoryEvent.Secondary event, @First Player player) {
         Optional<PlayerShopInfo> playerShopInfoOpt = player.get(ShopKeys.PLAYER_SHOP_INFO);
 
@@ -201,22 +195,50 @@ public class ShopManager {
                     Optional<ShopItem> shopItemOpt = clickedItem.get(ShopKeys.SHOP_ITEM);
 
                     if (player.getUniqueId().equals(shop.getOwner()) && shopItemOpt.isPresent()) {
-                        ShopItem shopItem = shopItemOpt.get();
-
                         for (SlotTransaction transaction : event.getTransactions()) {
                             transaction.setCustom(ItemStack.empty());
                         }
 
                         ItemStack returnedItem = removeShopItemData(clickedItem.copy());
-                        returnedItem.setQuantity(shopItem.getQuantity());
-
-                        shop.setCapacity(shop.getCapacity() - 1);
+                        returnedItem.setQuantity(clickedItem.getQuantity());
 
                         player.getInventory().offer(returnedItem);
                     } else if (player.getUniqueId().equals(shop.getOwner())) {
-                        event.setCancelled(false);
-                    } else {
-                        event.setCancelled(true);
+                         event.setCancelled(false);
+                    } else if (shopItemOpt.isPresent()) {
+                        ShopItem shopItem = shopItemOpt.get();
+
+                        int purchasedQuantity = clickedItem.getQuantity();
+
+                        TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
+                        TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+
+                        if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= purchasedQuantity * shopItem.getPrice()) {
+                            ItemStack purchasedItem = removeShopItemData(clickedItem.copy());
+                            purchasedItem.setQuantity(purchasedQuantity);
+
+                            Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
+
+                            if (rejectedItems.size() == 0) {
+                                for (SlotTransaction transaction : event.getTransactions()) {
+                                    transaction.setCustom(ItemStack.empty());
+                                }
+
+                                customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(purchasedQuantity * shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+
+                                player.getInventory().offer(purchasedItem);
+                            } else {
+                                event.getTransactions().get(0).setValid(false);
+
+                                player.sendMessage(messageManager.getMessage("shops.purchase.noroom"));
+                            }
+                        } else {
+                            for (SlotTransaction transaction : event.getTransactions()) {
+                                transaction.setValid(false);
+                            }
+
+                            player.sendMessage(messageManager.getMessage("shops.purchase.insufficientfunds"));
+                        }
                     }
                 }
             }
@@ -297,15 +319,15 @@ public class ShopManager {
             Optional<Shop> shopOpt = tileEntity.get(ShopKeys.SINGLE_SHOP);
 
             if (shopOpt.isPresent()) {
+                Chest chest = (Chest) tileEntity;
                 Shop shop = shopOpt.get();
                 UUID shopOwner = shop.getOwner();
-                int shopCapacity = shop.getCapacity();
 
                 if (!player.getUniqueId().equals(shopOwner)) {
                     event.setCancelled(true);
 
                     player.sendMessage(messageManager.getMessage("shops.remove.notowner"));
-                } else if (player.getUniqueId().equals(shopOwner) && shopCapacity > 0) {
+                } else if (player.getUniqueId().equals(shopOwner) && chest.getInventory().totalItems() > 0) {
                     event.setCancelled(true);
 
                     player.sendMessage(messageManager.getMessage("shops.remove.stocked"));
@@ -345,7 +367,7 @@ public class ShopManager {
 
         // Remove the DataQuery for lore, otherwise an empty NBT tag will be attached to the item
         DataContainer dataContainer = itemStack.toContainer().remove(DataQuery.of("DefaultReplacement", "UnsafeData", "display", "Lore")).copy();
-        itemStack = ItemStack.builder().fromContainer(dataContainer).itemType(itemStack.getItem()).build();
+        itemStack = ItemStack.builder().fromContainer(dataContainer).itemType(itemStack.getItem()).quantity(1).build();
 
         return itemStack;
     }
@@ -386,17 +408,17 @@ public class ShopManager {
     /**
      * Updates a shop item within a slot.
      *
-     * @param shopItem The ShopItem in the slot
      * @param slot The slot to update
-     * @param slotItem The item in the slot
+     * @param itemStack The item in the slot
+     * @param quantity The item quantity
      */
-    private void updateItemInSlot(ShopItem shopItem, Slot slot, ItemStack slotItem) {
-        if (shopItem.getQuantity() <= 0) {
+    private void updateItemInSlot(Slot slot, ItemStack itemStack, int quantity) {
+        if (quantity == 0) {
             clearSlot(slot);
         } else {
-            slotItem.offer(Keys.ITEM_LORE, shopItem.getLore(totalEconomy.getDefaultCurrency()));
-            slotItem.offer(new ShopItemData(shopItem));
-            slot.set(slotItem);
+            ItemStack itemStackCopy = itemStack.copy();
+            itemStackCopy.setQuantity(quantity);
+            slot.offer(itemStackCopy);
         }
     }
 
@@ -430,9 +452,5 @@ public class ShopManager {
 
     public double getChestShopPrice() {
         return chestShopPrice;
-    }
-
-    public int getMaxStackSize() {
-        return maxStackSize;
     }
 }
