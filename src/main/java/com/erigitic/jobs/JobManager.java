@@ -285,7 +285,7 @@ public class JobManager {
     public void checkForLevel(Player player) {
         UUID playerUUID = player.getUniqueId();
         String jobName = getPlayerJob(player);
-        int playerLevel = getJobLevel(jobName, player);
+        Integer playerLevel = getJobLevel(jobName, player);
         int playerCurExp = getJobExp(jobName, player);
         int expToLevel = getExpToLevel(player);
 
@@ -297,28 +297,24 @@ public class JobManager {
             messageValues.put("level", String.valueOf(playerLevel));
 
             if (databaseEnabled) {
-                // TODO: Check with new algorithm from upstream!
-                /*
-                SQLQuery.builder(sqlManager.dataSource)
-                        .update("levels")
-                        .set(jobName)
-                        .equals(String.valueOf(playerLevel))
-                        .where("uid")
-                        .equals(playerUUID.toString())
-                        .build();
+                String query = "INSERT INTO jobs_progress (`uid`, `job`, `level`) VALUES (':uid', ':job', ':level') ON DUPLICATE KEY UPDATE `level` = VALUES(`level`)";
+                query = query.replaceAll(":uid", playerUUID.toString());
+                query = query.replaceAll(":job" , jobName);
+                query = query.replaceAll(":level", playerLevel.toString());
 
-                SQLQuery.builder(sqlManager.dataSource)
-                        .update("experience")
-                        .set(jobName)
-                        .equals(String.valueOf(playerCurExp))
-                        .where("uid")
-                        .equals(playerUUID.toString())
-                        .build();*/
+                try (Connection connection = sqlManager.getDataSource().getConnection();
+                     Statement statement = connection.createStatement()) {
+
+                    if (statement.executeUpdate(query) != 2) {
+                        throw new SQLException("Unexpected update count");
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException("Failed to set level for player " + playerUUID.toString(), e);
+                }
             } else {
                 ConfigurationNode accountConfig = accountManager.getAccountConfig();
-
                 accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "level").setValue(playerLevel);
-                accountConfig.getNode(playerUUID.toString(), "jobstats", jobName, "exp").setValue(playerCurExp);
+                totalEconomy.requestAccountConfigurationSave();
             }
 
             player.sendMessage(messageManager.getMessage("jobs.levelup", messageValues));
