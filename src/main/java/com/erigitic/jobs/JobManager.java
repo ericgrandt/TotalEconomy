@@ -70,6 +70,7 @@ import org.spongepowered.api.text.format.TextStyles;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -250,11 +251,12 @@ public class JobManager {
 
         if (databaseEnabled) {
             Integer newExp = getJobExp(jobName, player) + expAmount;
-            String query = "UPDATE jobs_progress SET experience = " + newExp.toString()
-                           + " WHERE uid = " + player.getUniqueId().toString()
-                           + " AND job = " + getPlayerJob(player);
+            String query = "UPDATE jobs_progress SET experience = '" + newExp.toString()
+                           + "' WHERE uid = '" + player.getUniqueId().toString()
+                           + "' AND job = '" + getPlayerJob(player) + "'";
 
-            try (Statement statement = totalEconomy.getSqlManager().getDataSource().getConnection().createStatement()) {
+            try (Connection connection = totalEconomy.getSqlManager().getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 if (statement.executeUpdate(query) != 1) {
                     throw new SQLException("Unexpected update count!");
                 }
@@ -375,16 +377,17 @@ public class JobManager {
         jobName = jobName.toLowerCase();
 
         if (databaseEnabled) {
-            String query = "UPDATE accounts SET job = " + jobName + " WHERE uid = " + user.getUniqueId().toString();
+            String query = "UPDATE accounts SET job = '" + jobName + "' WHERE uid = '" + user.getUniqueId().toString() + "'";
 
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
 
                 if (statement.executeUpdate(query) != 1) {
                     throw new SQLException("Unexpected update count");
                 }
                 return true;
             } catch (SQLException e) {
-                throw new RuntimeException("Failed to set job of " + user.getUniqueId() + "/" + user.getName() + " to " + jobName);
+                throw new RuntimeException("Failed to set job of " + user.getUniqueId() + "/" + user.getName() + " to " + jobName, e);
             }
         } else {
             ConfigurationNode accountConfig = accountManager.getAccountConfig();
@@ -421,23 +424,23 @@ public class JobManager {
 
         if (databaseEnabled) {
 
-            String query = "SELECT job FROM accounts WHERE uid = " + user.getUniqueId().toString();
+            String query = "SELECT job FROM accounts WHERE uid = '" + user.getUniqueId().toString() + "'";
             String resultString;
 
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 statement.executeQuery(query);
 
                 ResultSet result = statement.getResultSet();
-                if (!result.isBeforeFirst()) {
+                if (!result.next()) {
                     throw new SQLException("No result");
                 }
-
                 resultString = result.getString("job");
-                if (!statement.getMoreResults()) {
-                    return resultString;
-                } else {
+
+                if (result.next()) {
                     throw new SQLException("Too many results");
                 }
+                return resultString;
 
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to retrieve job for player: " + user.getUniqueId().toString(), e);
@@ -478,27 +481,25 @@ public class JobManager {
 
         if (!jobName.equals("unemployed")) {
             if (databaseEnabled) {
-                String query = "SELECT level FROM jobs_progress WHERE uid = " + user.getUniqueId().toString();
+                String query = "SELECT level FROM jobs_progress WHERE uid = '" + user.getUniqueId().toString() + "' AND job = '" + jobName + "'";
                 Integer resultInt = 0;
 
-                try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+                try (Connection connection = sqlManager.getDataSource().getConnection();
+                     Statement statement = connection.createStatement()) {
                     statement.executeQuery(query);
 
                     ResultSet result = statement.getResultSet();
 
-                    if (!result.isBeforeFirst()) {
-                        throw new SQLException("No result");
+                    if (result.next()) {
+                        resultInt = result.getInt("level");
                     }
-                    resultInt = result.getInt("level");
-
-                    if (!statement.getMoreResults()) {
-                        return resultInt;
-                    } else {
+                    if (result.next()) {
                         throw new SQLException("Too many results");
                     }
+                    return resultInt;
 
                 } catch (SQLException e) {
-                    throw new RuntimeException("Failed to retrieve job experience for user, job: " + user.getUniqueId().toString() + "," + jobName);
+                    throw new RuntimeException("Failed to retrieve job experience for user, job: " + user.getUniqueId().toString() + "," + jobName, e);
                 }
             } else {
                 ConfigurationNode accountConfig = accountManager.getAccountConfig();
@@ -526,27 +527,25 @@ public class JobManager {
 
         if (!jobName.equals("unemployed")) {
             if (databaseEnabled) {
-                String query = "SELECT experience FROM jobs_progress WHERE uid = " + user.getUniqueId().toString();
+                String query = "SELECT experience FROM jobs_progress WHERE uid = '" + user.getUniqueId().toString() + "' AND job = '" + jobName + "'";
                 Integer resultInt = 0;
 
-                try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+                try (Connection connection = sqlManager.getDataSource().getConnection();
+                     Statement statement = connection.createStatement()) {
                     statement.executeQuery(query);
 
                     ResultSet result = statement.getResultSet();
 
-                    if (result.isBeforeFirst()) {
-                        throw new SQLException("No result");
+                    if (result.next()) {
+                        resultInt = result.getInt("experience");
                     }
-                    resultInt = result.getInt("experience");
-
-                    if (!statement.getMoreResults()) {
-                        return resultInt;
-                    } else {
+                    if (result.next()) {
                         throw new SQLException("Too many results");
                     }
+                    return resultInt;
 
                 } catch (SQLException e) {
-                    throw new RuntimeException("Failed to retrieve job experience for user, job: " + user.getUniqueId().toString() + "," + jobName);
+                    throw new RuntimeException("Failed to retrieve job experience for user, job: " + user.getUniqueId().toString() + "," + jobName, e);
                 }
             } else {
                 ConfigurationNode accountConfig = accountManager.getAccountConfig();
@@ -967,13 +966,9 @@ public class JobManager {
     }
 
     private void rewardPlayer(Player player, TEActionReward reward) {
-
-        ConfigurationNode accountConfig = accountManager.getAccountConfig();
-
         int expAmount = reward.getExpReward();
         BigDecimal payAmount = reward.getMoneyReward();
-        boolean notify = accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean();
-
+        boolean notify = accountManager.getJobNotificationState(player);
         TEAccountBase playerAccount = (TEAccountBase) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
         if (notify) {

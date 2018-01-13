@@ -51,14 +51,15 @@ public class TESqlAccount extends TEAccountBase {
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        try (Statement statement = dataSource.getConnection().createStatement()) {
-            String query = "SELECT `balance` FROM balances WHERE `uid` = :account_uid AND `currency` = :currency_name";
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            String query = "SELECT `balance` FROM balances WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
             query = query.replaceAll(":currency_name", currencyName);
             query = query.replaceAll(":account_uid", getUniqueId().toString());
 
             statement.execute(query);
             try (ResultSet result = statement.getResultSet()) {
-                return result.isBeforeFirst();
+                return result.next();
             }
 
         } catch (Exception e) {
@@ -77,8 +78,9 @@ public class TESqlAccount extends TEAccountBase {
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
-        try (Statement statement = dataSource.getConnection().createStatement()) {
-            String query = "SELECT `balance` FROM balances WHERE `uid` = :account_uid AND `currency` = :currency_name";
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            String query = "SELECT `balance` FROM balances WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
             query = query.replaceAll(":currency_name", currencyName);
             query = query.replaceAll(":account_uid", getUniqueId().toString());
 
@@ -86,7 +88,7 @@ public class TESqlAccount extends TEAccountBase {
             try (ResultSet result = statement.getResultSet()) {
 
                 // Return the default balance when none is saved
-                if (!result.isBeforeFirst()) {
+                if (!result.next()) {
                     return getDefaultBalance(currency);
                 }
 
@@ -123,8 +125,9 @@ public class TESqlAccount extends TEAccountBase {
 
             boolean successful = false;
 
-            try (Statement statement = dataSource.getConnection().createStatement()) {
-                String query = "UPDATE balances SET `balance` = :balance WHERE `uid` = :account_uid AND `currency` = :currency_name";
+            try (Connection connection = dataSource.getConnection();
+                 Statement statement = connection.createStatement()) {
+                String query = "UPDATE balances SET `balance` = ':balance' WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
                 query = query.replaceAll(":currency_name", currencyName);
                 query = query.replaceAll(":account_uid", getUniqueId().toString());
                 query = query.replaceAll(":balance", amount.toString());
@@ -149,8 +152,9 @@ public class TESqlAccount extends TEAccountBase {
 
             boolean successful = false;
 
-            try (Statement statement = dataSource.getConnection().createStatement()) {
-                String query = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES(:account_uid, :currency, :balance)";
+            try (Connection connection = dataSource.getConnection();
+                 Statement statement = connection.createStatement()) {
+                String query = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES(':account_uid', ':currency', ':balance')";
                 query = query.replaceAll(":currency_name", currencyName);
                 query = query.replaceAll(":account_uid", getUniqueId().toString());
                 query = query.replaceAll(":balance", amount.toString());
@@ -189,20 +193,24 @@ public class TESqlAccount extends TEAccountBase {
                        .orElseGet(() -> Text.of("ERR_PLAYER_NAME"));
         }
 
-        try (Statement statement = dataSource.getConnection().createStatement()){
+        try (Connection connection =  dataSource.getConnection();
+             Statement statement = connection.createStatement()){
 
-            String query = "SELECT `displayname` FROM `accounts` WHERE `uid` = :account_uid";
+            String query = "SELECT `displayname` FROM `accounts` WHERE `uid` = ':account_uid'";
             query = query.replaceAll("account_uid", getUniqueId().toString());
 
             statement.execute(query);
 
             try (ResultSet result = statement.getResultSet()) {
+                if (!result.next()) {
+                    throw new SQLException("Displayname not found");
+                }
                 String displayName = result.getString("displayname");
                 return TextSerializers.PLAIN.deserialize(displayName);
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to retrieve account display name", e);
+            throw new RuntimeException("Failed to retrieve account display name" + getUniqueId().toString(), e);
         }
     }
 
@@ -212,9 +220,10 @@ public class TESqlAccount extends TEAccountBase {
             throw new IllegalStateException("Setting displaynames for non-virtual accounts is not allowed!");
         }
 
-        try (Statement statement = dataSource.getConnection().createStatement()){
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()){
 
-            String query = "UPDATE `accounts` SET `displayname` = :displayname WHERE `uid` = :account_uid";
+            String query = "UPDATE `accounts` SET `displayname` = ':displayname' WHERE `uid` = ':account_uid'";
             query = query.replaceAll("account_uid", getUniqueId().toString());
             query = query.replaceAll("displayname", TextSerializers.PLAIN.serialize(displayName));
 

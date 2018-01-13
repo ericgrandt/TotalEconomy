@@ -49,6 +49,7 @@ import org.spongepowered.api.service.user.UserStorageService;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -265,11 +266,12 @@ public class AccountManager implements EconomyService {
 
         // If the account does not exist create it
         if (databaseActive && !hasAccount(accountUUID)) {
-            String query = "INSERT INTO accounts (`uid`, `displayname`) VALUES (:account_uid, :displayname)";
+            String query = "INSERT INTO accounts (`uid`, `displayname`) VALUES (':account_uid', ':displayname')";
             query = query.replaceAll(":account_uid", accountUUID.toString());
             query = query.replaceAll(":displayname", account.isVirtual() ? "NULL" : "'" + identifier + "'");
 
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 if (statement.executeUpdate(query) != 1) {
                     throw new SQLException("Unexpected row count!");
                 }
@@ -304,10 +306,11 @@ public class AccountManager implements EconomyService {
         if (databaseActive) {
             String query = "SELECT uid FROM accounts WHERE uid = '" + uuid.toString() + "'";
 
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 statement.executeQuery(query);
 
-                return statement.getResultSet().isBeforeFirst();
+                return statement.getResultSet().next();
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to check account existance for " + uuid.toString(), e);
             }
@@ -334,21 +337,20 @@ public class AccountManager implements EconomyService {
         UUID resultUUID = null;
 
         if (databaseActive) {
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 String query = "SELECT `uid`,`displayname` FROM `accounts` WHERE `uid` = ':search' OR `displayname` = ':search'";
                 query = query.replaceAll(":search", identifier);
-
                 statement.executeQuery(query);
 
                 try (ResultSet result = statement.getResultSet()) {
                     resultUUID = UUID.fromString(result.getString("uid"));
-                }
 
-                // Do we have more than one result? Identifier was not unique thus not found.
-                if (statement.getMoreResults()) {
-                    resultUUID = null;
+                    // Do we have more than one result? Identifier was not unique thus not found.
+                    if (result.next()) {
+                        resultUUID = null;
+                    }
                 }
-
             } catch (Exception e) {
                 throw new RuntimeException("Failed to search account by: " + identifier, e);
             }
@@ -437,16 +439,17 @@ public class AccountManager implements EconomyService {
 
             String query = "SELECT value FROM accounts_options WHERE uid = '" + player.getUniqueId().toString() + "' AND ident = 'job_notifications'";
 
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 statement.executeQuery(query);
 
                 ResultSet result = statement.getResultSet();
-                if (!result.isBeforeFirst()) {
+                if (!result.next()) {
                     return totalEconomy.isJobNotificationEnabled();
                 }
                 boolean res = "TRUE".equals(result.getString("value"));
 
-                if (statement.getMoreResults()) {
+                if (result.next()) {
                     throw new SQLException("Too many results!");
                 }
                 return res;
@@ -472,7 +475,8 @@ public class AccountManager implements EconomyService {
                            + (jobNotifications ? "'TRUE'," : "'FALSE',")
                            + "'job_notifications') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)";
 
-            try (Statement statement = sqlManager.getDataSource().getConnection().createStatement()) {
+            try (Connection connection = sqlManager.getDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
                 if (statement.executeUpdate(query) != 1) {
                     throw new SQLException("Unexpected update count!");
                 }

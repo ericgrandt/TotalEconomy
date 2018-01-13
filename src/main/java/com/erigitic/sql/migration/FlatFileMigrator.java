@@ -19,8 +19,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Migrator from flat file storage to DB.
@@ -35,31 +38,37 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FlatFileMigrator implements SQLMigrator {
 
     private Logger logger;
+    private TotalEconomy totalEconomy;
+
+    // Process status information
+    private final AtomicLong failures = new AtomicLong(0);
+    private final AtomicLong importedBalances = new AtomicLong(0);
+    private final AtomicLong importedJobProgress = new AtomicLong(0);
+    private final List<MigrationException> exceptions = new CopyOnWriteArrayList<MigrationException>();
+
+    // Actual process variables
+    private final Connection[] connection = new Connection[1];
+    private final Pattern UUID_PATTERN = Pattern.compile("([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})");
+
+    // Shared migration information
+    private final Map<String, String> generatedUUIDs = new ConcurrentHashMap<>();
 
     @Override
     public void migrate(TotalEconomy totalEconomy) throws MigrationException {
-
+        this.totalEconomy = totalEconomy;
         logger = totalEconomy.getLogger();
         logger.warn("Migration type: Flat file -> DB");
 
-        final AtomicLong failures = new AtomicLong(0);
-        final AtomicLong importedBalances = new AtomicLong(0);
-        final AtomicLong importedJobProgress = new AtomicLong(0);
-        final List<MigrationException> exceptions = new CopyOnWriteArrayList<MigrationException>();
-
-        Connection connection = null;
-
         try {
+            // Load current configuration
             File configDir = totalEconomy.getConfigDir();
-
             File accountsConfigFile = new File(configDir, "accounts.conf");
             HoconConfigurationLoader loader = HoconConfigurationLoader.builder()
                                                                       .setFile(accountsConfigFile)
                                                                       .build();
             ConfigurationNode accountsConfig = loader.load();
-            connection = totalEconomy.getSqlManager().getDataSource().getConnection();
-            connection.setAutoCommit(false);
-            final Connection finalConnection = connection;
+            connection[0] = totalEconomy.getSqlManager().getDataSource().getConnection();
+            connection[0].setAutoCommit(false);
 
             // This will update the `currencies` and `jobs` table so our FKs won't fail afterwards
             totalEconomy.getSqlManager().postInitDatabase(totalEconomy.getJobManager());
@@ -76,79 +85,38 @@ public class FlatFileMigrator implements SQLMigrator {
                                   return;
                               }
 
-                              // Virtual accounts won't necessarily have a valid UUID. We'll try to convert those at some other place though.
-                              UUID uid = null;
-                              try {
-                                  uid = UUID.fromString(((String) oKey));
-                              } catch (IllegalArgumentException e) {
-                                  exceptions.add(new MigrationException("Cannot init account uid (legacy virtual?): " + oKey, e));
-                                  return;
-                              }
-                              String query = "INSERT INTO accounts (`uid`, `displayname`, `job`) VALUES (?, ?, ?)";
+                              // 1. Import accounts from node
+                              // We'll drop the value for the job-notifications as it's really not that vital
+                              importAccount(accountNode);
 
-                              // Insert the new account into the table
-                              try (PreparedStatement statement = finalConnection.prepareStatement(query)) {
-                                  statement.setString(1, uid.toString());
-                                  statement.setString(2, accountNode.getNode("displayname").getString("E_ACC_NAME"));
-                                  statement.setString(3, accountNode.getNode("job").getString("NULL"));
+                              // 2. Import balances
+                              importBalances(accountNode);
 
-                                  if (statement.executeUpdate() != 1) {
-                                      failures.incrementAndGet();
-                                      throw new SQLException("Unexpected update count");
-                                  }
-                              } catch (SQLException e) {
-                                  exceptions.add(new MigrationException("Failed to create account " + uid, e));
-                              }
-                              boolean searchString = false;
-                              Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> entries;
-
-                              // Check if we have the new or old balance safe format
-                              if (accountNode.getNode("balance").isVirtual()) {
-                                  entries = accountNode.getChildrenMap().entrySet();
-                                  searchString = true;
-                              } else {
-                                  entries = accountNode.getNode("balance").getChildrenMap().entrySet();
-                              }
-                              query = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES (?, ?, ?)";
-
-                              // Insert balances into the table
-                              for (Map.Entry<Object, ? extends ConfigurationNode> balEntry : entries) {
-                                  Object balKey = balEntry.getKey();
-
-                                  if (!(balKey instanceof String)) {
-                                      continue;
-                                  }
-
-                                  if (searchString) {
-                                      if (!((String) balKey).endsWith("-balance")) {
-                                          continue;
-                                      }
-                                      balKey = ((String) balKey).replaceAll("-balance", "");
-                                  }
-
-                                  // Insert balance
-                                  try (PreparedStatement statement = finalConnection.prepareStatement(query)) {
-                                      statement.setString(1, uid.toString());
-                                      statement.setString(2, ((String) balKey).toLowerCase());
-                                      statement.setString(3, balEntry.getValue().getString());
-
-                                      if (statement.executeUpdate() != 1) {
-                                          failures.incrementAndGet();
-                                          throw new SQLException("Unexpected update count");
-                                      }
-
-                                      importedBalances.incrementAndGet();
-                                  } catch (Exception e) {
-                                      exceptions.add(new MigrationException("Failed to register balance for " + balKey + " on " + uid, e));
-                                  }
-                              }
+                              // 3. Import job stats
+                              importJobProgress(accountNode);
             });
-            connection.commit();
+
+            logger.warn("Commiting transaction.");
+            connection[0].commit();
+            connection[0].close();
+            logger.warn("DONE!");
+            logger.info("Imported balance entries: " + importedBalances.get());
+            logger.info("Imported progress entries: " + importedJobProgress.get());
+            if (failures.get() > 0) {
+                logger.warn("There have been failures: " + failures.get());
+            }
+
+            try {
+                PrintStream stream = new PrintStream(new FileOutputStream(new File(totalEconomy.getConfigDir(), "migration.log")));
+                exceptions.forEach(e -> e.printStackTrace(stream));
+            } catch (IOException e) {
+                logger.error("Failed to write migration log!", e);
+            }
 
         } catch (Throwable e) {
             if (connection != null) {
                 try {
-                    connection.rollback();
+                    connection[0].rollback();
                 } catch (SQLException rbE) {
                     MigrationException ex = new MigrationException("Failed to rollback transaction!", rbE);
                     ex.addSuppressed(e);
@@ -157,8 +125,6 @@ public class FlatFileMigrator implements SQLMigrator {
             }
             throw new MigrationException("Unknown error during migration - Transaction rolled back", e);
         }
-        logger.info("Imported balance entries: " + importedBalances.get());
-        logger.info("Imported progress entries: " + importedJobProgress.get());
 
         if (failures.get() > 0) {
             Sponge.getServer().shutdown(Text.of(TextColors.RED, "[TotalEconomy] Migration partially finished. Admin: Please review your migration.log for the error list!"));
@@ -167,11 +133,124 @@ public class FlatFileMigrator implements SQLMigrator {
             Sponge.getServer().shutdown(Text.of(TextColors.GREEN, "[TotalEconomy] Migration finished. Admin: Please start the server."));
             logger.info("Migration finished. Admin: Please start the server.");
         }
-        try {
-            PrintStream stream = new PrintStream(new FileOutputStream(new File(totalEconomy.getConfigDir(), "migration.log")));
-            exceptions.forEach(e -> e.printStackTrace(stream));
-        } catch (IOException e) {
-            logger.error("Failed to write migration log", e);
+    }
+
+    private void importAccount(ConfigurationNode accountNode) {
+        // Virtual accounts won't necessarily have a valid UUID. We'll try to convert those at some other place though.
+        String rawUID = ((String) accountNode.getKey());
+        String sUUID;
+        String displayName = accountNode.getNode("displayname").getString(null);
+        Matcher matcher = UUID_PATTERN.matcher(rawUID);
+
+        // When a UUID has been found, use it
+        // When the key contained other information use that as the display name
+        if (matcher.find()) {
+            sUUID = matcher.group(1).toLowerCase();
+
+            if (sUUID.length() != rawUID.length()) {
+                displayName = UUID_PATTERN.matcher(rawUID).replaceAll("");
+            }
+        } else {
+            sUUID = UUID.randomUUID().toString();
+            displayName = rawUID;
+        }
+        generatedUUIDs.put(rawUID, sUUID);
+        String query = "INSERT INTO accounts (`uid`, `displayname`, `job`) VALUES (?, ?, ?)";
+
+        // Insert the new account into the table
+        try (PreparedStatement statement = connection[0].prepareStatement(query)) {
+            statement.setString(1, sUUID);
+            statement.setString(2, displayName);
+            statement.setString(3, accountNode.getNode("job").getString(null));
+
+            if (statement.executeUpdate() != 1) {
+                throw new SQLException("Unexpected update count");
+            }
+        } catch (SQLException e) {
+            failures.incrementAndGet();
+            exceptions.add(new MigrationException("Failed to create account " + sUUID, e));
+        }
+    }
+
+    private void importBalances(ConfigurationNode accountNode) {
+        Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> entries;
+        String sUUID = generatedUUIDs.get((String) accountNode.getKey());
+        boolean searchString = false;
+
+        // Check if we have the new or old balance safe format
+        if (accountNode.getNode("balance").isVirtual()) {
+            entries = accountNode.getChildrenMap().entrySet();
+            searchString = true;
+        } else {
+            entries = accountNode.getNode("balance").getChildrenMap().entrySet();
+        }
+        String query = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES (?, ?, ?)";
+
+        // Insert balances into the table
+        for (Map.Entry<Object, ? extends ConfigurationNode> balEntry : entries) {
+            Object balKey = balEntry.getKey();
+
+            if (!(balKey instanceof String)) {
+                continue;
+            }
+
+            if (searchString) {
+                if (!((String) balKey).endsWith("-balance")) {
+                    continue;
+                }
+                balKey = ((String) balKey).replaceAll("-balance", "");
+            }
+
+            // Insert balance
+            try (PreparedStatement statement = connection[0].prepareStatement(query)) {
+                statement.setString(1, sUUID);
+                statement.setString(2, ((String) balKey).toLowerCase());
+                statement.setString(3, balEntry.getValue().getString());
+
+                if (statement.executeUpdate() != 1) {
+                    throw new SQLException("Unexpected update count");
+                }
+
+                importedBalances.incrementAndGet();
+            } catch (SQLException e) {
+                failures.incrementAndGet();
+                exceptions.add(new MigrationException("Failed to register balance for " + balKey + " on " + sUUID, e));
+            }
+        }
+    }
+
+    private void importJobProgress(ConfigurationNode accountNode) {
+        String sUUID = generatedUUIDs.get(((String) accountNode.getKey()));
+        ConfigurationNode statsNode = accountNode.getNode("jobstats");
+
+        if (!statsNode.isVirtual()) {
+            Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> entries = statsNode.getChildrenMap().entrySet();
+
+            for (Map.Entry<Object, ? extends ConfigurationNode> entry : entries) {
+                Object oKey = entry.getKey();
+                ConfigurationNode value = entry.getValue();
+
+                if (!(oKey instanceof String)) {
+                    continue;
+                }
+                String query = "INSERT INTO jobs_progress (`uid`, `job`, `level`, `experience`) VALUES (?, ?, ?, ?)";
+
+                try (PreparedStatement statement = connection[0].prepareStatement(query)) {
+                    statement.setString(1, sUUID);
+                    statement.setString(2, ((String) oKey));
+                    statement.setInt(3, value.getNode("level").getInt(0));
+                    statement.setInt(4, value.getNode("exp").getInt(0));
+
+                    if (statement.executeUpdate() != 1) {
+                        throw new SQLException("Unexpected update count");
+                    }
+
+                    importedJobProgress.incrementAndGet();
+                } catch (SQLException e) {
+                    failures.incrementAndGet();
+                    exceptions.add(new MigrationException("Failed to insert job progress for " + sUUID + " on " + oKey, e));
+                }
+            }
         }
     }
 }
