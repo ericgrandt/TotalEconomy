@@ -37,16 +37,13 @@ public class Shop implements DataSerializable {
 
     public static final DataQuery OWNER_QUERY = DataQuery.of("Owner");
     public static final DataQuery TITLE_QUERY = DataQuery.of("Title");
-    public static final DataQuery CAPACITY_QUERY = DataQuery.of("Capacity");
 
     private UUID owner;
     private String title;
-    private int capacity;
 
-    public Shop(UUID owner, String title, int capacity) {
+    public Shop(UUID owner, String title) {
         this.owner = owner;
         this.title = title;
-        this.capacity = capacity;
     }
 
     public UUID getOwner() {
@@ -61,14 +58,6 @@ public class Shop implements DataSerializable {
         this.title = title;
     }
 
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
-
     @Override
     public int getContentVersion() {
         return ShopData.CONTENT_VERSION;
@@ -79,7 +68,6 @@ public class Shop implements DataSerializable {
         return DataContainer.createNew()
                 .set(OWNER_QUERY, getOwner())
                 .set(TITLE_QUERY, getTitle())
-                .set(CAPACITY_QUERY, getCapacity())
                 .set(Queries.CONTENT_VERSION, ShopData.CONTENT_VERSION);
     }
 
@@ -91,12 +79,11 @@ public class Shop implements DataSerializable {
 
         @Override
         public Optional<Shop> buildContent(DataView container) throws InvalidDataException {
-            if (container.contains(Shop.OWNER_QUERY, Shop.TITLE_QUERY, Shop.CAPACITY_QUERY)) {
+            if (container.contains(Shop.OWNER_QUERY, Shop.TITLE_QUERY)) {
                 UUID owner = container.getObject(Shop.OWNER_QUERY, UUID.class).get();
                 String title = container.getString(Shop.TITLE_QUERY).get();
-                int capacity = container.getInt(Shop.CAPACITY_QUERY).get();
 
-                return Optional.of(new Shop(owner, title, capacity));
+                return Optional.of(new Shop(owner, title));
             }
 
             return Optional.empty();
