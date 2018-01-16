@@ -30,6 +30,7 @@ import com.erigitic.config.account.TEConfigAccount;
 import com.erigitic.config.account.TESqlAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.SqlQuery;
 import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -49,10 +50,7 @@ import org.spongepowered.api.service.user.UserStorageService;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -266,13 +264,13 @@ public class AccountManager implements EconomyService {
 
         // If the account does not exist create it
         if (databaseActive && !hasAccount(accountUUID)) {
-            String query = "INSERT INTO accounts (`uid`, `displayname`) VALUES (':account_uid', ':displayname')";
-            query = query.replaceAll(":account_uid", accountUUID.toString());
-            query = query.replaceAll(":displayname", account.isVirtual() ? "NULL" : "'" + identifier + "'");
+            String queryString = "INSERT INTO accounts (`uid`, `displayname`) VALUES (:account_uid, :displayname)";
 
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                if (statement.executeUpdate(query) != 1) {
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", accountUUID.toString());
+                query.setParameter("displayname", account.isVirtual() ? null : identifier);
+
+                if (query.getStatement().executeUpdate() != 1) {
                     throw new SQLException("Unexpected row count!");
                 }
             } catch (SQLException e) {
@@ -304,12 +302,12 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            String query = "SELECT uid FROM accounts WHERE uid = '" + uuid.toString() + "'";
+            String queryString = "SELECT uid FROM accounts WHERE uid = :account_uid";
 
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                statement.executeQuery(query);
-
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", uuid.toString());
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
                 return statement.getResultSet().next();
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to check account existance for " + uuid.toString(), e);
@@ -333,23 +331,28 @@ public class AccountManager implements EconomyService {
         return getVirtualAccountUUID(identifier).isPresent();
     }
 
+    /**
+     * Returns the UUID of an account found by the identifier.
+     * Both the `uid` and the `displayname` columns are searched.
+     *
+     * @param identifier The search string
+     */
     public Optional<UUID> getVirtualAccountUUID(String identifier) {
         UUID resultUUID = null;
 
         if (databaseActive) {
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                String query = "SELECT `uid`,`displayname` FROM `accounts` WHERE `uid` = ':search' OR `displayname` = ':search'";
-                query = query.replaceAll(":search", identifier);
-                statement.executeQuery(query);
+            String queryString = "SELECT `uid`,`displayname` FROM `accounts` WHERE `uid` = :search OR `displayname` = :search";
 
-                try (ResultSet result = statement.getResultSet()) {
-                    resultUUID = UUID.fromString(result.getString("uid"));
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("search", identifier);
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
+                ResultSet result = statement.getResultSet();
+                resultUUID = UUID.fromString(result.getString("uid"));
 
-                    // Do we have more than one result? Identifier was not unique thus not found.
-                    if (result.next()) {
-                        resultUUID = null;
-                    }
+                // Do we have more than one result? Identifier was not unique thus not found.
+                if (result.next()) {
+                    resultUUID = null;
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Failed to search account by: " + identifier, e);
@@ -413,8 +416,6 @@ public class AccountManager implements EconomyService {
      * @throws IOException
      */
     private void addNewCurrenciesToAccount(TEAccountBase playerAccount) throws IOException {
-        UUID uuid = playerAccount.getUniqueId();
-
         for (Currency currency : totalEconomy.getCurrencies()) {
             TECurrency teCurrency = (TECurrency) currency;
 
@@ -433,15 +434,14 @@ public class AccountManager implements EconomyService {
      * @return boolean The notification state
      */
     public boolean getJobNotificationState(Player player) {
-        UUID playerUUID = player.getUniqueId();
-
         if (databaseActive) {
 
-            String query = "SELECT value FROM accounts_options WHERE uid = '" + player.getUniqueId().toString() + "' AND ident = 'job_notifications'";
+            String queryString = "SELECT value FROM accounts_options WHERE uid = :account_uid AND ident = 'job_notifications'";
 
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                statement.executeQuery(query);
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", player.getUniqueId().toString());
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
 
                 ResultSet result = statement.getResultSet();
                 if (!result.next()) {
@@ -470,14 +470,13 @@ public class AccountManager implements EconomyService {
         boolean jobNotifications = !getJobNotificationState(player);
 
         if (databaseActive) {
-            String query = "INSERT INTO accounts_options (`uid`, `ident`, `value`) VALUES ("
-                           + "'" + player.getUniqueId().toString() + "',"
-                           + (jobNotifications ? "'TRUE'," : "'FALSE',")
-                           + "'job_notifications') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)";
+            String queryString = "INSERT INTO accounts_options (`uid`, `ident`, `value`) VALUES (:account_uid, 'job_notifications', :job_notifs) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)";
 
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                if (statement.executeUpdate(query) != 1) {
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", player.getUniqueId().toString());
+                query.setParameter("job_notifs", jobNotifications ? "TRUE" : "FALSE" );
+
+                if (query.getStatement().executeUpdate() != 2) {
                     throw new SQLException("Unexpected update count!");
                 }
             } catch (SQLException e) {
