@@ -88,7 +88,7 @@ public class SqlManager {
                         createTable(connection, query);
 
                         // Insert our schema version
-                        query = "INSERT INTO te_meta (ident, value) VALUES ('schema_version', '1')";
+                        query = "INSERT INTO `te_meta` (`ident`, `value`) VALUES ('schema_version', '1')";
                         try (Statement statement = connection.createStatement()) {
 
                             if (statement.executeUpdate(query) != 1) {
@@ -96,7 +96,7 @@ public class SqlManager {
                             }
                         }
                     } else {
-                        String query = "SELECT value FROM te_meta WHERE ident = 'schema_version'";
+                        String query = "SELECT value FROM `te_meta` WHERE `ident` = 'schema_version'";
 
                         try (Statement statement = connection.createStatement()) {
                             statement.executeQuery(query);
@@ -259,8 +259,8 @@ public class SqlManager {
         logger.info("Updating job reference in database");
         if (jobManager != null) {
             Map<String, TEJob> jobs = jobManager.getJobs();
-            deleteQuery = new StringBuilder("DELETE FROM jobs WHERE NOT uid IN (");
-            insertQuery = new StringBuilder("INSERT IGNORE INTO jobs (uid) VALUES ");
+            deleteQuery = new StringBuilder("DELETE FROM `jobs` WHERE NOT `uid` IN (");
+            insertQuery = new StringBuilder("INSERT IGNORE INTO `jobs` (`uid`) VALUES ");
             pos = 0;
 
             for (Map.Entry<String, TEJob> entry : jobs.entrySet()) {

@@ -19,10 +19,7 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,7 +50,7 @@ public class TESqlAccount extends TEAccountBase {
 
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
-            String query = "SELECT `balance` FROM balances WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
+            String query = "SELECT `balance` FROM `balances` WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
             query = query.replaceAll(":currency_name", currencyName);
             query = query.replaceAll(":account_uid", getUniqueId().toString());
 
@@ -80,7 +77,7 @@ public class TESqlAccount extends TEAccountBase {
 
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
-            String query = "SELECT `balance` FROM balances WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
+            String query = "SELECT `balance` FROM `balances` WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
             query = query.replaceAll(":currency_name", currencyName);
             query = query.replaceAll(":account_uid", getUniqueId().toString());
 
@@ -127,7 +124,7 @@ public class TESqlAccount extends TEAccountBase {
 
             try (Connection connection = dataSource.getConnection();
                  Statement statement = connection.createStatement()) {
-                String query = "UPDATE balances SET `balance` = ':balance' WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
+                String query = "UPDATE `balances` SET `balance` = ':balance' WHERE `uid` = ':account_uid' AND `currency` = ':currency_name'";
                 query = query.replaceAll(":currency_name", currencyName);
                 query = query.replaceAll(":account_uid", getUniqueId().toString());
                 query = query.replaceAll(":balance", amount.toString());
@@ -219,14 +216,12 @@ public class TESqlAccount extends TEAccountBase {
         if (!isVirtual()) {
             throw new IllegalStateException("Setting displaynames for non-virtual accounts is not allowed!");
         }
+        String query = "UPDATE `accounts` SET `displayname` = ? WHERE `uid` = ?";
 
         try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()){
-
-            String query = "UPDATE `accounts` SET `displayname` = ':displayname' WHERE `uid` = ':account_uid'";
-            query = query.replaceAll("account_uid", getUniqueId().toString());
-            query = query.replaceAll("displayname", TextSerializers.PLAIN.serialize(displayName));
-
+             PreparedStatement statement = connection.prepareStatement(query)){
+            statement.setString(1, TextSerializers.PLAIN.serialize(displayName));
+            statement.setString(2, getUniqueId().toString());
             statement.execute(query);
 
             if (statement.getUpdateCount() != 1) {
