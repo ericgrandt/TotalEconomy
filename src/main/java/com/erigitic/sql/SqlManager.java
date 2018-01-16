@@ -158,7 +158,8 @@ public class SqlManager {
                 + "uid   VARCHAR(60)  NOT NULL,"
                 + "ident VARCHAR(60)  NOT NULL,"
                 + "value VARCHAR(255) DEFAULT NULL,"
-                + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON UPDATE CASCADE ON DELETE CASCADE"
+                + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON UPDATE CASCADE ON DELETE CASCADE,"
+                + "CONSTRAINT UNIQUE (uid, ident)"
                 + ") COMMENT='User account options';";
         createTable(connection, query);
 
