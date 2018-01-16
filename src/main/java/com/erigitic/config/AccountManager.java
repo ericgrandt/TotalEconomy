@@ -475,8 +475,9 @@ public class AccountManager implements EconomyService {
             try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
                 query.setParameter("account_uid", player.getUniqueId().toString());
                 query.setParameter("job_notifs", jobNotifications ? "TRUE" : "FALSE" );
+                Integer updateCount = query.getStatement().executeUpdate();
 
-                if (query.getStatement().executeUpdate() != 2) {
+                if (updateCount != 1 && updateCount != 2) {
                     throw new SQLException("Unexpected update count!");
                 }
             } catch (SQLException e) {

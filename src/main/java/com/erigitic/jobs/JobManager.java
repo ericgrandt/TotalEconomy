@@ -29,6 +29,7 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.SqlQuery;
 import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -70,10 +71,7 @@ import org.spongepowered.api.text.format.TextStyles;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -251,13 +249,13 @@ public class JobManager {
 
         if (databaseEnabled) {
             Integer newExp = getJobExp(jobName, player) + expAmount;
-            String query = "UPDATE jobs_progress SET experience = '" + newExp.toString()
-                           + "' WHERE uid = '" + player.getUniqueId().toString()
-                           + "' AND job = '" + getPlayerJob(player) + "'";
+            String queryString = "UPDATE `jobs_progress` SET `experience` = :exp WHERE `uid` = :account_uid AND `job` = :job";
 
-            try (Connection connection = totalEconomy.getSqlManager().getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                if (statement.executeUpdate(query) != 1) {
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("exp", newExp);
+                query.setParameter("account_uid", player.getUniqueId().toString());
+                query.setParameter("job", getPlayerJob(player));
+                if (query.getStatement().executeUpdate() != 1) {
                     throw new SQLException("Unexpected update count!");
                 }
             } catch (SQLException e) {
@@ -297,15 +295,15 @@ public class JobManager {
             messageValues.put("level", String.valueOf(playerLevel));
 
             if (databaseEnabled) {
-                String query = "INSERT INTO jobs_progress (`uid`, `job`, `level`) VALUES (':uid', ':job', ':level') ON DUPLICATE KEY UPDATE `level` = VALUES(`level`)";
-                query = query.replaceAll(":uid", playerUUID.toString());
-                query = query.replaceAll(":job" , jobName);
-                query = query.replaceAll(":level", playerLevel.toString());
+                String queryString = "INSERT INTO jobs_progress (`uid`, `job`, `level`) VALUES (:uid, :job, :level) ON DUPLICATE KEY UPDATE `level` = VALUES(`level`)";
 
-                try (Connection connection = sqlManager.getDataSource().getConnection();
-                     Statement statement = connection.createStatement()) {
+                try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                    query.setParameter("uid", playerUUID.toString());
+                    query.setParameter("job" , jobName);
+                    query.setParameter("level", playerLevel.toString());
+                    Integer updateCount = query.getStatement().executeUpdate();
 
-                    if (statement.executeUpdate(query) != 2) {
+                    if (updateCount != 1 && updateCount != 2) {
                         throw new SQLException("Unexpected update count");
                     }
                 } catch (SQLException e) {
@@ -373,12 +371,13 @@ public class JobManager {
         jobName = jobName.toLowerCase();
 
         if (databaseEnabled) {
-            String query = "UPDATE accounts SET job = '" + jobName + "' WHERE uid = '" + user.getUniqueId().toString() + "'";
+            String queryString = "UPDATE `accounts` SET `job` = :job WHERE `uid` = :account_uid";
 
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("job", jobName);
+                query.setParameter("account_uid", user.getUniqueId().toString());
 
-                if (statement.executeUpdate(query) != 1) {
+                if (query.getStatement().executeUpdate() != 1) {
                     throw new SQLException("Unexpected update count");
                 }
                 return true;
@@ -419,15 +418,15 @@ public class JobManager {
     public String getPlayerJob(User user) {
 
         if (databaseEnabled) {
-
-            String query = "SELECT job FROM accounts WHERE uid = '" + user.getUniqueId().toString() + "'";
+            String queryString = "SELECT `job` FROM `accounts` WHERE `uid` = :account_uid";
             String resultString;
 
-            try (Connection connection = sqlManager.getDataSource().getConnection();
-                 Statement statement = connection.createStatement()) {
-                statement.executeQuery(query);
-
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", user.getUniqueId().toString());
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
                 ResultSet result = statement.getResultSet();
+
                 if (!result.next()) {
                     throw new SQLException("No result");
                 }
@@ -477,13 +476,14 @@ public class JobManager {
 
         if (!jobName.equals("unemployed")) {
             if (databaseEnabled) {
-                String query = "SELECT level FROM jobs_progress WHERE uid = '" + user.getUniqueId().toString() + "' AND job = '" + jobName + "'";
+                String queryString = "SELECT `level` FROM `jobs_progress` WHERE `uid` = :account_uid AND `job` = :job";
                 Integer resultInt = 0;
 
-                try (Connection connection = sqlManager.getDataSource().getConnection();
-                     Statement statement = connection.createStatement()) {
-                    statement.executeQuery(query);
-
+                try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                    query.setParameter("account_uid", user.getUniqueId().toString());
+                    query.setParameter("job", jobName);
+                    PreparedStatement statement = query.getStatement();
+                    statement.executeQuery();
                     ResultSet result = statement.getResultSet();
 
                     if (result.next()) {
@@ -523,12 +523,14 @@ public class JobManager {
 
         if (!jobName.equals("unemployed")) {
             if (databaseEnabled) {
-                String query = "SELECT experience FROM jobs_progress WHERE uid = '" + user.getUniqueId().toString() + "' AND job = '" + jobName + "'";
+                String queryString = "SELECT `experience` FROM `jobs_progress` WHERE `uid` = :account_uid AND job = :job";
                 Integer resultInt = 0;
 
-                try (Connection connection = sqlManager.getDataSource().getConnection();
-                     Statement statement = connection.createStatement()) {
-                    statement.executeQuery(query);
+                try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                    query.setParameter("account_uid", user.getUniqueId().toString());
+                    query.setParameter("job", jobName);
+                    PreparedStatement statement = query.getStatement();
+                    statement.executeQuery();
 
                     ResultSet result = statement.getResultSet();
 
