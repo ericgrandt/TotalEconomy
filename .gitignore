@@ -1,13 +1,18 @@
-build
-.gradle
-.idea
+# Build output paths
+build/
+.gradle/
+out/
+run/
+
+# Project files
+.idea/
 *.iml
 *.jar
 .settings
-bin
+bin/
 .classpath
 .project
-!gradle-wrapper.jar
+!gradle/
 MANIFEST.MF
 
 # Mac Stuff
