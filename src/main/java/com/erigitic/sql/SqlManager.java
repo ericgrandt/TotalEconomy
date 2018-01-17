@@ -50,7 +50,7 @@ public class SqlManager {
                 databaseName = m.group(2);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to create dataSource for databae connection!", e);
+            throw new RuntimeException("Failed to create dataSource for database connection!", e);
         }
     }
 
@@ -229,8 +229,8 @@ public class SqlManager {
         EconomyService econService = Sponge.getServiceManager().provideUnchecked(EconomyService.class);
         Set<Currency> currencies = econService.getCurrencies();
 
-        StringBuilder deleteQuery = new StringBuilder("DELETE FROM currencies WHERE NOT currency IN (");
-        StringBuilder insertQuery = new StringBuilder("INSERT IGNORE INTO currencies (currency) VALUES ");
+        StringBuilder deleteQuery = new StringBuilder("DELETE FROM `currencies` WHERE NOT `currency` IN (");
+        StringBuilder insertQuery = new StringBuilder("INSERT IGNORE INTO `currencies` (`currency`) VALUES ");
         int pos = 0;
         for (Currency currency : currencies) {
             deleteQuery.append("'").append(currency.getName().toLowerCase()).append("'");
