@@ -234,10 +234,16 @@ public class FlatFileMigrator implements SQLMigrator {
                     continue;
                 }
                 String query = "INSERT INTO jobs_progress (`uid`, `job`, `level`, `experience`) VALUES (?, ?, ?, ?)";
+                UUID jobUUID = totalEconomy.getJobManager().getJobUUIDByName(((String) oKey)).orElse(null);
+
+                if (jobUUID == null) {
+                    exceptions.add(new MigrationException("Failed to migrate job progress for: " + oKey + ". No UUID found!"));
+                    continue;
+                }
 
                 try (PreparedStatement statement = connection[0].prepareStatement(query)) {
                     statement.setString(1, sUUID);
-                    statement.setString(2, ((String) oKey));
+                    statement.setString(2, jobUUID.toString());
                     statement.setInt(3, value.getNode("level").getInt(0));
                     statement.setInt(4, value.getNode("exp").getInt(0));
 

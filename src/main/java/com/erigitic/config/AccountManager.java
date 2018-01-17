@@ -223,21 +223,35 @@ public class AccountManager implements EconomyService {
         } else {
             account = new TEConfigAccount(totalEconomy, accountConfig.getNode(uuid.toString()), uuid);
         }
-
         boolean hasAccount = hasAccount(uuid);
+
+        // If the account does not exist create it
+        if (databaseActive && !hasAccount) {
+            String queryString = "INSERT INTO accounts (`uid`) VALUES (:account_uid)";
+
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", uuid);
+
+                if (query.getStatement().executeUpdate() != 1) {
+                    throw new SQLException("Unexpected row count!");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to create account: " + uuid.toString(), e);
+            }
+        }
+
         try {
-            // If the account does not exist create it by setting the default value of the default currency.
-            // That should create the account for both db and flat file storage.
+            // If the account did not exist create it by setting the default value of the default currency.
+            // That should create the account for the flat file storage. (DB handled above)
             if (!hasAccount) {
                 account.setBalance(getDefaultCurrency(), ((TECurrency) getDefaultCurrency()).getStartingBalance(), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
 
             } else if (!databaseActive) {
                 addNewCurrenciesToAccount(account);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.warn("An error occurred while creating a new account!");
         }
-
         return Optional.of(account);
     }
     /**
@@ -250,7 +264,6 @@ public class AccountManager implements EconomyService {
      */
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
-
         Optional<UUID> accountUUIDOpt = getVirtualAccountUUID(identifier);
         // When no UUID has been found create a new one
         UUID accountUUID = accountUUIDOpt.orElse(UUID.randomUUID());
@@ -288,7 +301,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(account);
             }
         } catch (IOException e) {
-            logger.warn("An error occurred while creating a new virtual account!");
+            logger.warn("An error occurred while creating a new account!");
         }
         return Optional.of(account);
     }

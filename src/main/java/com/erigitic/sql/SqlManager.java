@@ -259,14 +259,14 @@ public class SqlManager {
         // Update jobs
         logger.info("Updating job reference in database");
         if (jobManager != null) {
-            Map<String, TEJob> jobs = jobManager.getJobs();
+            Map<UUID, TEJob> jobs = jobManager.getJobs();
             deleteQuery = new StringBuilder("DELETE FROM `jobs` WHERE NOT `uid` IN (");
             insertQuery = new StringBuilder("INSERT IGNORE INTO `jobs` (`uid`) VALUES ");
             pos = 0;
 
-            for (Map.Entry<String, TEJob> entry : jobs.entrySet()) {
-                deleteQuery.append("'").append(entry.getKey()).append("'");
-                insertQuery.append("('").append(entry.getKey()).append("')");
+            for (Map.Entry<UUID, TEJob> entry : jobs.entrySet()) {
+                deleteQuery.append("'").append(entry.getKey().toString()).append("'");
+                insertQuery.append("('").append(entry.getKey().toString()).append("')");
 
                 if (++pos != jobs.size()) {
                     deleteQuery.append(",");

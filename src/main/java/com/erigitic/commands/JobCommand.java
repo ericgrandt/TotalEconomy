@@ -46,6 +46,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class JobCommand implements CommandExecutor {
 
@@ -83,13 +84,20 @@ public class JobCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player player = ((Player) src).getPlayer().get();
-            String jobName = totalEconomy.getJobManager().getPlayerJob(player);
-
+            Optional<TEJob> teJob = totalEconomy.getJobManager().getTEJobOfPlayer(player, true);
             Map<String, String> messageValues = new HashMap<>();
-            messageValues.put("job", jobManager.titleize(jobName));
-            messageValues.put("curlevel", String.valueOf(jobManager.getJobLevel(jobName, player)));
-            messageValues.put("curexp", String.valueOf(jobManager.getJobExp(jobName, player)));
-            messageValues.put("exptolevel", String.valueOf(jobManager.getExpToLevel(player)));
+
+            if (teJob.isPresent()) {
+                messageValues.put("job", teJob.get().getName());
+                messageValues.put("curlevel", String.valueOf(jobManager.getJobLevel(teJob.get().getUniqueId(), player)));
+                messageValues.put("curexp", String.valueOf(jobManager.getJobExp(teJob.get().getUniqueId(), player)));
+                messageValues.put("exptolevel", String.valueOf(jobManager.getExpToLevel(player)));
+            } else {
+                messageValues.put("job", "n/a");
+                messageValues.put("curlevel", "0");
+                messageValues.put("curexp", "0");
+                messageValues.put("exptolevel", "-1");
+            }
 
             player.sendMessage(messageManager.getMessage("command.job.current", messageValues));
             player.sendMessage(messageManager.getMessage("command.job.level", messageValues));
@@ -133,11 +141,20 @@ public class JobCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             // TODO: Do checks here, in case we or other plugins want to bypass them in the future
 
-            String jobName = args.getOne("jobName").get().toString().toLowerCase();
             User user = args.<User>getOne("user").get();
+            String jobName = args.getOne("jobName").get().toString().toLowerCase();
+            final Pattern UUID_PATTERN = Pattern.compile("^([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})$");
+            UUID jobUUID = null;
+            if (UUID_PATTERN.matcher(jobName).matches()) {
+                jobUUID = UUID.fromString(jobName);
+            } else {
+                jobUUID = totalEconomy.getJobManager().getJobUUIDByName(jobName).orElse(null);
+            }
 
-            Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobName, false);
-            if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+            Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobUUID, false);
+            if (!optJob.isPresent()) {
+                throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+            }
 
             TEJob job = optJob.get();
 
@@ -148,18 +165,22 @@ public class JobCommand implements CommandExecutor {
                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.GOLD, jobName, TextColors.RED, "\""));
                 }
 
-                if (req.jobNeeded() != null && req.jobLevelNeeded() > totalEconomy.getJobManager().getJobLevel(req.jobNeeded().toLowerCase(), user)) {
-                     throw new CommandException(Text.of("Insufficient level! Level ",
-                             TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
-                             TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
+                if (req.jobNeeded() != null) {
+                    Optional<UUID> reqJobUUID = totalEconomy.getJobManager().getJobUUIDByName(req.jobNeeded());
+
+                    if (!reqJobUUID.isPresent() || req.jobLevelNeeded() > totalEconomy.getJobManager().getJobLevel(reqJobUUID.get(), user)) {
+                        throw new CommandException(Text.of("Insufficient level! Level ",
+                            TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
+                            TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
+                    }
                 }
             }
 
-            if (!jobManager.setJob(user, jobName)) {
+            if (!jobManager.setJob(user, jobUUID)) {
                 throw new CommandException(Text.of("Failed to set job. Contact your administrator."));
             } else if (user.getPlayer().isPresent()) {
                 Map<String, String> messageValues = new HashMap<>();
-                messageValues.put("job", jobManager.titleize(jobName));
+                messageValues.put("job", optJob.get().getName());
 
                 user.getPlayer().get().sendMessage(messageManager.getMessage("command.job.set", messageValues));
             }
@@ -200,19 +221,20 @@ public class JobCommand implements CommandExecutor {
             Optional<String> optJobName = args.getOne("jobName");
             Optional<TEJob> optJob = Optional.empty();
 
-            if (!optJobName.isPresent() && (src instanceof Player)) {
-                optJob = jobManager.getJob(jobManager.getPlayerJob((Player) src), true);
+            if (!optJobName.isPresent() && (src instanceof User)) {
+                optJob = jobManager.getTEJobOfPlayer(((User) src), true);
             }
 
             if (optJobName.isPresent()) {
-                optJob = jobManager.getJob(optJobName.get(), false);
+                optJob = jobManager.getTEJobWithName(optJobName.get());
             }
 
             if (!optJob.isPresent()) {
                 throw new CommandException(Text.of(TextColors.RED, "Unknown job: \"" + optJobName.orElse("") + "\""));
             }
 
-            List<Text> lines = new ArrayList();
+            List<Text> lines = new ArrayList<>();
+            optJobName = Optional.of(optJob.get().getName());
 
             for (String s : optJob.get().getSets()) {
                 Optional<TEJobSet> optSet = jobManager.getJobSet(s);
@@ -228,7 +250,7 @@ public class JobCommand implements CommandExecutor {
             }
 
             pageBuilder.reset()
-                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob(((Player) src))),"\n"))
+                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.get(),"\n"))
                     .contents(lines.toArray(new Text[lines.size()]))
                     .sendTo(src);
 

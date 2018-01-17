@@ -318,11 +318,17 @@ public class LegacySchemaMigrator implements SQLMigrator {
                         String jobName = jobs.get(index);
                         Integer jobLevel = result.getInt(leftIndex);
                         Integer jobExp = result.getInt(rightIndex);
+                        UUID jobUUID = totalEconomy.getJobManager().getJobUUIDByName(jobName).orElse(null);
                         String insertQuery = "INSERT INTO jobs_progress (`uid`, `job`, `level`, `experience`) VALUES (?, ?, ?, ?)";
+
+                        if (jobUUID == null) {
+                            exceptions.add(new MigrationException("Failed to migrate job progress for: " + jobName + ". No UUID found!"));
+                            continue;
+                        }
 
                         try (PreparedStatement insertStatement = connection[0].prepareStatement(insertQuery)) {
                             insertStatement.setString(1, uid);
-                            insertStatement.setString(2, jobName);
+                            insertStatement.setString(2, jobUUID.toString());
                             insertStatement.setInt(3, jobLevel);
                             insertStatement.setInt(4, jobExp);
 

@@ -116,9 +116,9 @@ public class TESqlAccount extends TEAccountBase {
 
             boolean successful = false;
 
-            String queryString = "UPDATE `balances` SET `balance` = :balance WHERE `uid` = :account_uid AND `currency` = :currency_name";
+            String queryString = "UPDATE `balances` SET `balance` = :balance WHERE `uid` = :account_uid AND `currency` = :currency";
             try (SqlQuery query = new SqlQuery(dataSource, queryString)) {
-                query.setParameter("currency_name", currencyName);
+                query.setParameter("currency", currencyName);
                 query.setParameter("account_uid", getUniqueId().toString());
                 query.setParameter("balance", amount.toString());
                 PreparedStatement statement = query.getStatement();
@@ -143,7 +143,7 @@ public class TESqlAccount extends TEAccountBase {
 
             String queryString = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES(:account_uid, :currency, :balance)";
             try (SqlQuery query = new SqlQuery(dataSource, queryString)) {
-                query.setParameter("currency_name", currencyName);
+                query.setParameter("currency", currencyName);
                 query.setParameter("account_uid", getUniqueId().toString());
                 query.setParameter("balance", amount.toString());
                 PreparedStatement statement = query.getStatement();
