@@ -84,7 +84,7 @@ public class JobCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player player = ((Player) src).getPlayer().get();
-            Optional<TEJob> teJob = totalEconomy.getJobManager().getTEJobOfPlayer(player, true);
+            Optional<TEJob> teJob = jobManager.getTEJobOfPlayer(player, true);
             Map<String, String> messageValues = new HashMap<>();
 
             if (teJob.isPresent()) {
@@ -148,10 +148,10 @@ public class JobCommand implements CommandExecutor {
             if (UUID_PATTERN.matcher(jobName).matches()) {
                 jobUUID = UUID.fromString(jobName);
             } else {
-                jobUUID = totalEconomy.getJobManager().getJobUUIDByName(jobName).orElse(null);
+                jobUUID = jobManager.getJobUUIDByName(jobName).orElse(null);
             }
 
-            Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobUUID, false);
+            Optional<TEJob> optJob = jobManager.getJob(jobUUID, false);
             if (!optJob.isPresent()) {
                 throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
             }
@@ -166,9 +166,9 @@ public class JobCommand implements CommandExecutor {
                 }
 
                 if (req.jobNeeded() != null) {
-                    Optional<UUID> reqJobUUID = totalEconomy.getJobManager().getJobUUIDByName(req.jobNeeded());
+                    Optional<UUID> reqJobUUID = jobManager.getJobUUIDByName(req.jobNeeded());
 
-                    if (!reqJobUUID.isPresent() || req.jobLevelNeeded() > totalEconomy.getJobManager().getJobLevel(reqJobUUID.get(), user)) {
+                    if (!reqJobUUID.isPresent() || req.jobLevelNeeded() > jobManager.getJobLevel(reqJobUUID.get(), user)) {
                         throw new CommandException(Text.of("Insufficient level! Level ",
                             TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
                             TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));

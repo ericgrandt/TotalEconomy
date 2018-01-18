@@ -203,7 +203,7 @@ public class JobManager {
             if (!jobsFile.exists()) {
                 totalEconomy.getPluginContainer().getAsset("jobs.conf").get().copyToFile(jobsFile.toPath());
             }
-
+            
             jobsConfig = jobsLoader.load();
             ConfigurationNode jobsNode = jobsConfig.getNode("jobs");
             final Pattern UUID_PATTERN = Pattern.compile("([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})");
@@ -220,11 +220,11 @@ public class JobManager {
                     // Automatic assignment of UUIDs for job identification
                     UUID uuid;
                     if (!UUID_PATTERN.matcher(((String) k)).matches()) {
-                        jobNode.getNode("displayname").setValue(k);
+                        jobNode.getNode("displayname").setValue(titleize(((String) k)));
                         uuid = UUID.randomUUID();
                         actualNode = jobsNode.getNode(uuid.toString());
                         actualNode.mergeValuesFrom(jobNode);
-                        // Yes - this is necessary - A bug will otherwise delete both nodes from the config.
+                        // Yes - this is necessary as a bug will otherwise delete both nodes from the config.
                         actualNode.getNode("converted").setValue(true);
                         jobsNode.removeChild(k);
                         renamedJobs.put(((String) k), uuid);
@@ -241,7 +241,6 @@ public class JobManager {
             });
 
             if (!renamedJobs.isEmpty()) {
-
                 // Convert the saved job stats
                 // (Migration to DB is automatically included in the migrators)
                 if (!databaseEnabled) {
@@ -375,9 +374,9 @@ public class JobManager {
 
 
     public Optional<UUID> getJobUUIDByName(String name) {
-        final String search = name.trim().toLowerCase();
+        final String search = name.trim();
         return jobsMap.values().stream()
-                      .filter(j -> j.getName().toLowerCase().equals(search))
+                      .filter(j -> j.getName().equalsIgnoreCase(search))
                       .findFirst()
                       .map(TEJob::getUniqueId);
     }
