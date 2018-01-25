@@ -1,4 +1,4 @@
-<sub>[back](./SQL Proposal.md)</sub>
+<sub>[back](sql_proposal.md)</sub>
 
 ## The FlatFileMigrator[^1] 
 
