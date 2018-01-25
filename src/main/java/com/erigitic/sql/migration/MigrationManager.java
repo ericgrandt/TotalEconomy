@@ -3,9 +3,6 @@ package com.erigitic.sql.migration;
 import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Determines which Migrator to use
  *
@@ -15,7 +12,7 @@ public class MigrationManager {
 
     private TotalEconomy totalEconomy;
     private Logger logger;
-    private SQLMigrator migrator;
+    private SqlMigrator migrator;
 
     public MigrationManager(TotalEconomy totalEconomy, Logger logger, Integer migrateFrom) {
         this.totalEconomy = totalEconomy;
@@ -29,6 +26,7 @@ public class MigrationManager {
         switch (migrateFrom) {
             case -1: migrator = new FlatFileMigrator(); break;
             case 0: migrator = new LegacySchemaMigrator(); break;
+            default: throw new RuntimeException("No migrator for: " + migrateFrom);
         }
     }
 

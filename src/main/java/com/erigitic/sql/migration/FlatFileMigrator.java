@@ -1,12 +1,11 @@
 package com.erigitic.sql.migration;
 
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SqlQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -14,7 +13,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -35,7 +33,7 @@ import java.util.regex.Pattern;
  *
  * @author MarkL4YG
  */
-public class FlatFileMigrator implements SQLMigrator {
+public class FlatFileMigrator implements SqlMigrator {
 
     private Logger logger;
     private TotalEconomy totalEconomy;
@@ -95,6 +93,15 @@ public class FlatFileMigrator implements SQLMigrator {
                               // 3. Import job stats
                               importJobProgress(accountNode);
             });
+
+            String query = "UPDATE `te_meta` SET `value` = 1 WHERE `ident` = 'schema_version'";
+            try (SqlQuery updateQuery = new SqlQuery(connection[0], query)){
+                PreparedStatement statement = updateQuery.getStatement();
+                Integer updateCount = statement.executeUpdate();
+                if (updateCount != 1 && updateCount != 0) {
+                    throw new SQLException("Failed to update meta table! Update count: " + updateCount);
+                }
+            }
 
             logger.warn("Commiting transaction.");
             connection[0].commit();

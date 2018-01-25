@@ -5,7 +5,7 @@ import com.erigitic.main.TotalEconomy;
 /**
  * Created by MarkL4YG on 10-Jan-18
  */
-public interface SQLMigrator {
+public interface SqlMigrator {
 
     void migrate(TotalEconomy totalEconomy) throws MigrationException;
 }

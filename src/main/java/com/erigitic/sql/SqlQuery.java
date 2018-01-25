@@ -25,13 +25,33 @@ public class SqlQuery implements AutoCloseable {
     private String baseQuery;
     private Map<String, Object> parameters;
 
+    private boolean closeConnection;
     private Connection connection;
     private PreparedStatement statement;
 
-    public SqlQuery(DataSource dataSource, String baseQuery) {
-        this.dataSource = dataSource;
+    private SqlQuery(String baseQuery) {
         this.baseQuery = baseQuery;
         this.parameters = new HashMap<>();
+    }
+
+    /**
+     * Initialize the query with a {@link DataSource}
+     * This will properly close the connection upon {@link #close()}
+     */
+    public SqlQuery(DataSource dataSource, String baseQuery) {
+        this(baseQuery);
+        this.dataSource = dataSource;
+        this.closeConnection = true;
+    }
+
+    /**
+     * Initialize the query with a {@link Connection}
+     * This will only close the {@link Statement}
+     */
+    public SqlQuery(Connection connection, String baseQuery) {
+        this(baseQuery);
+        this.connection = connection;
+        this.closeConnection = false;
     }
 
     public void setParameter(String key, Object value) {
@@ -110,7 +130,8 @@ public class SqlQuery implements AutoCloseable {
             statement.close();
             statement = null;
         }
-        if (connection != null) {
+        // When initialized with a connection do not close it.
+        if (closeConnection && connection != null) {
             connection.close();
             connection = null;
         }

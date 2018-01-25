@@ -1,6 +1,7 @@
 package com.erigitic.sql.migration;
 
 import com.erigitic.main.TotalEconomy;
+import com.erigitic.sql.SqlQuery;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
 /**
  * Created by MarkL4YG on 10-Jan-18
  */
-public class LegacySchemaMigrator implements SQLMigrator {
+public class LegacySchemaMigrator implements SqlMigrator {
 
     private Logger logger;
     private TotalEconomy totalEconomy;
@@ -77,6 +78,15 @@ public class LegacySchemaMigrator implements SQLMigrator {
             // In order to do that we need to get the column names first so we also import custom columns from the old format
             logger.warn("Migrating job progress...");
             importJobsProgress();
+
+            String query = "UPDATE `te_meta` SET `value` = 1 WHERE `ident` = 'schema_version'";
+            try (SqlQuery updateQuery = new SqlQuery(connection[0], query)){
+                PreparedStatement statement = updateQuery.getStatement();
+                Integer updateCount = statement.executeUpdate();
+                if (updateCount != 1 && updateCount != 0) {
+                    throw new SQLException("Failed to update meta table! Update count: " + updateCount);
+                }
+            }
 
             logger.warn("Commiting transaction.");
             connection[0].commit();
