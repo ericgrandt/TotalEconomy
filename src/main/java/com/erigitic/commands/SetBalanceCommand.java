@@ -101,7 +101,7 @@ public class SetBalanceCommand implements CommandExecutor {
      * @param recipientAccount The account
      * @param amount
      * @param optCurrencyName
-     * @return Result of the transaction
+     * @return TransactionResult Result of the transaction
      * @throws CommandException
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
