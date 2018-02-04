@@ -804,8 +804,8 @@ public class JobManager {
                 List<Text> traitTexts = new ArrayList<>(count);
 
                 for (int i = 0; i < count; i++) {
-                    Object v = state.getTraitValue(traits.get(i)).orElse(null);
-                    traitTexts.add(i, Text.of(traits.get(i).getName(), '=', v != null ? v.toString() : "null"));
+                    Object traitValue = state.getTraitValue(traits.get(i)).orElse(null);
+                    traitTexts.add(i, Text.of(traits.get(i).getName(), '=', traitValue != null ? traitValue.toString() : "null"));
                 }
 
                 Text t = Text.of(TextColors.GRAY, "TRAITS:\n    ", Text.joinWith(Text.of(",\n    "), traitTexts.toArray(new Text[traits.size()])));

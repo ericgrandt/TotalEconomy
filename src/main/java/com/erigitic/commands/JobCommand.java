@@ -246,7 +246,6 @@ public class JobCommand implements CommandExecutor {
 
                             listText = Text.join(texts.toArray(new Text[texts.size()]));
                         } else {
-
                             listText = Text.of(" ", formatReward(action.getReward().get()));
 
                             if (action.isGrowing() && extended) {
