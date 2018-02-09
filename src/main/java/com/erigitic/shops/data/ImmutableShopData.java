@@ -23,45 +23,44 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs;
+package com.erigitic.shops.data;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.Shop;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
+import org.spongepowered.api.data.value.BaseValue;
+import org.spongepowered.api.data.value.immutable.ImmutableValue;
 
-/**
- * Requirement notation that is usable in various places such as higher job tiers
- */
-public class JobBasedRequirement {
-    private int requiredJobLevel;
-    private String requiredJob;
-    private String requiredPermission;
+import java.util.Optional;
 
-    public JobBasedRequirement(String requiredJob, int requiredJobLevel, String requiredPermission) {
-        this.requiredJobLevel = requiredJobLevel;
-        this.requiredJob = requiredJob;
-        this.requiredPermission = requiredPermission;
+public class ImmutableShopData extends AbstractImmutableSingleData<Shop, ImmutableShopData, ShopData> {
+
+    public ImmutableShopData(Shop shop) {
+        super(shop, ShopKeys.SINGLE_SHOP);
     }
 
-    public int getRequiredJobLevel() {
-        return requiredJobLevel;
+    @Override
+    public ShopData asMutable() {
+        return new ShopData(getValue());
     }
 
-    public String getRequiredJob() {
-        return requiredJob;
+    @Override
+    public int getContentVersion() {
+        return ShopData.CONTENT_VERSION;
     }
 
-    public String getRequiredPermission() {
-        return requiredPermission;
+    @Override
+    protected ImmutableValue<?> getValueGetter() {
+        return Sponge.getRegistry().getValueFactory().createValue(ShopKeys.SINGLE_SHOP, getValue()).asImmutable();
     }
 
-    /**
-     * Adds the requirements to the job's node in the jobs configuration file
-     *
-     * @param node The node to add the requirement too
-     */
-    public void addTo(ConfigurationNode node) {
-        node = node.getNode("require");
-        node.getNode("job").setValue(requiredJob);
-        node.getNode("level").setValue(requiredJobLevel);
-        node.getNode("permission").setValue(requiredPermission);
+    @Override
+    public <E> Optional<ImmutableShopData> with(Key<? extends BaseValue<E>> key, E value) {
+        if (this.supports(key)) {
+            return Optional.of(asMutable().set(key, value).asImmutable());
+        } else {
+            return Optional.empty();
+        }
     }
 }

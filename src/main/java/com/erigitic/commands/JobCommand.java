@@ -144,14 +144,14 @@ public class JobCommand implements CommandExecutor {
             if (job.getRequirement().isPresent()) {
                 JobBasedRequirement req = job.getRequirement().get();
 
-                if (req.permissionNeeded() != null && !user.hasPermission(req.permissionNeeded())) {
+                if (req.getRequiredPermission() != null && !user.hasPermission(req.getRequiredPermission())) {
                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.GOLD, jobName, TextColors.RED, "\""));
                 }
 
-                if (req.jobNeeded() != null && req.jobLevelNeeded() > totalEconomy.getJobManager().getJobLevel(req.jobNeeded().toLowerCase(), user)) {
+                if (req.getRequiredJob() != null && req.getRequiredJobLevel() > totalEconomy.getJobManager().getJobLevel(req.getRequiredJob().toLowerCase(), user)) {
                      throw new CommandException(Text.of("Insufficient level! Level ",
-                             TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
-                             TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
+                             TextColors.GOLD, req.getRequiredJobLevel(), TextColors.RED," as a ",
+                             TextColors.GOLD, req.getRequiredJob(), TextColors.RED, " required!"));
                 }
             }
 
