@@ -1,5 +1,6 @@
 v1.8.0
 
++ ADDED: Chest shops
 + CHANGE: Rework job rewards
 + CHANGE: Change job sets file name from `jobSets` to `jobsets`
 + CHANGE: The `jobs` and `jobsets` configuration files are now copied from the resources folder instead of being created programmatically

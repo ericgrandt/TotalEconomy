@@ -23,45 +23,40 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs;
+package com.erigitic.shops.data;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.PlayerShopInfo;
+import com.erigitic.shops.Shop;
+import com.erigitic.shops.ShopItem;
+import com.google.common.reflect.TypeToken;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.key.KeyFactory;
+import org.spongepowered.api.data.value.mutable.Value;
 
-/**
- * Requirement notation that is usable in various places such as higher job tiers
- */
-public class JobBasedRequirement {
-    private int requiredJobLevel;
-    private String requiredJob;
-    private String requiredPermission;
+public class ShopKeys {
 
-    public JobBasedRequirement(String requiredJob, int requiredJobLevel, String requiredPermission) {
-        this.requiredJobLevel = requiredJobLevel;
-        this.requiredJob = requiredJob;
-        this.requiredPermission = requiredPermission;
-    }
+    public static Key<Value<Shop>> SINGLE_SHOP = KeyFactory.makeSingleKey(
+            TypeToken.of(Shop.class),
+            new TypeToken<Value<Shop>>() {},
+            DataQuery.of("shop"),
+            "totaleconomy:shop",
+            "shop"
+    );
 
-    public int getRequiredJobLevel() {
-        return requiredJobLevel;
-    }
+    public static Key<Value<ShopItem>> SHOP_ITEM = KeyFactory.makeSingleKey(
+            TypeToken.of(ShopItem.class),
+            new TypeToken<Value<ShopItem>>() {},
+            DataQuery.of("shopitem"),
+            "totaleconomy:shopitem",
+            "shopitem"
+    );
 
-    public String getRequiredJob() {
-        return requiredJob;
-    }
-
-    public String getRequiredPermission() {
-        return requiredPermission;
-    }
-
-    /**
-     * Adds the requirements to the job's node in the jobs configuration file
-     *
-     * @param node The node to add the requirement too
-     */
-    public void addTo(ConfigurationNode node) {
-        node = node.getNode("require");
-        node.getNode("job").setValue(requiredJob);
-        node.getNode("level").setValue(requiredJobLevel);
-        node.getNode("permission").setValue(requiredPermission);
-    }
+    public static Key<Value<PlayerShopInfo>> PLAYER_SHOP_INFO = KeyFactory.makeSingleKey(
+            TypeToken.of(PlayerShopInfo.class),
+            new TypeToken<Value<PlayerShopInfo>>() {},
+            DataQuery.of("playershopinfo"),
+            "totaleconomy:playershopinfo",
+            "playershopinfo"
+    );
 }
