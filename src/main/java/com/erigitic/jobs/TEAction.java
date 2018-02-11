@@ -104,7 +104,7 @@ public class TEAction {
                     reward = rewards.getOrDefault(key, null);
                 }
             } else {
-                logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetId);
+                logger.warn("ID trait \"" + idTrait + "\" not found during action: " + action + ':' + targetId);
             }
 
         } else {
@@ -127,13 +127,13 @@ public class TEAction {
                     if (traitVal.isPresent()) {
                         reward = generateReward((Integer) traitVal.get(), (Collection<Integer>) trait.get().getPossibleValues());
                     } else {
-                        logger.warn("Growth trait \"", growthTrait, "\" has missing value during action: ", action, ':', targetId);
+                        logger.warn("Growth trait \"" + growthTrait + "\" has missing value during action: " + action + ':' + targetId);
                     }
                 } else {
-                    logger.warn("Growth trait \"", growthTrait, "\" is not numeric!");
+                    logger.warn("Growth trait \"" + growthTrait + "\" is not numeric!");
                 }
             } else {
-                logger.warn("Growth trait \"", growthTrait, "\" not found during action: ", action, ':', targetId);
+                logger.warn("Growth trait \"" + growthTrait + "\" not found during action: " + action + ':' + targetId);
             }
         }
 
@@ -171,7 +171,7 @@ public class TEAction {
                     reward = rewards.getOrDefault(key, null);
                 }
             } else {
-                logger.warn("ID trait \"", idTrait, "\" not found during action: ", action, ':', targetId);
+                logger.warn("ID trait \"" + idTrait + "\" not found during action: " + action + ':' + targetId);
             }
         } else {
             reward = this.reward;
