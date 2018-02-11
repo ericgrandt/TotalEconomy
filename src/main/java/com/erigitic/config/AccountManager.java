@@ -66,6 +66,8 @@ public class AccountManager implements EconomyService {
 
     private boolean confSaveRequested = false;
 
+    public static final int CONTENT_VERSION = 1;
+
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
      * or configuration files depending on main configuration value, and starts save script if setup.
@@ -104,6 +106,30 @@ public class AccountManager implements EconomyService {
 
             if (!accountsFile.exists()) {
                 loader.save(accountConfig);
+            } else {
+                if (accountConfig.getNode("version").getInt(0) != CONTENT_VERSION) {
+                    accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
+                        ConfigurationNode accountNode = nodeEntry.getValue();
+
+                        accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
+                            ConfigurationNode jobNode = jobNodeEntry.getValue();
+                            ConfigurationNode expNode = jobNode.getNode("exp");
+
+                            int exp = expNode.getInt(0);
+                            int level = jobNode.getNode("level").getInt(0);
+
+                            expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+
+                            try {
+                                loader.save(accountConfig);
+                            } catch (IOException e) {
+                                logger.warn("Error migrating account experience values!");
+                            }
+                        });
+                    });
+
+                    accountConfig.getNode("version").setValue(CONTENT_VERSION);
+                }
             }
         } catch (IOException e) {
             logger.warn("Error creating accounts configuration file!");
