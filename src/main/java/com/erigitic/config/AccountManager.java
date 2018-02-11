@@ -36,6 +36,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -466,7 +467,7 @@ public class AccountManager implements EconomyService {
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
                     .set("job_notifications")
-                    .equals(jobNotifications ? "1":"0")
+                    .equals(jobNotifications ? "1" : "0")
                     .where("uid")
                     .equals(playerUUID.toString())
                     .build();
@@ -491,6 +492,28 @@ public class AccountManager implements EconomyService {
         } else {
             player.sendMessage(messageManager.getMessage("notifications.off"));
         }
+    }
+
+    /**
+     * Used for the debugging information provided by the listeners in the JobManager.
+     * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs.
+     */
+    public Optional<String> getUserOption(String option, User user) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(accountConfig.getNode(user.getUniqueId().toString(), "options", option).getString(null));
+    }
+
+    public void setUserOption(String option, User user, String value) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return;
+        }
+
+        accountConfig.getNode(user.getUniqueId().toString(), "options", option).setValue(value);
     }
 
     /**
