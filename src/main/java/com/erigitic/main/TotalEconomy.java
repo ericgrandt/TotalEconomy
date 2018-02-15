@@ -31,6 +31,8 @@ import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.JobManager;
 import com.erigitic.sql.SqlManager;
+import com.erigitic.shops.*;
+import com.erigitic.shops.data.*;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -39,10 +41,13 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.DataManager;
+import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
@@ -62,8 +67,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Optional;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.7.1", description = "All in one economy plugin for Minecraft/Sponge")
+@Plugin(id="totaleconomy", name="Total Economy", version="1.8.0-dev.5", description="All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -96,6 +102,7 @@ public class TotalEconomy {
     private AccountManager accountManager;
     private JobManager jobManager;
     private MessageManager messageManager;
+    private ShopManager shopManager;
 
     private TECurrencyRegistryModule teCurrencyRegistryModule;
 
@@ -109,20 +116,19 @@ public class TotalEconomy {
     private boolean jobFeatureEnabled = true;
     private boolean jobNotificationEnabled = true;
     private boolean jobSalaryEnabled = true;
-    // End Job Variables
+
+    // Shop Variables
+    private boolean chestShopEnabled = true;
 
     // Database Variables
     private boolean databaseEnabled = false;
-
     private String databaseUrl;
     private String databaseUser;
     private String databasePassword;
-    // End Database Variables
 
     // Money Cap Variables
     private boolean moneyCapEnabled = false;
     private BigDecimal moneyCap;
-    // End Money Cap Variables
 
     @Listener
     public void preInit(GamePreInitializationEvent event) {
@@ -147,6 +153,7 @@ public class TotalEconomy {
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
         accountManager = new AccountManager(this, messageManager, logger);
+
         teCurrencyRegistryModule = new TECurrencyRegistryModule(this);
 
         game.getServiceManager().setProvider(this, EconomyService.class, accountManager);
@@ -160,6 +167,10 @@ public class TotalEconomy {
             moneyCap = BigDecimal.valueOf(config.getNode("features", "moneycap", "amount").getFloat()).setScale(2, BigDecimal.ROUND_DOWN);
         }
 
+        if (chestShopEnabled) {
+            shopManager = new ShopManager(this, accountManager, messageManager);
+        }
+
         // Allows for retrieving of all/individual currencies in Total Economy by other plugins
         game.getRegistry().registerModule(Currency.class, teCurrencyRegistryModule);
     }
@@ -169,6 +180,7 @@ public class TotalEconomy {
         if (databaseEnabled) {
             sqlManager.initDatabase(this);
         }
+        createAndRegisterData();
         createAndRegisterCommands();
         registerListeners();
     }
@@ -206,6 +218,8 @@ public class TotalEconomy {
         Player player = event.getTargetEntity();
 
         accountManager.getOrCreateAccount(player.getUniqueId());
+
+        checkForAndRemovePlayerShopInfoData(player);
     }
 
     /**
@@ -223,7 +237,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Setup the default config file, totaleconomy.conf.
+     * Load the default config file, totaleconomy.conf.
      */
     private void loadConfig() {
         try {
@@ -235,6 +249,41 @@ public class TotalEconomy {
         } catch (IOException e) {
             logger.warn("[TE] Main configuration file could not be loaded/created/changed!");
         }
+    }
+
+    /**
+     * Create and register custom data
+     */
+    private void createAndRegisterData() {
+        DataManager dm = Sponge.getDataManager();
+
+        dm.registerBuilder(Shop.class, new Shop.Builder());
+        dm.registerBuilder(ShopItem.class, new ShopItem.Builder());
+        dm.registerBuilder(PlayerShopInfo.class, new PlayerShopInfo.Builder());
+
+        DataRegistration.builder()
+                .dataClass(ShopData.class)
+                .immutableClass(ImmutableShopData.class)
+                .builder(new ShopData.Builder())
+                .manipulatorId("shop")
+                .dataName("shop")
+                .buildAndRegister(pluginContainer);
+
+        DataRegistration.builder()
+                .dataClass(ShopItemData.class)
+                .immutableClass(ImmutableShopItemData.class)
+                .builder(new ShopItemData.Builder())
+                .manipulatorId("shopitem")
+                .dataName("shopitem")
+                .buildAndRegister(pluginContainer);
+
+        DataRegistration.builder()
+                .dataClass(PlayerShopInfoData.class)
+                .immutableClass(ImmutablePlayerShopInfoData.class)
+                .builder(new PlayerShopInfoData.Builder())
+                .manipulatorId("playershopinfo")
+                .dataName("playershopinfo")
+                .buildAndRegister(pluginContainer);
     }
 
     /**
@@ -293,6 +342,10 @@ public class TotalEconomy {
             game.getCommandManager().register(this, new JobCommand(this, accountManager, jobManager, messageManager).commandSpec(), "job");
         }
 
+        if (chestShopEnabled) {
+            game.getCommandManager().register(this, new ShopCommand(this, accountManager, shopManager, messageManager).getCommandSpec(), "shop");
+        }
+
         game.getCommandManager().register(this, payCommand, "pay");
         game.getCommandManager().register(this, adminPayCommand, "adminpay");
         game.getCommandManager().register(this, balanceCommand, "balance", "bal", "money");
@@ -344,19 +397,34 @@ public class TotalEconomy {
         if (jobFeatureEnabled) {
             eventManager.registerListeners(this, jobManager);
         }
+
+        if (chestShopEnabled) {
+            eventManager.registerListeners(this, shopManager);
+        }
     }
 
     /**
      * Determines what features to enable from the main configuration file. Sets the corresponding features boolean to true/false (enabled/disabled).
      */
     private void setFeaturesEnabledStatus() {
-        jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean();
-        jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean();
-        jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean();
+        jobFeatureEnabled = config.getNode("features", "jobs", "enable").getBoolean(true);
+        jobNotificationEnabled = config.getNode("features", "jobs", "notifications").getBoolean(true);
+        jobSalaryEnabled = config.getNode("features", "jobs", "salary").getBoolean(true);
+        databaseEnabled = config.getNode("database", "enable").getBoolean(false);
+        moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean(true);
+        chestShopEnabled = config.getNode("features", "shops", "chestshop", "enable").getBoolean(true);
+    }
 
-        databaseEnabled = config.getNode("database", "enable").getBoolean();
+    private void checkForAndRemovePlayerShopInfoData(Player player) {
+        Optional<PlayerShopInfo> playerShopInfoOpt = player.get(ShopKeys.PLAYER_SHOP_INFO);
 
-        moneyCapEnabled = config.getNode("features", "moneycap", "enable").getBoolean();
+        if (playerShopInfoOpt.isPresent()) {
+            player.remove(ShopKeys.PLAYER_SHOP_INFO);
+        }
+    }
+
+    public ConfigurationNode getShopNode() {
+        return config.getNode("features", "shops");
     }
 
     public HashSet<Currency> getCurrencies() {

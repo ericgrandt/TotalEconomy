@@ -41,6 +41,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -69,6 +70,8 @@ public class AccountManager implements EconomyService {
     private boolean databaseActive;
 
     private boolean confSaveRequested = false;
+
+    public static final int CONTENT_VERSION = 1;
 
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
@@ -106,6 +109,30 @@ public class AccountManager implements EconomyService {
 
             if (!accountsFile.exists()) {
                 loader.save(accountConfig);
+            } else {
+                if (accountConfig.getNode("version").getInt(0) != CONTENT_VERSION) {
+                    accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
+                        ConfigurationNode accountNode = nodeEntry.getValue();
+
+                        accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
+                            ConfigurationNode jobNode = jobNodeEntry.getValue();
+                            ConfigurationNode expNode = jobNode.getNode("exp");
+
+                            int exp = expNode.getInt(0);
+                            int level = jobNode.getNode("level").getInt(0);
+
+                            expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+
+                            try {
+                                loader.save(accountConfig);
+                            } catch (IOException e) {
+                                logger.warn("Error migrating account experience values!");
+                            }
+                        });
+                    });
+
+                    accountConfig.getNode("version").setValue(CONTENT_VERSION);
+                }
             }
 
             // Automatic convert from the old storage format
@@ -506,6 +533,28 @@ public class AccountManager implements EconomyService {
         } else {
             player.sendMessage(messageManager.getMessage("notifications.off"));
         }
+    }
+
+    /**
+     * Used for the debugging information provided by the listeners in the JobManager.
+     * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs.
+     */
+    public Optional<String> getUserOption(String option, User user) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(accountConfig.getNode(user.getUniqueId().toString(), "options", option).getString(null));
+    }
+
+    public void setUserOption(String option, User user, String value) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return;
+        }
+
+        accountConfig.getNode(user.getUniqueId().toString(), "options", option).setValue(value);
     }
 
     /**

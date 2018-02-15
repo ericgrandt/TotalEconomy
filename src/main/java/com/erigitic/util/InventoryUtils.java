@@ -23,45 +23,35 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs;
+package com.erigitic.util;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.ItemStack;
 
-/**
- * Requirement notation that is usable in various places such as higher job tiers
- */
-public class JobBasedRequirement {
-    private int requiredJobLevel;
-    private String requiredJob;
-    private String requiredPermission;
-
-    public JobBasedRequirement(String requiredJob, int requiredJobLevel, String requiredPermission) {
-        this.requiredJobLevel = requiredJobLevel;
-        this.requiredJob = requiredJob;
-        this.requiredPermission = requiredPermission;
-    }
-
-    public int getRequiredJobLevel() {
-        return requiredJobLevel;
-    }
-
-    public String getRequiredJob() {
-        return requiredJob;
-    }
-
-    public String getRequiredPermission() {
-        return requiredPermission;
-    }
+public class InventoryUtils {
 
     /**
-     * Adds the requirements to the job's node in the jobs configuration file
+     * Get the total amount of the specified ItemStack in an inventory
      *
-     * @param node The node to add the requirement too
+     * @param inventory The inventory to query
+     * @param itemStack The item to get the amount of
+     * @return int The total amount of the specified ItemStack
      */
-    public void addTo(ConfigurationNode node) {
-        node = node.getNode("require");
-        node.getNode("job").setValue(requiredJob);
-        node.getNode("level").setValue(requiredJobLevel);
-        node.getNode("permission").setValue(requiredPermission);
+    public static int getItemAmountInInventory(Inventory inventory, ItemStack itemStack) {
+        ItemStack copy = itemStack.copy();
+
+        return inventory.queryAny(copy).totalItems();
+    }
+
+    public static void removeItem(Inventory inventory, ItemStack itemStack, int amount) {
+        int availableAmount = getItemAmountInInventory(inventory, itemStack);
+
+        if (amount > availableAmount) {
+            amount = availableAmount;
+        }
+
+        ItemStack itemToRemove = itemStack.copy();
+
+        inventory.queryAny(itemToRemove).poll(amount);
     }
 }
