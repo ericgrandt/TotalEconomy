@@ -166,21 +166,14 @@ public class JobCommand implements CommandExecutor {
                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.GOLD, jobName, TextColors.RED, "\""));
                 }
 
-<<<<<<< HEAD
-                if (req.jobNeeded() != null) {
-                    Optional<UUID> reqJobUUID = jobManager.getJobUUIDByName(req.jobNeeded());
+                if (req.getRequiredJob() != null) {
+                    Optional<UUID> reqJobUUID = jobManager.getJobUUIDByName(req.getRequiredJob());
 
-                    if (!reqJobUUID.isPresent() || req.jobLevelNeeded() > jobManager.getJobLevel(reqJobUUID.get(), user)) {
+                    if (!reqJobUUID.isPresent() || req.getRequiredJobLevel() > jobManager.getJobLevel(reqJobUUID.get(), user)) {
                         throw new CommandException(Text.of("Insufficient level! Level ",
-                            TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
-                            TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
+                            TextColors.GOLD, req.getRequiredJobLevel(), TextColors.RED," as a ",
+                            TextColors.GOLD, req.getRequiredJob(), TextColors.RED, " required!"));
                     }
-=======
-                if (req.getRequiredJob() != null && req.getRequiredJobLevel() > totalEconomy.getJobManager().getJobLevel(req.getRequiredJob().toLowerCase(), user)) {
-                     throw new CommandException(Text.of("Insufficient level! Level ",
-                             TextColors.GOLD, req.getRequiredJobLevel(), TextColors.RED," as a ",
-                             TextColors.GOLD, req.getRequiredJob(), TextColors.RED, " required!"));
->>>>>>> develop
                 }
             }
 
@@ -238,11 +231,7 @@ public class JobCommand implements CommandExecutor {
             }
 
             if (optJobName.isPresent()) {
-<<<<<<< HEAD
                 optJob = jobManager.getTEJobWithName(optJobName.get());
-=======
-                optJob = jobManager.getJob(optJobName.get().toLowerCase(), false);
->>>>>>> develop
             }
 
             if (!optJob.isPresent()) {
@@ -292,16 +281,10 @@ public class JobCommand implements CommandExecutor {
             }
 
             pageBuilder.reset()
-<<<<<<< HEAD
-                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.get(),"\n"))
-                    .contents(lines.toArray(new Text[lines.size()]))
-                    .sendTo(src);
-=======
-                       .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob((Player) src)),"\n"))
+                       .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob((Player) src).get().toString()),"\n"))
                        .contents(lines.toArray(new Text[lines.size()]))
                        .build()
                        .sendTo(src);
->>>>>>> develop
 
             return CommandResult.success();
         }

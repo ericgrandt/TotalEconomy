@@ -26,7 +26,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.Shop;
 import com.erigitic.shops.ShopItem;
@@ -250,7 +250,7 @@ public class ShopCommand implements CommandExecutor {
 
                             if (player.getUniqueId().equals(creatorUUID)) {
                                 if (isChestEmpty(chest)) {
-                                    TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUUID).get();
+                                    TEAccountBase account = (TEAccountBase) accountManager.getOrCreateAccount(creatorUUID).get();
                                     TransactionResult transactionResult = account.withdraw(
                                             totalEconomy.getDefaultCurrency(),
                                             BigDecimal.valueOf(shopManager.getChestShopPrice()),
