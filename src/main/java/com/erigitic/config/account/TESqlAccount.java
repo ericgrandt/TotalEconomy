@@ -25,7 +25,9 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by MarkL4YG on 08-Jan-18
+ * Account implementation that uses a database connection in order to store account information.
+ *
+ * @author MarkL4YG
  */
 public class TESqlAccount extends TEAccountBase {
 
@@ -199,6 +201,10 @@ public class TESqlAccount extends TEAccountBase {
         }
     }
 
+    /**
+     * Set this accounts display name in the database
+     * @param displayName The new displayName for this virtual account
+     */
     public void setDisplayName(Text displayName) {
 
         if (!isVirtual()) {

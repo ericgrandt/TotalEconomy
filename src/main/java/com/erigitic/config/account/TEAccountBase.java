@@ -20,7 +20,12 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * Created by MarkL4YG on 08-Jan-18
+ * The base class for TE accounts.
+ * This class contains code not depending on the storage type.
+ * This class is abstract and shall be extended by classes which implement storage algorithms.
+ *
+ * @author MarkL4YG
+ * @author Erigitic
  */
 public abstract class TEAccountBase implements UniqueAccount {
 
@@ -104,6 +109,9 @@ public abstract class TEAccountBase implements UniqueAccount {
         return transferResult;
     }
 
+    /**
+     * @return This accounts unique ID
+     */
     @Override
     public UUID getUniqueId() {
         return uniqueID;
@@ -129,7 +137,6 @@ public abstract class TEAccountBase implements UniqueAccount {
     public BigDecimal getDefaultBalance(Currency currency) {
         return currency instanceof TECurrency ? ((TECurrency) currency).getStartingBalance() : BigDecimal.ZERO;
     }
-
 
     /**
      * Get a player's balance for each currency type
@@ -196,6 +203,10 @@ public abstract class TEAccountBase implements UniqueAccount {
         return setBalance(currency, newBalance, cause);
     }
 
+    /**
+     * Currently always an empty context
+     * @return
+     */
     @Override
     public Set<Context> getActiveContexts() {
         return new HashSet<>();

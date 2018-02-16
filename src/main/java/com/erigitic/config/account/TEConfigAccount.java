@@ -23,7 +23,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by MarkL4YG on 08-Jan-18
+ * Account implementation that stores information in a ConfigurationNode
+ * 
+ * @author MarkL4YG
+ * @author Erigitic
  */
 public class TEConfigAccount extends TEAccountBase {
 
