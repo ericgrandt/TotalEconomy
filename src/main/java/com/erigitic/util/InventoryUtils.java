@@ -23,35 +23,35 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.util;
 
-import com.erigitic.jobs.JobBasedRequirement;
-import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.ItemStack;
 
-import java.util.Arrays;
+public class InventoryUtils {
 
-public class MinerJob implements Job {
+    /**
+     * Get the total amount of the specified ItemStack in an inventory
+     *
+     * @param inventory The inventory to query
+     * @param itemStack The item to get the amount of
+     * @return int The total amount of the specified ItemStack
+     */
+    public static int getItemAmountInInventory(Inventory inventory, ItemStack itemStack) {
+        ItemStack copy = itemStack.copy();
 
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
-
-    @Override
-    public String getName() {
-        return NAME;
+        return inventory.queryAny(copy).totalItems();
     }
 
-    @Override
-    public String[] getSets() {
-        return SETS;
-    }
+    public static void removeItem(Inventory inventory, ItemStack itemStack, int amount) {
+        int availableAmount = getItemAmountInInventory(inventory, itemStack);
 
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
+        if (amount > availableAmount) {
+            amount = availableAmount;
+        }
 
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
+        ItemStack itemToRemove = itemStack.copy();
 
-        new JobBasedRequirement("", 0, "totaleconomy.job.miner").addTo(node);
+        inventory.queryAny(itemToRemove).poll(amount);
     }
 }

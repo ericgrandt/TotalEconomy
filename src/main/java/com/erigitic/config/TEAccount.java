@@ -28,7 +28,6 @@ package com.erigitic.config;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
-import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
@@ -48,8 +47,6 @@ public class TEAccount implements UniqueAccount {
     private UUID uuid;
     private SQLManager sqlManager;
 
-    private ConfigurationNode accountConfig;
-
     private boolean databaseActive;
 
     /**
@@ -64,7 +61,6 @@ public class TEAccount implements UniqueAccount {
         this.accountManager = accountManager;
         this.uuid = uuid;
 
-        accountConfig = accountManager.getAccountConfig();
         databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {
@@ -118,7 +114,7 @@ public class TEAccount implements UniqueAccount {
 
             return sqlQuery.recordExists();
         } else {
-            return accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null;
+            return accountManager.getAccountConfig().getNode(uuid.toString(), currencyName + "-balance").getValue() != null;
         }
     }
 
@@ -144,7 +140,7 @@ public class TEAccount implements UniqueAccount {
 
                 return sqlQuery.getBigDecimal(BigDecimal.ZERO);
             } else {
-                BigDecimal balance = new BigDecimal(accountConfig.getNode(uuid.toString(), currencyName + "-balance").getString());
+                BigDecimal balance = new BigDecimal(accountManager.getAccountConfig().getNode(uuid.toString(), currencyName + "-balance").getString());
 
                 return balance;
             }
@@ -206,7 +202,7 @@ public class TEAccount implements UniqueAccount {
                     transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.FAILED, transactionType);
                 }
             } else {
-                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
+                accountManager.getAccountConfig().getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
                 accountManager.requestConfigurationSave();
 
                 transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);

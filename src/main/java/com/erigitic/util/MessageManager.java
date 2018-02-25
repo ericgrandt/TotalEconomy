@@ -47,6 +47,7 @@ public class MessageManager {
     private TotalEconomy totalEconomy;
     private Logger logger;
     private ConfigurationNode messagesConfig;
+    private Locale locale;
 
     /**
      * Grabs a message from the messages_[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
@@ -55,6 +56,7 @@ public class MessageManager {
     public MessageManager(TotalEconomy totalEconomy, Logger logger, Locale locale) {
         this.totalEconomy = totalEconomy;
         this.logger = logger;
+        this.locale = locale;
 
         setupConfig(locale);
     }
@@ -87,7 +89,7 @@ public class MessageManager {
      * @return Text The deserialized message
      */
     public Text getMessage(String messageKey) {
-        String message = messagesConfig.getNode(messageKey).getString();
+        String message = messagesConfig.getNode(messageKey).getString("Message not found (" + locale + "): " + messageKey);
 
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }
@@ -101,7 +103,7 @@ public class MessageManager {
      */
     public Text getMessage(String messageKey, Map<String, String> values) {
         StrSubstitutor sub = new StrSubstitutor(values, "{", "}");
-        String message = sub.replace(messagesConfig.getNode(messageKey).getString());
+        String message = sub.replace(messagesConfig.getNode(messageKey).getString("Message not found (" + locale + "): " + messageKey));
 
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }

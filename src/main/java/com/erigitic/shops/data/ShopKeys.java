@@ -23,29 +23,40 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobsets;
+package com.erigitic.shops.data;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.PlayerShopInfo;
+import com.erigitic.shops.Shop;
+import com.erigitic.shops.ShopItem;
+import com.google.common.reflect.TypeToken;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.key.KeyFactory;
+import org.spongepowered.api.data.value.mutable.Value;
 
-public class FishermanJobSet implements JobSet {
+public class ShopKeys {
 
-    private final String SETNAME = "fish";
+    public static Key<Value<Shop>> SINGLE_SHOP = KeyFactory.makeSingleKey(
+            TypeToken.of(Shop.class),
+            new TypeToken<Value<Shop>>() {},
+            DataQuery.of("shop"),
+            "totaleconomy:shop",
+            "shop"
+    );
 
-    private final String[][] REWARDS = {
-            //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"catch", "cod", "25", "50.00"},
-            {"catch", "salmon", "100", "150.00"},
-            {"catch", "pufferfish", "250", "300.00"}
-    };
+    public static Key<Value<ShopItem>> SHOP_ITEM = KeyFactory.makeSingleKey(
+            TypeToken.of(ShopItem.class),
+            new TypeToken<Value<ShopItem>>() {},
+            DataQuery.of("shopitem"),
+            "totaleconomy:shopitem",
+            "shopitem"
+    );
 
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        ConfigurationNode myNode = node.getNode(SETNAME);
-
-        for (String[] a : REWARDS) {
-            ConfigurationNode n = myNode.getNode(a[0], a[1]);
-            n.getNode("exp").setValue(a[2]);
-            n.getNode("money").setValue(a[3]);
-        }
-    }
+    public static Key<Value<PlayerShopInfo>> PLAYER_SHOP_INFO = KeyFactory.makeSingleKey(
+            TypeToken.of(PlayerShopInfo.class),
+            new TypeToken<Value<PlayerShopInfo>>() {},
+            DataQuery.of("playershopinfo"),
+            "totaleconomy:playershopinfo",
+            "playershopinfo"
+    );
 }

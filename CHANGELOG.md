@@ -1,3 +1,13 @@
+v1.8.0
+
++ ADDED: Chest shops
++ ADDED: Ability to set id traits, such as block variants and types, for blocks in job sets
++ CHANGE: Rework job rewards
++ CHANGE: Change job sets file name from `jobSets` to `jobsets`
++ CHANGE: The `jobs` and `jobsets` configuration files are now copied from the resources folder instead of being created programmatically
++ CHANGE: Change the color and formatting of job signs
++ CHANGE: Experience points are no longer reset to 0 on level up
+
 v1.7.0
 
 + Multi-Currency support

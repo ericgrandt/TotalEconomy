@@ -23,28 +23,44 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.shops.data;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.Shop;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
+import org.spongepowered.api.data.value.BaseValue;
+import org.spongepowered.api.data.value.immutable.ImmutableValue;
 
-public class UnemployedJob implements Job {
+import java.util.Optional;
 
-    private final String NAME = "unemployed";
+public class ImmutableShopData extends AbstractImmutableSingleData<Shop, ImmutableShopData, ShopData> {
 
-    @Override
-    public String getName() {
-        return NAME;
+    public ImmutableShopData(Shop shop) {
+        super(shop, ShopKeys.SINGLE_SHOP);
     }
 
     @Override
-    public String[] getSets() {
-        return null;
+    public ShopData asMutable() {
+        return new ShopData(getValue());
     }
 
     @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
+    public int getContentVersion() {
+        return ShopData.CONTENT_VERSION;
+    }
 
-        node.getNode("salary").setValue(20);
+    @Override
+    protected ImmutableValue<?> getValueGetter() {
+        return Sponge.getRegistry().getValueFactory().createValue(ShopKeys.SINGLE_SHOP, getValue()).asImmutable();
+    }
+
+    @Override
+    public <E> Optional<ImmutableShopData> with(Key<? extends BaseValue<E>> key, E value) {
+        if (this.supports(key)) {
+            return Optional.of(asMutable().set(key, value).asImmutable());
+        } else {
+            return Optional.empty();
+        }
     }
 }

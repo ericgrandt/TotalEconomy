@@ -36,6 +36,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -64,6 +65,8 @@ public class AccountManager implements EconomyService {
     private boolean databaseActive;
 
     private boolean confSaveRequested = false;
+
+    public static final int CONTENT_VERSION = 1;
 
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
@@ -103,9 +106,33 @@ public class AccountManager implements EconomyService {
 
             if (!accountsFile.exists()) {
                 loader.save(accountConfig);
+            } else {
+                if (accountConfig.getNode("version").getInt(0) != CONTENT_VERSION) {
+                    accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
+                        ConfigurationNode accountNode = nodeEntry.getValue();
+
+                        accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
+                            ConfigurationNode jobNode = jobNodeEntry.getValue();
+                            ConfigurationNode expNode = jobNode.getNode("exp");
+
+                            int exp = expNode.getInt(0);
+                            int level = jobNode.getNode("level").getInt(0);
+
+                            expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+
+                            try {
+                                loader.save(accountConfig);
+                            } catch (IOException e) {
+                                logger.warn("Error migrating account experience values!");
+                            }
+                        });
+                    });
+
+                    accountConfig.getNode("version").setValue(CONTENT_VERSION);
+                }
             }
         } catch (IOException e) {
-            logger.warn("[TE] Error creating accounts configuration file!");
+            logger.warn("Error creating accounts configuration file!");
         }
     }
 
@@ -165,9 +192,9 @@ public class AccountManager implements EconomyService {
     public void reloadConfig() {
         try {
             accountConfig = loader.load();
-            logger.info("[TE] Reloading account configuration file.");
+            logger.info("Reloading account configuration file.");
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while reloading the account configuration file!");
+            logger.warn("An error occurred while reloading the account configuration file!");
         }
     }
 
@@ -193,7 +220,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(playerAccount);
             }
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while creating a new account!");
+            logger.warn("An error occurred while creating a new account!");
         }
 
         return Optional.of(playerAccount);
@@ -220,7 +247,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(virtualAccount);
             }
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while creating a new virtual account!");
+            logger.warn("An error occurred while creating a new virtual account!");
         }
 
         return Optional.of(virtualAccount);
@@ -466,14 +493,14 @@ public class AccountManager implements EconomyService {
         if (databaseActive) {
             SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
                     .set("job_notifications")
-                    .equals(jobNotifications ? "1":"0")
+                    .equals(jobNotifications ? "1" : "0")
                     .where("uid")
                     .equals(playerUUID.toString())
                     .build();
 
             if (sqlQuery.getRowsAffected() <= 0) {
-                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("[TE] An error occurred while updating the notification state in the database!");
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("An error occurred while updating the notification state in the database!");
             }
         } else {
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
@@ -481,8 +508,8 @@ public class AccountManager implements EconomyService {
             try {
                 loader.save(accountConfig);
             } catch (IOException e) {
-                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("[TE] An error occurred while updating the notification state!");
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("An error occurred while updating the notification state!");
             }
         }
 
@@ -491,6 +518,28 @@ public class AccountManager implements EconomyService {
         } else {
             player.sendMessage(messageManager.getMessage("notifications.off"));
         }
+    }
+
+    /**
+     * Used for the debugging information provided by the listeners in the JobManager.
+     * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs.
+     */
+    public Optional<String> getUserOption(String option, User user) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(accountConfig.getNode(user.getUniqueId().toString(), "options", option).getString(null));
+    }
+
+    public void setUserOption(String option, User user, String value) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return;
+        }
+
+        accountConfig.getNode(user.getUniqueId().toString(), "options", option).setValue(value);
     }
 
     /**
@@ -511,7 +560,7 @@ public class AccountManager implements EconomyService {
         try {
             loader.save(accountConfig);
         } catch (IOException e) {
-            logger.error("[TE] An error occurred while saving the account configuration file!");
+            logger.error("An error occurred while saving the account configuration file!");
         }
     }
 
