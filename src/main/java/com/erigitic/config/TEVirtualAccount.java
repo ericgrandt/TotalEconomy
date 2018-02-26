@@ -30,7 +30,6 @@ import com.erigitic.sql.SQLManager;
 import com.erigitic.sql.SQLQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
@@ -181,7 +180,7 @@ public class TEVirtualAccount implements VirtualAccount {
         BigDecimal curBalance = getBalance(currency, contexts);
         BigDecimal newBalance = curBalance.add(amount);
 
-        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        return setBalance(currency, newBalance, cause);
     }
 
     @Override
@@ -190,7 +189,7 @@ public class TEVirtualAccount implements VirtualAccount {
         BigDecimal newBalance = curBalance.subtract(amount);
 
         if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-            return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            return setBalance(currency, newBalance, cause);
         }
 
         return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
