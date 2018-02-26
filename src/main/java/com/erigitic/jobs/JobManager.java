@@ -367,6 +367,21 @@ public class JobManager {
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
+    private boolean getNotificationState(UUID uuid) {
+        if (databaseEnabled) {
+            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                    .select("job_notifications")
+                    .from("accounts")
+                    .where("uid")
+                    .equals(uuid.toString())
+                    .build();
+
+            return sqlQuery.getBoolean(totalEconomy.isJobNotificationEnabled());
+        }
+
+        return accountManager.getAccountConfig().getNode(uuid.toString(), "jobnotifications").getBoolean();
+    }
+
     /**
      * Notifies a player when they are rewarded for completing a job action
      *
@@ -747,7 +762,7 @@ public class JobManager {
 
                 if (reward.isPresent()) {
                     TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-                    boolean notify = accountManager.getJobNotificationState(player);
+                    boolean notify = getNotificationState(playerUUID);
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                     Currency currency = totalEconomy.getDefaultCurrency();
@@ -840,8 +855,7 @@ public class JobManager {
 
                 if (reward.isPresent()) {
                     TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-                    ConfigurationNode accountConfig = accountManager.getAccountConfig();
-                    boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                    boolean notify = getNotificationState(playerUUID);
                     int expAmount = reward.get().getExpReward();
                     BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                     Currency currency = totalEconomy.getDefaultCurrency();
@@ -937,8 +951,7 @@ public class JobManager {
 
                     if (reward.isPresent()) {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-                        ConfigurationNode accountConfig = accountManager.getAccountConfig();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                        boolean notify = getNotificationState(playerUUID);
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                         Currency currency = totalEconomy.getDefaultCurrency();
@@ -1030,8 +1043,7 @@ public class JobManager {
 
                     if (reward.isPresent()) {
                         TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
-                        ConfigurationNode accountConfig = accountManager.getAccountConfig();
-                        boolean notify = accountConfig.getNode(playerUUID.toString(), "jobnotifications").getBoolean();
+                        boolean notify = getNotificationState(playerUUID);
                         int expAmount = reward.get().getExpReward();
                         BigDecimal payAmount = new BigDecimal(reward.get().getMoneyReward());
                         Currency currency = totalEconomy.getDefaultCurrency();
