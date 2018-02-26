@@ -7,6 +7,7 @@ v1.8.0
 + CHANGE: The `jobs` and `jobsets` configuration files are now copied from the resources folder instead of being created programmatically
 + CHANGE: Change the color and formatting of job signs
 + CHANGE: Experience points are no longer reset to 0 on level up
++ UPDATE: Updated to API 7
 
 v1.7.0
 
