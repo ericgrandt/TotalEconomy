@@ -43,7 +43,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
@@ -119,7 +119,7 @@ public class ShopManager {
                             Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
 
                             if (rejectedItems.size() == 0) {
-                                customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                                customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), event.getCause());
 
                                 Slot clickedSlot = event.getTransactions().get(0).getSlot();
 
@@ -224,7 +224,7 @@ public class ShopManager {
                                     transaction.setCustom(ItemStack.empty());
                                 }
 
-                                customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(purchasedQuantity * shopItem.getPrice()), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                                customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(purchasedQuantity * shopItem.getPrice()), event.getCause());
 
                                 player.getInventory().offer(purchasedItem);
                             } else {
@@ -277,7 +277,7 @@ public class ShopManager {
      */
     @Listener
     public void onInventoryOpen(InteractInventoryEvent.Open event, @First Player player) {
-        Optional<BlockSnapshot> blockSnapshotOpt = event.getCause().get("HitTarget", BlockSnapshot.class);
+        Optional<BlockSnapshot> blockSnapshotOpt = event.getCause().getContext().get(EventContextKeys.BLOCK_HIT);
 
         if (blockSnapshotOpt.isPresent()) {
             BlockSnapshot blockSnapshot = blockSnapshotOpt.get();
@@ -332,8 +332,8 @@ public class ShopManager {
 
                     player.sendMessage(messageManager.getMessage("shops.remove.stocked"));
                 } else {
-                    event.getLocations().get(0).removeBlock(Cause.of(NamedCause.of("totaleconomy", totalEconomy.getPluginContainer())));
-                    event.getLocations().get(0).setBlockType(BlockTypes.CHEST, Cause.of(NamedCause.of("totaleconomy", totalEconomy.getPluginContainer())));
+                    event.getLocations().get(0).removeBlock();
+                    event.getLocations().get(0).setBlockType(BlockTypes.CHEST);
                 }
             }
         }
