@@ -52,7 +52,8 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -251,10 +252,16 @@ public class ShopCommand implements CommandExecutor {
                             if (player.getUniqueId().equals(creatorUUID)) {
                                 if (isChestEmpty(chest)) {
                                     TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUUID).get();
+
+                                    Cause cause = Cause.builder()
+                                            .append(player)
+                                            .append(totalEconomy.getPluginContainer())
+                                            .build(EventContext.empty());
+
                                     TransactionResult transactionResult = account.withdraw(
                                             totalEconomy.getDefaultCurrency(),
                                             BigDecimal.valueOf(shopManager.getChestShopPrice()),
-                                            Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer()))
+                                            cause
                                     );
 
                                     if (transactionResult.getResult().equals(ResultType.SUCCESS)) {
