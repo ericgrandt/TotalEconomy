@@ -135,7 +135,8 @@ public class ShopManager {
                             player.sendMessage(messageManager.getMessage("shops.purchase.insufficientfunds"));
                         }
                     } else {
-                        event.getTransactions().get(0).setValid(false);
+                        event.getCursorTransaction().setValid(false);
+                        invalidateTransactions(event.getTransactions());
                     }
                 }
             }
@@ -424,6 +425,12 @@ public class ShopManager {
 
     private void clearSlot(Slot slot) {
         slot.set(ItemStack.empty());
+    }
+
+    private void invalidateTransactions(List<SlotTransaction> transactions) {
+        for (SlotTransaction transaction : transactions) {
+            transaction.setValid(false);
+        }
     }
 
     /**
