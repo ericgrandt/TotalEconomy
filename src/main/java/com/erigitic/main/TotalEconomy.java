@@ -197,6 +197,11 @@ public class TotalEconomy {
         if (!databaseEnabled) {
             accountManager.requestConfigurationSave();
         }
+
+        // Remove PlayerShopInfoData from all online users
+        for (Player player : game.getServer().getOnlinePlayers()) {
+            checkForAndRemovePlayerShopInfoData(player);
+        }
     }
 
     @Listener

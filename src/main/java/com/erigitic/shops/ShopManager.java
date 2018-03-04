@@ -53,6 +53,7 @@ import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.entity.Hotbar;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.GridInventory;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
@@ -162,10 +163,8 @@ public class ShopManager {
                 Optional<Shop> shopOpt = tileEntityOpt.get().get(ShopKeys.SINGLE_SHOP);
 
                 if (shopOpt.isPresent()) {
-                    // Cancel all of the slot transactions as we don't want the default behavior
-                    for (SlotTransaction slotTransaction : event.getTransactions()) {
-                        slotTransaction.setValid(false);
-                    }
+                    invalidateTransactions(event.getTransactions());
+                    event.setCancelled(true);
                 }
             }
         }
@@ -234,10 +233,7 @@ public class ShopManager {
                                 player.sendMessage(messageManager.getMessage("shops.purchase.noroom"));
                             }
                         } else {
-                            for (SlotTransaction transaction : event.getTransactions()) {
-                                transaction.setValid(false);
-                            }
-
+                            invalidateTransactions(event.getTransactions());
                             player.sendMessage(messageManager.getMessage("shops.purchase.insufficientfunds"));
                         }
                     }
