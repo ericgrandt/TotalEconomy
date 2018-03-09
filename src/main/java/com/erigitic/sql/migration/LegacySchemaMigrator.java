@@ -17,7 +17,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by MarkL4YG on 10-Jan-18
+ * Migrator from the "previous" (pre-sql-refactor) db schema to the "new" (version 1) db schema.
+ *
+ * In case the old database does contain no or less information than the current flat file storage
+ *   it is more advisable to drop all tables to trigger flat file migration.
+ *
+ * @author MarkL4YG
  */
 public class LegacySchemaMigrator implements SqlMigrator {
 
@@ -119,6 +124,10 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Moves all tables of the "old" schema out of the way.
+     * This way their information can be used without conflicting with new tables.
+     */
     private void moveOldSchema() throws SQLException {
         // Move the old schema out of the way so we can convert
         String query = "RENAME TABLE :first TO :last";
@@ -141,6 +150,9 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Imports basic account information.
+     */
     private void importAccounts() throws SQLException {
         String query = "SELECT * FROM migr_accounts";
 
@@ -169,6 +181,9 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Imports basic virtual account information
+     */
     private void importVirtualAccounts() throws SQLException {
         String query = "SELECT * FROM migr_virtual_accounts";
 
@@ -209,6 +224,15 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Handle the balance import.
+     * This method searches the currencies as they previously were stored as columns.
+     * With that information the actual import is triggered.
+     *
+     * Actual import is split between virtual and real accounts.
+     * @see #importBalancesReal(String)
+     * @see #importBalancesVirtual(String)
+     */
     private void importBalances() throws SQLException {
         logger.info("Searching currencies...");
         String query = "SELECT `column_name` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA` = ':db_name' AND `TABLE_NAME` = 'migr_accounts' AND `column_name` LIKE '%_balance'";
@@ -237,6 +261,10 @@ public class LegacySchemaMigrator implements SqlMigrator {
         importBalancesVirtual(columnString.toString());
     }
 
+    /**
+     * Import balances from real player accounts
+     * @param columns The currency columns
+     */
     private void importBalancesReal(String columns) throws SQLException {
         String query = "SELECT :columns FROM migr_accounts";
         query = query.replaceAll(":columns", columns);
@@ -255,6 +283,10 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Import balances from virtual accounts
+     * @param columns The currency columns
+     */
     private void importBalancesVirtual(String columns) throws SQLException {
         String query = "SELECT :columns FROM migr_virtual_accounts";
         query = query.replaceAll(":columns", columns);
@@ -273,6 +305,12 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Inserts a balance entry into the new schema.
+     * @param uid The accounts {@link UUID#toString()}
+     * @param currency The currencies name
+     * @param balance The current balance of the account in this currency
+     */
     private void insertBalance(String uid, String currency, BigDecimal balance) {
         String insertQuery = "INSERT INTO balances (`uid`, `currency`, `balance`) VALUES (?, ?, ?)";
 
@@ -291,6 +329,9 @@ public class LegacySchemaMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Imports job progress
+     */
     public void importJobsProgress() throws SQLException {
         logger.info("Searching jobs...");
         String query = "SELECT `column_name` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA` = ':db_name' AND `TABLE_NAME` = 'migr_levels'";

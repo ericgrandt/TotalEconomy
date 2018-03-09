@@ -4,7 +4,8 @@ import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 
 /**
- * Determines which Migrator to use
+ * Determines the migration process {@link SqlMigrator} to use based on information available.
+ * This class is expected to expand over updates so don't deem it unnecessary too soon.
  *
  * @author MarkL4YG
  */

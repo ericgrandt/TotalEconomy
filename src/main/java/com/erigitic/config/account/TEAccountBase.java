@@ -20,20 +20,27 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * Created by MarkL4YG on 08-Jan-18
+ * Abstract class to represent any account type.
+ * This class is not supposed to handle storage implementation.
+ *
+ * Implements Sponges {@link UniqueAccount}
+ * Account instances are retrieved through the {@link AccountManager}
+ *
+ * @author Erigitic
+ * @author MarkL4YG
  */
 public abstract class TEAccountBase implements UniqueAccount {
 
     protected TotalEconomy totalEconomy;
-    private UUID uniqueID;
+    private UUID uniqueId;
 
     /**
      * Constructor for the TEAccount base class. Manages a unique account, identified by a {@link UUID}, that contains balances for each {@link Currency}.
      * @param totalEconomy Main plugin class
      */
-    public TEAccountBase(TotalEconomy totalEconomy, UUID uniqueID) {
+    public TEAccountBase(TotalEconomy totalEconomy, UUID uniqueId) {
         this.totalEconomy = totalEconomy;
-        this.uniqueID = uniqueID;
+        this.uniqueId = uniqueId;
     }
 
     /**
@@ -105,8 +112,13 @@ public abstract class TEAccountBase implements UniqueAccount {
     }
 
     @Override
+    /**
+     * Returns the accounts unique id
+     *
+     * @return UUID The UUID
+     */
     public UUID getUniqueId() {
-        return uniqueID;
+        return uniqueId;
     }
 
     /**
@@ -197,6 +209,9 @@ public abstract class TEAccountBase implements UniqueAccount {
     }
 
     @Override
+    /**
+     * Currently always returns an empty context
+     */
     public Set<Context> getActiveContexts() {
         return new HashSet<>();
     }

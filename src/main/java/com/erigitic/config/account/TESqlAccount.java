@@ -15,7 +15,6 @@ import org.spongepowered.api.service.economy.transaction.TransactionType;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.TextSerializer;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import javax.sql.DataSource;
@@ -25,7 +24,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by MarkL4YG on 08-Jan-18
+ * Implementation of {@link TEAccountBase} with {@link DataSource} (database) as storage type.
+ * Just as for the parent class instances should be retrieved through the {@link com.erigitic.config.AccountManager}
+ *
+ * @author Erigitic
+ * @author MarkL4YG
  */
 public class TESqlAccount extends TEAccountBase {
 

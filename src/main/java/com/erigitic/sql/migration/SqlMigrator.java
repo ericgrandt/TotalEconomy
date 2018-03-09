@@ -3,7 +3,8 @@ package com.erigitic.sql.migration;
 import com.erigitic.main.TotalEconomy;
 
 /**
- * Created by MarkL4YG on 10-Jan-18
+ * Interface for the migration process.
+ * This may be expanded later if necessary.
  */
 public interface SqlMigrator {
 

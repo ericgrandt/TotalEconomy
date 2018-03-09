@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  */
 public class SqlQuery implements AutoCloseable {
 
-    private final Pattern PARAMETER_PATTERN = Pattern.compile("(:\\w+) ?");
+    private static final Pattern PARAMETER_PATTERN = Pattern.compile("(:\\w+) ?");
 
     private DataSource dataSource;
     private String baseQuery;
@@ -125,6 +125,10 @@ public class SqlQuery implements AutoCloseable {
     }
 
     @Override
+    /**
+     * Closes all used resources.
+     * Closes connection only when not provided by constructor.
+     */
     public void close() throws SQLException {
         if (statement != null) {
             statement.close();

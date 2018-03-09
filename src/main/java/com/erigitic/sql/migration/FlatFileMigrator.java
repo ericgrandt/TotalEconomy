@@ -71,6 +71,7 @@ public class FlatFileMigrator implements SqlMigrator {
             // This will update the `currencies` and `jobs` table so our FKs won't fail afterwards
             totalEconomy.getSqlManager().postInitDatabase(totalEconomy.getJobManager());
 
+            // Go through all account entries
             accountsConfig.getChildrenMap()
                           .entrySet()
                           .parallelStream()
@@ -94,6 +95,7 @@ public class FlatFileMigrator implements SqlMigrator {
                               importJobProgress(accountNode);
             });
 
+            // Initialize meta table with current version marker
             String query = "UPDATE `te_meta` SET `value` = 1 WHERE `ident` = 'schema_version'";
             try (SqlQuery updateQuery = new SqlQuery(connection[0], query)){
                 PreparedStatement statement = updateQuery.getStatement();
@@ -103,6 +105,7 @@ public class FlatFileMigrator implements SqlMigrator {
                 }
             }
 
+            // Clean-up and error reporting
             logger.warn("Commiting transaction.");
             connection[0].commit();
             connection[0].close();
@@ -121,6 +124,8 @@ public class FlatFileMigrator implements SqlMigrator {
             }
 
         } catch (Throwable e) {
+            // We ran into a non-ignorable, non-resolvable error.
+            // Rollback the transaction and throw MigrationException
             if (connection != null) {
                 try {
                     connection[0].rollback();
@@ -142,6 +147,10 @@ public class FlatFileMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Imports general account information
+     * @param accountNode The accounts ConfigurationNode
+     */
     private void importAccount(ConfigurationNode accountNode) {
         // Virtual accounts won't necessarily have a valid UUID. We'll try to convert those at some other place though.
         String rawUID = ((String) accountNode.getKey());
@@ -179,6 +188,10 @@ public class FlatFileMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Import balance information from an account
+     * @param accountNode The accounts ConfigurationNode
+     */
     private void importBalances(ConfigurationNode accountNode) {
         Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> entries;
         String sUUID = generatedUUIDs.get((String) accountNode.getKey());
@@ -226,6 +239,10 @@ public class FlatFileMigrator implements SqlMigrator {
         }
     }
 
+    /**
+     * Imports job progress information from an account
+     * @param accountNode The accounts ConfigurationNode
+     */
     private void importJobProgress(ConfigurationNode accountNode) {
         String sUUID = generatedUUIDs.get(((String) accountNode.getKey()));
         ConfigurationNode statsNode = accountNode.getNode("jobstats");

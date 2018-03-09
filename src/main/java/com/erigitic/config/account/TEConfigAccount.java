@@ -23,7 +23,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by MarkL4YG on 08-Jan-18
+ * Implementation of {@link TEAccountBase} with {@link ConfigurationNode} as storage type.
+ * Just as for the parent class instances should be retrieved through the {@link com.erigitic.config.AccountManager}
+ *
+ * @author Erigitic
+ * @author MarkL4YG
  */
 public class TEConfigAccount extends TEAccountBase {
 

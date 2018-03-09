@@ -17,7 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * SQL manager
+ * SQL management class.
+ * Handles database migration, initialization and (for now) currency and job reference updates.
  *
  * @author Erigitic
  * @author MarkL4YG
@@ -36,6 +37,13 @@ public class SqlManager {
         this.logger = logger;
     }
 
+    /**
+     * Calls for {@link DataSource} initialization.
+     *
+     * @param url The database URL
+     * @param username The database user
+     * @param password The database password
+     */
     public void initDataSource(String url, String username, String password) {
 
         try {
@@ -54,6 +62,12 @@ public class SqlManager {
         }
     }
 
+    /**
+     * Initializes database.
+     * Runs migration checks and migration when necessary.
+     *
+     * @param totalEconomy the TotalEconomy instance
+     */
     public void initDatabase(TotalEconomy totalEconomy) {
         try {
 
@@ -139,7 +153,7 @@ public class SqlManager {
     }
 
     /**
-     * Creates the necessary database tables
+     * Initializes database tables.
      *
      * @throws SQLException Upon error
      */
@@ -214,9 +228,12 @@ public class SqlManager {
         }
     }
 
+    /**
+     * Run in post-initialization.
+     * Updates currency and jobs tables for foreign key references.
+     * @param jobManager The jobManager instance
+     */
     public void postInitDatabase(JobManager jobManager) {
-
-
         Connection connection;
         try {
             connection = getDataSource().getConnection();
