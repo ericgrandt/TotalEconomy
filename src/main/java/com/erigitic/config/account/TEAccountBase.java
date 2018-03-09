@@ -142,7 +142,6 @@ public abstract class TEAccountBase implements UniqueAccount {
         return currency instanceof TECurrency ? ((TECurrency) currency).getStartingBalance() : BigDecimal.ZERO;
     }
 
-
     /**
      * Get a player's balance for each currency type
      *

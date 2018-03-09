@@ -202,6 +202,10 @@ public class TESqlAccount extends TEAccountBase {
         }
     }
 
+    /**
+     * Set this accounts display name in the database
+     * @param displayName The new displayName for this virtual account
+     */
     public void setDisplayName(Text displayName) {
 
         if (!isVirtual()) {

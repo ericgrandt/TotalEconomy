@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
+<<<<<<< HEAD
  * Implementation of {@link TEAccountBase} with {@link ConfigurationNode} as storage type.
  * Just as for the parent class instances should be retrieved through the {@link com.erigitic.config.AccountManager}
  *
