@@ -423,6 +423,10 @@ public class TotalEconomy {
         }
     }
 
+    public Logger getLogger() {
+        return logger;
+    }
+
     public ConfigurationNode getShopNode() {
         return config.getNode("features", "shops");
     }
@@ -435,12 +439,12 @@ public class TotalEconomy {
         return accountManager;
     }
 
-    public Logger getLogger() {
-        return logger;
-    }
-
     public JobManager getJobManager() {
         return jobManager;
+    }
+
+    public MessageManager getMessageManager() {
+        return messageManager;
     }
 
     public TECurrencyRegistryModule getTECurrencyRegistryModule() { return teCurrencyRegistryModule; }

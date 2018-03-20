@@ -1,5 +1,6 @@
 package com.erigitic.sql.migration;
 
+import com.erigitic.config.AccountManager;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SqlQuery;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -58,6 +59,11 @@ public class FlatFileMigrator implements SqlMigrator {
         logger.warn("Migration type: Flat file -> DB");
 
         try {
+            // Set up a temporary account manager
+            // Use it to initialize/update the configuration files.
+            AccountManager tempAccountManager = new AccountManager(totalEconomy, totalEconomy.getMessageManager(), totalEconomy.getLogger());
+            tempAccountManager.setupConfig();
+
             // Load current configuration
             File configDir = totalEconomy.getConfigDir();
             File accountsConfigFile = new File(configDir, "accounts.conf");
@@ -81,6 +87,10 @@ public class FlatFileMigrator implements SqlMigrator {
 
                               if (!(oKey instanceof String)) {
                                   exceptions.add(new MigrationException("Cannot migrate account - Key not string!"));
+                                  return;
+                              }
+
+                              if ("version".equals(oKey)) {
                                   return;
                               }
 

@@ -71,7 +71,7 @@ public class AccountManager implements EconomyService {
 
     private boolean confSaveRequested = false;
 
-    public static final int CONTENT_VERSION = 1;
+    public static final int CONTENT_VERSION = 2;
 
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
@@ -100,7 +100,7 @@ public class AccountManager implements EconomyService {
     /**
      * Setup the config file that will contain the user accounts
      */
-    private void setupConfig() {
+    public void setupConfig() {
         File accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
         loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
 
@@ -110,100 +110,112 @@ public class AccountManager implements EconomyService {
             if (!accountsFile.exists()) {
                 loader.save(accountConfig);
             } else {
-                if (accountConfig.getNode("version").getInt(0) != CONTENT_VERSION) {
-                    accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
-                        ConfigurationNode accountNode = nodeEntry.getValue();
+                Integer hasVersion = accountConfig.getNode("version").getInt(0);
+                if (hasVersion != CONTENT_VERSION) {
 
-                        accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
-                            ConfigurationNode jobNode = jobNodeEntry.getValue();
-                            ConfigurationNode expNode = jobNode.getNode("exp");
+                    switch (hasVersion) {
+                        case 0:
+                            // Convert job stats
+                            accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
+                                ConfigurationNode accountNode = nodeEntry.getValue();
 
-                            int exp = expNode.getInt(0);
-                            int level = jobNode.getNode("level").getInt(0);
+                                accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
+                                    ConfigurationNode jobNode = jobNodeEntry.getValue();
+                                    ConfigurationNode expNode = jobNode.getNode("exp");
 
-                            expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+                                    int exp = expNode.getInt(0);
+                                    int level = jobNode.getNode("level").getInt(0);
 
-                            try {
-                                loader.save(accountConfig);
-                            } catch (IOException e) {
-                                logger.warn("Error migrating account experience values!");
+                                    expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+
+                                    try {
+                                        loader.save(accountConfig);
+                                    } catch (IOException e) {
+                                        logger.warn("Error migrating account experience values!");
+                                    }
+                                });
+                            });
+                            // No break - fall through
+
+                        case 1:
+                            // Convert from "<currency>-balance" to "balance" -> "<currency>"
+                            final Pattern UUID_PATTERN = Pattern.compile("([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})");
+                            final UserStorageService userStore = Sponge.getServiceManager().provideUnchecked(UserStorageService.class);
+                            final AtomicInteger accountConvertCount = new AtomicInteger(0);
+                            final AtomicInteger balanceConvertCount = new AtomicInteger(0);
+                            Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> nodes = accountConfig.getChildrenMap().entrySet();
+
+                            nodes.parallelStream()
+                                 .forEach(e -> {
+                                     Object accountKey = e.getKey();
+                                     ConfigurationNode accountNode = e.getValue();
+
+                                     if (!(accountKey instanceof String) || "version".equals(accountKey)) {
+                                         return;
+                                     }
+
+                                     if (!accountNode.getNode("balance").isVirtual()) {
+                                         return;
+                                     }
+                                     Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> allSubNodes = accountNode.getChildrenMap().entrySet();
+
+                                     for (Map.Entry<Object, ? extends ConfigurationNode> subNodeEntry : allSubNodes) {
+                                         Object subKeyObject = subNodeEntry.getKey();
+
+                                         if (!(subKeyObject instanceof String)) {
+                                             return;
+                                         }
+
+                                         if (((String) subKeyObject).endsWith("-balance")) {
+                                             String balance = ((String) subKeyObject).replaceAll("-balance", "");
+                                             accountNode.getNode("balance", balance).setValue(subNodeEntry.getValue().getValue());
+                                             balanceConvertCount.incrementAndGet();
+                                         }
+                                         accountNode.removeChild(subKeyObject);
+                                     }
+                                     Matcher matcher = UUID_PATTERN.matcher(((String) accountKey));
+                                     String sUUID;
+                                     String displayName;
+
+                                     // When a UUID has been found, use it
+                                     // When the key contained other information use that as the display name
+                                     // Otherwise we'll need to create a UUID
+                                     if (matcher.find()) {
+                                         sUUID = matcher.group(1).toLowerCase();
+                                         displayName = UUID_PATTERN.matcher(((String) accountKey)).replaceAll("");
+                                     } else {
+                                         sUUID = UUID.randomUUID().toString().toLowerCase();
+                                         displayName = ((String) accountKey);
+                                     }
+
+                                     // Convert to the new format if the key hasn't been only the UUID before
+                                     if (!displayName.isEmpty()) {
+                                         ConfigurationNode newFormatNode = accountConfig.getNode(sUUID);
+                                         newFormatNode.mergeValuesFrom(accountNode);
+                                         newFormatNode.getNode("displayname").setValue(displayName);
+                                         accountConfig.removeChild(accountKey);
+                                         accountConvertCount.incrementAndGet();
+                                     }
+                                 });
+
+                            if (balanceConvertCount.get() > 0) {
+                                logger.warn(balanceConvertCount.get() + " balances were converted from the old format.");
                             }
-                        });
-                    });
+
+                            if (accountConvertCount.get() > 0) {
+                                logger.warn(accountConvertCount.get() + " accounts have been converted from the old format.");
+                            }
+
+                            // End of automatic converter code
+                            // END "case 2"
+                            break;
+                    }
 
                     accountConfig.getNode("version").setValue(CONTENT_VERSION);
+                    // Write updated config
+                    saveConfiguration();
                 }
             }
-
-            // Automatic convert from the old storage format
-            // === This can be removed somewhat upward the next updates ===
-            final Pattern UUID_PATTERN = Pattern.compile("([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})");
-            final UserStorageService userStore = Sponge.getServiceManager().provideUnchecked(UserStorageService.class);
-            final AtomicInteger accountConvertCount = new AtomicInteger(0);
-            final AtomicInteger balanceConvertCount = new AtomicInteger(0);
-            Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> nodes = accountConfig.getChildrenMap().entrySet();
-
-            nodes.parallelStream()
-                 .forEach(e -> {
-                     Object accountKey = e.getKey();
-                     ConfigurationNode accountNode = e.getValue();
-
-                     if (!(accountKey instanceof String)) {
-                         return;
-                     }
-
-                     if (!accountNode.getNode("balance").isVirtual()) {
-                         return;
-                     }
-                     Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> allSubNodes = accountNode.getChildrenMap().entrySet();
-
-                     for (Map.Entry<Object, ? extends ConfigurationNode> subNodeEntry : allSubNodes) {
-                         Object subKeyObject = subNodeEntry.getKey();
-
-                         if (!(subKeyObject instanceof String)) {
-                             return;
-                         }
-
-                         if (!((String) subKeyObject).endsWith("-balance")) {
-                             String balance = ((String) subKeyObject).replaceAll("-balance", "");
-                             accountNode.getNode("balance", balance).setValue(subNodeEntry.getValue().getValue());
-                             balanceConvertCount.incrementAndGet();
-                         }
-                         accountNode.removeChild(subKeyObject);
-                     }
-                     Matcher matcher = UUID_PATTERN.matcher(((String) accountKey));
-                     String sUUID;
-                     String displayName;
-
-                     // When a UUID has been found, use it
-                     // When the key contained other information use that as the display name
-                     // Otherwise we'll need to create a UUID
-                     if (matcher.find()) {
-                         sUUID = matcher.group(1).toLowerCase();
-                         displayName = UUID_PATTERN.matcher(((String) accountKey)).replaceAll("");
-                     } else {
-                         sUUID = UUID.randomUUID().toString().toLowerCase();
-                         displayName = ((String) accountKey);
-                     }
-
-                     // Convert to the new format if the key hasn't been only the UUID before
-                     if (!displayName.isEmpty()) {
-                         ConfigurationNode newFormatNode = accountConfig.getNode(sUUID);
-                         newFormatNode.mergeValuesFrom(accountNode);
-                         newFormatNode.getNode("displayname").setValue(displayName);
-                         accountConfig.removeChild(accountKey);
-                         accountConvertCount.incrementAndGet();
-                     }
-                 });
-
-            if (balanceConvertCount.get() > 0) {
-                logger.warn(balanceConvertCount.get() + " balances were converted from the old format.");
-            }
-
-            if (accountConvertCount.get() > 0) {
-                logger.warn(accountConvertCount.get() + " accounts have been converted from the old format.");
-            }
-            // End of automatic converter code
 
         } catch (IOException e) {
             logger.warn("Error creating accounts configuration file!");
@@ -281,6 +293,7 @@ public class AccountManager implements EconomyService {
         }
         return Optional.of(account);
     }
+
     /**
      * Gets or creates a virtual account for the passed in identifier
      *
@@ -353,7 +366,7 @@ public class AccountManager implements EconomyService {
                 throw new RuntimeException("Failed to check account existance for " + uuid.toString(), e);
             }
         } else {
-            return accountConfig.getNode(uuid.toString()).isVirtual();
+            return !accountConfig.getNode(uuid.toString()).isVirtual();
         }
     }
 
@@ -571,7 +584,7 @@ public class AccountManager implements EconomyService {
     /**
      * Save the account configuration file
      */
-    private void saveConfiguration() {
+    public void saveConfiguration() {
         try {
             loader.save(accountConfig);
         } catch (IOException e) {
