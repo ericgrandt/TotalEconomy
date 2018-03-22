@@ -1,3 +1,5 @@
+<sub>[back](sql_proposal.md)</sub>
+
 ## The legacy migrator
 
 The legacy migrator migrates the previous database schema to the newer - more migration friendly - one.
