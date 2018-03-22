@@ -138,6 +138,19 @@ public class TotalEconomy {
 
         setFeaturesEnabledStatus();
 
+
+        // --- KILL SWITCH ---
+        // This kill switch is designed to be removed after the PR merge.
+        // It exists to prevent users from accidentally running the unofficial bleeding preview!
+        String killSwitchOption = System.getProperty("totaleconomy.disable-bleeding-killswitch");
+        if (!"true".equals(killSwitchOption)) {
+            logger.error("THIS IS A BLEEDING RELEASE! DO NOT RUN IT IN PRODUCTION!");
+            Sponge.getServer().shutdown();
+            // Additionally throw an exception so initialization does not happen.
+            throw new RuntimeException("THIS IS A BLEEDING RELEASE! DO NOT RUN IT IN PRODUCTION!");
+        }
+        // --- END KILL SWITCH ---
+
         languageTag = config.getNode("language").getString("en");
 
         saveInterval = config.getNode("save-interval").getInt(30);

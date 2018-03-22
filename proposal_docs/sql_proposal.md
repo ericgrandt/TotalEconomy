@@ -16,5 +16,7 @@
 
 * [SQL queries](sql_queries.md)
 
+* [Testing the development release](testing.md)
+
   ​
 
