@@ -140,8 +140,9 @@ public class ShopCommand implements CommandExecutor {
 
                     if (shopOpt.isPresent()) {
                         Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
+                        UUID shopOwner = shopOpt.get().getOwner();
 
-                        if (itemInHandOpt.isPresent()) {
+                        if (!shopOwner.equals(player.getUniqueId()) && itemInHandOpt.isPresent()) {
                             ItemStack itemInHand = itemInHandOpt.get();
 
                             int quantity = args.<Integer>getOne(Text.of("quantity")).get();
@@ -174,6 +175,8 @@ public class ShopCommand implements CommandExecutor {
                             } else {
                                 throw new CommandException(Text.of(messageManager.getMessage("command.shop.stock.insufficientitems")));
                             }
+                        } else {
+                            throw new CommandException((Text.of(messageManager.getMessage("command.shop.stock.notowner"))));
                         }
                     }
                 }
