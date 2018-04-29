@@ -36,27 +36,24 @@ import org.spongepowered.api.data.value.mutable.Value;
 
 public class ShopKeys {
 
-    public static Key<Value<Shop>> SINGLE_SHOP = KeyFactory.makeSingleKey(
-            TypeToken.of(Shop.class),
-            new TypeToken<Value<Shop>>() {},
-            DataQuery.of("shop"),
-            "totaleconomy:shop",
-            "shop"
-    );
+    public static Key<Value<Shop>> SINGLE_SHOP = Key.builder()
+            .type(new TypeToken<Value<Shop>>() {})
+            .id("shop")
+            .name("shop")
+            .query(DataQuery.of("shop"))
+            .build();
 
-    public static Key<Value<ShopItem>> SHOP_ITEM = KeyFactory.makeSingleKey(
-            TypeToken.of(ShopItem.class),
-            new TypeToken<Value<ShopItem>>() {},
-            DataQuery.of("shopitem"),
-            "totaleconomy:shopitem",
-            "shopitem"
-    );
+    public static Key<Value<ShopItem>> SHOP_ITEM = Key.builder()
+            .type(new TypeToken<Value<ShopItem>>() {})
+            .id("shopitem")
+            .name("shopitem")
+            .query(DataQuery.of("shopitem"))
+            .build();
 
-    public static Key<Value<PlayerShopInfo>> PLAYER_SHOP_INFO = KeyFactory.makeSingleKey(
-            TypeToken.of(PlayerShopInfo.class),
-            new TypeToken<Value<PlayerShopInfo>>() {},
-            DataQuery.of("playershopinfo"),
-            "totaleconomy:playershopinfo",
-            "playershopinfo"
-    );
+    public static Key<Value<PlayerShopInfo>> PLAYER_SHOP_INFO = Key.builder()
+            .type(new TypeToken<Value<PlayerShopInfo>>() {})
+            .id("playershopinfo")
+            .name("playershopinfo")
+            .query(DataQuery.of("playershopinfo"))
+            .build();
 }
