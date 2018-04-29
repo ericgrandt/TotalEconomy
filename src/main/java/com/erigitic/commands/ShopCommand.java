@@ -142,7 +142,7 @@ public class ShopCommand implements CommandExecutor {
                         Optional<ItemStack> itemInHandOpt = player.getItemInHand(HandTypes.MAIN_HAND);
                         UUID shopOwner = shopOpt.get().getOwner();
 
-                        if (!shopOwner.equals(player.getUniqueId()) && itemInHandOpt.isPresent()) {
+                        if (shopOwner.equals(player.getUniqueId()) && itemInHandOpt.isPresent()) {
                             ItemStack itemInHand = itemInHandOpt.get();
 
                             int quantity = args.<Integer>getOne(Text.of("quantity")).get();
