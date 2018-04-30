@@ -556,7 +556,7 @@ public class AccountManager implements EconomyService {
     /**
      * Save the account configuration file
      */
-    private void saveConfiguration() {
+    public void saveConfiguration() {
         try {
             loader.save(accountConfig);
         } catch (IOException e) {
