@@ -307,11 +307,7 @@ public class TotalEconomy {
                 .arguments(GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
 
-        CommandSpec balanceTopCommand = CommandSpec.builder()
-                .description(Text.of("Display top balances"))
-                .permission("totaleconomy.command.balancetop")
-                .executor(new BalanceTopCommand(this, accountManager))
-                .build();
+        CommandSpec balanceTopCommand = BalanceTopCommand.commandSpec(this);
 
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
@@ -430,6 +426,10 @@ public class TotalEconomy {
 
     public HashSet<Currency> getCurrencies() {
         return currencies;
+    }
+
+    public AccountManager getAccountManager() {
+        return accountManager;
     }
 
     public JobManager getJobManager() {
