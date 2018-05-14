@@ -51,6 +51,7 @@ import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
@@ -190,12 +191,12 @@ public class TotalEconomy {
         logger.info("Total Economy Started");
     }
 
-    @Listener
+    @Listener(order = Order.LAST)
     public void onServerStopping(GameStoppingServerEvent event) {
         logger.info("Total Economy Stopping");
 
         if (!databaseEnabled) {
-            accountManager.requestConfigurationSave();
+            accountManager.saveConfiguration();
         }
 
         // Remove PlayerShopInfoData from all online users
