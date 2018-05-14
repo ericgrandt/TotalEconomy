@@ -28,7 +28,7 @@ We are always looking for talented people to help continue making Total Economy 
 ### Code Style
 
 **Indentation**
-+ Use tabs for indentation
++ Use spaces for indentation
 
 **File Header**
 + The top of new files must contain the license, which can be found at the top of [TotalEconomy.java](https://github.com/Erigitic/TotalEconomy/blob/develop/src/main/java/com/erigitic/main/TotalEconomy.java#L1-L24)
