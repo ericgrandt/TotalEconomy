@@ -991,7 +991,7 @@ public class JobManager {
                 return;
             }
 
-            Transaction<ItemStackSnapshot> itemTransaction = event.getItemStackTransaction().get(0);
+            Transaction<ItemStackSnapshot> itemTransaction = event.getTransactions().get(0);
             ItemStack itemStack = itemTransaction.getFinal().createStack();
             Player player = event.getCause().first(Player.class).get();
             UUID playerUUID = player.getUniqueId();
