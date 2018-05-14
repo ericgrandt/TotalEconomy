@@ -122,9 +122,11 @@ public class JobCommand implements CommandExecutor {
                     .executor(this)
                     .arguments(
                             GenericArguments.string(Text.of("jobName")),
-                            GenericArguments.requiringPermission(
-                                    GenericArguments.userOrSource(Text.of("user")),
-                                    "totaleconomy.command.job.setother"
+                            GenericArguments.optional(
+                                    GenericArguments.requiringPermission(
+                                        GenericArguments.userOrSource(Text.of("user")),
+                                        "totaleconomy.command.job.setother"
+                                    )
                             )
                     )
                     .build();
@@ -132,10 +134,17 @@ public class JobCommand implements CommandExecutor {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            // TODO: Do checks here, in case we or other plugins want to bypass them in the future
-
             String jobName = args.getOne("jobName").get().toString().toLowerCase();
-            User user = args.<User>getOne("user").get();
+            Optional<User> userOpt = args.getOne("user");
+
+            User user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+            } else if (src instanceof Player) {
+                user = (Player) src;
+            } else {
+                return CommandResult.empty();
+            }
 
             Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobName, false);
             if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));

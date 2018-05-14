@@ -51,6 +51,7 @@ import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.entity.Hotbar;
+import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
@@ -117,7 +118,7 @@ public class ShopManager {
                         if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
                             ItemStack purchasedItem = removeShopItemData(clickedItem.copy());
 
-                            Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
+                            Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class), QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class)).offer(purchasedItem).getRejectedItems();
 
                             if (rejectedItems.size() == 0) {
                                 customerAccount.transfer(ownerAccount, totalEconomy.getDefaultCurrency(), BigDecimal.valueOf(shopItem.getPrice()), event.getCause());
@@ -217,7 +218,7 @@ public class ShopManager {
                             ItemStack purchasedItem = removeShopItemData(clickedItem.copy());
                             purchasedItem.setQuantity(purchasedQuantity);
 
-                            Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(GridInventory.class, Hotbar.class).offer(purchasedItem).getRejectedItems();
+                            Collection<ItemStackSnapshot> rejectedItems = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class), QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class)).offer(purchasedItem).getRejectedItems();
 
                             if (rejectedItems.size() == 0) {
                                 for (SlotTransaction transaction : event.getTransactions()) {
@@ -364,7 +365,7 @@ public class ShopManager {
 
         // Remove the DataQuery for lore, otherwise an empty NBT tag will be attached to the item
         DataContainer dataContainer = itemStack.toContainer().remove(DataQuery.of("DefaultReplacement", "UnsafeData", "display", "Lore")).copy();
-        itemStack = ItemStack.builder().fromContainer(dataContainer).itemType(itemStack.getItem()).quantity(1).build();
+        itemStack = ItemStack.builder().fromContainer(dataContainer).itemType(itemStack.getType()).quantity(1).build();
 
         return itemStack;
     }

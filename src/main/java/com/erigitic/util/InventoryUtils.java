@@ -27,6 +27,7 @@ package com.erigitic.util;
 
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 
 public class InventoryUtils {
 
@@ -40,7 +41,7 @@ public class InventoryUtils {
     public static int getItemAmountInInventory(Inventory inventory, ItemStack itemStack) {
         ItemStack copy = itemStack.copy();
 
-        return inventory.queryAny(copy).totalItems();
+        return inventory.query(QueryOperationTypes.ITEM_STACK_EXACT.of(copy)).totalItems();
     }
 
     public static void removeItem(Inventory inventory, ItemStack itemStack, int amount) {
@@ -52,6 +53,6 @@ public class InventoryUtils {
 
         ItemStack itemToRemove = itemStack.copy();
 
-        inventory.queryAny(itemToRemove).poll(amount);
+        inventory.query(QueryOperationTypes.ITEM_STACK_EXACT.of(itemToRemove)).poll(amount);
     }
 }
