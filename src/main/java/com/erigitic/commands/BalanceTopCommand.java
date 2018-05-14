@@ -55,19 +55,6 @@ import java.util.*;
 
 public class BalanceTopCommand implements CommandExecutor {
 
-    public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
-        return CommandSpec.builder()
-                          .description(Text.of("Display top balances"))
-                          .permission("totaleconomy.command.balancetop")
-                          .arguments(
-                                GenericArguments.optional(
-                                    GenericArguments.string(Text.of("currency"))
-                                )
-                          )
-                          .executor(new BalanceTopCommand(totalEconomy, totalEconomy.getAccountManager()))
-                          .build();
-    }
-
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
 
@@ -79,17 +66,33 @@ public class BalanceTopCommand implements CommandExecutor {
         this.accountManager = accountManager;
     }
 
+    public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
+        return CommandSpec.builder()
+                .description(Text.of("Display top balances"))
+                .permission("totaleconomy.command.balancetop")
+                .arguments(
+                        GenericArguments.optional(
+                                GenericArguments.string(Text.of("currency"))
+                        )
+                )
+                .executor(new BalanceTopCommand(totalEconomy, totalEconomy.getAccountManager()))
+                .build();
+    }
+
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Optional<String> optCurrency = args.<String>getOne("currency");
         Currency currency = null;
         List<Text> accountBalances = new ArrayList<>();
 
-        if (optCurrency.isPresent())
+        if (optCurrency.isPresent()) {
             currency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrency.get().toLowerCase()).orElse(null);
+        }
 
-        if (currency == null)
+        if (currency == null) {
             currency = totalEconomy.getDefaultCurrency();
+        }
+
         final Currency fCurrency = currency;
 
         if (totalEconomy.isDatabaseEnabled()) {
@@ -107,13 +110,10 @@ public class BalanceTopCommand implements CommandExecutor {
 
                     accountBalances.add(Text.of(TextColors.GRAY, username, ": ", TextColors.GOLD, currency.format(amount)));
                 }
-
             } catch (SQLException e) {
-                throw new CommandException(Text.of("Failed to query db for ranking!"), e);
+                throw new CommandException(Text.of("Failed to query db for ranking."), e);
             }
-
         } else {
-
             ConfigurationNode accountNode = accountManager.getAccountConfig();
             Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
 
@@ -134,10 +134,11 @@ public class BalanceTopCommand implements CommandExecutor {
             });
 
             accountBalancesMap.entrySet().stream()
-                              .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
-                              .limit(10)
-                              .forEach(entry -> accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, fCurrency.format(entry.getValue()).toPlain())));
-
+                    .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                    .limit(10)
+                    .forEach(entry ->
+                            accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, fCurrency.format(entry.getValue()).toPlain()))
+                    );
         }
 
         builder.title(Text.of(TextColors.GOLD, "Top 10 Balances"))
