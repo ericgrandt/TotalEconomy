@@ -281,8 +281,7 @@ public class TotalEconomy {
                 .dataName("playershopinfo")
                 .buildAndRegister(pluginContainer);
 
-        // Load the ShopKeys class during init to avoid problems with potential
-        // async loading
+        // Load the ShopKeys class during init to avoid problems with potential async loading
         @SuppressWarnings("unused")
         Object unused = ShopKeys.PLAYER_SHOP_INFO;
     }
