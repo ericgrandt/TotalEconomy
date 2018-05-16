@@ -25,12 +25,17 @@
 
 package com.erigitic.jobs;
 
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.trait.BlockTrait;
-
-import java.util.*;
 
 public class TEAction {
 
@@ -85,12 +90,12 @@ public class TEAction {
             return Optional.empty();
         }
 
-        // A player placed the block and it doesn't indicate growth -> Do not pay to prevent exploits
+        // A player placed the block and it doesn't indicate growth. Do not pay to prevent exploits
         if (growthTrait == null && blockCreator != null) {
             return Optional.empty();
         }
 
-        // Determine base reward - Use complicated way if this block has an ID trait
+        // Determine base reward. Use complicated way if this block has an ID trait
         TEActionReward reward = null;
 
         if (idTrait != null) {
@@ -115,8 +120,7 @@ public class TEAction {
             return Optional.empty();
         }
 
-        // Base reward is determined - Now check if we need to apply modifiers
-        // # GrowthTrait #
+        // Base reward is determined. Now check if we need to apply modifiers
         if (growthTrait != null) {
             Optional<BlockTrait<?>> trait = state.getTrait(growthTrait);
 
@@ -141,12 +145,12 @@ public class TEAction {
     }
 
     private TEActionReward generateReward(Integer traitValue, Collection<Integer> possibleValues) {
-        Integer max = possibleValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
-        Integer min = possibleValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
-        Double perc = (double) (traitValue - min) / (double) (max - min);
+        int max = possibleValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+        int min = possibleValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
+        double percent = (double) (traitValue - min) / (double) (max - min);
 
-        reward = new TEActionReward() ;
-        reward.setValues((int) (reward.getExpReward() * perc), reward.getMoneyReward() * perc, reward.getCurrencyId());
+        reward = new TEActionReward();
+        reward.setValues((int) (reward.getExpReward() * percent), reward.getMoneyReward() * percent, reward.getCurrencyId());
 
         return reward;
     }
@@ -157,7 +161,7 @@ public class TEAction {
             return Optional.empty();
         }
 
-        // Determine base reward - Use complicated way if this block has an ID trait
+        // Determine base reward. Use complicated way if this block has an ID trait
         TEActionReward reward = null;
 
         if (idTrait != null) {
@@ -178,6 +182,13 @@ public class TEAction {
         }
 
         return Optional.ofNullable(reward);
+    }
+
+    public boolean isValid() {
+        return action != null
+                && !action.trim().isEmpty()
+                && targetId != null
+                && !targetId.trim().isEmpty();
     }
 
     public boolean isGrowing() {
@@ -206,12 +217,5 @@ public class TEAction {
 
     public Map<String, TEActionReward> getRewards() {
         return rewards;
-    }
-
-    public boolean isValid() {
-        return action != null
-               && !action.trim().isEmpty()
-               && targetId != null
-               && !targetId.trim().isEmpty();
     }
 }

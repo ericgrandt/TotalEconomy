@@ -29,8 +29,8 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 public class TEActionReward {
 
-    private Integer expReward;
-    private Double moneyReward;
+    private int expReward;
+    private double moneyReward;
     private String currencyId;
 
     public void loadConfigNode(ConfigurationNode node) {

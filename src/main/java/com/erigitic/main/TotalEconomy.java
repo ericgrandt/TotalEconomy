@@ -25,16 +25,38 @@
 
 package com.erigitic.main;
 
-import com.erigitic.commands.*;
+import com.erigitic.commands.AdminPayCommand;
+import com.erigitic.commands.BalanceCommand;
+import com.erigitic.commands.BalanceTopCommand;
+import com.erigitic.commands.JobCommand;
+import com.erigitic.commands.PayCommand;
+import com.erigitic.commands.SetBalanceCommand;
+import com.erigitic.commands.ShopCommand;
+import com.erigitic.commands.ViewBalanceCommand;
 import com.erigitic.config.AccountManager;
 import com.erigitic.config.TECurrency;
 import com.erigitic.config.TECurrencyRegistryModule;
 import com.erigitic.jobs.JobManager;
-import com.erigitic.shops.*;
-import com.erigitic.shops.data.*;
-import com.erigitic.sql.SQLManager;
+import com.erigitic.shops.PlayerShopInfo;
+import com.erigitic.shops.Shop;
+import com.erigitic.shops.ShopItem;
+import com.erigitic.shops.ShopManager;
+import com.erigitic.shops.data.ImmutablePlayerShopInfoData;
+import com.erigitic.shops.data.ImmutableShopData;
+import com.erigitic.shops.data.ImmutableShopItemData;
+import com.erigitic.shops.data.PlayerShopInfoData;
+import com.erigitic.shops.data.ShopData;
+import com.erigitic.shops.data.ShopItemData;
+import com.erigitic.shops.data.ShopKeys;
+import com.erigitic.sql.SqlManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -53,7 +75,11 @@ import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.GameReloadEvent;
-import org.spongepowered.api.event.game.state.*;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -62,12 +88,7 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
-import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.*;
-
-@Plugin(id="totaleconomy", name="Total Economy", version="1.8.1", description="All in one economy plugin for Minecraft/Sponge")
+@Plugin(id = "totaleconomy", name = "Total Economy", version = "1.8.1", description = "All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
@@ -96,7 +117,7 @@ public class TotalEconomy {
     private ConfigurationNode config;
 
     private TECurrency defaultCurrency;
-    private SQLManager sqlManager;
+    private SqlManager sqlManager;
     private AccountManager accountManager;
     private JobManager jobManager;
     private MessageManager messageManager;
@@ -145,7 +166,7 @@ public class TotalEconomy {
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
 
-            sqlManager = new SQLManager(this, logger);
+            sqlManager = new SqlManager(this, logger);
         }
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
@@ -177,11 +198,6 @@ public class TotalEconomy {
         createAndRegisterData();
         createAndRegisterCommands();
         registerListeners();
-    }
-
-    @Listener
-    public void postInit(GamePostInitializationEvent event) {
-
     }
 
     @Listener
@@ -220,9 +236,9 @@ public class TotalEconomy {
     }
 
     /**
-     * Reloads configuration files
+     * Reloads configuration files.
      *
-     * @param event
+     * @param event GameReloadEvent
      */
     @Listener
     public void onGameReload(GameReloadEvent event) {
@@ -249,7 +265,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Create and register custom data
+     * Create and register custom data.
      */
     private void createAndRegisterData() {
         DataManager dm = Sponge.getDataManager();
@@ -288,7 +304,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Create commands and registers them with the CommandManager
+     * Create commands and registers them with the CommandManager.
      */
     private void createAndRegisterCommands() {
         CommandSpec adminPayCommand = CommandSpec.builder()
@@ -299,6 +315,7 @@ public class TotalEconomy {
                         GenericArguments.string(Text.of("amount")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
+        game.getCommandManager().register(this, adminPayCommand, "adminpay");
 
         CommandSpec balanceCommand = CommandSpec.builder()
                 .description(Text.of("Display your balance"))
@@ -306,8 +323,10 @@ public class TotalEconomy {
                 .executor(new BalanceCommand(this, accountManager, messageManager))
                 .arguments(GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
+        game.getCommandManager().register(this, balanceCommand, "balance", "bal", "money");
 
         CommandSpec balanceTopCommand = BalanceTopCommand.commandSpec(this);
+        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
 
         CommandSpec payCommand = CommandSpec.builder()
                 .description(Text.of("Pay another player"))
@@ -317,6 +336,7 @@ public class TotalEconomy {
                         GenericArguments.string(Text.of("amount")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
+        game.getCommandManager().register(this, payCommand, "pay");
 
         CommandSpec setBalanceCommand = CommandSpec.builder()
                 .description(Text.of("Set a player's balance"))
@@ -326,6 +346,7 @@ public class TotalEconomy {
                         GenericArguments.string(Text.of("amount")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
+        game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
 
         CommandSpec viewBalanceCommand = CommandSpec.builder()
                 .description(Text.of("View the balance of another player"))
@@ -334,6 +355,7 @@ public class TotalEconomy {
                 .arguments(GenericArguments.user(Text.of("player")),
                         GenericArguments.optional(GenericArguments.string(Text.of("currencyName"))))
                 .build();
+        game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
 
         if (jobFeatureEnabled) {
             game.getCommandManager().register(this, new JobCommand(this, accountManager, jobManager, messageManager).commandSpec(), "job");
@@ -343,12 +365,6 @@ public class TotalEconomy {
             game.getCommandManager().register(this, new ShopCommand(this, accountManager, shopManager, messageManager).getCommandSpec(), "shop");
         }
 
-        game.getCommandManager().register(this, payCommand, "pay");
-        game.getCommandManager().register(this, adminPayCommand, "adminpay");
-        game.getCommandManager().register(this, balanceCommand, "balance", "bal", "money");
-        game.getCommandManager().register(this, viewBalanceCommand, "viewbalance", "vbal");
-        game.getCommandManager().register(this, setBalanceCommand, "setbalance", "setbal");
-        game.getCommandManager().register(this, balanceTopCommand, "balancetop", "baltop");
     }
 
     /**
@@ -386,7 +402,7 @@ public class TotalEconomy {
     }
 
     /**
-     * Registers event listeners
+     * Register event listeners.
      */
     private void registerListeners() {
         EventManager eventManager = game.getEventManager();
@@ -436,7 +452,9 @@ public class TotalEconomy {
         return jobManager;
     }
 
-    public TECurrencyRegistryModule getTECurrencyRegistryModule() { return teCurrencyRegistryModule; }
+    public TECurrencyRegistryModule getTECurrencyRegistryModule() {
+        return teCurrencyRegistryModule;
+    }
 
     public File getConfigDir() {
         return configDir;
@@ -446,9 +464,13 @@ public class TotalEconomy {
         return game.getServer();
     }
 
-    public Game getGame() { return game; }
+    public Game getGame() {
+        return game;
+    }
 
-    public PluginContainer getPluginContainer() { return pluginContainer; }
+    public PluginContainer getPluginContainer() {
+        return pluginContainer;
+    }
 
     public TECurrency getDefaultCurrency() {
         return defaultCurrency;
@@ -458,25 +480,39 @@ public class TotalEconomy {
         return jobSalaryEnabled;
     }
 
-    public boolean isDatabaseEnabled() { return databaseEnabled; }
+    public boolean isDatabaseEnabled() {
+        return databaseEnabled;
+    }
 
-    public boolean isJobNotificationEnabled() { return jobNotificationEnabled; }
+    public boolean isJobNotificationEnabled() {
+        return jobNotificationEnabled;
+    }
 
     public int getSaveInterval() {
         return saveInterval;
     }
 
-    public BigDecimal getMoneyCap() { return moneyCapEnabled ? moneyCap : new BigDecimal(Double.MAX_VALUE); }
+    public BigDecimal getMoneyCap() {
+        return moneyCapEnabled ? moneyCap : new BigDecimal(Double.MAX_VALUE);
+    }
 
     public UserStorageService getUserStorageService() {
         return userStorageService;
     }
 
-    public String getDatabaseUrl() { return databaseUrl; }
+    public String getDatabaseUrl() {
+        return databaseUrl;
+    }
 
-    public String getDatabaseUser() { return databaseUser; }
+    public String getDatabaseUser() {
+        return databaseUser;
+    }
 
-    public String getDatabasePassword() { return databasePassword; }
+    public String getDatabasePassword() {
+        return databasePassword;
+    }
 
-    public SQLManager getSqlManager() { return sqlManager; }
+    public SqlManager getSqlManager() {
+        return sqlManager;
+    }
 }
