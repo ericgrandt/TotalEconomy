@@ -31,10 +31,16 @@ import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.data.PlayerShopInfoData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
-import org.spongepowered.api.block.tileentity.*;
+import org.spongepowered.api.block.tileentity.TileEntity;
 import org.spongepowered.api.block.tileentity.carrier.Chest;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
@@ -42,27 +48,25 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
-import org.spongepowered.api.item.inventory.*;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.entity.Hotbar;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.GridInventory;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 public class ShopManager {
 
@@ -205,7 +209,7 @@ public class ShopManager {
 
                         player.getInventory().offer(returnedItem);
                     } else if (player.getUniqueId().equals(shop.getOwner())) {
-                         event.setCancelled(false);
+                        event.setCancelled(false);
                     } else if (shopItemOpt.isPresent()) {
                         ShopItem shopItem = shopItemOpt.get();
 
@@ -380,22 +384,21 @@ public class ShopManager {
         boolean isPlacedNextToShop = false;
 
         Optional<TileEntity> northTileEntity = location.getBlockRelative(Direction.NORTH).getTileEntity();
-        Optional<TileEntity> eastTileEntity = location.getBlockRelative(Direction.EAST).getTileEntity();
-        Optional<TileEntity> southTileEntity = location.getBlockRelative(Direction.SOUTH).getTileEntity();
-        Optional<TileEntity> westTileEntity = location.getBlockRelative(Direction.WEST).getTileEntity();
-
         if (northTileEntity.isPresent()) {
             isPlacedNextToShop = northTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
         }
 
+        Optional<TileEntity> eastTileEntity = location.getBlockRelative(Direction.EAST).getTileEntity();
         if (eastTileEntity.isPresent()) {
             isPlacedNextToShop = eastTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
         }
 
+        Optional<TileEntity> southTileEntity = location.getBlockRelative(Direction.SOUTH).getTileEntity();
         if (southTileEntity.isPresent()) {
             isPlacedNextToShop = southTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
         }
 
+        Optional<TileEntity> westTileEntity = location.getBlockRelative(Direction.WEST).getTileEntity();
         if (westTileEntity.isPresent()) {
             isPlacedNextToShop = westTileEntity.get().get(ShopKeys.SINGLE_SHOP).isPresent();
         }

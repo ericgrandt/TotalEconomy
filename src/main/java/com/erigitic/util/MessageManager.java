@@ -26,6 +26,11 @@
 package com.erigitic.util;
 
 import com.erigitic.main.TotalEconomy;
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -35,12 +40,6 @@ import org.slf4j.Logger;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 
 public class MessageManager {
 

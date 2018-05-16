@@ -31,13 +31,6 @@ import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 
 public class InventoryUtils {
 
-    /**
-     * Get the total amount of the specified ItemStack in an inventory
-     *
-     * @param inventory The inventory to query
-     * @param itemStack The item to get the amount of
-     * @return int The total amount of the specified ItemStack
-     */
     public static int getItemAmountInInventory(Inventory inventory, ItemStack itemStack) {
         ItemStack copy = itemStack.copy();
 

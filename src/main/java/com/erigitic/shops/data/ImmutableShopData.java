@@ -26,13 +26,13 @@
 package com.erigitic.shops.data;
 
 import com.erigitic.shops.Shop;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
 import org.spongepowered.api.data.value.BaseValue;
 import org.spongepowered.api.data.value.immutable.ImmutableValue;
 
-import java.util.Optional;
 
 public class ImmutableShopData extends AbstractImmutableSingleData<Shop, ImmutableShopData, ShopData> {
 

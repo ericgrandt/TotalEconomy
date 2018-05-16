@@ -25,23 +25,21 @@
 
 package com.erigitic.sql;
 
-import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import javax.sql.DataSource;
 
-public class SQLQuery {
+public class SqlQuery {
     private String statement;
-    private String errorMessage;
     private DataSource dataSource;
     private ResultSet resultSet;
     private int rowsAffected = 0;
 
-    private SQLQuery(Builder builder) {
+    private SqlQuery(Builder builder) {
         statement = builder.statement;
-        errorMessage = builder.errorMessage;
         dataSource = builder.dataSource;
 
         if (builder.update) {
@@ -51,7 +49,7 @@ public class SQLQuery {
         }
     }
 
-    public static SQLQuery.Builder builder(DataSource dataSource) {
+    public static SqlQuery.Builder builder(DataSource dataSource) {
         return new Builder(dataSource);
     }
 
@@ -110,7 +108,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets a boolean from the executed SQLQuery. Throws a NPE when no boolean is returned.
+     * Gets a boolean from the executed SqlQuery. Throws a NPE when no boolean is returned.
      *
      * @return boolean value of column
      */
@@ -127,7 +125,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets a boolean from the executed SQLQuery. Returns a default value if no boolean is present.
+     * Gets a boolean from the executed SqlQuery. Returns a default value if no boolean is present.
      *
      * @param def default value to be returned
      * @return boolean value of column
@@ -145,7 +143,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets an int from the executed SQLQuery. Throws a NPE when no int is returned.
+     * Gets an int from the executed SqlQuery. Throws a NPE when no int is returned.
      *
      * @return int value of column
      */
@@ -162,7 +160,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets an int from the executed SQLQuery. Returns a default value if no int is present.
+     * Gets an int from the executed SqlQuery. Returns a default value if no int is present.
      *
      * @param def default value to be returned
      * @return int value of column
@@ -180,7 +178,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets a BigDecimal from the executed SQLQuery. Throws a NPE when no BigDecimal is returned.
+     * Gets a BigDecimal from the executed SqlQuery. Throws a NPE when no BigDecimal is returned.
      *
      * @return BigDecimal value of column
      */
@@ -197,7 +195,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets a BigDecimal from the executed SQLQuery. Returns a default value if no BigDecimal is present.
+     * Gets a BigDecimal from the executed SqlQuery. Returns a default value if no BigDecimal is present.
      *
      * @param def default value to be returned
      * @return BigDecimal value of column
@@ -215,7 +213,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets a string from the executed SQLQuery. Throws a NPE when no string is returned.
+     * Gets a string from the executed SqlQuery. Throws a NPE when no string is returned.
      *
      * @return string value of column
      */
@@ -232,7 +230,7 @@ public class SQLQuery {
     }
 
     /**
-     * Gets a string from the executed SQLQuery. Returns a default value if no string is present.
+     * Gets a string from the executed SqlQuery. Returns a default value if no string is present.
      *
      * @param def default value to be returned
      * @return string value of column
@@ -250,7 +248,7 @@ public class SQLQuery {
     }
 
     /**
-     * Get the number of rows that were affected by a query
+     * Get the number of rows that were affected by a query.
      *
      * @return int Number of rows that were affected by the query
      */
@@ -261,7 +259,6 @@ public class SQLQuery {
     public static class Builder {
         private DataSource dataSource;
         private String statement = "";
-        private String errorMessage = "";
 
         private boolean update = false;
 
@@ -334,14 +331,8 @@ public class SQLQuery {
             return this;
         }
 
-        public Builder onError(String errorMessage) {
-            this.errorMessage = errorMessage;
-
-            return this;
-        }
-
-        public SQLQuery build() {
-            return new SQLQuery(this);
+        public SqlQuery build() {
+            return new SqlQuery(this);
         }
     }
 }

@@ -27,6 +27,7 @@ package com.erigitic.shops.data;
 
 import com.erigitic.shops.Shop;
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
@@ -37,8 +38,6 @@ import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.value.mutable.Value;
-
-import java.util.Optional;
 
 public class ShopData extends AbstractSingleData<Shop, ShopData, ImmutableShopData> {
 
@@ -127,10 +126,6 @@ public class ShopData extends AbstractSingleData<Shop, ShopData, ImmutableShopDa
         @Override
         public Optional<ShopData> createFrom(DataHolder dataHolder) {
             return create().fill(dataHolder);
-        }
-
-        public ShopData createFrom(Shop shop) {
-            return new ShopData(shop);
         }
     }
 }

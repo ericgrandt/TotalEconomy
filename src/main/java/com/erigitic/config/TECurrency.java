@@ -25,12 +25,9 @@
 
 package com.erigitic.config;
 
+import java.math.BigDecimal;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
-
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 public class TECurrency implements Currency {
 
@@ -99,11 +96,9 @@ public class TECurrency implements Currency {
         return isDefault;
     }
 
-    public boolean isSymbolPrefixed() {
-        return prefixSymbol;
+    public boolean isTransferable() {
+        return isTransferable;
     }
-
-    public boolean isTransferable() { return isTransferable; }
 
     public BigDecimal getStartingBalance() {
         return startBalance;
