@@ -26,12 +26,10 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
+import java.util.Collection;
+import java.util.Optional;
 import org.spongepowered.api.registry.CatalogRegistryModule;
 import org.spongepowered.api.service.economy.Currency;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 
 public class TECurrencyRegistryModule implements CatalogRegistryModule<Currency> {
 

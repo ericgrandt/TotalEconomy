@@ -36,6 +36,12 @@ import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.InventoryUtils;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
@@ -53,7 +59,6 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
-import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -62,9 +67,6 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 public class ShopCommand implements CommandExecutor {
 
@@ -250,11 +252,11 @@ public class ShopCommand implements CommandExecutor {
 
                     if (!chest.get(ShopKeys.SINGLE_SHOP).isPresent()) {
                         if (creatorOpt.isPresent()) {
-                            UUID creatorUUID = creatorOpt.get();
+                            UUID creatorUniqueId = creatorOpt.get();
 
-                            if (player.getUniqueId().equals(creatorUUID)) {
+                            if (player.getUniqueId().equals(creatorUniqueId)) {
                                 if (isChestEmpty(chest)) {
-                                    TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUUID).get();
+                                    TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUniqueId).get();
 
                                     Cause cause = Cause.builder()
                                             .append(player)
