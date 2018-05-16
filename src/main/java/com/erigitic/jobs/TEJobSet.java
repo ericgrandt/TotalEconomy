@@ -25,9 +25,10 @@
 
 package com.erigitic.jobs;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
-
-import java.util.*;
 
 public class TEJobSet {
     private List<TEAction> actions = new ArrayList();

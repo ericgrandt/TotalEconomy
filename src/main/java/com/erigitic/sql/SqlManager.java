@@ -27,22 +27,19 @@ package com.erigitic.sql;
 
 import com.erigitic.main.TotalEconomy;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.sql.SqlService;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-
-public class SQLManager {
-    private TotalEconomy totalEconomy;
+public class SqlManager {
     private Logger logger;
     public DataSource dataSource;
     private SqlService sql;
 
-    public SQLManager(TotalEconomy totalEconomy, Logger logger) {
-        this.totalEconomy = totalEconomy;
+    public SqlManager(TotalEconomy totalEconomy, Logger logger) {
         this.logger = logger;
 
         try {
@@ -55,11 +52,11 @@ public class SQLManager {
     }
 
     /**
-     * Get the data source using the passed in JBDC url
+     * Get the data source using the passed in JBDC url.
      *
-     * @param jdbcUrl
+     * @param jdbcUrl The JDBC url
      * @return DataSource
-     * @throws SQLException
+     * @throws SQLException Thrown when there's an exception getting the data source
      */
     public DataSource getDataSource(String jdbcUrl) throws SQLException {
         if (sql == null) {
@@ -70,7 +67,7 @@ public class SQLManager {
     }
 
     /**
-     * Create a new table in the database
+     * Create a new table in the database.
      *
      * @param tableName Name of the table to be created
      * @param cols The columns that the table should have

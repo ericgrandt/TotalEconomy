@@ -26,12 +26,16 @@
 package com.erigitic.shops;
 
 import com.erigitic.shops.data.ShopData;
-import org.spongepowered.api.data.*;
-import org.spongepowered.api.data.persistence.AbstractDataBuilder;
-import org.spongepowered.api.data.persistence.InvalidDataException;
-
 import java.util.Optional;
 import java.util.UUID;
+
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.Queries;
+import org.spongepowered.api.data.persistence.AbstractDataBuilder;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 
 public class Shop implements DataSerializable {
 

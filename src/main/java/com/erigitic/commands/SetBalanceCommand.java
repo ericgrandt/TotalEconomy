@@ -29,6 +29,12 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -42,13 +48,6 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SetBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -99,10 +98,10 @@ public class SetBalanceCommand implements CommandExecutor {
      * Get the transaction result returned from setting a player's balance.
      *
      * @param recipientAccount The account
-     * @param amount
-     * @param optCurrencyName
+     * @param amount Amount of currency involved in the transaction
+     * @param optCurrencyName Currency name
      * @return TransactionResult Result of the transaction
-     * @throws CommandException
+     * @throws CommandException Thrown when currency does not exist
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
         Cause cause = Cause.builder()

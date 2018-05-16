@@ -29,6 +29,13 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.*;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -44,9 +51,6 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 public class JobCommand implements CommandExecutor {
 
@@ -147,10 +151,11 @@ public class JobCommand implements CommandExecutor {
             }
 
             Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobName, false);
-            if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+            if (!optJob.isPresent()) {
+                throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+            }
 
             TEJob job = optJob.get();
-
             if (job.getRequirement().isPresent()) {
                 JobBasedRequirement req = job.getRequirement().get();
 
@@ -159,7 +164,7 @@ public class JobCommand implements CommandExecutor {
                 }
 
                 if (req.getRequiredJob() != null && req.getRequiredJobLevel() > totalEconomy.getJobManager().getJobLevel(req.getRequiredJob().toLowerCase(), user)) {
-                     throw new CommandException(Text.of("Insufficient level! Level ",
+                    throw new CommandException(Text.of("Insufficient level! Level ",
                              TextColors.GOLD, req.getRequiredJobLevel(), TextColors.RED," as a ",
                              TextColors.GOLD, req.getRequiredJob(), TextColors.RED, " required!"));
                 }

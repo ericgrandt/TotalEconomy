@@ -27,6 +27,7 @@ package com.erigitic.shops.data;
 
 import com.erigitic.shops.ShopItem;
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
@@ -37,8 +38,6 @@ import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.value.mutable.Value;
-
-import java.util.Optional;
 
 public class ShopItemData extends AbstractSingleData<ShopItem, ShopItemData, ImmutableShopItemData> {
 

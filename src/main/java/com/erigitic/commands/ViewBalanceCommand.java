@@ -30,6 +30,10 @@ import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -43,11 +47,6 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -88,7 +87,7 @@ public class ViewBalanceCommand implements CommandExecutor {
      * @param recipientAccount The account
      * @param optCurrencyName The currency name
      * @return TransactionResult Result of set balance
-     * @throws CommandException
+     * @throws CommandException Thrown when currency does not exist
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, Optional<String> optCurrencyName) throws CommandException {
         Cause cause = Cause.builder()
