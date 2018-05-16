@@ -1,3 +1,10 @@
+v1.8.1
+
++ CHANGE: Baltop command now has database support
++ FIX: Keys are now properly registered which fixes a crashing problem
++ FIX: Configuration files are now saved when the server stops if the save interval is greater then 0
++ FIX: Only the shop owner can stock their shop now
+
 v1.8.0
 
 + ADDED: Chest shops
