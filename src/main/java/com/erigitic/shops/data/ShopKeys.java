@@ -23,35 +23,36 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.shops.data;
 
-import com.erigitic.jobs.JobBasedRequirement;
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.PlayerShopInfo;
+import com.erigitic.shops.Shop;
+import com.erigitic.shops.ShopItem;
+import com.google.common.reflect.TypeToken;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.value.mutable.Value;
 
-import java.util.Arrays;
+public class ShopKeys {
 
-public class MinerJob implements Job {
+    public static Key<Value<Shop>> SINGLE_SHOP = Key.builder()
+            .type(new TypeToken<Value<Shop>>() {})
+            .id("shop")
+            .name("shop")
+            .query(DataQuery.of("shop"))
+            .build();
 
-    private final String NAME = "miner";
-    private final String[] SETS = { "ores" };
+    public static Key<Value<ShopItem>> SHOP_ITEM = Key.builder()
+            .type(new TypeToken<Value<ShopItem>>() {})
+            .id("shopitem")
+            .name("shopitem")
+            .query(DataQuery.of("shopitem"))
+            .build();
 
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
-    @Override
-    public String[] getSets() {
-        return SETS;
-    }
-
-    @Override
-    public void populateNode(ConfigurationNode node) {
-        node = node.getNode(NAME);
-
-        node.getNode("salary").setValue(20);
-        node.getNode("sets").setValue(Arrays.asList(SETS));
-
-        new JobBasedRequirement("", 0, "totaleconomy.job.miner").addTo(node);
-    }
+    public static Key<Value<PlayerShopInfo>> PLAYER_SHOP_INFO = Key.builder()
+            .type(new TypeToken<Value<PlayerShopInfo>>() {})
+            .id("playershopinfo")
+            .name("playershopinfo")
+            .query(DataQuery.of("playershopinfo"))
+            .build();
 }

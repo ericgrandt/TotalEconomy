@@ -1,3 +1,21 @@
+v1.8.1
+
++ CHANGE: Baltop command now has database support
++ FIX: Keys are now properly registered which fixes a crashing problem
++ FIX: Configuration files are now saved when the server stops if the save interval is greater then 0
++ FIX: Only the shop owner can stock their shop now
+
+v1.8.0
+
++ ADDED: Chest shops
++ ADDED: Ability to set id traits, such as block variants and types, for blocks in job sets
++ CHANGE: Rework job rewards
++ CHANGE: Change job sets file name from `jobSets` to `jobsets`
++ CHANGE: The `jobs` and `jobsets` configuration files are now copied from the resources folder instead of being created programmatically
++ CHANGE: Change the color and formatting of job signs
++ CHANGE: Experience points are no longer reset to 0 on level up
++ UPDATE: Updated to API 7
+
 v1.7.0
 
 + Multi-Currency support

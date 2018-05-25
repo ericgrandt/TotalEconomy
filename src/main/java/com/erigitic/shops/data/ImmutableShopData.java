@@ -23,34 +23,44 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobsets;
+package com.erigitic.shops.data;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.Shop;
+import java.util.Optional;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
+import org.spongepowered.api.data.value.BaseValue;
+import org.spongepowered.api.data.value.immutable.ImmutableValue;
 
-public class MinerJobSet implements JobSet {
 
-    private final String SETNAME = "ores";
+public class ImmutableShopData extends AbstractImmutableSingleData<Shop, ImmutableShopData, ShopData> {
 
-    private final String[][] REWARDS = {
-            //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"break", "minecraft:coal_ore", "5", "0.25"},
-            {"break", "minecraft:iron_ore", "10", "0.50"},
-            {"break", "minecraft:lapis_ore", "20", "4.00"},
-            {"break", "minecraft:gold_ore", "40", "5.00"},
-            {"break", "minecraft:diamond_ore", "100", "25.00"},
-            {"break", "minecraft:emerald_ore", "50", "12.50"},
-            {"break", "minecraft:quartz_ore", "5", "0.15"},
-            {"break", "minecraft:redstone_ore", "25", "2.00"}
-    };
+    public ImmutableShopData(Shop shop) {
+        super(shop, ShopKeys.SINGLE_SHOP);
+    }
 
     @Override
-    public void populateNode(ConfigurationNode node) {
-        ConfigurationNode myNode = node.getNode(SETNAME);
+    public ShopData asMutable() {
+        return new ShopData(getValue());
+    }
 
-        for (String[] a : REWARDS) {
-            ConfigurationNode n = myNode.getNode(a[0], a[1]);
-            n.getNode("exp").setValue(a[2]);
-            n.getNode("money").setValue(a[3]);
+    @Override
+    public int getContentVersion() {
+        return ShopData.CONTENT_VERSION;
+    }
+
+    @Override
+    protected ImmutableValue<?> getValueGetter() {
+        return Sponge.getRegistry().getValueFactory().createValue(ShopKeys.SINGLE_SHOP, getValue()).asImmutable();
+    }
+
+    @Override
+    public <E> Optional<ImmutableShopData> with(Key<? extends BaseValue<E>> key, E value) {
+        if (this.supports(key)) {
+            return Optional.of(asMutable().set(key, value).asImmutable());
+        } else {
+            return Optional.empty();
         }
     }
 }

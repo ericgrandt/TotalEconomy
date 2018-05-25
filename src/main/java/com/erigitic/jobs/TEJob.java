@@ -26,21 +26,19 @@
 package com.erigitic.jobs;
 
 import com.google.common.reflect.TypeToken;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 public class TEJob {
     private String name;
     private BigDecimal salary;
     private List<String> sets = new ArrayList<>();
     private JobBasedRequirement requirement;
-
-    private boolean isValid = false;
+    private boolean isValid;
 
     public TEJob(ConfigurationNode node) {
         name = node.getKey().toString();
@@ -48,6 +46,19 @@ public class TEJob {
 
         try {
             sets = node.getNode("sets").getList(TypeToken.of(String.class), new ArrayList<>());
+            ConfigurationNode req = node.getNode("require");
+
+            if (!req.isVirtual()) {
+                String job = req.getNode("job").getString(null);
+                int level = req.getNode("level").getInt(0);
+                String permission = req.getNode("permission").getString(null);
+
+                if (job != null && (job.trim().isEmpty())) {
+                    job = null;
+                }
+                
+                requirement = new JobBasedRequirement(job, level, permission);
+            }
 
             isValid = true;
         } catch (ObjectMappingException e) {
@@ -65,7 +76,9 @@ public class TEJob {
         return !salary.equals(BigDecimal.ZERO);
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     public BigDecimal getSalary() {
         return salary;

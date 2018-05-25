@@ -26,29 +26,33 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLManager;
-import com.erigitic.sql.SQLQuery;
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.SqlQuery;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.*;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.service.economy.transaction.TransactionType;
+import org.spongepowered.api.service.economy.transaction.TransactionTypes;
+import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 public class TEAccount implements UniqueAccount {
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private UUID uuid;
-    private SQLManager sqlManager;
-
-    private ConfigurationNode accountConfig;
+    private SqlManager sqlManager;
 
     private boolean databaseActive;
 
@@ -64,7 +68,6 @@ public class TEAccount implements UniqueAccount {
         this.accountManager = accountManager;
         this.uuid = uuid;
 
-        accountConfig = accountManager.getAccountConfig();
         databaseActive = totalEconomy.isDatabaseEnabled();
 
         if (databaseActive) {
@@ -73,7 +76,7 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Gets the display name associated with the account
+     * Gets the display name associated with the account.
      *
      * @return Text The display name
      */
@@ -86,22 +89,16 @@ public class TEAccount implements UniqueAccount {
         return Text.of("PLAYER NAME");
     }
 
-    /**
-     * Gets the default balance
-     *
-     * @param currency Currency to get the default balance for
-     * @return BigDecimal Default balance
-     */
     @Override
     public BigDecimal getDefaultBalance(Currency currency) {
         return ((TECurrency) currency).getStartingBalance();
     }
 
     /**
-     * Determines if a balance exists for a {@link Currency}
+     * Determines if a balance exists for a {@link Currency}.
      *
      * @param currency Currency type to be checked for
-     * @param contexts
+     * @param contexts The contexts that the check occurred in
      * @return boolean If a balance exists for the specified currency
      */
     @Override
@@ -109,7 +106,7 @@ public class TEAccount implements UniqueAccount {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+            SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                     .select(currencyName + "_balance")
                     .from("accounts")
                     .where("uid")
@@ -118,15 +115,15 @@ public class TEAccount implements UniqueAccount {
 
             return sqlQuery.recordExists();
         } else {
-            return accountConfig.getNode(uuid.toString(), currencyName + "-balance").getValue() != null;
+            return accountManager.getAccountConfig().getNode(uuid.toString(), currencyName + "-balance").getValue() != null;
         }
     }
 
     /**
-     * Gets the balance of a {@link Currency}
+     * Gets the balance of a {@link Currency}.
      *
      * @param currency The currency to get the balance of
-     * @param contexts
+     * @param contexts The contexts that the check occurred in
      * @return BigDecimal The balance
      */
     @Override
@@ -135,7 +132,7 @@ public class TEAccount implements UniqueAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                         .select(currencyName + "_balance")
                         .from("accounts")
                         .where("uid")
@@ -144,7 +141,7 @@ public class TEAccount implements UniqueAccount {
 
                 return sqlQuery.getBigDecimal(BigDecimal.ZERO);
             } else {
-                BigDecimal balance = new BigDecimal(accountConfig.getNode(uuid.toString(), currencyName + "-balance").getString());
+                BigDecimal balance = new BigDecimal(accountManager.getAccountConfig().getNode(uuid.toString(), currencyName + "-balance").getString());
 
                 return balance;
             }
@@ -154,9 +151,9 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Get a player's balance for each currency type
+     * Get a player's balance for each currency type.
      *
-     * @param contexts
+     * @param contexts The contexts that the check occurred in
      * @return Map A map of the balances of each currency
      */
     @Override
@@ -171,12 +168,12 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Sets the balance of a {@link Currency}
+     * Sets the balance of a {@link Currency}.
      *
      * @param currency Currency to set the balance of
      * @param amount Amount to set the balance to
-     * @param cause
-     * @param contexts
+     * @param cause The cause of the transaction
+     * @param contexts The contexts that the check occurred in
      * @return TransactionResult Result of the transaction
      */
     @Override
@@ -192,7 +189,7 @@ public class TEAccount implements UniqueAccount {
             TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                         .update("accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
@@ -206,7 +203,7 @@ public class TEAccount implements UniqueAccount {
                     transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.FAILED, transactionType);
                 }
             } else {
-                accountConfig.getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
+                accountManager.getAccountConfig().getNode(uuid.toString(), currencyName + "-balance").setValue(amount.setScale(2, BigDecimal.ROUND_DOWN));
                 accountManager.requestConfigurationSave();
 
                 transactionResult = new TETransactionResult(this, currency, delta.abs(), contexts, ResultType.SUCCESS, transactionType);
@@ -221,11 +218,11 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Resets all currency balances to their starting balances
+     * Resets all currency balances to their starting balances.
      *
-     * @param cause
-     * @param contexts
-     * @return Map<Currency, TransactionResult> Map of transaction results
+     * @param cause The cause of the transaction
+     * @param contexts The contexts that the check occurred in
+     * @return Map Map of transaction results
      */
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
@@ -239,11 +236,11 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Reset a currencies balance to its starting balance
+     * Reset a currencies balance to its starting balance.
      *
      * @param currency The balance to reset
-     * @param cause
-     * @param contexts
+     * @param cause The cause of the transaction
+     * @param contexts The contexts that the check occurred in
      * @return TransactionResult Result of the reset
      */
     @Override
@@ -252,12 +249,12 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Add money to a balance
+     * Add money to a balance.
      *
      * @param currency The balance to deposit money into
      * @param amount Amount to deposit
-     * @param cause
-     * @param contexts
+     * @param cause The cause of the transaction
+     * @param contexts The contexts that the check occurred in
      * @return TransactionResult Result of the deposit
      */
     @Override
@@ -265,16 +262,16 @@ public class TEAccount implements UniqueAccount {
         BigDecimal curBalance = getBalance(currency, contexts);
         BigDecimal newBalance = curBalance.add(amount);
 
-        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        return setBalance(currency, newBalance, cause);
     }
 
     /**
-     * Remove money from a balance
+     * Remove money from a balance.
      *
      * @param currency The balance to withdraw money from
      * @param amount Amount to withdraw
-     * @param cause
-     * @param contexts
+     * @param cause The cause of the transaction
+     * @param contexts The contexts that the check occurred in
      * @return TransactionResult Result of the withdrawal
      */
     @Override
@@ -283,20 +280,20 @@ public class TEAccount implements UniqueAccount {
         BigDecimal newBalance = curBalance.subtract(amount);
 
         if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-            return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            return setBalance(currency, newBalance, cause);
         }
 
         return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
     }
 
     /**
-     * Transfer money between two TEAccount's
+     * Transfer money between two TEAccount's.
      *
      * @param to Account to transfer money to
      * @param currency Type of currency to transfer
      * @param amount Amount to transfer
-     * @param cause
-     * @param contexts
+     * @param cause The cause of the transaction
+     * @param contexts The contexts that the check occurred in
      * @return TransactionResult Result of the reset
      */
     @Override
@@ -338,7 +335,7 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Get the account identifier
+     * Get the account identifier.
      *
      * @return String The identifier
      */
@@ -348,7 +345,7 @@ public class TEAccount implements UniqueAccount {
     }
 
     /**
-     * Get the {@link UUID} of the account
+     * Get the {@link UUID} of the account.
      *
      * @return UUID The UUID of the account
      */

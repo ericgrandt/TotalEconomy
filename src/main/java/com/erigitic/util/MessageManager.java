@@ -26,6 +26,11 @@
 package com.erigitic.util;
 
 import com.erigitic.main.TotalEconomy;
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -36,17 +41,12 @@ import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-
 public class MessageManager {
 
     private TotalEconomy totalEconomy;
     private Logger logger;
     private ConfigurationNode messagesConfig;
+    private Locale locale;
 
     /**
      * Grabs a message from the messages_[lang].conf file and converts it to a usable String/Text object ready for printing. Colors
@@ -55,6 +55,7 @@ public class MessageManager {
     public MessageManager(TotalEconomy totalEconomy, Logger logger, Locale locale) {
         this.totalEconomy = totalEconomy;
         this.logger = logger;
+        this.locale = locale;
 
         setupConfig(locale);
     }
@@ -87,7 +88,7 @@ public class MessageManager {
      * @return Text The deserialized message
      */
     public Text getMessage(String messageKey) {
-        String message = messagesConfig.getNode(messageKey).getString();
+        String message = messagesConfig.getNode(messageKey).getString("Message not found (" + locale + "): " + messageKey);
 
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }
@@ -101,7 +102,7 @@ public class MessageManager {
      */
     public Text getMessage(String messageKey, Map<String, String> values) {
         StrSubstitutor sub = new StrSubstitutor(values, "{", "}");
-        String message = sub.replace(messagesConfig.getNode(messageKey).getString());
+        String message = sub.replace(messagesConfig.getNode(messageKey).getString("Message not found (" + locale + "): " + messageKey));
 
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }

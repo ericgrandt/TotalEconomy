@@ -30,6 +30,10 @@ import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -37,17 +41,12 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -88,9 +87,13 @@ public class ViewBalanceCommand implements CommandExecutor {
      * @param recipientAccount The account
      * @param optCurrencyName The currency name
      * @return TransactionResult Result of set balance
-     * @throws CommandException
+     * @throws CommandException Thrown when currency does not exist
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, Optional<String> optCurrencyName) throws CommandException {
+        Cause cause = Cause.builder()
+                .append(totalEconomy.getPluginContainer())
+                .build(EventContext.empty());
+
         if (optCurrencyName.isPresent()) {
             Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
@@ -98,14 +101,14 @@ public class ViewBalanceCommand implements CommandExecutor {
                 TECurrency currency = (TECurrency) optCurrency.get();
                 BigDecimal balance = recipientAccount.getBalance(currency);
 
-                return recipientAccount.setBalance(currency, balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                return recipientAccount.setBalance(currency, balance, cause);
             } else {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
             }
         } else {
             BigDecimal balance = recipientAccount.getBalance(totalEconomy.getDefaultCurrency());
 
-            return recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), balance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            return recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), balance, cause);
         }
     }
 }

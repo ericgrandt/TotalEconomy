@@ -29,6 +29,13 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.jobs.*;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -44,8 +51,6 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.util.*;
 
 public class JobCommand implements CommandExecutor {
 
@@ -121,9 +126,11 @@ public class JobCommand implements CommandExecutor {
                     .executor(this)
                     .arguments(
                             GenericArguments.string(Text.of("jobName")),
-                            GenericArguments.requiringPermission(
-                                    GenericArguments.userOrSource(Text.of("user")),
-                                    "totaleconomy.command.job.setother"
+                            GenericArguments.optional(
+                                    GenericArguments.requiringPermission(
+                                        GenericArguments.userOrSource(Text.of("user")),
+                                        "totaleconomy.command.job.setother"
+                                    )
                             )
                     )
                     .build();
@@ -131,27 +138,35 @@ public class JobCommand implements CommandExecutor {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            // TODO: Do checks here, in case we or other plugins want to bypass them in the future
-
             String jobName = args.getOne("jobName").get().toString().toLowerCase();
-            User user = args.<User>getOne("user").get();
+            Optional<User> userOpt = args.getOne("user");
+
+            User user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+            } else if (src instanceof Player) {
+                user = (Player) src;
+            } else {
+                return CommandResult.empty();
+            }
 
             Optional<TEJob> optJob = totalEconomy.getJobManager().getJob(jobName, false);
-            if (!optJob.isPresent()) throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+            if (!optJob.isPresent()) {
+                throw new CommandException(Text.of("Job " + jobName + " does not exist!"));
+            }
 
             TEJob job = optJob.get();
-
             if (job.getRequirement().isPresent()) {
                 JobBasedRequirement req = job.getRequirement().get();
 
-                if (req.permissionNeeded() != null && !user.hasPermission(req.permissionNeeded())) {
+                if (req.getRequiredPermission() != null && !user.hasPermission(req.getRequiredPermission())) {
                     throw new CommandException(Text.of("Not permitted to join job \"", TextColors.GOLD, jobName, TextColors.RED, "\""));
                 }
 
-                if (req.jobNeeded() != null && req.jobLevelNeeded() > totalEconomy.getJobManager().getJobLevel(req.jobNeeded().toLowerCase(), user)) {
-                     throw new CommandException(Text.of("Insufficient level! Level ",
-                             TextColors.GOLD, req.jobLevelNeeded(), TextColors.RED," as a ",
-                             TextColors.GOLD, req.jobNeeded(), TextColors.RED, " required!"));
+                if (req.getRequiredJob() != null && req.getRequiredJobLevel() > totalEconomy.getJobManager().getJobLevel(req.getRequiredJob().toLowerCase(), user)) {
+                    throw new CommandException(Text.of("Insufficient level! Level ",
+                             TextColors.GOLD, req.getRequiredJobLevel(), TextColors.RED," as a ",
+                             TextColors.GOLD, req.getRequiredJob(), TextColors.RED, " required!"));
                 }
             }
 
@@ -191,7 +206,10 @@ public class JobCommand implements CommandExecutor {
                     .description(Text.of("Prints out a list of items that reward exp and money for the current job"))
                     .permission("totaleconomy.command.job.info")
                     .executor(this)
-                    .arguments(GenericArguments.optional(GenericArguments.string(Text.of("jobName"))))
+                    .arguments(
+                        GenericArguments.optional(GenericArguments.flags().flag("e").buildWith(GenericArguments.none())),
+                        GenericArguments.optional(GenericArguments.string(Text.of("jobName")))
+                    )
                     .build();
         }
 
@@ -199,13 +217,14 @@ public class JobCommand implements CommandExecutor {
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             Optional<String> optJobName = args.getOne("jobName");
             Optional<TEJob> optJob = Optional.empty();
+            boolean extended = args.hasAny("e");
 
             if (!optJobName.isPresent() && (src instanceof Player)) {
                 optJob = jobManager.getJob(jobManager.getPlayerJob((Player) src), true);
             }
 
             if (optJobName.isPresent()) {
-                optJob = jobManager.getJob(optJobName.get(), false);
+                optJob = jobManager.getJob(optJobName.get().toLowerCase(), false);
             }
 
             if (!optJob.isPresent()) {
@@ -219,21 +238,58 @@ public class JobCommand implements CommandExecutor {
 
                 if (optSet.isPresent()) {
                     TEJobSet jobSet = optSet.get();
-                    Currency defaultCurrency = totalEconomy.getDefaultCurrency();
 
-                    for (TEActionReward actionReward : jobSet.getActionRewards()) {
-                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(actionReward.getAction()), "] ", TextColors.GRAY, actionReward.getTargetID(), TextColors.GOLD, " (", actionReward.getExpReward(), " EXP) (", defaultCurrency.format(actionReward.getMoneyReward()), ")"));
+                    for (TEAction action : jobSet.getActions()) {
+                        Text listText;
+
+                        if (action.isIdTraited()) {
+                            // MC does not support '\t'
+                            String tab = new String(new char[action.getAction().length() + 2]).replace("\0", " ");
+                            List<Text> texts = new ArrayList<>(action.getRewards().size());
+
+                            action.getRewards().forEach((k, v) -> {
+                                Text metaText = Text.of("");
+
+                                if (action.isGrowing() && extended) {
+                                    metaText = Text.of(",growing=1");
+                                }
+
+                                Text rewardText = Text.of("\n", tab, TextColors.GRAY, "{", action.getIdTrait(), '=', k, metaText, "} ", TextColors.GOLD, formatReward(v));
+                                texts.add(rewardText);
+                            });
+
+                            listText = Text.join(texts.toArray(new Text[texts.size()]));
+                        } else {
+                            listText = Text.of(" ", formatReward(action.getReward().get()));
+
+                            if (action.isGrowing() && extended) {
+                                listText = Text.of(TextColors.GRAY, "{growing=1}", TextColors.GOLD,  listText);
+                            }
+                        }
+
+                        lines.add(Text.of(TextColors.GOLD, "[", jobManager.titleize(action.getAction()), "] ", TextColors.GRAY, action.getTargetId(), TextColors.GOLD, listText));
                     }
                 }
             }
 
             pageBuilder.reset()
-                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob(((Player) src))),"\n"))
-                    .contents(lines.toArray(new Text[lines.size()]))
-                    .sendTo(src);
+                       .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> jobManager.getPlayerJob((Player) src)),"\n"))
+                       .contents(lines.toArray(new Text[lines.size()]))
+                       .build()
+                       .sendTo(src);
 
             return CommandResult.success();
         }
+    }
+
+    private Text formatReward(TEActionReward reward) {
+        Optional<Currency> rewardCurrencyOpt = Optional.empty();
+
+        if (reward.getCurrencyId() != null) {
+            rewardCurrencyOpt = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + reward.getCurrencyId());
+        }
+
+        return Text.of("(", reward.getExpReward(), " EXP) (", rewardCurrencyOpt.orElse(totalEconomy.getDefaultCurrency()).format(new BigDecimal(reward.getMoneyReward())), ")");
     }
 
     private class Reload implements CommandExecutor {
@@ -267,6 +323,9 @@ public class JobCommand implements CommandExecutor {
 
     private class Toggle implements CommandExecutor {
 
+        private final String[] TOGGLE_PLAYER_OPTIONS = {"block-break-info", "block-place-info", "entity-kill-info", "entity-fish-info"};
+        private final List<String> TOGGLE_PLAYER_OPTIONS_LIST = Arrays.asList(TOGGLE_PLAYER_OPTIONS);
+
         private AccountManager accountManager;
 
         public Toggle(AccountManager accountManager) {
@@ -277,6 +336,13 @@ public class JobCommand implements CommandExecutor {
             return CommandSpec.builder()
                     .description(Text.of("Toggle job notifications on/off"))
                     .permission("totaleconomy.command.job.toggle")
+                    .arguments(
+                            GenericArguments.optional(
+                                GenericArguments.requiringPermission(
+                                    GenericArguments.string(Text.of("option")),
+                                    "totaleconomy.command.job.block_info")
+                            )
+                    )
                     .executor(this)
                     .build();
         }
@@ -284,11 +350,31 @@ public class JobCommand implements CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (src instanceof Player) {
-                Player sender = ((Player) src).getPlayer().get();
+                Player sender = (Player) src;
+                Optional<String> optionOpt = args.<String>getOne("option");
 
-                accountManager.toggleNotifications(sender);
+                if (!optionOpt.isPresent()) {
+                    accountManager.toggleNotifications(sender);
 
-                return CommandResult.success();
+                    return CommandResult.success();
+                } else {
+                    String option = optionOpt.get();
+                    int i = TOGGLE_PLAYER_OPTIONS_LIST.indexOf(option);
+
+                    if (i < 0) {
+                        throw new CommandException(Text.of("[TE] Unknown option: ", option));
+                    }
+
+                    String value = accountManager.getUserOption("totaleconomy:" + option, sender).orElse("0");
+                    value = value.equals("0") ? "1" : "0";
+
+                    accountManager.setUserOption("totaleconomy:" + option, sender, value);
+
+                    src.sendMessage(messageManager.getMessage("jobs.toggle"));
+
+                    return CommandResult.success();
+                }
+
             } else {
                 throw new CommandException(Text.of("[TE] This command can only be run by a player!"));
             }

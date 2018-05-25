@@ -25,28 +25,24 @@
 
 package com.erigitic.jobs;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.util.*;
-
 public class TEJobSet {
-    private List<TEActionReward> actionRewards = new ArrayList();
+    private List<TEAction> actions = new ArrayList();
 
     public TEJobSet(ConfigurationNode node) {
-        node.getChildrenMap().forEach((action, targetNode) -> {
-            if ((action instanceof String) &&  targetNode != null) {
-                targetNode.getChildrenMap().forEach((targetID, rewardsNode) -> {
-                    if ((targetID instanceof String) && rewardsNode != null) {
-                        TEActionReward actionReward = new TEActionReward(
-                                (String) action,
-                                (String) targetID,
-                                rewardsNode.getNode("exp").getString("0"),
-                                rewardsNode.getNode("money").getString("0"),
-                                rewardsNode.getNode("growthTrait").getString(null)
-                        );
+        node.getChildrenMap().forEach((actionStr, targetNode) -> {
+            if ((actionStr instanceof String) &&  targetNode != null) {
+                targetNode.getChildrenMap().forEach((targetID, actionNode) -> {
+                    if ((targetID instanceof String) && actionNode != null) {
+                        TEAction action = new TEAction();
+                        action.loadConfigNode((String) actionStr, actionNode);
 
-                        if (actionReward.isValid()) {
-                            actionRewards.add(actionReward);
+                        if (action.isValid()) {
+                            actions.add(action);
                         }
                     }
                 });
@@ -54,14 +50,14 @@ public class TEJobSet {
         });
     }
 
-    public Optional<TEActionReward> getRewardFor(String action, String targetID) {
-        return actionRewards.stream()
-                .filter(teActionReward -> teActionReward.getAction().equals(action))
-                .filter(teActionReward -> teActionReward.getTargetID().equals(targetID))
+    public Optional<TEAction> getActionFor(String action, String targetID) {
+        return actions.stream()
+                .filter(teAction -> teAction.getAction().equals(action))
+                .filter(teAction -> teAction.getTargetId().equals(targetID))
                 .findFirst();
     }
 
-    public List<TEActionReward> getActionRewards() {
-        return actionRewards;
+    public List<TEAction> getActions() {
+        return actions;
     }
 }
