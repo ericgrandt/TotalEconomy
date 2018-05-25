@@ -23,20 +23,29 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobs;
+package com.erigitic.util;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 
-public interface Job {
+public class InventoryUtils {
 
-    String getName();
+    public static int getItemAmountInInventory(Inventory inventory, ItemStack itemStack) {
+        ItemStack copy = itemStack.copy();
 
-    String[] getSets();
+        return inventory.query(QueryOperationTypes.ITEM_STACK_EXACT.of(copy)).totalItems();
+    }
 
-    /**
-     * Populates a configuration node with a jobs information.
-     *
-     * @param node The base/parent configuration node for jobs
-     */
-    void populateNode(ConfigurationNode node);
+    public static void removeItem(Inventory inventory, ItemStack itemStack, int amount) {
+        int availableAmount = getItemAmountInInventory(inventory, itemStack);
+
+        if (amount > availableAmount) {
+            amount = availableAmount;
+        }
+
+        ItemStack itemToRemove = itemStack.copy();
+
+        inventory.query(QueryOperationTypes.ITEM_STACK_EXACT.of(itemToRemove)).poll(amount);
+    }
 }

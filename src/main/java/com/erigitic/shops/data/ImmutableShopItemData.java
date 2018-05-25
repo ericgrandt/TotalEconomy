@@ -23,29 +23,44 @@
  * SOFTWARE.
  */
 
-package com.erigitic.jobs.jobsets;
+package com.erigitic.shops.data;
 
-import ninja.leaping.configurate.ConfigurationNode;
+import com.erigitic.shops.ShopItem;
+import java.util.Optional;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
+import org.spongepowered.api.data.value.BaseValue;
+import org.spongepowered.api.data.value.immutable.ImmutableValue;
 
-public class FishermanJobSet implements JobSet {
 
-    private final String SETNAME = "fish";
+public class ImmutableShopItemData extends AbstractImmutableSingleData<ShopItem, ImmutableShopItemData, ShopItemData> {
 
-    private final String[][] REWARDS = {
-            //{"<event>", "<target>", "<expReward>", "<moneyReward>"}
-            {"catch", "cod", "25", "50.00"},
-            {"catch", "salmon", "100", "150.00"},
-            {"catch", "pufferfish", "250", "300.00"}
-    };
+    public ImmutableShopItemData(ShopItem shopItem) {
+        super(shopItem, ShopKeys.SHOP_ITEM);
+    }
 
     @Override
-    public void populateNode(ConfigurationNode node) {
-        ConfigurationNode myNode = node.getNode(SETNAME);
+    public ShopItemData asMutable() {
+        return new ShopItemData(getValue());
+    }
 
-        for (String[] a : REWARDS) {
-            ConfigurationNode n = myNode.getNode(a[0], a[1]);
-            n.getNode("exp").setValue(a[2]);
-            n.getNode("money").setValue(a[3]);
+    @Override
+    public int getContentVersion() {
+        return ShopItemData.CONTENT_VERSION;
+    }
+
+    @Override
+    protected ImmutableValue<?> getValueGetter() {
+        return Sponge.getRegistry().getValueFactory().createValue(ShopKeys.SHOP_ITEM, getValue()).asImmutable();
+    }
+
+    @Override
+    public <E> Optional<ImmutableShopItemData> with(Key<? extends BaseValue<E>> key, E value) {
+        if (this.supports(key)) {
+            return Optional.of(asMutable().set(key, value).asImmutable());
+        } else {
+            return Optional.empty();
         }
     }
 }

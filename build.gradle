@@ -9,10 +9,10 @@ repositories {
 apply plugin: 'java'
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:6.0.0'
+    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
 }
 
 jar {
     baseName="TotalEconomy"
-    version="1.7.1"
+    version="1.8.1"
 }

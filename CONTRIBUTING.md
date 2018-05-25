@@ -22,13 +22,13 @@ We are always looking for talented people to help continue making Total Economy 
 
 ### Getting Started
 
-+ Create an issue for your contribution if one is not already created. Be sure to follow the guidelines for contributing issues.
++ Find an issue with the `help wanted` label that you'd like to work on.
 + Create a branch off the branch you are targeting, most of the time `develop`, and name it `issue/[ISSUE#]-short-description-of-issue`. The short description should be no more than 4 words long.
 
 ### Code Style
 
 **Indentation**
-+ Use tabs for indentation
++ Use spaces for indentation
 
 **File Header**
 + The top of new files must contain the license, which can be found at the top of [TotalEconomy.java](https://github.com/Erigitic/TotalEconomy/blob/develop/src/main/java/com/erigitic/main/TotalEconomy.java#L1-L24)

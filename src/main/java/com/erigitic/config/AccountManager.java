@@ -26,23 +26,9 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLManager;
-import com.erigitic.sql.SQLQuery;
+import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.SqlQuery;
 import com.erigitic.util.MessageManager;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.service.context.ContextCalculator;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.service.economy.account.Account;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,19 +37,37 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
+
+import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.context.ContextCalculator;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.economy.account.Account;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
+
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
     private MessageManager messageManager;
     private Logger logger;
-    private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
 
-    private SQLManager sqlManager;
+    private SqlManager sqlManager;
 
     private boolean databaseActive;
 
     private boolean confSaveRequested = false;
+
+    public static final int CONTENT_VERSION = 1;
 
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
@@ -92,10 +96,10 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Setup the config file that will contain the user accounts
+     * Setup the config file that will contain the user accounts.
      */
     private void setupConfig() {
-        accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
+        File accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
         loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
 
         try {
@@ -103,14 +107,38 @@ public class AccountManager implements EconomyService {
 
             if (!accountsFile.exists()) {
                 loader.save(accountConfig);
+            } else {
+                if (accountConfig.getNode("version").getInt(0) != CONTENT_VERSION) {
+                    accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
+                        ConfigurationNode accountNode = nodeEntry.getValue();
+
+                        accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
+                            ConfigurationNode jobNode = jobNodeEntry.getValue();
+                            ConfigurationNode expNode = jobNode.getNode("exp");
+
+                            int exp = expNode.getInt(0);
+                            int level = jobNode.getNode("level").getInt(0);
+
+                            expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+
+                            try {
+                                loader.save(accountConfig);
+                            } catch (IOException e) {
+                                logger.warn("Error migrating account experience values!");
+                            }
+                        });
+                    });
+
+                    accountConfig.getNode("version").setValue(CONTENT_VERSION);
+                }
             }
         } catch (IOException e) {
-            logger.warn("[TE] Error creating accounts configuration file!");
+            logger.warn("Error creating accounts configuration file!");
         }
     }
 
     /**
-     * Setup the database that will contain the user accounts
+     * Setup the database that will contain the user accounts.
      */
     public void setupDatabase() {
         String currencyCols = "";
@@ -121,33 +149,37 @@ public class AccountManager implements EconomyService {
             currencyCols += teCurrency.getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + teCurrency.getStartingBalance() + "',";
         }
 
-        sqlManager.createTable("accounts", "uid varchar(60) NOT NULL," +
-                currencyCols +
-                "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
-                "job_notifications boolean NOT NULL DEFAULT TRUE," +
-                "PRIMARY KEY (uid)");
+        sqlManager.createTable("accounts", "uid varchar(60) NOT NULL,"
+                + currencyCols
+                + "job varchar(50) NOT NULL DEFAULT 'Unemployed',"
+                + "job_notifications boolean NOT NULL DEFAULT TRUE,"
+                + "PRIMARY KEY (uid)"
+        );
 
-        sqlManager.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
-                currencyCols +
-                "PRIMARY KEY (uid)");
+        sqlManager.createTable("virtual_accounts", "uid varchar(60) NOT NULL,"
+                + currencyCols
+                + "PRIMARY KEY (uid)"
+        );
 
-        sqlManager.createTable("levels", "uid varchar(60)," +
-                "miner int(10) unsigned NOT NULL DEFAULT '1'," +
-                "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
-                "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
-                "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
-                "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
+        sqlManager.createTable("levels", "uid varchar(60),"
+                + "miner int(10) unsigned NOT NULL DEFAULT '1',"
+                + "lumberjack int(10) unsigned NOT NULL DEFAULT '1',"
+                + "warrior int(10) unsigned NOT NULL DEFAULT '1',"
+                + "fisherman int(10) unsigned NOT NULL DEFAULT '1',"
+                + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE"
+        );
 
-        sqlManager.createTable("experience", "uid varchar(60)," +
-                "miner int(10) unsigned NOT NULL DEFAULT '0'," +
-                "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
-                "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
-                "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
-                "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
+        sqlManager.createTable("experience", "uid varchar(60),"
+                + "miner int(10) unsigned NOT NULL DEFAULT '0',"
+                + "lumberjack int(10) unsigned NOT NULL DEFAULT '0',"
+                + "warrior int(10) unsigned NOT NULL DEFAULT '0',"
+                + "fisherman int(10) unsigned NOT NULL DEFAULT '0',"
+                + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE"
+        );
     }
 
     /**
-     * Setup a scheduler that handles the saving of the account configuration file
+     * Setup a scheduler that handles the saving of the account configuration file.
      */
     private void setupAutosave() {
         Sponge.getScheduler().createTaskBuilder().interval(totalEconomy.getSaveInterval(), TimeUnit.SECONDS)
@@ -160,22 +192,22 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Reload the account config
+     * Reload the account config.
      */
     public void reloadConfig() {
         try {
             accountConfig = loader.load();
-            logger.info("[TE] Reloading account configuration file.");
+            logger.info("Reloading account configuration file.");
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while reloading the account configuration file!");
+            logger.warn("An error occurred while reloading the account configuration file!");
         }
     }
 
     /**
-     * Gets or creates a unique account for the passed in UUID
+     * Gets or creates a unique account for the passed in UUID.
      *
      * @param uuid {@link UUID} of the player an account is being created for
-     * @return Optional<UniqueAccount> The account that was retrieved or created
+     * @return Optional An optional account object
      */
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
@@ -193,16 +225,17 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(playerAccount);
             }
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while creating a new account!");
+            logger.warn("An error occurred while creating a new account!");
         }
 
         return Optional.of(playerAccount);
     }
+
     /**
-     * Gets or creates a virtual account for the passed in identifier
+     * Gets or creates a virtual account for the passed in identifier.
      *
      * @param identifier The virtual accounts identifier
-     * @return Optional<Account> The virtual account that was retrieved or created
+     * @return Optional An optional account object
      */
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
@@ -220,14 +253,14 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(virtualAccount);
             }
         } catch (IOException e) {
-            logger.warn("[TE] An error occurred while creating a new virtual account!");
+            logger.warn("An error occurred while creating a new virtual account!");
         }
 
         return Optional.of(virtualAccount);
     }
 
     /**
-     * Determines if a unique account is associated with the passed in UUID
+     * Determines if a unique account is associated with the passed in UUID.
      *
      * @param uuid {@link UUID} to check for an account
      * @return boolean Whether or not an account is associated with the passed in UUID
@@ -235,7 +268,7 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
+            SqlQuery query = SqlQuery.builder(sqlManager.dataSource)
                     .select("uid")
                     .from("accounts")
                     .where("uid")
@@ -249,7 +282,7 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Determines if a virtual account is associated with the passed in UUID
+     * Determines if a virtual account is associated with the passed in UUID.
      *
      * @param identifier The identifier to check for an account
      * @return boolean Whether or not a virtual account is associated with the passed in identifier
@@ -257,7 +290,7 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(String identifier) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
+            SqlQuery query = SqlQuery.builder(sqlManager.dataSource)
                     .select("uid")
                     .from("virtual_accounts")
                     .where("uid")
@@ -271,7 +304,7 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Gets the default {@link Currency}
+     * Gets the default {@link Currency}.
      *
      * @return Currency The default currency
      */
@@ -281,9 +314,9 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Gets a set containing all of the currencies
+     * Gets a set containing all of the currencies.
      *
-     * @return Set<Currency> Set of all currencies
+     * @return Set Set of all currencies
      */
     @Override
     public Set<Currency> getCurrencies() {
@@ -299,22 +332,22 @@ public class AccountManager implements EconomyService {
      * Creates a new unique account in the database.
      *
      * @param playerAccount A player's account
-     * @throws IOException
+     * @throws IOException Test
      */
     private void createAccountInDatabase(TEAccount playerAccount) {
         UUID uuid = playerAccount.getUniqueId();
 
-        SQLQuery.builder(sqlManager.dataSource).insert("accounts")
+        SqlQuery.builder(sqlManager.dataSource).insert("accounts")
                 .columns("uid", "job", "job_notifications")
                 .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.isJobNotificationEnabled()))
                 .build();
 
-        SQLQuery.builder(sqlManager.dataSource).insert("levels")
+        SqlQuery.builder(sqlManager.dataSource).insert("levels")
                 .columns("uid")
                 .values(uuid.toString())
                 .build();
 
-        SQLQuery.builder(sqlManager.dataSource).insert("experience")
+        SqlQuery.builder(sqlManager.dataSource).insert("experience")
                 .columns("uid")
                 .values(uuid.toString())
                 .build();
@@ -322,7 +355,7 @@ public class AccountManager implements EconomyService {
         for (Currency currency : totalEconomy.getCurrencies()) {
             TECurrency teCurrency = (TECurrency) currency;
 
-            SQLQuery.builder(sqlManager.dataSource).update("accounts")
+            SqlQuery.builder(sqlManager.dataSource).update("accounts")
                     .set(teCurrency.getName().toLowerCase() + "_balance")
                     .equals(playerAccount.getDefaultBalance(teCurrency).toString())
                     .where("uid")
@@ -335,7 +368,6 @@ public class AccountManager implements EconomyService {
      * Creates a new virtual account in the database.
      *
      * @param virtualAccount A virtual account
-     * @throws IOException
      */
     private void createAccountInDatabase(TEVirtualAccount virtualAccount) {
         String identifier = virtualAccount.getIdentifier();
@@ -343,7 +375,7 @@ public class AccountManager implements EconomyService {
         for (Currency currency : totalEconomy.getCurrencies()) {
             TECurrency teCurrency = (TECurrency) currency;
 
-            SQLQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
+            SqlQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
                     .columns(teCurrency.getName().toLowerCase() + "_balance")
                     .values(virtualAccount.getDefaultBalance(teCurrency).toString())
                     .where("uid")
@@ -356,7 +388,7 @@ public class AccountManager implements EconomyService {
      * Creates a new unique account in the accounts configuration file.
      *
      * @param playerAccount A player's account
-     * @throws IOException
+     * @throws IOException Error saving the accounts configuration file
      */
     private void createAccountInConfig(TEAccount playerAccount) throws IOException {
         UUID uuid = playerAccount.getUniqueId();
@@ -376,7 +408,7 @@ public class AccountManager implements EconomyService {
      * Creates a new virtual account in the accounts configuration file.
      *
      * @param virtualAccount A virtual account
-     * @throws IOException
+     * @throws IOException Error saving the accounts configuration file
      */
     private void createAccountInConfig(TEVirtualAccount virtualAccount) throws IOException {
         String identifier = virtualAccount.getIdentifier();
@@ -395,7 +427,7 @@ public class AccountManager implements EconomyService {
      * added and set to that currencies starting balance.
      *
      * @param playerAccount The unique account to add the balance to
-     * @throws IOException
+     * @throws IOException Error saving the accounts configuration file
      */
     private void addNewCurrenciesToAccount(TEAccount playerAccount) throws IOException {
         UUID uuid = playerAccount.getUniqueId();
@@ -416,7 +448,7 @@ public class AccountManager implements EconomyService {
      * added and set to that currencies starting balance.
      *
      * @param virtualAccount The virtual account to add the balance to
-     * @throws IOException
+     * @throws IOException Error saving the accounts configuration file
      */
     private void addNewCurrenciesToAccount(TEVirtualAccount virtualAccount) throws IOException {
         String identifier = virtualAccount.getIdentifier();
@@ -433,19 +465,19 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Gets the passed in player's notification state
+     * Gets the passed in player's notification state.
      *
      * @param player The {@link Player} who's notification state to get
      * @return boolean The notification state
      */
     public boolean getJobNotificationState(Player player) {
-        UUID playerUUID = player.getUniqueId();
+        UUID playerUniqueId = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).select("job_notifications")
+            SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource).select("job_notifications")
                     .from("accounts")
                     .where("uid")
-                    .equals(playerUUID.toString())
+                    .equals(playerUniqueId.toString())
                     .build();
 
             return sqlQuery.getBoolean(true);
@@ -455,25 +487,25 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Toggle a player's exp/money notifications for jobs
+     * Toggle a player's exp/money notifications for jobs.
      *
      * @param player Player toggling notifications
      */
     public void toggleNotifications(Player player) {
         boolean jobNotifications = !getJobNotificationState(player);
-        UUID playerUUID = player.getUniqueId();
+        UUID playerUniqueId = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
+            SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource).update("accounts")
                     .set("job_notifications")
-                    .equals(jobNotifications ? "1":"0")
+                    .equals(jobNotifications ? "1" : "0")
                     .where("uid")
-                    .equals(playerUUID.toString())
+                    .equals(playerUniqueId.toString())
                     .build();
 
             if (sqlQuery.getRowsAffected() <= 0) {
-                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("[TE] An error occurred while updating the notification state in the database!");
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("An error occurred while updating the notification state in the database!");
             }
         } else {
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
@@ -481,8 +513,8 @@ public class AccountManager implements EconomyService {
             try {
                 loader.save(accountConfig);
             } catch (IOException e) {
-                player.sendMessage(Text.of(TextColors.RED, "[TE] Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("[TE] An error occurred while updating the notification state!");
+                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
+                logger.warn("An error occurred while updating the notification state!");
             }
         }
 
@@ -494,7 +526,29 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Request for the account configuration file to be saved
+     * Used for the debugging information provided by the listeners in the JobManager.
+     * Exists to allow administrators to retrieve the necessary information from mods in order to integrate them into jobs.
+     */
+    public Optional<String> getUserOption(String option, User user) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(accountConfig.getNode(user.getUniqueId().toString(), "options", option).getString(null));
+    }
+
+    public void setUserOption(String option, User user, String value) {
+        // Currently no db support for this - Shouldn't be that necessary anyways
+        if (databaseActive) {
+            return;
+        }
+
+        accountConfig.getNode(user.getUniqueId().toString(), "options", option).setValue(value);
+    }
+
+    /**
+     * Request for the account configuration file to be saved.
      */
     public void requestConfigurationSave() {
         if (totalEconomy.getSaveInterval() > 0) {
@@ -505,18 +559,18 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Save the account configuration file
+     * Save the account configuration file.
      */
-    private void saveConfiguration() {
+    public void saveConfiguration() {
         try {
             loader.save(accountConfig);
         } catch (IOException e) {
-            logger.error("[TE] An error occurred while saving the account configuration file!");
+            logger.error("An error occurred while saving the account configuration file!");
         }
     }
 
     /**
-     * Get the account configuration file
+     * Get the account configuration file.
      *
      * @return ConfigurationNode the account configuration
      */
@@ -525,9 +579,9 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Get the configuration manager
+     * Get the configuration manager.
      *
-     * @return ConfigurationLoader<CommentedConfigurationNode> the configuration loader for the account config
+     * @return ConfigurationLoader The configuration loader for the account config
      */
     public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
         return loader;

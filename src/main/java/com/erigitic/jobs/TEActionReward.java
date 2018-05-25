@@ -27,50 +27,33 @@ package com.erigitic.jobs;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
 public class TEActionReward {
-    private String action;
-    private String targetID;
+
     private int expReward;
-    private BigDecimal moneyReward;
-    private String growthTrait;
-    private Integer growthMeta;
+    private double moneyReward;
+    private String currencyId;
 
-    private boolean isValid = false;
-
-    public TEActionReward(String action, String targetID, String expReward, String moneyReward, String growthTrait) {
-        this.action = action;
-        this.targetID = targetID;
-        this.expReward = Integer.parseInt(expReward);
-        this.moneyReward = new BigDecimal(moneyReward);
-        this.growthTrait = growthTrait;
-
-        isValid = (action != null && !action.isEmpty() && targetID != null && !targetID.isEmpty());
+    public void loadConfigNode(ConfigurationNode node) {
+        this.expReward = node.getNode("exp").getInt(0);
+        this.moneyReward = node.getNode("money").getDouble(0.00d);
+        this.currencyId = node.getNode("currency").getString(null);
     }
 
-    public String getAction() {
-        return action;
+    public void setValues(Integer expReward, Double moneyReward, String currencyID) {
+        this.expReward = expReward;
+        this.moneyReward = moneyReward;
+        this.currencyId = currencyID;
     }
 
-    public String getTargetID() {
-        return targetID;
-    }
-
-    public int getExpReward() {
+    public Integer getExpReward() {
         return expReward;
     }
 
-    public BigDecimal getMoneyReward() {
+    public Double getMoneyReward() {
         return moneyReward;
     }
 
-    public boolean isValid() {
-        return isValid;
-    }
-
-    public Optional<String> getGrowthTrait() {
-        return Optional.ofNullable(growthTrait);
+    public String getCurrencyId() {
+        return currencyId;
     }
 }

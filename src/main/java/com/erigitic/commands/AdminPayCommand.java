@@ -29,6 +29,12 @@ import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -36,19 +42,12 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class AdminPayCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -106,25 +105,29 @@ public class AdminPayCommand implements CommandExecutor {
     }
 
     /**
-     *
+     * Retrieves the transaction result of the admin pay command.
      *
      * @param recipientAccount The account
-     * @param amount
-     * @param optCurrencyName
+     * @param amount The amount involved in the transaction
+     * @param optCurrencyName The currency name
      * @return TransactionResult Result of the transaction
-     * @throws CommandException
+     * @throws CommandException Thrown when the specified currency does not exist
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+        Cause cause = Cause.builder()
+                .append(totalEconomy.getPluginContainer())
+                .build(EventContext.empty());
+
         if (optCurrencyName.isPresent()) {
             Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
             if (optCurrency.isPresent()) {
-                return recipientAccount.deposit(optCurrency.get(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+                return recipientAccount.deposit(optCurrency.get(), amount, cause);
             } else {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
             }
         } else {
-            return recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            return recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, cause);
         }
     }
 }

@@ -25,38 +25,29 @@
 
 package com.erigitic.jobs;
 
-import ninja.leaping.configurate.ConfigurationNode;
-
 /**
- * Requirement notation that is usable in various places such as higher job tiers
+ * Requirement notation that is usable in various places such as higher job tiers.
  */
 public class JobBasedRequirement {
-    private int reqJobLevel;
-    private String reqJob;
-    private String reqPermission;
+    private int requiredJobLevel;
+    private String requiredJob;
+    private String requiredPermission;
 
-    public JobBasedRequirement(String reqJob, int reqJobLevel, String reqPermission) {
-        this.reqJob = reqJob;
-        this.reqJobLevel = reqJobLevel;
-        this.reqPermission = reqPermission;
+    public JobBasedRequirement(String requiredJob, int requiredJobLevel, String requiredPermission) {
+        this.requiredJobLevel = requiredJobLevel;
+        this.requiredJob = requiredJob;
+        this.requiredPermission = requiredPermission;
     }
 
-    public int jobLevelNeeded() {
-        return reqJobLevel;
+    public int getRequiredJobLevel() {
+        return requiredJobLevel;
     }
 
-    public String jobNeeded() {
-        return reqJob;
+    public String getRequiredJob() {
+        return requiredJob;
     }
 
-    public String permissionNeeded() {
-        return reqPermission;
-    }
-
-    public void addTo(ConfigurationNode node) {
-        node = node.getNode("require");
-        node.getNode("job").setValue(reqJob);
-        node.getNode("level").setValue(reqJobLevel);
-        node.getNode("permission").setValue(reqPermission);
+    public String getRequiredPermission() {
+        return requiredPermission;
     }
 }

@@ -26,27 +26,32 @@
 package com.erigitic.config;
 
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLManager;
-import com.erigitic.sql.SQLQuery;
+import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.SqlQuery;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
-import org.spongepowered.api.service.economy.transaction.*;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.service.economy.transaction.TransactionType;
+import org.spongepowered.api.service.economy.transaction.TransactionTypes;
+import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 public class TEVirtualAccount implements VirtualAccount {
 
     private TotalEconomy totalEconomy;
     private AccountManager accountManager;
     private String identifier;
-    private SQLManager sqlManager;
+    private SqlManager sqlManager;
 
     private ConfigurationNode accountConfig;
 
@@ -80,7 +85,7 @@ public class TEVirtualAccount implements VirtualAccount {
         String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+            SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                     .select(currencyName + "_balance")
                     .from("virtual_accounts")
                     .where("uid")
@@ -99,7 +104,7 @@ public class TEVirtualAccount implements VirtualAccount {
             String currencyName = currency.getDisplayName().toPlain().toLowerCase();
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                         .select(currencyName + "_balance")
                         .from("virtual_accounts")
                         .where("uid")
@@ -132,7 +137,7 @@ public class TEVirtualAccount implements VirtualAccount {
             TransactionType transactionType = delta.compareTo(BigDecimal.ZERO) >= 0 ? TransactionTypes.DEPOSIT : TransactionTypes.WITHDRAW;
 
             if (databaseActive) {
-                SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource)
+                SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                         .update("virtual_accounts")
                         .set(currencyName + "_balance")
                         .equals(amount.setScale(2, BigDecimal.ROUND_DOWN).toPlainString())
@@ -181,7 +186,7 @@ public class TEVirtualAccount implements VirtualAccount {
         BigDecimal curBalance = getBalance(currency, contexts);
         BigDecimal newBalance = curBalance.add(amount);
 
-        return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+        return setBalance(currency, newBalance, cause);
     }
 
     @Override
@@ -190,7 +195,7 @@ public class TEVirtualAccount implements VirtualAccount {
         BigDecimal newBalance = curBalance.subtract(amount);
 
         if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-            return setBalance(currency, newBalance, Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+            return setBalance(currency, newBalance, cause);
         }
 
         return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
@@ -241,6 +246,6 @@ public class TEVirtualAccount implements VirtualAccount {
 
     @Override
     public Set<Context> getActiveContexts() {
-        return new HashSet<Context>();
+        return new HashSet<>();
     }
 }
