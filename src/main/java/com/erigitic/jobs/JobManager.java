@@ -659,17 +659,37 @@ public class JobManager {
                             String jobName = lineTwoText.toPlain().toLowerCase();
 
                             if (lineOne.equals("[TEJobs]")) {
-                                if (jobExists(jobName)) {
-                                    if (setJob(player, jobName)) {
-                                        Map<String, String> messageValues = new HashMap<>();
-                                        messageValues.put("job", titleize(jobName));
+                                Map<String, String> messageValues = new HashMap<>();
+                                messageValues.put("job", titleize(jobName));
+                                Optional<TEJob> optJob = getJob(jobName, false);
 
+                                if (optJob.isPresent()) {
+                                    Optional<JobBasedRequirement> optRequire = optJob.get().getRequirement();
+
+                                    if (optRequire.isPresent()) {
+                                        String reqJob = optRequire.get().getRequiredJob();
+                                        Integer reqLevel = optRequire.get().getRequiredJobLevel();
+                                        String reqPerm = optRequire.get().getRequiredPermission();
+
+                                        if (reqJob != null && reqLevel > 0) {
+                                            messageValues.put("level", reqLevel.toString());
+                                            player.sendMessage(messageManager.getMessage("jobs.unmet.level", messageValues));
+                                            return;
+                                        }
+
+                                        if (reqPerm != null && !player.hasPermission(reqPerm)) {
+                                            player.sendMessage(messageManager.getMessage("jobs.unmet.permission", messageValues));
+                                            return;
+                                        }
+                                    }
+
+                                    if (setJob(player, jobName)) {
                                         player.sendMessage(messageManager.getMessage("jobs.sign", messageValues));
                                     } else {
-                                        player.sendMessage(Text.of(TextColors.RED, "Failed to set job. Contact your administrator."));
+                                        player.sendMessage(messageManager.getMessage("jobs.setfailed"));
                                     }
                                 } else {
-                                    player.sendMessage(Text.of(TextColors.RED, "Sorry, this job does not exist"));
+                                    player.sendMessage(messageManager.getMessage("jobs.notfound"));
                                 }
                             }
                         }
