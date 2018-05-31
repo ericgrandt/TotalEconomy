@@ -26,24 +26,19 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
-import com.erigitic.config.TECurrency;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import ninja.leaping.configurate.ConfigurationNode;
-import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
@@ -78,7 +73,7 @@ public class BalanceTopCommand implements CommandExecutor {
                 return;
             }
 
-            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
+            TEAccountBase playerAccount = (TEAccountBase) accountManager.getOrCreateAccount(uuid).get();
             Text playerName = playerAccount.getDisplayName();
 
             accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(defaultCurrency));

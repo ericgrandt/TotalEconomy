@@ -26,8 +26,8 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
@@ -64,7 +64,7 @@ public class ViewBalanceCommand implements CommandExecutor {
     public CommandResult execute(CommandSource sender, CommandContext args) throws CommandException {
         User recipient = args.<User>getOne("player").get();
         Optional<String> optCurrencyName = args.getOne("currencyName");
-        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+        TEAccountBase recipientAccount = (TEAccountBase) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
         TransactionResult transactionResult = getTransactionResult(recipientAccount, optCurrencyName);
 
         if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -90,7 +90,7 @@ public class ViewBalanceCommand implements CommandExecutor {
      * @return TransactionResult Result of set balance
      * @throws CommandException
      */
-    private TransactionResult getTransactionResult(TEAccount recipientAccount, Optional<String> optCurrencyName) throws CommandException {
+    private TransactionResult getTransactionResult(TEAccountBase recipientAccount, Optional<String> optCurrencyName) throws CommandException {
         if (optCurrencyName.isPresent()) {
             Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 

@@ -25,9 +25,12 @@
 
 package com.erigitic.config;
 
+import com.erigitic.config.account.TEAccountBase;
+import com.erigitic.config.account.TEConfigAccount;
+import com.erigitic.config.account.TESqlAccount;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.sql.SQLManager;
-import com.erigitic.sql.SQLQuery;
+import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.SqlQuery;
 import com.erigitic.util.MessageManager;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -36,37 +39,39 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.service.user.UserStorageService;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AccountManager implements EconomyService {
     private TotalEconomy totalEconomy;
     private MessageManager messageManager;
     private Logger logger;
-    private File accountsFile;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode accountConfig;
 
-    private SQLManager sqlManager;
+    private SqlManager sqlManager;
 
     private boolean databaseActive;
 
     private boolean confSaveRequested = false;
 
-    public static final int CONTENT_VERSION = 1;
+    public static final int CONTENT_VERSION = 2;
 
     /**
      * Constructor for the AccountManager class. Handles the initialization of necessary variables, setup of the database
@@ -83,8 +88,6 @@ public class AccountManager implements EconomyService {
 
         if (databaseActive) {
             sqlManager = totalEconomy.getSqlManager();
-
-            setupDatabase();
         } else {
             setupConfig();
 
@@ -97,8 +100,8 @@ public class AccountManager implements EconomyService {
     /**
      * Setup the config file that will contain the user accounts
      */
-    private void setupConfig() {
-        accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
+    public void setupConfig() {
+        File accountsFile = new File(totalEconomy.getConfigDir(), "accounts.conf");
         loader = HoconConfigurationLoader.builder().setFile(accountsFile).build();
 
         try {
@@ -107,70 +110,116 @@ public class AccountManager implements EconomyService {
             if (!accountsFile.exists()) {
                 loader.save(accountConfig);
             } else {
-                if (accountConfig.getNode("version").getInt(0) != CONTENT_VERSION) {
-                    accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
-                        ConfigurationNode accountNode = nodeEntry.getValue();
+                Integer hasVersion = accountConfig.getNode("version").getInt(0);
+                if (hasVersion != CONTENT_VERSION) {
 
-                        accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
-                            ConfigurationNode jobNode = jobNodeEntry.getValue();
-                            ConfigurationNode expNode = jobNode.getNode("exp");
+                    switch (hasVersion) {
+                        case 0:
+                            // Convert job stats
+                            accountConfig.getChildrenMap().entrySet().parallelStream().forEach(nodeEntry -> {
+                                ConfigurationNode accountNode = nodeEntry.getValue();
 
-                            int exp = expNode.getInt(0);
-                            int level = jobNode.getNode("level").getInt(0);
+                                accountNode.getNode("jobstats").getChildrenMap().entrySet().parallelStream().forEach(jobNodeEntry -> {
+                                    ConfigurationNode jobNode = jobNodeEntry.getValue();
+                                    ConfigurationNode expNode = jobNode.getNode("exp");
 
-                            expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+                                    int exp = expNode.getInt(0);
+                                    int level = jobNode.getNode("level").getInt(0);
 
-                            try {
-                                loader.save(accountConfig);
-                            } catch (IOException e) {
-                                logger.warn("Error migrating account experience values!");
+                                    expNode.setValue((int) (exp + (((Math.pow(level, 2) + level) / 2) * 100 - (level * 100))));
+
+                                    try {
+                                        loader.save(accountConfig);
+                                    } catch (IOException e) {
+                                        logger.warn("Error migrating account experience values!");
+                                    }
+                                });
+                            });
+                            // No break - fall through
+
+                        case 1:
+                            // Convert from "<currency>-balance" to "balance" -> "<currency>"
+                            final Pattern UUID_PATTERN = Pattern.compile("([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})");
+                            final UserStorageService userStore = Sponge.getServiceManager().provideUnchecked(UserStorageService.class);
+                            final AtomicInteger accountConvertCount = new AtomicInteger(0);
+                            final AtomicInteger balanceConvertCount = new AtomicInteger(0);
+                            Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> nodes = accountConfig.getChildrenMap().entrySet();
+
+                            nodes.parallelStream()
+                                 .forEach(e -> {
+                                     Object accountKey = e.getKey();
+                                     ConfigurationNode accountNode = e.getValue();
+
+                                     if (!(accountKey instanceof String) || "version".equals(accountKey)) {
+                                         return;
+                                     }
+
+                                     if (!accountNode.getNode("balance").isVirtual()) {
+                                         return;
+                                     }
+                                     Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> allSubNodes = accountNode.getChildrenMap().entrySet();
+
+                                     for (Map.Entry<Object, ? extends ConfigurationNode> subNodeEntry : allSubNodes) {
+                                         Object subKeyObject = subNodeEntry.getKey();
+
+                                         if (!(subKeyObject instanceof String)) {
+                                             return;
+                                         }
+
+                                         if (((String) subKeyObject).endsWith("-balance")) {
+                                             String balance = ((String) subKeyObject).replaceAll("-balance", "");
+                                             accountNode.getNode("balance", balance).setValue(subNodeEntry.getValue().getValue());
+                                             balanceConvertCount.incrementAndGet();
+                                         }
+                                         accountNode.removeChild(subKeyObject);
+                                     }
+                                     Matcher matcher = UUID_PATTERN.matcher(((String) accountKey));
+                                     String sUUID;
+                                     String displayName;
+
+                                     // When a UUID has been found, use it
+                                     // When the key contained other information use that as the display name
+                                     // Otherwise we'll need to create a UUID
+                                     if (matcher.find()) {
+                                         sUUID = matcher.group(1).toLowerCase();
+                                         displayName = UUID_PATTERN.matcher(((String) accountKey)).replaceAll("");
+                                     } else {
+                                         sUUID = UUID.randomUUID().toString().toLowerCase();
+                                         displayName = ((String) accountKey);
+                                     }
+
+                                     // Convert to the new format if the key hasn't been only the UUID before
+                                     if (!displayName.isEmpty()) {
+                                         ConfigurationNode newFormatNode = accountConfig.getNode(sUUID);
+                                         newFormatNode.mergeValuesFrom(accountNode);
+                                         newFormatNode.getNode("displayname").setValue(displayName);
+                                         accountConfig.removeChild(accountKey);
+                                         accountConvertCount.incrementAndGet();
+                                     }
+                                 });
+
+                            if (balanceConvertCount.get() > 0) {
+                                logger.warn(balanceConvertCount.get() + " balances were converted from the old format.");
                             }
-                        });
-                    });
+
+                            if (accountConvertCount.get() > 0) {
+                                logger.warn(accountConvertCount.get() + " accounts have been converted from the old format.");
+                            }
+
+                            // End of automatic converter code
+                            // END "case 2"
+                            break;
+                    }
 
                     accountConfig.getNode("version").setValue(CONTENT_VERSION);
+                    // Write updated config
+                    saveConfiguration();
                 }
             }
+
         } catch (IOException e) {
             logger.warn("Error creating accounts configuration file!");
         }
-    }
-
-    /**
-     * Setup the database that will contain the user accounts
-     */
-    public void setupDatabase() {
-        String currencyCols = "";
-
-        for (Currency currency : getCurrencies()) {
-            TECurrency teCurrency = (TECurrency) currency;
-
-            currencyCols += teCurrency.getName().toLowerCase() + "_balance decimal(19,2) NOT NULL DEFAULT '" + teCurrency.getStartingBalance() + "',";
-        }
-
-        sqlManager.createTable("accounts", "uid varchar(60) NOT NULL," +
-                currencyCols +
-                "job varchar(50) NOT NULL DEFAULT 'Unemployed'," +
-                "job_notifications boolean NOT NULL DEFAULT TRUE," +
-                "PRIMARY KEY (uid)");
-
-        sqlManager.createTable("virtual_accounts", "uid varchar(60) NOT NULL," +
-                currencyCols +
-                "PRIMARY KEY (uid)");
-
-        sqlManager.createTable("levels", "uid varchar(60)," +
-                "miner int(10) unsigned NOT NULL DEFAULT '1'," +
-                "lumberjack int(10) unsigned NOT NULL DEFAULT '1'," +
-                "warrior int(10) unsigned NOT NULL DEFAULT '1'," +
-                "fisherman int(10) unsigned NOT NULL DEFAULT '1'," +
-                "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
-
-        sqlManager.createTable("experience", "uid varchar(60)," +
-                "miner int(10) unsigned NOT NULL DEFAULT '0'," +
-                "lumberjack int(10) unsigned NOT NULL DEFAULT '0'," +
-                "warrior int(10) unsigned NOT NULL DEFAULT '0'," +
-                "fisherman int(10) unsigned NOT NULL DEFAULT '0'," +
-                "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE");
     }
 
     /**
@@ -206,51 +255,95 @@ public class AccountManager implements EconomyService {
      */
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
-        TEAccount playerAccount = new TEAccount(totalEconomy, this, uuid);
+
+        TEAccountBase account;
+        if (databaseActive) {
+            account = new TESqlAccount(totalEconomy, logger, sqlManager.getDataSource(), uuid);
+        } else {
+            account = new TEConfigAccount(totalEconomy, accountConfig.getNode(uuid.toString()), uuid);
+        }
         boolean hasAccount = hasAccount(uuid);
 
-        try {
-            if (!hasAccount) {
-                if (databaseActive) {
-                    createAccountInDatabase(playerAccount);
-                } else {
-                    createAccountInConfig(playerAccount);
+        // If the account does not exist create it
+        if (databaseActive && !hasAccount) {
+            String queryString = "INSERT INTO accounts (`uid`) VALUES (:account_uid)";
+
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", uuid);
+
+                if (query.getStatement().executeUpdate() != 1) {
+                    throw new SQLException("Unexpected row count!");
                 }
-            } else if (hasAccount && !databaseActive) {
-                addNewCurrenciesToAccount(playerAccount);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to create account: " + uuid.toString(), e);
+            }
+        }
+
+        try {
+            // If the account did not exist create it by setting the default value of the default currency.
+            // That should create the account for the flat file storage. (DB handled above)
+            if (!hasAccount) {
+                account.setBalance(getDefaultCurrency(), ((TECurrency) getDefaultCurrency()).getStartingBalance(), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+
+            } else if (!databaseActive) {
+                addNewCurrenciesToAccount(account);
             }
         } catch (IOException e) {
             logger.warn("An error occurred while creating a new account!");
         }
-
-        return Optional.of(playerAccount);
+        return Optional.of(account);
     }
+
     /**
      * Gets or creates a virtual account for the passed in identifier
+     *
+     * WARNING: SQL-Injection! As this is likely to be user input SANITIZE THE INPUT PARAM!
      *
      * @param identifier The virtual accounts identifier
      * @return Optional<Account> The virtual account that was retrieved or created
      */
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
-        TEVirtualAccount virtualAccount = new TEVirtualAccount(totalEconomy, this, identifier);
-        boolean hasAccount = hasAccount(identifier);
+        Optional<UUID> accountUUIDOpt = getVirtualAccountUUID(identifier);
+        // When no UUID has been found create a new one
+        UUID accountUUID = accountUUIDOpt.orElse(UUID.randomUUID());
 
-        try {
-            if (!hasAccount) {
-                if (databaseActive) {
-                    createAccountInDatabase(virtualAccount);
-                } else {
-                    createAccountInConfig(virtualAccount);
-                }
-            } else if (hasAccount && !databaseActive) {
-                addNewCurrenciesToAccount(virtualAccount);
-            }
-        } catch (IOException e) {
-            logger.warn("An error occurred while creating a new virtual account!");
+        TEAccountBase account;
+        if (databaseActive) {
+            account = new TESqlAccount(totalEconomy, logger, sqlManager.getDataSource(), accountUUID);
+        } else {
+            account = new TEConfigAccount(totalEconomy, accountConfig.getNode(accountUUID.toString()), accountUUID);
         }
 
-        return Optional.of(virtualAccount);
+        // If the account does not exist create it
+        if (databaseActive && !hasAccount(accountUUID)) {
+            String queryString = "INSERT INTO accounts (`uid`, `displayname`) VALUES (:account_uid, :displayname)";
+
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", accountUUID.toString());
+                query.setParameter("displayname", account.isVirtual() ? null : identifier);
+
+                if (query.getStatement().executeUpdate() != 1) {
+                    throw new SQLException("Unexpected row count!");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to create account: " + accountUUID.toString(), e);
+            }
+        }
+
+        try {
+            // If the account did not exist create it by setting the default value of the default currency.
+            // That should create the account for the flat file storage. (DB handled above)
+            if (!accountUUIDOpt.isPresent()) {
+                account.setBalance(getDefaultCurrency(), ((TECurrency) getDefaultCurrency()).getStartingBalance(), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
+
+            } else if (!databaseActive) {
+                addNewCurrenciesToAccount(account);
+            }
+        } catch (IOException e) {
+            logger.warn("An error occurred while creating a new account!");
+        }
+        return Optional.of(account);
     }
 
     /**
@@ -262,39 +355,85 @@ public class AccountManager implements EconomyService {
     @Override
     public boolean hasAccount(UUID uuid) {
         if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
-                    .select("uid")
-                    .from("accounts")
-                    .where("uid")
-                    .equals(uuid.toString())
-                    .build();
+            String queryString = "SELECT uid FROM accounts WHERE uid = :account_uid";
 
-            return query.recordExists();
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", uuid.toString());
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
+                return statement.getResultSet().next();
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to check account existance for " + uuid.toString(), e);
+            }
         } else {
-            return accountConfig.getNode(uuid.toString()).getValue() != null;
+            return !accountConfig.getNode(uuid.toString()).isVirtual();
         }
     }
 
     /**
      * Determines if a virtual account is associated with the passed in UUID
+     * It is better to use the Optional from {@link #getVirtualAccountUUID(String)} for this as this also returns the value for further use
+     *
+     * WARNING: SQL-Injection! As this is likely to be user input SANITIZE THE INPUT PARAM!
      *
      * @param identifier The identifier to check for an account
      * @return boolean Whether or not a virtual account is associated with the passed in identifier
      */
     @Override
     public boolean hasAccount(String identifier) {
-        if (databaseActive) {
-            SQLQuery query = SQLQuery.builder(sqlManager.dataSource)
-                    .select("uid")
-                    .from("virtual_accounts")
-                    .where("uid")
-                    .equals(identifier)
-                    .build();
+        return getVirtualAccountUUID(identifier).isPresent();
+    }
 
-            return query.recordExists();
+    /**
+     * Returns the UUID of an account found by the identifier.
+     * Both the `uid` and the `displayname` columns are searched.
+     *
+     * @param identifier The search string
+     */
+    public Optional<UUID> getVirtualAccountUUID(String identifier) {
+        UUID resultUUID = null;
+
+        if (databaseActive) {
+            String queryString = "SELECT `uid`,`displayname` FROM `accounts` WHERE `uid` = :search OR `displayname` = :search";
+
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("search", identifier);
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
+                ResultSet result = statement.getResultSet();
+                resultUUID = UUID.fromString(result.getString("uid"));
+
+                // Do we have more than one result? Identifier was not unique thus not found.
+                if (result.next()) {
+                    resultUUID = null;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to search account by: " + identifier, e);
+            }
+
         } else {
-            return accountConfig.getNode(identifier).getValue() != null;
+
+            // If that node exists we've been supplied with an existing UUID.
+            // Otherwise we'll search for it.
+            if (accountConfig.getNode(identifier).hasMapChildren()) {
+                resultUUID = UUID.fromString(identifier);
+
+            } else {
+
+                for (Map.Entry<Object, ? extends ConfigurationNode> entry : accountConfig.getChildrenMap().entrySet()) {
+                    if (!(entry.getKey() instanceof String)) {
+                        continue;
+                    }
+                    ConfigurationNode displayNameNode = entry.getValue().getNode("displayname");
+
+                    if (!displayNameNode.isVirtual() && identifier.equals(displayNameNode.getString(null))) {
+                        resultUUID = UUID.fromString(((String) entry.getKey()));
+                        break;
+                    }
+                }
+            }
         }
+        return Optional.ofNullable(resultUUID);
     }
 
     /**
@@ -323,140 +462,22 @@ public class AccountManager implements EconomyService {
     }
 
     /**
-     * Creates a new unique account in the database.
-     *
-     * @param playerAccount A player's account
-     * @throws IOException
-     */
-    private void createAccountInDatabase(TEAccount playerAccount) {
-        UUID uuid = playerAccount.getUniqueId();
-
-        SQLQuery.builder(sqlManager.dataSource).insert("accounts")
-                .columns("uid", "job", "job_notifications")
-                .values(uuid.toString(), "unemployed", String.valueOf(totalEconomy.isJobNotificationEnabled()))
-                .build();
-
-        SQLQuery.builder(sqlManager.dataSource).insert("levels")
-                .columns("uid")
-                .values(uuid.toString())
-                .build();
-
-        SQLQuery.builder(sqlManager.dataSource).insert("experience")
-                .columns("uid")
-                .values(uuid.toString())
-                .build();
-
-        for (Currency currency : totalEconomy.getCurrencies()) {
-            TECurrency teCurrency = (TECurrency) currency;
-
-            SQLQuery.builder(sqlManager.dataSource).update("accounts")
-                    .set(teCurrency.getName().toLowerCase() + "_balance")
-                    .equals(playerAccount.getDefaultBalance(teCurrency).toString())
-                    .where("uid")
-                    .equals(uuid.toString())
-                    .build();
-        }
-    }
-
-    /**
-     * Creates a new virtual account in the database.
-     *
-     * @param virtualAccount A virtual account
-     * @throws IOException
-     */
-    private void createAccountInDatabase(TEVirtualAccount virtualAccount) {
-        String identifier = virtualAccount.getIdentifier();
-
-        for (Currency currency : totalEconomy.getCurrencies()) {
-            TECurrency teCurrency = (TECurrency) currency;
-
-            SQLQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
-                    .columns(teCurrency.getName().toLowerCase() + "_balance")
-                    .values(virtualAccount.getDefaultBalance(teCurrency).toString())
-                    .where("uid")
-                    .equals(identifier)
-                    .build();
-        }
-    }
-
-    /**
-     * Creates a new unique account in the accounts configuration file.
-     *
-     * @param playerAccount A player's account
-     * @throws IOException
-     */
-    private void createAccountInConfig(TEAccount playerAccount) throws IOException {
-        UUID uuid = playerAccount.getUniqueId();
-
-        for (Currency currency : totalEconomy.getCurrencies()) {
-            TECurrency teCurrency = (TECurrency) currency;
-
-            accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
-        }
-
-        accountConfig.getNode(uuid.toString(), "job").setValue("unemployed");
-        accountConfig.getNode(uuid.toString(), "jobnotifications").setValue(totalEconomy.isJobNotificationEnabled());
-        loader.save(accountConfig);
-    }
-
-    /**
-     * Creates a new virtual account in the accounts configuration file.
-     *
-     * @param virtualAccount A virtual account
-     * @throws IOException
-     */
-    private void createAccountInConfig(TEVirtualAccount virtualAccount) throws IOException {
-        String identifier = virtualAccount.getIdentifier();
-
-        for (Currency currency : totalEconomy.getCurrencies()) {
-            TECurrency teCurrency = (TECurrency) currency;
-
-            accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
-        }
-
-        loader.save(accountConfig);
-    }
-
-    /**
      * Checks if a unique account has a balance for each currency. If one doesn't exist, a new balance for that currency will be
      * added and set to that currencies starting balance.
      *
      * @param playerAccount The unique account to add the balance to
      * @throws IOException
      */
-    private void addNewCurrenciesToAccount(TEAccount playerAccount) throws IOException {
-        UUID uuid = playerAccount.getUniqueId();
-
+    private void addNewCurrenciesToAccount(TEAccountBase playerAccount) throws IOException {
         for (Currency currency : totalEconomy.getCurrencies()) {
             TECurrency teCurrency = (TECurrency) currency;
 
             if (!playerAccount.hasBalance(teCurrency)) {
-                accountConfig.getNode(uuid.toString(), teCurrency.getName().toLowerCase() + "-balance").setValue(playerAccount.getDefaultBalance(teCurrency));
+                playerAccount.setBalance(teCurrency, playerAccount.getDefaultBalance(teCurrency), Cause.of(NamedCause.of("TotalEconomy", totalEconomy.getPluginContainer())));
             }
         }
 
-        loader.save(accountConfig);
-    }
-
-    /**
-     * Checks if a virtual account has a balance for each currency. If one doesn't exist, a new balance for that currency will be
-     * added and set to that currencies starting balance.
-     *
-     * @param virtualAccount The virtual account to add the balance to
-     * @throws IOException
-     */
-    private void addNewCurrenciesToAccount(TEVirtualAccount virtualAccount) throws IOException {
-        String identifier = virtualAccount.getIdentifier();
-
-        for (Currency currency : totalEconomy.getCurrencies()) {
-            TECurrency teCurrency = (TECurrency) currency;
-
-            if (!virtualAccount.hasBalance(teCurrency)) {
-                accountConfig.getNode(identifier, teCurrency.getName().toLowerCase() + "-balance").setValue(virtualAccount.getDefaultBalance(teCurrency));
-            }
-        }
-
-        loader.save(accountConfig);
+        requestConfigurationSave();
     }
 
     /**
@@ -466,16 +487,28 @@ public class AccountManager implements EconomyService {
      * @return boolean The notification state
      */
     public boolean getJobNotificationState(Player player) {
-        UUID playerUUID = player.getUniqueId();
-
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).select("job_notifications")
-                    .from("accounts")
-                    .where("uid")
-                    .equals(playerUUID.toString())
-                    .build();
 
-            return sqlQuery.getBoolean(true);
+            String queryString = "SELECT value FROM accounts_options WHERE uid = :account_uid AND ident = 'job_notifications'";
+
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", player.getUniqueId().toString());
+                PreparedStatement statement = query.getStatement();
+                statement.executeQuery();
+
+                ResultSet result = statement.getResultSet();
+                if (!result.next()) {
+                    return totalEconomy.isJobNotificationEnabled();
+                }
+                boolean res = "TRUE".equals(result.getString("value"));
+
+                if (result.next()) {
+                    throw new SQLException("Too many results!");
+                }
+                return res;
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to get notifications state for " + player.getUniqueId().toString() + "/" + player.getName(), e);
+            }
         } else {
             return accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").getBoolean(true);
         }
@@ -488,29 +521,24 @@ public class AccountManager implements EconomyService {
      */
     public void toggleNotifications(Player player) {
         boolean jobNotifications = !getJobNotificationState(player);
-        UUID playerUUID = player.getUniqueId();
 
         if (databaseActive) {
-            SQLQuery sqlQuery = SQLQuery.builder(sqlManager.dataSource).update("accounts")
-                    .set("job_notifications")
-                    .equals(jobNotifications ? "1" : "0")
-                    .where("uid")
-                    .equals(playerUUID.toString())
-                    .build();
+            String queryString = "INSERT INTO accounts_options (`uid`, `ident`, `value`) VALUES (:account_uid, 'job_notifications', :job_notifs) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)";
 
-            if (sqlQuery.getRowsAffected() <= 0) {
-                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("An error occurred while updating the notification state in the database!");
+            try (SqlQuery query = new SqlQuery(totalEconomy.getSqlManager().getDataSource(), queryString)) {
+                query.setParameter("account_uid", player.getUniqueId().toString());
+                query.setParameter("job_notifs", jobNotifications ? "TRUE" : "FALSE" );
+                Integer updateCount = query.getStatement().executeUpdate();
+
+                if (updateCount != 1 && updateCount != 2) {
+                    throw new SQLException("Unexpected update count!");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to toggle job notifications for " + player.getUniqueId().toString() + "/" + player.getName(), e);
             }
         } else {
             accountConfig.getNode(player.getUniqueId().toString(), "jobnotifications").setValue(jobNotifications);
-
-            try {
-                loader.save(accountConfig);
-            } catch (IOException e) {
-                player.sendMessage(Text.of(TextColors.RED, "Error toggling notifications! Try again. If this keeps showing up, notify the server owner or plugin developer."));
-                logger.warn("An error occurred while updating the notification state!");
-            }
+            totalEconomy.requestAccountConfigurationSave();
         }
 
         if (jobNotifications) {
@@ -556,7 +584,7 @@ public class AccountManager implements EconomyService {
     /**
      * Save the account configuration file
      */
-    private void saveConfiguration() {
+    public void saveConfiguration() {
         try {
             loader.save(accountConfig);
         } catch (IOException e) {

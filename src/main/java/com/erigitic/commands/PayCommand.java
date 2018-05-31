@@ -26,8 +26,8 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
 import org.spongepowered.api.command.CommandException;
@@ -83,8 +83,8 @@ public class PayCommand implements CommandExecutor {
 
             if (m.matches()) {
                 BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
-                TEAccount senderAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
-                TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+                TEAccountBase senderAccount = (TEAccountBase) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
+                TEAccountBase recipientAccount = (TEAccountBase) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
                 TransferResult transferResult = getTransferResult(senderAccount, recipientAccount, amount, optCurrencyName);
 
                 if (transferResult.getResult() == ResultType.SUCCESS) {
@@ -112,7 +112,7 @@ public class PayCommand implements CommandExecutor {
         }
     }
 
-    private TransferResult getTransferResult(TEAccount senderAccount, TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+    private TransferResult getTransferResult(TEAccountBase senderAccount, TEAccountBase recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
         if (optCurrencyName.isPresent()) {
             Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 

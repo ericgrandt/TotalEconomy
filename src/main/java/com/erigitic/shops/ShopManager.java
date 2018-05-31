@@ -26,7 +26,7 @@
 package com.erigitic.shops;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.data.PlayerShopInfoData;
 import com.erigitic.shops.data.ShopKeys;
@@ -110,8 +110,8 @@ public class ShopManager {
                         event.getCursorTransaction().setValid(false);
 
                         ShopItem shopItem = shopItemOpt.get();
-                        TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
-                        TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                        TEAccountBase ownerAccount = (TEAccountBase) accountManager.getOrCreateAccount(shop.getOwner()).get();
+                        TEAccountBase customerAccount = (TEAccountBase) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= shopItem.getPrice()) {
                             ItemStack purchasedItem = removeShopItemData(clickedItem.copy());
@@ -210,8 +210,8 @@ public class ShopManager {
 
                         int purchasedQuantity = clickedItem.getQuantity();
 
-                        TEAccount ownerAccount = (TEAccount) accountManager.getOrCreateAccount(shop.getOwner()).get();
-                        TEAccount customerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                        TEAccountBase ownerAccount = (TEAccountBase) accountManager.getOrCreateAccount(shop.getOwner()).get();
+                        TEAccountBase customerAccount = (TEAccountBase) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
                         if (customerAccount.getBalance(totalEconomy.getDefaultCurrency()).doubleValue() >= purchasedQuantity * shopItem.getPrice()) {
                             ItemStack purchasedItem = removeShopItemData(clickedItem.copy());

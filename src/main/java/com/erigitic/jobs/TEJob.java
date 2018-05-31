@@ -28,13 +28,16 @@ package com.erigitic.jobs;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.spongepowered.api.util.Identifiable;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public class TEJob {
+public class TEJob implements Identifiable {
+    private UUID uuid;
     private String name;
     private BigDecimal salary;
     private List<String> sets = new ArrayList<>();
@@ -42,8 +45,9 @@ public class TEJob {
 
     private boolean isValid = false;
 
-    public TEJob(ConfigurationNode node) {
-        name = node.getKey().toString();
+    public TEJob(UUID uuid, ConfigurationNode node) {
+        this.uuid = uuid;
+        name = node.getNode("displayname").getString();
         salary = new BigDecimal(node.getNode("salary").getString());
 
         try {
@@ -76,6 +80,11 @@ public class TEJob {
 
     public boolean salaryEnabled() {
         return !salary.equals(BigDecimal.ZERO);
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return uuid;
     }
 
     public String getName() { return name; }

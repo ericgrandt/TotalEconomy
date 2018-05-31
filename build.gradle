@@ -16,3 +16,7 @@ jar {
     baseName="TotalEconomy"
     version="1.8.0-sponge6"
 }
+
+wrapper {
+    gradleVersion = '3.3'
+}
