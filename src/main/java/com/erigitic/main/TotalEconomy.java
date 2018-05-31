@@ -69,7 +69,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
 
-@Plugin(id="totaleconomy", name="Total Economy", version="1.8.0-dev.5", description="All in one economy plugin for Minecraft/Sponge")
+@Plugin(id="totaleconomy", name="Total Economy", version="1.8.0-sponge6", description="All in one economy plugin for Minecraft/Sponge")
 public class TotalEconomy {
 
     @Inject
