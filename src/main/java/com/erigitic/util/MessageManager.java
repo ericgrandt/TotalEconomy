@@ -77,7 +77,7 @@ public class MessageManager {
 
             messagesConfig = loader.load();
         } catch (IOException e) {
-            logger.warn("[TE] Error loading/creating the messages configuration file!");
+            logger.warn("[TE] Error loading/creating the messages configuration file!", e);
         }
     }
 
