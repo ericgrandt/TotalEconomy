@@ -661,6 +661,7 @@ public class JobManager {
                             if (lineOne.equals("[TEJobs]")) {
                                 Map<String, String> messageValues = new HashMap<>();
                                 messageValues.put("job", titleize(jobName));
+                                
                                 Optional<TEJob> optJob = getJob(jobName, false);
 
                                 if (optJob.isPresent()) {
@@ -671,7 +672,9 @@ public class JobManager {
                                         Integer reqLevel = optRequire.get().getRequiredJobLevel();
                                         String reqPerm = optRequire.get().getRequiredPermission();
 
-                                        if (reqJob != null && reqLevel > 0) {
+                                        int currentReqJobLevel = getJobLevel(reqJob, player);
+                                        if (reqJob != null && reqLevel > currentReqJobLevel) {
+                                            messageValues.put("job", titleize(reqJob));
                                             messageValues.put("level", reqLevel.toString());
                                             player.sendMessage(messageManager.getMessage("jobs.unmet.level", messageValues));
                                             return;
