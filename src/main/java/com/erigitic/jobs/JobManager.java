@@ -127,36 +127,38 @@ public class JobManager {
         Task.Builder payTask = scheduler.createTaskBuilder();
 
         payTask.execute(() -> {
-            for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
-                Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
+            if (totalEconomy.getGame().isServerAvailable()) {
+                for (Player player : totalEconomy.getServer().getOnlinePlayers()) {
+                    Optional<TEJob> optJob = getJob(getPlayerJob(player), true);
 
-                if (!optJob.isPresent()) {
-                    player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
+                    if (!optJob.isPresent()) {
+                        player.sendMessage(Text.of(TextColors.RED, "[TE] Cannot pay your salary! Contact your administrator!"));
 
-                    return;
-                }
+                        return;
+                    }
 
-                if (optJob.get().salaryEnabled()) {
-                    BigDecimal salary = optJob.get().getSalary();
-                    TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
+                    if (optJob.get().salaryEnabled()) {
+                        BigDecimal salary = optJob.get().getSalary();
+                        TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(player.getUniqueId()).get();
 
-                    EventContext eventContext = EventContext.builder()
-                            .add(EventContextKeys.PLAYER, player)
-                            .build();
+                        EventContext eventContext = EventContext.builder()
+                                .add(EventContextKeys.PLAYER, player)
+                                .build();
 
-                    Cause cause = Cause.builder()
-                            .append(totalEconomy.getPluginContainer())
-                            .build(eventContext);
+                        Cause cause = Cause.builder()
+                                .append(totalEconomy.getPluginContainer())
+                                .build(eventContext);
 
-                    TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, cause);
+                        TransactionResult result = playerAccount.deposit(totalEconomy.getDefaultCurrency(), salary, cause);
 
-                    if (result.getResult() == ResultType.SUCCESS) {
-                        Map<String, String> messageValues = new HashMap<>();
-                        messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
+                        if (result.getResult() == ResultType.SUCCESS) {
+                            Map<String, String> messageValues = new HashMap<>();
+                            messageValues.put("amount", totalEconomy.getDefaultCurrency().format(salary).toPlain());
 
-                        player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
-                    } else {
-                        player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
+                            player.sendMessage(messageManager.getMessage("jobs.salary", messageValues));
+                        } else {
+                            player.sendMessage(Text.of(TextColors.RED, "[TE] Failed to pay your salary! You may want to contact your admin - TransactionResult: ", result.getResult().toString()));
+                        }
                     }
                 }
             }
