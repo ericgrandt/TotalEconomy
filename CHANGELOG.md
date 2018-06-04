@@ -1,3 +1,7 @@
+v1.8.2
+
++ CHANGE: Job signs now take into account job requirements
+
 v1.8.1
 
 + CHANGE: Baltop command now has database support
