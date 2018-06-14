@@ -52,8 +52,10 @@ Besides the above, try to follow the [Google Java Style Guide](https://google.gi
 When you are ready to submit your code for review, please do the following:
 
 + Ensure your branch is up to date with the branch you are targeting. Most of the time this will be `develop`.
++ Be sure to update the changelog with a short summary of your changes
 + Create a descriptive title
 + Describe what the pull request fixes, changes, or adds
++ Include the issue number that this pull request fixes (Use `Fixes`, `Closes`, etc)
 
 ## Contributing Translations
 
