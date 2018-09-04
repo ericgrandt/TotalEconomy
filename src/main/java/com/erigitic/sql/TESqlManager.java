@@ -53,11 +53,13 @@ public class TESqlManager implements AutoCloseable {
      * Make sure the URL is valid beforehand.
      */
     public void initialize(String jdbcUrl) {
-        if (jdbcUrl == null)
+        if (jdbcUrl == null) {
             throw new IllegalArgumentException("Database URL may not be null!");
+        }
 
-        if (!jdbcUrl.startsWith("jdbc:"))
+        if (!jdbcUrl.startsWith("jdbc:")) {
             jdbcUrl = "jdbc:" + jdbcUrl;
+        }
 
         Optional<SqlService> optSqlService = Sponge.getServiceManager().provide(SqlService.class);
         if (!optSqlService.isPresent()) {
@@ -68,8 +70,9 @@ public class TESqlManager implements AutoCloseable {
         Connection accountsConnectionRep;
         Connection jobsConnectionRep;
         try {
-            if (dataSource != null)
+            if (dataSource != null) {
                 close();
+            }
 
             dataSourceRep = optSqlService.get().getDataSource(jdbcUrl);
             accountsConnectionRep = suppressedGetConnection(dataSourceRep);
@@ -133,19 +136,25 @@ public class TESqlManager implements AutoCloseable {
     @Override
     public void close() {
         dataSource = null;
+
         try {
-            if (accountsConnection != null && !accountsConnection.isClosed())
+            if (accountsConnection != null && !accountsConnection.isClosed()) {
                 accountsConnection.close();
+            }
         } catch (SQLException e) {
             logger.warn("Failed to close accounts connection!", e);
         }
+
         accountsConnection = null;
+
         try {
-            if (jobsConnection != null && !jobsConnection.isClosed())
+            if (jobsConnection != null && !jobsConnection.isClosed()) {
                 jobsConnection.close();
+            }
         } catch (SQLException e) {
             logger.warn("Failed to close jobs connection!", e);
         }
+
         jobsConnection = null;
     }
 }
