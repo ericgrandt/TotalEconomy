@@ -49,6 +49,7 @@ import com.erigitic.shops.data.ShopData;
 import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.sql.SqlManager;
+import com.erigitic.sql.TESqlManager;
 import com.erigitic.util.MessageManager;
 import com.google.inject.Inject;
 import java.io.File;
@@ -118,6 +119,7 @@ public class TotalEconomy {
 
     private TECurrency defaultCurrency;
     private SqlManager sqlManager;
+    private TESqlManager teSqlManager;
     private AccountManager accountManager;
     private JobManager jobManager;
     private MessageManager messageManager;
@@ -144,6 +146,7 @@ public class TotalEconomy {
     private String databaseUrl;
     private String databaseUser;
     private String databasePassword;
+    private String databaseTablePrefix;
 
     // Money Cap Variables
     private boolean moneyCapEnabled = false;
@@ -165,8 +168,14 @@ public class TotalEconomy {
             databaseUrl = config.getNode("database", "url").getString();
             databaseUser = config.getNode("database", "user").getString();
             databasePassword = config.getNode("database", "password").getString();
+            databaseTablePrefix = config.getNode("database", "table-prefix").getString(null);
+
+            if (databaseTablePrefix == null || databaseTablePrefix.trim().isEmpty()) {
+                databaseTablePrefix = null;
+            }
 
             sqlManager = new SqlManager(this, logger);
+            teSqlManager = new TESqlManager(this, logger);
         }
 
         messageManager = new MessageManager(this, logger, Locale.forLanguageTag(languageTag));
@@ -195,6 +204,7 @@ public class TotalEconomy {
 
     @Listener
     public void init(GameInitializationEvent event) {
+        initializeManagers();
         createAndRegisterData();
         createAndRegisterCommands();
         registerListeners();
@@ -262,6 +272,13 @@ public class TotalEconomy {
         } catch (IOException e) {
             logger.warn("[TE] Main configuration file could not be loaded/created/changed!", e);
         }
+    }
+
+    /**
+     * Initializes managers that require initialization after construction.
+     */
+    private void initializeManagers() {
+        teSqlManager.initialize();
     }
 
     /**
@@ -512,7 +529,15 @@ public class TotalEconomy {
         return databasePassword;
     }
 
+    public String getDatabasePrefix() {
+        return databaseTablePrefix;
+    }
+
     public SqlManager getSqlManager() {
         return sqlManager;
+    }
+
+    public TESqlManager getTESqlManager() {
+        return teSqlManager;
     }
 }
