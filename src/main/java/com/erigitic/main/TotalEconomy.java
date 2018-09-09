@@ -223,6 +223,8 @@ public class TotalEconomy {
 
         if (!databaseEnabled) {
             accountManager.saveConfiguration();
+        } else {
+            teSqlManager.close();
         }
 
         // Remove PlayerShopInfoData from all online users
