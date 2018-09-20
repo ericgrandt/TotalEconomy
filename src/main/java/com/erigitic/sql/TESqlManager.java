@@ -178,10 +178,10 @@ public class TESqlManager implements AutoCloseable {
         commandConnection = null;
     }
 
-    private void suppressedCloseConnectionIfNotNull(Connection accountsConnection, String s) {
+    private void suppressedCloseConnectionIfNotNull(Connection connection, String s) {
         try {
-            if (accountsConnection != null && !accountsConnection.isClosed()) {
-                accountsConnection.close();
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
             }
         } catch (SQLException e) {
             logger.warn(s, e);
