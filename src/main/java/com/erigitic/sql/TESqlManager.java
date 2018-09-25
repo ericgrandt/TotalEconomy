@@ -1,5 +1,6 @@
 package com.erigitic.sql;
 
+import com.erigitic.except.TEConnectionException;
 import com.erigitic.main.TotalEconomy;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
@@ -19,12 +20,16 @@ import java.util.regex.Pattern;
 public class TESqlManager implements AutoCloseable {
 
     private static final Pattern JDBC_DB_NAME = Pattern.compile("\\w+://.+(?::\\d+)?/(\\w+)\\??");
+    private static final Pattern JDBC_DB_USERNAME = Pattern.compile("\\?.*(user=.+)(?:&.*)");
+    private static final Pattern JDBC_DB_PASSWORD = Pattern.compile("\\?.*(password=.+)(?:&.*)");
+    private static final Pattern JDBC_DB_PREFIX = Pattern.compile("\\?.*(prefix=.+)(?:&.*)");
 
     private Logger logger;
     private TotalEconomy totalEconomy;
     private DataSource dataSource;
     private Connection accountsConnection;
     private Connection jobsConnection;
+    private Connection commandConnection;
     private String tablePrefix;
 
     public TESqlManager(TotalEconomy totalEconomy, Logger logger) {
@@ -36,55 +41,73 @@ public class TESqlManager implements AutoCloseable {
      * Initializes the connection with a database URL from the provided {@link TotalEconomy} instance.
      */
     public void initialize() {
-        String jdbcUrl = totalEconomy.getDatabaseUrl();
-
-        Matcher dbNameMatcher = JDBC_DB_NAME.matcher(jdbcUrl);
-        if (!dbNameMatcher.find() && dbNameMatcher.groupCount() <= 0) {
-            jdbcUrl += jdbcUrl.endsWith("/") ? "totaleconomy" : "/totaleconomy";
-        }
-
-        // TODO: Implement table prefix configuration
-        tablePrefix = "tetest_";
-        initialize(jdbcUrl);
+        initialize(totalEconomy.getDatabaseUrl());
     }
 
     /**
      * Initializes the SQLManager with a JDBC connection url.
-     * Make sure the URL is valid beforehand.
      */
     public void initialize(String jdbcUrl) {
         if (jdbcUrl == null) {
             throw new IllegalArgumentException("Database URL may not be null!");
         }
 
-        if (!jdbcUrl.startsWith("jdbc:")) {
-            jdbcUrl = "jdbc:" + jdbcUrl;
+        if (dataSource != null) {
+            throw new UnsupportedOperationException("SqlManager cannot be re-initialized!");
         }
+
+        jdbcUrl = prepareJdbcUrl(jdbcUrl);
 
         Optional<SqlService> optSqlService = Sponge.getServiceManager().provide(SqlService.class);
         if (!optSqlService.isPresent()) {
             throw new IllegalStateException("No sql service could be found!");
         }
 
-        DataSource dataSourceRep;
-        Connection accountsConnectionRep;
-        Connection jobsConnectionRep;
         try {
-            if (dataSource != null) {
-                close();
+            dataSource = optSqlService.get().getDataSource(jdbcUrl);
+            accountsConnection= suppressedGetConnection(dataSource);
+            jobsConnection = suppressedGetConnection(dataSource);
+            commandConnection = suppressedGetConnection(dataSource);
+
+            // Did the URL include a table prefix?
+            // Or is one configured?
+            Matcher dbPrefixMatcher = JDBC_DB_PREFIX.matcher(jdbcUrl);
+            if (dbPrefixMatcher.find()) {
+                tablePrefix = dbPrefixMatcher.group(1).substring(7);
+            } else if (totalEconomy.getDatabasePrefix() != null) {
+                tablePrefix = totalEconomy.getDatabasePrefix();
             }
 
-            dataSourceRep = optSqlService.get().getDataSource(jdbcUrl);
-            accountsConnectionRep = suppressedGetConnection(dataSourceRep);
-            jobsConnectionRep = suppressedGetConnection(dataSourceRep);
-
-            // No exceptions? Great.
-            this.dataSource = dataSourceRep;
-            this.accountsConnection = accountsConnectionRep;
-            this.jobsConnection = jobsConnectionRep;
-        } catch (SQLException e) {
+        } catch (SQLException|TEConnectionException e) {
             logger.warn("Failed to initialize SQL data-source)!", e);
+            close();
         }
+    }
+
+    /**
+     * Ensures that a jdbc url includes certain parts by filling missing information from the TE instance.
+     */
+    private String prepareJdbcUrl(String jdbcUrl) {
+        if (!jdbcUrl.startsWith("jdbc:")) {
+            jdbcUrl = "jdbc:" + jdbcUrl;
+        }
+
+        Matcher dbNameMatcher = JDBC_DB_NAME.matcher(jdbcUrl);
+        if (!dbNameMatcher.find() && dbNameMatcher.groupCount() <= 0) {
+            jdbcUrl += jdbcUrl.endsWith("/") ? "totaleconomy" : "/totaleconomy";
+        }
+
+        Matcher dbUserMatcher = JDBC_DB_USERNAME.matcher(jdbcUrl);
+        if (!dbUserMatcher.find()) {
+            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "user=" + totalEconomy.getDatabaseUser();
+        }
+
+        Matcher dbPassMatcher = JDBC_DB_PASSWORD.matcher(jdbcUrl);
+        if (!dbPassMatcher.find()) {
+            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "password=" + totalEconomy.getDatabasePassword();
+        }
+
+        return jdbcUrl;
     }
 
     /**
@@ -94,16 +117,16 @@ public class TESqlManager implements AutoCloseable {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            logger.warn("Failed to initialize SQL connection!", e);
+            throw new TEConnectionException("Failed to initialize sql connection.", e);
         }
-        return null;
     }
 
     /**
      * Returns the currently configured table prefix.
+     * DO NOT CACHE
      */
-    public String getTablePrefix() {
-        return tablePrefix;
+    public Optional<String> getTablePrefix() {
+        return Optional.ofNullable(tablePrefix);
     }
 
     /**
@@ -131,30 +154,37 @@ public class TESqlManager implements AutoCloseable {
     }
 
     /**
+     * Returns the current connection for {@link org.spongepowered.api.command.spec.CommandExecutor}s.
+     * DO NOT CACHE!
+     */
+    public Connection getCommandConnection() {
+        return commandConnection;
+    }
+
+    /**
      * Closes all connections and resets the fields to `null`.
      */
     @Override
     public void close() {
         dataSource = null;
 
-        try {
-            if (accountsConnection != null && !accountsConnection.isClosed()) {
-                accountsConnection.close();
-            }
-        } catch (SQLException e) {
-            logger.warn("Failed to close accounts connection!", e);
-        }
-
+        suppressedCloseConnectionIfNotNull(accountsConnection, "Failed to close accounts connection!");
         accountsConnection = null;
 
+        suppressedCloseConnectionIfNotNull(jobsConnection, "Failed to close jobs connection!");
+        jobsConnection = null;
+
+        suppressedCloseConnectionIfNotNull(commandConnection, "Failed to close commands connection!");
+        commandConnection = null;
+    }
+
+    private void suppressedCloseConnectionIfNotNull(Connection connection, String s) {
         try {
-            if (jobsConnection != null && !jobsConnection.isClosed()) {
-                jobsConnection.close();
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
             }
         } catch (SQLException e) {
-            logger.warn("Failed to close jobs connection!", e);
+            logger.warn(s, e);
         }
-
-        jobsConnection = null;
     }
 }
