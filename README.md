@@ -1,3 +1,4 @@
+<a href='https://ko-fi.com/U6U6KLKJ' target='_blank'><img height='32' style='border:0px;height:32px;' src='https://az743702.vo.msecnd.net/cdn/kofi4.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 [![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TotalEconomy/TotalEconomy)
 [![Build Status](https://travis-ci.org/Erigitic/TotalEconomy.svg?branch=develop)](https://travis-ci.org/Erigitic/TotalEconomy)
 
