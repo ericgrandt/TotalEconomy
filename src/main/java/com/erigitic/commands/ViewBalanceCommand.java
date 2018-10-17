@@ -26,14 +26,10 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -47,6 +43,11 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class ViewBalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -63,8 +64,9 @@ public class ViewBalanceCommand implements CommandExecutor {
     public CommandResult execute(CommandSource sender, CommandContext args) throws CommandException {
         User recipient = args.<User>getOne("player").get();
         Optional<String> optCurrencyName = args.getOne("currencyName");
-        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-        TransactionResult transactionResult = getTransactionResult(recipientAccount, optCurrencyName);
+        TEAccountBase recipientAccount = accountManager.getOrCreateTEAccount(recipient.getUniqueId());
+        String currencyName = optCurrencyName.orElse(totalEconomy.getDefaultCurrency().getName());
+        TransactionResult transactionResult = getTransactionResult(recipientAccount, currencyName);
 
         if (transactionResult.getResult() == ResultType.SUCCESS) {
             TECurrency currency = (TECurrency) transactionResult.getCurrency();
@@ -84,31 +86,25 @@ public class ViewBalanceCommand implements CommandExecutor {
     /**
      * Get the transaction result returned from setting a player's balance.
      *
-     * @param recipientAccount The account
-     * @param optCurrencyName The currency name
+     * @param recipient       The account
+     * @param currencyName The currency name
      * @return TransactionResult Result of set balance
      * @throws CommandException Thrown when currency does not exist
      */
-    private TransactionResult getTransactionResult(TEAccount recipientAccount, Optional<String> optCurrencyName) throws CommandException {
+    private TransactionResult getTransactionResult(TEAccountBase recipient, String currencyName) throws CommandException {
         Cause cause = Cause.builder()
                 .append(totalEconomy.getPluginContainer())
                 .build(EventContext.empty());
 
-        if (optCurrencyName.isPresent()) {
-            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+        Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + currencyName.toLowerCase());
 
-            if (optCurrency.isPresent()) {
-                TECurrency currency = (TECurrency) optCurrency.get();
-                BigDecimal balance = recipientAccount.getBalance(currency);
+        if (optCurrency.isPresent()) {
+            TECurrency currency = (TECurrency) optCurrency.get();
+            BigDecimal balance = recipient.getBalance(currency);
 
-                return recipientAccount.setBalance(currency, balance, cause);
-            } else {
-                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
-            }
+            return recipient.setBalance(currency, balance, cause);
         } else {
-            BigDecimal balance = recipientAccount.getBalance(totalEconomy.getDefaultCurrency());
-
-            return recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), balance, cause);
+            throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
         }
     }
 }

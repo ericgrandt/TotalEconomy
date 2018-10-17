@@ -26,21 +26,8 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import com.erigitic.sql.SqlQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -57,6 +44,13 @@ import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class BalanceTopCommand implements CommandExecutor {
 
@@ -101,15 +95,15 @@ public class BalanceTopCommand implements CommandExecutor {
         final Currency fCurrency = currency;
 
         if (totalEconomy.isDatabaseEnabled()) {
-            try (Connection connection = totalEconomy.getSqlManager().dataSource.getConnection();
-                 Statement statement = connection.createStatement()) {
+            String query = "SELECT * FROM balances WHERE `currency_ident` = '?' ORDER BY `balance` DESC LIMIT 10";
+            try (Connection connection = totalEconomy.getTESqlManager().getCommandConnection();
+                 PreparedStatement statement = connection.prepareStatement(query)) {
 
-                String currencyColumn = currency.getName() + "_balance";
-                statement.execute("SELECT * FROM accounts ORDER BY `" + currencyColumn + "` DESC LIMIT 10");
+                statement.setString(0, currency.getId());
 
-                try (ResultSet set = statement.getResultSet()) {
+                try (ResultSet set = statement.executeQuery()) {
                     while (set.next()) {
-                        BigDecimal amount = set.getBigDecimal(currencyColumn);
+                        BigDecimal amount = set.getBigDecimal("balance");
                         UUID uuid = UUID.fromString(set.getString("uid"));
                         Optional<User> optUser = Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uuid);
                         String username = optUser.map(User::getName).orElse("unknown");
@@ -136,7 +130,7 @@ public class BalanceTopCommand implements CommandExecutor {
                     return;
                 }
 
-                TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
+                TEAccountBase playerAccount = accountManager.getOrCreateTEAccount(uuid);
                 Text playerName = playerAccount.getDisplayName();
 
                 accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(fCurrency));

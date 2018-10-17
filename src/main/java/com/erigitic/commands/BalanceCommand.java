@@ -26,13 +26,10 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -42,6 +39,10 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class BalanceCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -61,7 +62,7 @@ public class BalanceCommand implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player sender = (Player) src;
-            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
+            TEAccountBase playerAccount = accountManager.getOrCreateTEAccount(sender.getUniqueId());
             Optional<String> optCurrencyName = args.getOne("currencyName");
             Map<String, String> messageValues = new HashMap<>();
 

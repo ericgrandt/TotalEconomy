@@ -26,7 +26,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.shops.Shop;
 import com.erigitic.shops.ShopItem;
@@ -36,12 +36,6 @@ import com.erigitic.shops.data.ShopItemData;
 import com.erigitic.shops.data.ShopKeys;
 import com.erigitic.util.InventoryUtils;
 import com.erigitic.util.MessageManager;
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
@@ -67,6 +61,9 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 public class ShopCommand implements CommandExecutor {
 
@@ -101,12 +98,7 @@ public class ShopCommand implements CommandExecutor {
 
     private boolean isTileEntityAChest(TileEntity tileEntity) {
         BlockType blockType = tileEntity.getBlock().getType();
-
-        if (blockType == BlockTypes.CHEST) {
-            return true;
-        }
-
-        return false;
+        return blockType == BlockTypes.CHEST;
     }
 
     private class Stock implements CommandExecutor {
@@ -129,6 +121,7 @@ public class ShopCommand implements CommandExecutor {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+            // ToDo: Handle cases where this is not a player!
             Player player = ((Player) src).getPlayer().get();
 
             Optional<TileEntity> tileEntityOpt = shopManager.getTileEntityFromPlayerRaycast(player);
@@ -162,7 +155,7 @@ public class ShopCommand implements CommandExecutor {
 
                                 Collection<ItemStackSnapshot> rejectedItems = chest.getInventory().offer(preparedItem.copy()).getRejectedItems();
 
-                                if (rejectedItems.size() <= 0) {
+                                if (rejectedItems.isEmpty()) {
                                     InventoryUtils.removeItem(playerInventory, itemInHand, quantity);
 
                                     Map<String, String> messageValues = new HashMap<>();
@@ -256,7 +249,7 @@ public class ShopCommand implements CommandExecutor {
 
                             if (player.getUniqueId().equals(creatorUniqueId)) {
                                 if (isChestEmpty(chest)) {
-                                    TEAccount account = (TEAccount) accountManager.getOrCreateAccount(creatorUniqueId).get();
+                                    TEAccountBase account = accountManager.getOrCreateTEAccount(creatorUniqueId);
 
                                     Cause cause = Cause.builder()
                                             .append(player)
@@ -311,9 +304,8 @@ public class ShopCommand implements CommandExecutor {
         }
 
         private Shop createShopFromPlayer(Player player) {
-            Shop shop = new Shop(player.getUniqueId(), player.getDisplayNameData().displayName().get().toPlain() + "'s Shop");
-
-            return shop;
+            String shopTitle = player.getDisplayNameData().displayName().get().toPlain() + "'s Shop";
+            return new Shop(player.getUniqueId(), shopTitle);
         }
     }
 }
