@@ -49,8 +49,8 @@ public class TEAction {
     private TEActionReward reward;
 
     public void loadConfigNode(String action, ConfigurationNode node) {
-        ConfigurationNode idTraitNode = node.getNode("id-trait");
-        ConfigurationNode growthTraitNode = node.getNode("growth-trait");
+        ConfigurationNode idTraitNode = node.getNode("idTrait");
+        ConfigurationNode growthTraitNode = node.getNode("growthTrait");
 
         if (idTraitNode.isVirtual()) {
             this.action = action;
