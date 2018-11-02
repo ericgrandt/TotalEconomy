@@ -91,7 +91,7 @@ public class AdminPayCommand implements CommandExecutor {
                 src.sendMessage(messageManager.getMessage(invokerMessageId, messageValues));
                 if (recipient.isOnline()) {
                     recipient.getPlayer()
-                            .orElseThrow(() -> new TERuntimeException("Recipient is only but is not a player!"))
+                            .orElseThrow(() -> new TERuntimeException("Recipient is not a player!"))
                             .sendMessage(messageManager.getMessage(recipientMessageId, messageValues));
                 }
 
