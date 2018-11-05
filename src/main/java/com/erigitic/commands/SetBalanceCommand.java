@@ -99,8 +99,8 @@ public class SetBalanceCommand implements CommandExecutor {
     /**
      * Get the transaction result returned from setting a player's balance.
      *
-     * @param recipient    The account
-     * @param amount       Amount of currency involved in the transaction
+     * @param recipient  The account
+     * @param amount Amount of currency involved in the transaction
      * @param currencyName Currency name
      * @return TransactionResult Result of the transaction
      * @throws CommandException Thrown when currency does not exist
