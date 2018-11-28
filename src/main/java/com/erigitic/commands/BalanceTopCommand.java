@@ -26,18 +26,8 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
+import com.erigitic.config.account.TEAccountBase;
 import com.erigitic.main.TotalEconomy;
-import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -54,6 +44,13 @@ import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class BalanceTopCommand implements CommandExecutor {
 
@@ -98,23 +95,27 @@ public class BalanceTopCommand implements CommandExecutor {
         final Currency fCurrency = currency;
 
         if (totalEconomy.isDatabaseEnabled()) {
-            try {
-                Statement statement = totalEconomy.getSqlManager().dataSource.getConnection().createStatement();
-                String currencyColumn = currency.getName() + "_balance";
-                statement.execute("SELECT * FROM accounts ORDER BY `" + currencyColumn + "` DESC LIMIT 10");
-                ResultSet set = statement.getResultSet();
+            String query = "SELECT * FROM balances WHERE `currency_ident` = '?' ORDER BY `balance` DESC LIMIT 10";
+            try (Connection connection = totalEconomy.getTESqlManager().getCommandConnection();
+                 PreparedStatement statement = connection.prepareStatement(query)) {
 
-                while (set.next()) {
-                    BigDecimal amount = set.getBigDecimal(currencyColumn);
-                    UUID uuid = UUID.fromString(set.getString("uid"));
-                    Optional<User> optUser = Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uuid);
-                    String username = optUser.map(User::getName).orElse("unknown");
+                statement.setString(0, currency.getId());
 
-                    accountBalances.add(Text.of(TextColors.GRAY, username, ": ", TextColors.GOLD, currency.format(amount)));
+                try (ResultSet set = statement.executeQuery()) {
+                    while (set.next()) {
+                        BigDecimal amount = set.getBigDecimal("balance");
+                        UUID uuid = UUID.fromString(set.getString("uid"));
+                        Optional<User> optUser = Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(uuid);
+                        String username = optUser.map(User::getName).orElse("unknown");
+
+                        accountBalances.add(Text.of(TextColors.GRAY, username, ": ", TextColors.GOLD, currency.format(amount)));
+                    }
                 }
+
             } catch (SQLException e) {
                 throw new CommandException(Text.of("Failed to query db for ranking."), e);
             }
+
         } else {
             ConfigurationNode accountNode = accountManager.getAccountConfig();
             Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
@@ -129,7 +130,7 @@ public class BalanceTopCommand implements CommandExecutor {
                     return;
                 }
 
-                TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
+                TEAccountBase playerAccount = accountManager.getOrCreateTEAccount(uuid);
                 Text playerName = playerAccount.getDisplayName();
 
                 accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(fCurrency));

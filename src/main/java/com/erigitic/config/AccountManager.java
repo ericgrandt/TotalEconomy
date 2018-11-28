@@ -25,6 +25,8 @@
 
 package com.erigitic.config;
 
+import com.erigitic.config.account.TEAccountBase;
+import com.erigitic.except.TERuntimeException;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.sql.SqlManager;
 import com.erigitic.sql.SqlQuery;
@@ -229,6 +231,16 @@ public class AccountManager implements EconomyService {
         }
 
         return Optional.of(playerAccount);
+    }
+
+    /**
+     * Safe internal method for {@link #getOrCreateAccount(UUID)} without the "Optional hassle".
+     */
+    public TEAccountBase getOrCreateTEAccount(UUID uuid) {
+        return getOrCreateAccount(uuid)
+                .filter(account -> TEAccountBase.class.isAssignableFrom(account.getClass()))
+                .map(TEAccountBase.class::cast)
+                .orElseThrow(() -> new TERuntimeException("#getOrCreateAccount returned empty result!"));
     }
 
     /**

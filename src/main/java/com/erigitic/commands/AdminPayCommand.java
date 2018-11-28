@@ -26,15 +26,10 @@
 package com.erigitic.commands;
 
 import com.erigitic.config.AccountManager;
-import com.erigitic.config.TEAccount;
+import com.erigitic.config.account.TEAccountBase;
+import com.erigitic.except.TERuntimeException;
 import com.erigitic.main.TotalEconomy;
 import com.erigitic.util.MessageManager;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -48,6 +43,13 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AdminPayCommand implements CommandExecutor {
     private TotalEconomy totalEconomy;
@@ -71,8 +73,10 @@ public class AdminPayCommand implements CommandExecutor {
 
         if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
-            TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, optCurrencyName);
+            TEAccountBase recipientAccount = accountManager.getOrCreateTEAccount(recipient.getUniqueId());
+
+            String currencyName = optCurrencyName.orElse(totalEconomy.getDefaultCurrency().getName());
+            TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, currencyName);
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
                 Text amountText = Text.of(transactionResult.getCurrency().format(amount).toPlain().replace("-", ""));
@@ -81,18 +85,14 @@ public class AdminPayCommand implements CommandExecutor {
                 messageValues.put("recipient", recipient.getName());
                 messageValues.put("amount", amountText.toPlain());
 
-                if (!amountStr.contains("-")) {
-                    src.sendMessage(messageManager.getMessage("command.adminpay.send.sender", messageValues));
+                String invokerMessageId = amountStr.contains("-") ? "command.adminpay.remove.sender" : "command.adminpay.send.sender";
+                String recipientMessageId = amountStr.contains("-") ? "command.adminpay.remove.recipient" : "command.adminpay.send.recipient";
 
-                    if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(messageManager.getMessage("command.adminpay.send.recipient", messageValues));
-                    }
-                } else {
-                    src.sendMessage(messageManager.getMessage("command.adminpay.remove.sender", messageValues));
-
-                    if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(messageManager.getMessage("command.adminpay.remove.recipient", messageValues));
-                    }
+                src.sendMessage(messageManager.getMessage(invokerMessageId, messageValues));
+                if (recipient.isOnline()) {
+                    recipient.getPlayer()
+                            .orElseThrow(() -> new TERuntimeException("Recipient is not a player!"))
+                            .sendMessage(messageManager.getMessage(recipientMessageId, messageValues));
                 }
 
                 return CommandResult.success();
@@ -109,25 +109,21 @@ public class AdminPayCommand implements CommandExecutor {
      *
      * @param recipientAccount The account
      * @param amount The amount involved in the transaction
-     * @param optCurrencyName The currency name
+     * @param currencyName The currency the transaction is in
      * @return TransactionResult Result of the transaction
      * @throws CommandException Thrown when the specified currency does not exist
      */
-    private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
+    private TransactionResult getTransactionResult(TEAccountBase recipientAccount, BigDecimal amount, String currencyName) throws CommandException {
         Cause cause = Cause.builder()
                 .append(totalEconomy.getPluginContainer())
                 .build(EventContext.empty());
 
-        if (optCurrencyName.isPresent()) {
-            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+        Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + currencyName.toLowerCase());
 
-            if (optCurrency.isPresent()) {
-                return recipientAccount.deposit(optCurrency.get(), amount, cause);
-            } else {
-                throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
-            }
+        if (optCurrency.isPresent()) {
+            return recipientAccount.deposit(optCurrency.get(), amount, cause);
         } else {
-            return recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, cause);
+            throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
         }
     }
 }
