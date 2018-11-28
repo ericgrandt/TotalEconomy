@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.erigitic.sql.SqlQuery;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -101,9 +100,10 @@ public class BalanceTopCommand implements CommandExecutor {
         final Currency fCurrency = currency;
 
         if (totalEconomy.isDatabaseEnabled()) {
-            try (Connection connection = totalEconomy.getSqlManager().dataSource.getConnection();
-                 Statement statement = connection.createStatement()) {
-
+            try (
+                 Connection connection = totalEconomy.getSqlManager().dataSource.getConnection();
+                 Statement statement = connection.createStatement()
+            ) {
                 String currencyColumn = currency.getName() + "_balance";
                 statement.execute("SELECT * FROM accounts ORDER BY `" + currencyColumn + "` DESC LIMIT 10");
 
@@ -117,11 +117,9 @@ public class BalanceTopCommand implements CommandExecutor {
                         accountBalances.add(Text.of(TextColors.GRAY, username, ": ", TextColors.GOLD, currency.format(amount)));
                     }
                 }
-
             } catch (SQLException e) {
                 throw new CommandException(Text.of("Failed to query db for ranking."), e);
             }
-
         } else {
             ConfigurationNode accountNode = accountManager.getAccountConfig();
             Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
