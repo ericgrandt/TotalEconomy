@@ -21,3 +21,7 @@ jar {
     baseName="TotalEconomy"
     version="1.8.2"
 }
+
+wrapper {
+    gradleVersion = '3.3'
+}

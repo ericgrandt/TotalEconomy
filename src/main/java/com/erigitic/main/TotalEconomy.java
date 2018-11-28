@@ -260,7 +260,7 @@ public class TotalEconomy {
 
             config = loader.load();
         } catch (IOException e) {
-            logger.warn("[TE] Main configuration file could not be loaded/created/changed!");
+            logger.warn("[TE] Main configuration file could not be loaded/created/changed!", e);
         }
     }
 
