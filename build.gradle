@@ -7,9 +7,14 @@ repositories {
 }
 
 apply plugin: 'java'
+apply plugin: 'checkstyle'
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+}
+
+checkstyle {
+    toolVersion = "8.13"
 }
 
 jar {
