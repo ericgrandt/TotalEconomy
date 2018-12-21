@@ -1,6 +1,7 @@
 v1.8.2
 
 + CHANGE: Job signs now take into account job requirements
++ FIX: Fixed an issue where rewards were always 0 exp and money 
 
 v1.8.1
 
