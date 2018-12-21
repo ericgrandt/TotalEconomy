@@ -148,11 +148,12 @@ public class TEAction {
         int max = possibleValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
         int min = possibleValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
         double percent = (double) (traitValue - min) / (double) (max - min);
+        int expReward = (int) (reward.getExpReward() * percent);
+        double moneyReward = reward.getMoneyReward() * percent;
 
-        reward = new TEActionReward();
-        reward.setValues((int) (reward.getExpReward() * percent), reward.getMoneyReward() * percent, reward.getCurrencyId());
-
-        return reward;
+        TEActionReward partialReward = new TEActionReward();
+        partialReward.setValues(expReward, moneyReward, reward.getCurrencyId());
+        return partialReward;
     }
 
     public Optional<TEActionReward> evaluatePlace(Logger logger, BlockState state) {
