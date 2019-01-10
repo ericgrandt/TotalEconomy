@@ -373,9 +373,9 @@ public class AccountManager implements EconomyService {
         String identifier = virtualAccount.getIdentifier();
 
         SqlQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
-        		.columns("uid")
-        		.values(identifier)
-        		.build();
+                .columns("uid")
+                .values(identifier)
+                .build();
 
         for (Currency currency : totalEconomy.getCurrencies()) {
             TECurrency teCurrency = (TECurrency) currency;
