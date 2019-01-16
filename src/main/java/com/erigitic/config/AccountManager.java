@@ -166,6 +166,7 @@ public class AccountManager implements EconomyService {
                 + "lumberjack int(10) unsigned NOT NULL DEFAULT '1',"
                 + "warrior int(10) unsigned NOT NULL DEFAULT '1',"
                 + "fisherman int(10) unsigned NOT NULL DEFAULT '1',"
+                + "farmer int(10) unsigned NOT NULL DEFAULT '1',"
                 + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE"
         );
 
@@ -174,6 +175,7 @@ public class AccountManager implements EconomyService {
                 + "lumberjack int(10) unsigned NOT NULL DEFAULT '0',"
                 + "warrior int(10) unsigned NOT NULL DEFAULT '0',"
                 + "fisherman int(10) unsigned NOT NULL DEFAULT '0',"
+                + "farmer int(10) unsigned NOT NULL DEFAULT '0',"
                 + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE"
         );
     }
