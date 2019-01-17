@@ -25,11 +25,9 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageManager;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +36,9 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
@@ -49,21 +49,25 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 public class ViewBalanceCommand implements CommandExecutor {
-    private TotalEconomy totalEconomy;
-    private AccountManager accountManager;
-    private MessageManager messageManager;
 
-    public ViewBalanceCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
-        this.totalEconomy = totalEconomy;
-        this.accountManager = accountManager;
-        this.messageManager = messageManager;
+    public static CommandSpec commandSpec() {
+        return CommandSpec.builder()
+                .description(Text.of("View the balance of another player"))
+                .permission("totaleconomy.command.viewbalance")
+                .executor(new ViewBalanceCommand())
+                .arguments(
+                        GenericArguments.user(Text.of("player")),
+                        GenericArguments.optional(
+                                GenericArguments.string(Text.of("currencyName"))
+                        )
+                ).build();
     }
 
     @Override
     public CommandResult execute(CommandSource sender, CommandContext args) throws CommandException {
         User recipient = args.<User>getOne("player").get();
         Optional<String> optCurrencyName = args.getOne("currencyName");
-        TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+        TEAccount recipientAccount = (TEAccount) TotalEconomy.getTotalEconomy().getAccountManager().getOrCreateAccount(recipient.getUniqueId()).get();
         TransactionResult transactionResult = getTransactionResult(recipientAccount, optCurrencyName);
 
         if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -73,7 +77,7 @@ public class ViewBalanceCommand implements CommandExecutor {
             messageValues.put("recipient", recipient.getName());
             messageValues.put("amount", balanceText.toPlain());
 
-            sender.sendMessage(messageManager.getMessage("command.viewbalance", messageValues));
+            sender.sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.viewbalance", messageValues));
 
             return CommandResult.success();
         } else {
@@ -91,11 +95,11 @@ public class ViewBalanceCommand implements CommandExecutor {
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, Optional<String> optCurrencyName) throws CommandException {
         Cause cause = Cause.builder()
-                .append(totalEconomy.getPluginContainer())
+                .append(TotalEconomy.getTotalEconomy().getPluginContainer())
                 .build(EventContext.empty());
 
         if (optCurrencyName.isPresent()) {
-            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+            Optional<Currency> optCurrency = TotalEconomy.getTotalEconomy().getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
             if (optCurrency.isPresent()) {
                 TECurrency currency = (TECurrency) optCurrency.get();
@@ -106,9 +110,9 @@ public class ViewBalanceCommand implements CommandExecutor {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
             }
         } else {
-            BigDecimal balance = recipientAccount.getBalance(totalEconomy.getDefaultCurrency());
+            BigDecimal balance = recipientAccount.getBalance(TotalEconomy.getTotalEconomy().getDefaultCurrency());
 
-            return recipientAccount.setBalance(totalEconomy.getDefaultCurrency(), balance, cause);
+            return recipientAccount.setBalance(TotalEconomy.getTotalEconomy().getDefaultCurrency(), balance, cause);
         }
     }
 }

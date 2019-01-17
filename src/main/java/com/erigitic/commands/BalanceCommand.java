@@ -25,11 +25,9 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.config.TECurrency;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageManager;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,36 +35,36 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 public class BalanceCommand implements CommandExecutor {
-    private TotalEconomy totalEconomy;
-    private AccountManager accountManager;
-    private MessageManager messageManager;
-    private Currency defaultCurrency;
 
-    public BalanceCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
-        this.totalEconomy = totalEconomy;
-        this.accountManager = accountManager;
-        this.messageManager = messageManager;
-
-        defaultCurrency = totalEconomy.getDefaultCurrency();
+    public static CommandSpec commandSpec() {
+        return CommandSpec.builder()
+            .description(Text.of("Display your balance"))
+            .permission("totaleconomy.command.balance")
+            .executor(new BalanceCommand())
+            .arguments(
+                    GenericArguments.optional(GenericArguments.string(Text.of("currencyName")))
+            ).build();
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (src instanceof Player) {
             Player sender = (Player) src;
-            TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(sender.getUniqueId()).get();
+            TEAccount playerAccount = (TEAccount) TotalEconomy.getTotalEconomy().getAccountManager().getOrCreateAccount(sender.getUniqueId()).get();
             Optional<String> optCurrencyName = args.getOne("currencyName");
             Map<String, String> messageValues = new HashMap<>();
 
             if (optCurrencyName.isPresent()) {
-                Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+                Optional<Currency> optCurrency = TotalEconomy.getTotalEconomy().getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
                 if (optCurrency.isPresent()) {
                     TECurrency currency = (TECurrency) optCurrency.get();
@@ -74,14 +72,14 @@ public class BalanceCommand implements CommandExecutor {
                     messageValues.put("currency", currency.getName());
                     messageValues.put("amount", currency.format(playerAccount.getBalance(currency)).toPlain());
 
-                    sender.sendMessage(messageManager.getMessage("command.balance.other", messageValues));
+                    sender.sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.balance.other", messageValues));
                 } else {
                     throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
                 }
             } else {
-                messageValues.put("amount", defaultCurrency.format(playerAccount.getBalance(defaultCurrency)).toPlain());
+                messageValues.put("amount", TotalEconomy.getTotalEconomy().getDefaultCurrency().format(playerAccount.getBalance(TotalEconomy.getTotalEconomy().getDefaultCurrency())).toPlain());
 
-                sender.sendMessage(messageManager.getMessage("command.balance.default", messageValues));
+                sender.sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.balance.default", messageValues));
             }
 
             return CommandResult.success();
