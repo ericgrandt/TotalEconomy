@@ -25,10 +25,8 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageManager;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +37,9 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
@@ -50,14 +50,17 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 public class AdminPayCommand implements CommandExecutor {
-    private TotalEconomy totalEconomy;
-    private AccountManager accountManager;
-    private MessageManager messageManager;
 
-    public AdminPayCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
-        this.totalEconomy = totalEconomy;
-        this.accountManager = accountManager;
-        this.messageManager = messageManager;
+    public static CommandSpec commandSpec() {
+        return CommandSpec.builder()
+                .description(Text.of("Pay a player without removing money from your balance."))
+                .permission("totaleconomy.command.adminpay")
+                .executor(new AdminPayCommand())
+                .arguments(
+                        GenericArguments.user(Text.of("player")),
+                        GenericArguments.string(Text.of("amount")),
+                        GenericArguments.optional(GenericArguments.string(Text.of("currencyName")))
+                ).build();
     }
 
     @Override
@@ -71,7 +74,7 @@ public class AdminPayCommand implements CommandExecutor {
 
         if (m.matches()) {
             BigDecimal amount = new BigDecimal((String) args.getOne("amount").get()).setScale(2, BigDecimal.ROUND_DOWN);
-            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            TEAccount recipientAccount = (TEAccount) TotalEconomy.getTotalEconomy().getAccountManager().getOrCreateAccount(recipient.getUniqueId()).get();
             TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, optCurrencyName);
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -82,16 +85,16 @@ public class AdminPayCommand implements CommandExecutor {
                 messageValues.put("amount", amountText.toPlain());
 
                 if (!amountStr.contains("-")) {
-                    src.sendMessage(messageManager.getMessage("command.adminpay.send.sender", messageValues));
+                    src.sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.adminpay.send.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(messageManager.getMessage("command.adminpay.send.recipient", messageValues));
+                        recipient.getPlayer().get().sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.adminpay.send.recipient", messageValues));
                     }
                 } else {
-                    src.sendMessage(messageManager.getMessage("command.adminpay.remove.sender", messageValues));
+                    src.sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.adminpay.remove.sender", messageValues));
 
                     if (recipient.isOnline()) {
-                        recipient.getPlayer().get().sendMessage(messageManager.getMessage("command.adminpay.remove.recipient", messageValues));
+                        recipient.getPlayer().get().sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.adminpay.remove.recipient", messageValues));
                     }
                 }
 
@@ -115,11 +118,11 @@ public class AdminPayCommand implements CommandExecutor {
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
         Cause cause = Cause.builder()
-                .append(totalEconomy.getPluginContainer())
+                .append(TotalEconomy.getTotalEconomy().getPluginContainer())
                 .build(EventContext.empty());
 
         if (optCurrencyName.isPresent()) {
-            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+            Optional<Currency> optCurrency = TotalEconomy.getTotalEconomy().getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
             if (optCurrency.isPresent()) {
                 return recipientAccount.deposit(optCurrency.get(), amount, cause);
@@ -127,7 +130,7 @@ public class AdminPayCommand implements CommandExecutor {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
             }
         } else {
-            return recipientAccount.deposit(totalEconomy.getDefaultCurrency(), amount, cause);
+            return recipientAccount.deposit(TotalEconomy.getTotalEconomy().getDefaultCurrency(), amount, cause);
         }
     }
 }

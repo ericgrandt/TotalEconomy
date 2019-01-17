@@ -25,7 +25,6 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
 import com.erigitic.main.TotalEconomy;
 import java.math.BigDecimal;
@@ -59,18 +58,10 @@ import org.spongepowered.api.text.format.TextColors;
 
 public class BalanceTopCommand implements CommandExecutor {
 
-    private TotalEconomy totalEconomy;
-    private AccountManager accountManager;
-
     private PaginationService paginationService = Sponge.getServiceManager().provideUnchecked(PaginationService.class);
     private PaginationList.Builder builder = paginationService.builder();
 
-    public BalanceTopCommand(TotalEconomy totalEconomy, AccountManager accountManager) {
-        this.totalEconomy = totalEconomy;
-        this.accountManager = accountManager;
-    }
-
-    public static CommandSpec commandSpec(TotalEconomy totalEconomy) {
+    public static CommandSpec commandSpec() {
         return CommandSpec.builder()
                 .description(Text.of("Display top balances"))
                 .permission("totaleconomy.command.balancetop")
@@ -79,7 +70,7 @@ public class BalanceTopCommand implements CommandExecutor {
                                 GenericArguments.string(Text.of("currency"))
                         )
                 )
-                .executor(new BalanceTopCommand(totalEconomy, totalEconomy.getAccountManager()))
+                .executor(new BalanceTopCommand())
                 .build();
     }
 
@@ -90,18 +81,18 @@ public class BalanceTopCommand implements CommandExecutor {
         List<Text> accountBalances = new ArrayList<>();
 
         if (optCurrency.isPresent()) {
-            currency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrency.get().toLowerCase()).orElse(null);
+            currency = TotalEconomy.getTotalEconomy().getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrency.get().toLowerCase()).orElse(null);
         }
 
         if (currency == null) {
-            currency = totalEconomy.getDefaultCurrency();
+            currency = TotalEconomy.getTotalEconomy().getDefaultCurrency();
         }
 
         final Currency fCurrency = currency;
 
-        if (totalEconomy.isDatabaseEnabled()) {
+        if (TotalEconomy.getTotalEconomy().isDatabaseEnabled()) {
             try (
-                 Connection connection = totalEconomy.getSqlManager().dataSource.getConnection();
+                 Connection connection = TotalEconomy.getTotalEconomy().getSqlManager().dataSource.getConnection();
                  Statement statement = connection.createStatement()
             ) {
                 String currencyColumn = currency.getName() + "_balance";
@@ -121,7 +112,7 @@ public class BalanceTopCommand implements CommandExecutor {
                 throw new CommandException(Text.of("Failed to query db for ranking."), e);
             }
         } else {
-            ConfigurationNode accountNode = accountManager.getAccountConfig();
+            ConfigurationNode accountNode = TotalEconomy.getTotalEconomy().getAccountManager().getAccountConfig();
             Map<String, BigDecimal> accountBalancesMap = new HashMap<>();
 
             accountNode.getChildrenMap().keySet().forEach(accountUUID -> {
@@ -134,7 +125,7 @@ public class BalanceTopCommand implements CommandExecutor {
                     return;
                 }
 
-                TEAccount playerAccount = (TEAccount) accountManager.getOrCreateAccount(uuid).get();
+                TEAccount playerAccount = (TEAccount) TotalEconomy.getTotalEconomy().getAccountManager().getOrCreateAccount(uuid).get();
                 Text playerName = playerAccount.getDisplayName();
 
                 accountBalancesMap.put(playerName.toPlain(), playerAccount.getBalance(fCurrency));

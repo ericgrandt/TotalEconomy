@@ -25,21 +25,22 @@
 
 package com.erigitic.commands;
 
-import com.erigitic.config.AccountManager;
 import com.erigitic.config.TEAccount;
-import com.erigitic.main.TotalEconomy;
-import com.erigitic.util.MessageManager;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
@@ -50,17 +51,17 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 public class SetBalanceCommand implements CommandExecutor {
-    private TotalEconomy totalEconomy;
-    private AccountManager accountManager;
-    private MessageManager messageManager;
-    private Currency defaultCurrency;
 
-    public SetBalanceCommand(TotalEconomy totalEconomy, AccountManager accountManager, MessageManager messageManager) {
-        this.totalEconomy = totalEconomy;
-        this.accountManager = accountManager;
-        this.messageManager = messageManager;
-
-        defaultCurrency = totalEconomy.getDefaultCurrency();
+    public static CommandSpec commandSpec() {
+        return CommandSpec.builder()
+                .description(Text.of("Set a player's balance"))
+                .permission("totaleconomy.command.setbalance")
+                .executor(new SetBalanceCommand())
+                .arguments(
+                        GenericArguments.user(Text.of("player")),
+                        GenericArguments.string(Text.of("amount")),
+                        GenericArguments.optional(GenericArguments.string(Text.of("currencyName")))
+                ).build();
     }
 
     @Override
@@ -74,7 +75,7 @@ public class SetBalanceCommand implements CommandExecutor {
 
         if (m.matches()) {
             BigDecimal amount = new BigDecimal(amountStr).setScale(2, BigDecimal.ROUND_DOWN);
-            TEAccount recipientAccount = (TEAccount) accountManager.getOrCreateAccount(recipient.getUniqueId()).get();
+            TEAccount recipientAccount = (TEAccount) TotalEconomy.getTotalEconomy().getAccountManager().getOrCreateAccount(recipient.getUniqueId()).get();
             TransactionResult transactionResult = getTransactionResult(recipientAccount, amount, optCurrencyName);
 
             if (transactionResult.getResult() == ResultType.SUCCESS) {
@@ -83,7 +84,7 @@ public class SetBalanceCommand implements CommandExecutor {
                 messageValues.put("recipient", recipient.getName());
                 messageValues.put("amount", amountText.toPlain());
 
-                src.sendMessage(messageManager.getMessage("command.setbalance", messageValues));
+                src.sendMessage(TotalEconomy.getTotalEconomy().getMessageManager().getMessage("command.setbalance", messageValues));
 
                 return CommandResult.success();
             } else {
@@ -105,11 +106,11 @@ public class SetBalanceCommand implements CommandExecutor {
      */
     private TransactionResult getTransactionResult(TEAccount recipientAccount, BigDecimal amount, Optional<String> optCurrencyName) throws CommandException {
         Cause cause = Cause.builder()
-                .append(totalEconomy.getPluginContainer())
+                .append(TotalEconomy.getTotalEconomy().getPluginContainer())
                 .build(EventContext.empty());
 
         if (optCurrencyName.isPresent()) {
-            Optional<Currency> optCurrency = totalEconomy.getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
+            Optional<Currency> optCurrency = TotalEconomy.getTotalEconomy().getTECurrencyRegistryModule().getById("totaleconomy:" + optCurrencyName.get().toLowerCase());
 
             if (optCurrency.isPresent()) {
                 return recipientAccount.setBalance(optCurrency.get(), amount, cause);
@@ -117,7 +118,7 @@ public class SetBalanceCommand implements CommandExecutor {
                 throw new CommandException(Text.of(TextColors.RED, "[TE] The specified currency does not exist!"));
             }
         } else {
-            return recipientAccount.setBalance(defaultCurrency, amount, cause);
+            return recipientAccount.setBalance(TotalEconomy.getTotalEconomy().getDefaultCurrency(), amount, cause);
         }
     }
 }
