@@ -145,7 +145,7 @@ public class BalanceTopCommand implements CommandExecutor {
                     .limit(10)
                     .forEach(entry ->
                         accountBalances.add(Text.of(TextColors.GRAY, entry.getKey(), ": ", TextColors.GOLD, fCurrency.format(entry.getValue()).toPlain()))
-                    );
+            );
         }
 
         builder.title(Text.of(TextColors.GOLD, "Top 10 Balances"))

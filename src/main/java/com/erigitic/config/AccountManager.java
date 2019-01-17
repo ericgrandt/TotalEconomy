@@ -166,6 +166,7 @@ public class AccountManager implements EconomyService {
                 + "lumberjack int(10) unsigned NOT NULL DEFAULT '1',"
                 + "warrior int(10) unsigned NOT NULL DEFAULT '1',"
                 + "fisherman int(10) unsigned NOT NULL DEFAULT '1',"
+                + "farmer int(10) unsigned NOT NULL DEFAULT '1',"
                 + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE"
         );
 
@@ -174,6 +175,7 @@ public class AccountManager implements EconomyService {
                 + "lumberjack int(10) unsigned NOT NULL DEFAULT '0',"
                 + "warrior int(10) unsigned NOT NULL DEFAULT '0',"
                 + "fisherman int(10) unsigned NOT NULL DEFAULT '0',"
+                + "farmer int(10) unsigned NOT NULL DEFAULT '0',"
                 + "FOREIGN KEY (uid) REFERENCES accounts(uid) ON DELETE CASCADE"
         );
     }
@@ -372,12 +374,17 @@ public class AccountManager implements EconomyService {
     private void createAccountInDatabase(TEVirtualAccount virtualAccount) {
         String identifier = virtualAccount.getIdentifier();
 
+        SqlQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
+                .columns("uid")
+                .values(identifier)
+                .build();
+
         for (Currency currency : totalEconomy.getCurrencies()) {
             TECurrency teCurrency = (TECurrency) currency;
 
-            SqlQuery.builder(sqlManager.dataSource).insert("virtual_accounts")
-                    .columns(teCurrency.getName().toLowerCase() + "_balance")
-                    .values(virtualAccount.getDefaultBalance(teCurrency).toString())
+            SqlQuery.builder(sqlManager.dataSource).update("virtual_accounts")
+                    .set(teCurrency.getName().toLowerCase() + "_balance")
+                    .equals(virtualAccount.getDefaultBalance(teCurrency).toString())
                     .where("uid")
                     .equals(identifier)
                     .build();
