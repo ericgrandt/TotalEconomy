@@ -244,7 +244,7 @@ public class JobCommand implements CommandExecutor {
             }
 
             pageBuilder.reset()
-                    .header(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> TotalEconomy.getTotalEconomy().getJobManager().getPlayerJob((Player) src)), "\n"))
+                    .title(Text.of(TextColors.GRAY, "Job information for ", TextColors.GOLD, optJobName.orElseGet(() -> TotalEconomy.getTotalEconomy().getJobManager().getPlayerJob((Player) src))))
                     .contents(lines.toArray(new Text[lines.size()]))
                     .build()
                     .sendTo(src);
