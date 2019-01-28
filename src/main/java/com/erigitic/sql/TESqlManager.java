@@ -31,6 +31,8 @@ public class TESqlManager implements AutoCloseable {
     private Connection jobsConnection;
     private Connection commandConnection;
     private String tablePrefix;
+    private String databaseName;
+    private boolean enabled = false;
 
     public TESqlManager(TotalEconomy totalEconomy, Logger logger) {
         this.totalEconomy = totalEconomy;
@@ -78,6 +80,14 @@ public class TESqlManager implements AutoCloseable {
                 tablePrefix = totalEconomy.getDatabasePrefix();
             }
 
+            Matcher dbNameMatcher = JDBC_DB_NAME.matcher(jdbcUrl);
+            if (!dbNameMatcher.find() || dbNameMatcher.groupCount() != 1) {
+                throw new SQLException("JDBC url has no database name!");
+            } else {
+                databaseName = dbNameMatcher.group(1);
+            }
+            enabled = true;
+
         } catch (SQLException|TEConnectionException e) {
             logger.warn("Failed to initialize SQL data-source)!", e);
             close();
@@ -122,8 +132,16 @@ public class TESqlManager implements AutoCloseable {
     }
 
     /**
+     * Retuns the current database name.
+     * DO NOT CACHE!
+     */
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    /**
      * Returns the currently configured table prefix.
-     * DO NOT CACHE
+     * DO NOT CACHE!
      */
     public Optional<String> getTablePrefix() {
         return Optional.ofNullable(tablePrefix);
@@ -159,6 +177,13 @@ public class TESqlManager implements AutoCloseable {
      */
     public Connection getCommandConnection() {
         return commandConnection;
+    }
+
+    /**
+     * Whether or not the sql connection has been initialized and is available.
+     */
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**
