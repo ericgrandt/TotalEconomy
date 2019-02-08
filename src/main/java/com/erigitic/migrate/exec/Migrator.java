@@ -1,26 +1,30 @@
 package com.erigitic.migrate.exec;
 
-import com.erigitic.sql.TESqlManager;
-
-import java.sql.Connection;
+import com.erigitic.main.TotalEconomy;
 
 /**
  * Utility class and base template for migrations.
- * Implements runnable so we keep asynchronous migration in mind.
+ * Implements runnable so we keep asynchronous migration in mind for now.
  */
-public interface Migrator extends Runnable {
+public abstract class Migrator implements Runnable {
+
+    private TotalEconomy plugin;
 
     /**
      * What schema version is required for this migration to run.
      */
-    int fromVersion();
+    abstract int fromVersion();
 
     /**
      * What schema version will be the result of this migration.
      */
-    int toVersion();
+    abstract int toVersion();
 
-    void setSqlManager(TESqlManager sqlManager);
+    public void setPlugin(TotalEconomy plugin) {
+        this.plugin = plugin;
+    }
 
-    void setConnection(Connection connection);
+    protected TotalEconomy getPlugin() {
+        return plugin;
+    }
 }

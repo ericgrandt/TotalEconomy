@@ -34,12 +34,7 @@ import com.erigitic.util.MessageManager;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -500,6 +495,13 @@ public class JobManager {
         }
 
         return getJob("unemployed", false);
+    }
+
+    /**
+     * Returns a map of all available jobs.
+     */
+    public Map<String, TEJob> getJobs() {
+        return Collections.unmodifiableMap(jobsMap);
     }
 
     /**

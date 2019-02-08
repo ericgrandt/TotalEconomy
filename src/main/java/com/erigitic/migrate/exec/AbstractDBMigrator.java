@@ -3,25 +3,25 @@ package com.erigitic.migrate.exec;
 import com.erigitic.except.TEMigrationException;
 import com.erigitic.migrate.util.TableBuilder;
 import com.erigitic.sql.TESqlManager;
+import org.intellij.lang.annotations.Language;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Migration layer for database migration.
- * Basically a utility class.
+ * Utility layer for database migrations.
  */
-public abstract class AbstractDBMigrator implements Migrator {
+public abstract class AbstractDBMigrator extends Migrator {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractDBMigrator.class);
 
-    private TESqlManager sqlManager;
     private Connection connection;
 
-    protected PreparedStatement prepare(String query) throws SQLException {
+    protected PreparedStatement prepare(@Language("MySQL") String query) throws SQLException {
         return getConnection().prepareStatement(query);
     }
 
@@ -42,7 +42,7 @@ public abstract class AbstractDBMigrator implements Migrator {
 
     protected void renameTable(String from, String to) {
         logger.warn("Renaming table {} to {}", from, to);
-        //language=MySQL
+        @Language("MySQL")
         String query = "RENAME TABLE ? TO ?";
         try (PreparedStatement statement = prepare(query)) {
             statement.setString(1, from);
@@ -55,7 +55,7 @@ public abstract class AbstractDBMigrator implements Migrator {
     }
 
     protected void createTable(String name, TableBuilder builder) {
-
+        throw new UnsupportedOperationException("Not yet implemented.");
     }
 
     protected void dropTable(String from, boolean force) {
@@ -63,6 +63,8 @@ public abstract class AbstractDBMigrator implements Migrator {
         String query = "DROP TABLE ?";
         try (PreparedStatement statement = prepare(query)) {
             if (force) {
+                // Save the current FK check state so we don't mutate state outside of this method.
+                statement.executeQuery("SET @FK_CHECKSTATE = @@FOREIGN_KEY_CHECKS");
                 statement.executeQuery("SET FOREIGN_KEY_CHECKS=0");
             }
 
@@ -70,28 +72,34 @@ public abstract class AbstractDBMigrator implements Migrator {
             statement.execute();
 
             if (force) {
-                statement.executeQuery("SET FOREIGN_KEY_CHECKS=1");
+                statement.executeQuery("SET FOREIGN_KEY_CHECKS = @FK_CHECKSTATE");
             }
         } catch (SQLException e) {
             throw new TEMigrationException("Failed to drop table: " + from, e);
         }
     }
 
-    public TESqlManager getSqlManager() {
-        return sqlManager;
+    protected boolean tableHasColumn(String table, String column) {
+
+        @Language("MySQL")
+        String query = "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?";
+        try (PreparedStatement statement = prepare(query)) {
+            statement.setString(1, getSqlManager().getDatabaseName());
+            statement.setString(2, table);
+            statement.setString(3, column);
+            ResultSet resultSet = statement.executeQuery();
+            return resultSet.isBeforeFirst() && "1".equals(resultSet.getString(1));
+
+        } catch (SQLException e) {
+            throw new TEMigrationException("Failed to determine if table has column: " + table + " " + column);
+        }
+    }
+
+    protected TESqlManager getSqlManager() {
+        return getPlugin().getTESqlManager();
     }
 
     protected Connection getConnection() {
         return connection;
-    }
-
-    @Override
-    public void setSqlManager(TESqlManager sqlManager) {
-        this.sqlManager = sqlManager;
-    }
-
-    @Override
-    public void setConnection(Connection connection) {
-        this.connection = connection;
     }
 }

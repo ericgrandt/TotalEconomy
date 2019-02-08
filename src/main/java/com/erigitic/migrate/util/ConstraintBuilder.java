@@ -2,7 +2,6 @@ package com.erigitic.migrate.util;
 
 import com.erigitic.except.TERuntimeException;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -149,7 +148,7 @@ public abstract class ConstraintBuilder {
 
         @Override
         public String build() {
-            Objects.requireNonNull(localColumn,"Column name may not be null for an index constraint!");
+            Objects.requireNonNull(localColumn, "Column name may not be null for an index constraint!");
 
             if (name == null) {
                 name = "index_" + localColumn;

@@ -52,7 +52,7 @@ CREATE TABLE currencies (
 # Its current use is for foreign key consistency.
 # #
 CREATE TABLE jobs (
-  uuid         CHAR(36)    UNIQUE PRIMARY KEY
+  ident         CHAR(36)    UNIQUE PRIMARY KEY
 ) COMMENT 'TotalEconomy jobs table. Currently only for constraints.';
 
 # # Balances table # #
@@ -77,15 +77,15 @@ CREATE TABLE balances (
 CREATE TABLE jobs_experience (
   id           INT(64) UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
   account_uuid CHAR(36) NOT NULL,
-  job_uuid     CHAR(36) NOT NULL,
+  job_ident     CHAR(36) NOT NULL,
   experience   INT(32)  DEFAULT 0,
   level        INT(32)  DEFAULT 0,
 
   FOREIGN KEY (account_uuid) REFERENCES accounts(uuid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (job_uuid) REFERENCES jobs(uuid) ON DELETE CASCADE ON UPDATE CASCADE,
-  UNIQUE (account_uuid, job_uuid),
+  FOREIGN KEY (job_ident) REFERENCES jobs(ident) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE (account_uuid, job_ident),
   INDEX (account_uuid),
-  INDEX (job_uuid)
+  INDEX (job_ident)
 ) COMMENT 'TotalEconomy job experience + levels table';
 
 # # # DEFAULT VALUES # # #

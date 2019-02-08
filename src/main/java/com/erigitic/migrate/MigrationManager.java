@@ -1,7 +1,5 @@
 package com.erigitic.migrate;
 
-import com.erigitic.except.TEMigrationException;
-import com.erigitic.migrate.exec.Migrator;
 import com.erigitic.sql.TESqlManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,59 +8,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 
 @SuppressWarnings("squid:S2095")
 public class MigrationManager {
 
     private static final int LATEST_SCHEMA_VERSION = 2;
 
-    // Better than Getters for loggers?
-    // Worse?
-    // ID instead of class? Or opposite?
     private static final Logger logger = LoggerFactory.getLogger("totaleconomy");
-
-    private static final List<Migrator> fileMigrators = new LinkedList<>();
-    private static final List<Migrator> dbMigrators = new LinkedList<>();
 
     private final TESqlManager sqlManager;
 
     public MigrationManager(TESqlManager sqlManager) {
         this.sqlManager = sqlManager;
-    }
-
-    public void migrate() {
-        if (!sqlManager.isEnabled()) {
-            fileMigrate();
-        } else {
-            dbMigrate();
-        }
-    }
-
-    private void fileMigrate() {
-        throw new UnsupportedOperationException("Not implemented yet!");
-    }
-
-    private void dbMigrate() {
-        try (Connection migrationConnection = sqlManager.getDataSource().getConnection()) {
-            int currentVersion = detectVersion(migrationConnection);
-
-            if (currentVersion == LATEST_SCHEMA_VERSION) {
-                logger.info("Version fits. Nothing to do.");
-
-            } else if (currentVersion > LATEST_SCHEMA_VERSION) {
-                throw new TEMigrationException("Current schema is ahead of the supported data format! Unable to migrate!");
-            } else {
-                runMigrators(dbMigrators);
-            }
-        } catch (SQLException e) {
-            throw new TEMigrationException("A fatal error occurred trying to run db migrations!", e);
-        }
-    }
-
-    private void runMigrators(List<Migrator> migrators) {
-
     }
 
     private int detectVersion(Connection connection) {
