@@ -227,7 +227,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(playerAccount);
             }
         } catch (IOException e) {
-            logger.warn("An error occurred while creating a new account!");
+            logger.warn("An error occurred while creating a new account!", e);
         }
 
         return Optional.of(playerAccount);
@@ -255,7 +255,7 @@ public class AccountManager implements EconomyService {
                 addNewCurrenciesToAccount(virtualAccount);
             }
         } catch (IOException e) {
-            logger.warn("An error occurred while creating a new virtual account!");
+            logger.warn("An error occurred while creating a new virtual account!", e);
         }
 
         return Optional.of(virtualAccount);
