@@ -28,7 +28,7 @@ public class TEBreakAction extends AbstractBlockAction {
         super(baseReward, blockId);
     }
 
-    public TEBreakAction(TEActionReward baseReward, String blockId, String growthTrait, String idTrait, String idTraitTargetValue) {
+    public TEBreakAction(TEActionReward baseReward, String blockId, String growthTrait, String idTrait) {
         super(baseReward, blockId, idTrait);
         this.growthTrait = growthTrait;
     }
