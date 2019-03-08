@@ -29,7 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.erigitic.jobs.actions.AbstractBlockAction;
 import com.erigitic.jobs.actions.TEBreakAction;
+import com.erigitic.jobs.actions.TEPlaceAction;
 import ninja.leaping.configurate.ConfigurationNode;
 
 public class TEJobSet {
@@ -63,7 +65,11 @@ public class TEJobSet {
         return actions;
     }
 
-    public Optional<TEBreakAction> getBreakAction(String blockId, String blockName) {
+    public Optional<AbstractBlockAction> getBreakAction(String blockId, String blockName) {
+
+    }
+
+    public Optional<AbstractBlockAction> getPlaceAction(String blockId, String blockName) {
 
     }
 }
