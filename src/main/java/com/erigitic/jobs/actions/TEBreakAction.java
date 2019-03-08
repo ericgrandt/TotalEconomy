@@ -25,12 +25,12 @@ public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
 
     private String growthTrait = null;
 
-    public TEBreakAction(TEActionReward baseReward) {
-        super(baseReward);
+    public TEBreakAction(TEActionReward baseReward, String blockId) {
+        super(baseReward, blockId);
     }
 
-    public TEBreakAction(TEActionReward baseReward, String growthTrait, String idTrait, String idTraitTargetValue) {
-        super(baseReward, idTrait, idTraitTargetValue);
+    public TEBreakAction(TEActionReward baseReward, String blockId, String growthTrait, String idTrait, String idTraitTargetValue) {
+        super(baseReward, blockId, idTrait);
         this.growthTrait = growthTrait;
     }
 
@@ -39,48 +39,36 @@ public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
     }
 
     @Override
-    public Optional<TEActionReward> evaluate(ChangeBlockEvent.Break triggerEvent) {
-        double[] moneyReward = new double[]{0d};
-        int[] expReward = new int[]{0};
-
-        // Aggregate rewards over all transactions in case the player broke multiple blocks
-        for (Transaction<BlockSnapshot> transaction : triggerEvent.getTransactions()) {
-            final Optional<UUID> optCreator = transaction.getOriginal().getCreator();
-            final BlockState finalBlockState = transaction.getFinal().getState();
-
-            // For now: If the block was placed by a player and does not have any growth trait, pay no reward.
-            // ==> If the block has no creator OR grows, add aggregate the reward
-            if (!optCreator.isPresent() || hasGrowthTrait()) {
-                aggregateReward(finalBlockState).ifPresent(reward -> {
-                    moneyReward[0] += reward.getMoneyReward();
-                    expReward[0] += reward.getExpReward();
-                });
-            }
-        }
-
-        // If any reward has been collected, construct a single reward for the aggregated result.
-        if (moneyReward[0] == 0 && expReward[0] == 0) {
-            return Optional.empty();
-        } else {
-            return Optional.of(makeReward(moneyReward[0], expReward[0]));
-        }
+    protected boolean checkTransaction(Transaction<BlockSnapshot> transaction) {
+        final Optional<UUID> optCreator = transaction.getOriginal().getCreator();
+        // For now: If the block was placed by a player and does not have any growth trait, pay no reward.
+        // ==> If the block has no creator OR grows, add aggregate the reward
+        return !optCreator.isPresent() || hasGrowthTrait();
     }
 
-    private Optional<TEActionReward> aggregateReward(BlockState blockState) {
+    @Override
+    protected BlockState getBlockState(Transaction<BlockSnapshot> transaction) {
+        return transaction.getOriginal().getState();
+    }
+
+    @Override
+    protected Optional<TEActionReward> aggregateReward(BlockState blockState) {
         // If the action has an ID-trait configured, we need to further validate the blocks identity.
         final String blockId = blockState.getType().getId();
-        if (!checkIdTrait(blockState)) {
+        final Optional<TEActionReward> dynamicBaseReward = getTraitedReward(blockState);
+        if (!dynamicBaseReward.isPresent()) {
             return Optional.empty();
 
         } else if (hasGrowthTrait()) {
-            return calculateGrowthReward(blockState, blockId);
+            return calculateGrowthReward(blockState, blockId, dynamicBaseReward.get());
+
         } else {
-            return Optional.of(getBaseReward());
+            return dynamicBaseReward;
         }
     }
 
     @SuppressWarnings("unchecked")
-    private Optional<TEActionReward> calculateGrowthReward(BlockState blockState, String blockId) {
+    private Optional<TEActionReward> calculateGrowthReward(BlockState blockState, String blockId, TEActionReward baseReward) {
         Optional<BlockTrait<?>> trait = blockState.getTrait(growthTrait);
         if (!trait.isPresent()) {
             logger.warn("Growth trait \"{}\" not found. Break: {}", growthTrait, blockId);
@@ -100,21 +88,21 @@ public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
 
         final Integer traitValue = (Integer) traitVal.get();
         final Collection<Integer> possibleValues = (Collection<Integer>) trait.get().getPossibleValues();
-        return Optional.of(generateReducibleReward(traitValue, possibleValues));
+        return Optional.of(generateReducibleReward(traitValue, possibleValues, baseReward));
     }
 
-    private TEActionReward generateReducibleReward(Integer traitValue, Collection<Integer> possibleValues) {
+    private TEActionReward generateReducibleReward(Integer traitValue, Collection<Integer> possibleValues, TEActionReward baseReward) {
         int max = possibleValues.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
         int min = possibleValues.stream().min(Comparator.comparingInt(Integer::intValue)).orElse(0);
         final double diff = (max - min);
 
         if (diff != 0) {
             double percent = (double) (traitValue - min) / diff;
-            int expReward = (int) (getBaseReward().getExpReward() * percent);
-            double moneyReward = getBaseReward().getMoneyReward() * percent;
+            int expReward = (int) (baseReward.getExpReward() * percent);
+            double moneyReward = baseReward.getMoneyReward() * percent;
 
             TEActionReward partialReward = new TEActionReward();
-            partialReward.setValues(expReward, moneyReward, getBaseReward().getCurrencyId());
+            partialReward.setValues(expReward, moneyReward, baseReward.getCurrencyId());
             return partialReward;
 
         } else {
