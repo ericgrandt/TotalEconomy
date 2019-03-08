@@ -25,57 +25,105 @@
 
 package com.erigitic.jobs;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.erigitic.jobs.actions.AbstractBlockAction;
+import com.erigitic.jobs.actions.ActionFactory;
+import com.erigitic.jobs.actions.TEFishAction;
+import com.erigitic.jobs.actions.TEKillAction;
+import ninja.leaping.configurate.ConfigurationNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-import com.erigitic.jobs.actions.*;
-import ninja.leaping.configurate.ConfigurationNode;
-
 public class TEJobSet {
-    private List<TEAction> actions = new ArrayList();
+
+    private static final Logger logger = LoggerFactory.getLogger(TEJobSet.class);
+
+    private final Map<String, AbstractBlockAction> breakActions = new HashMap<>();
+    private final Map<String, AbstractBlockAction> placeActions = new HashMap<>();
+    private final Map<String, TEFishAction> fishActions = new HashMap<>();
+    private final Map<String, TEKillAction> killActions = new HashMap<>();
 
     public TEJobSet(ConfigurationNode node) {
         node.getChildrenMap().forEach((actionStr, targetNode) -> {
-            if ((actionStr instanceof String) &&  targetNode != null) {
-                targetNode.getChildrenMap().forEach((targetID, actionNode) -> {
-                    if ((targetID instanceof String) && actionNode != null) {
-                        TEAction action = new TEAction();
-                        action.loadConfigNode((String) actionStr, actionNode);
+            if ((actionStr instanceof String) && targetNode != null) {
+                final String action = (String) actionStr;
+                switch (action) {
+                    case "break":
+                        registerBreakActions(targetNode);
+                        break;
 
-                        if (action.isValid()) {
-                            actions.add(action);
-                        }
-                    }
-                });
+                    case "place":
+                        registerPlaceActions(targetNode);
+                        break;
+
+                    case "fish":
+                        registerFishActions(targetNode);
+                        break;
+
+                    case "kill":
+                        registerKillActions(targetNode);
+                        break;
+
+                    default:
+                        logger.warn("Unknown action: {}", action);
+                }
             }
         });
     }
 
-    public Optional<TEAction> getActionFor(String action, String targetID) {
-        return actions.stream()
-                .filter(teAction -> teAction.getAction().equals(action))
-                .filter(teAction -> teAction.getTargetId().equals(targetID))
-                .findFirst();
+    private void registerBreakActions(ConfigurationNode actionNodes) {
+        actionNodes.getChildrenMap().forEach((key, value) -> {
+            final String blockIdentifier = (String) key;
+            breakActions.put(blockIdentifier, ActionFactory.createBreakAction(value));
+        });
     }
 
-    public List<TEAction> getActions() {
-        return actions;
+    private void registerPlaceActions(ConfigurationNode actionNodes) {
+        actionNodes.getChildrenMap().forEach((key, value) -> {
+            final String blockIdentifier = (String) key;
+            placeActions.put(blockIdentifier, ActionFactory.createPlaceAction(value));
+        });
+    }
+
+    private void registerFishActions(ConfigurationNode actionNodes) {
+        actionNodes.getChildrenMap().forEach((key, value) -> {
+            final String itemIdentifier = (String) key;
+            fishActions.put(itemIdentifier, ActionFactory.createFishAction(value));
+        });
+    }
+
+    private void registerKillActions(ConfigurationNode actionNodes) {
+        actionNodes.getChildrenMap().forEach((key, value) -> {
+            final String entityIdentifier = (String) key;
+            killActions.put(entityIdentifier, ActionFactory.createKillAction(value));
+        });
     }
 
     public Optional<AbstractBlockAction> getBreakAction(String blockId, String blockName) {
-
+        AbstractBlockAction action = breakActions.getOrDefault(blockId, null);
+        action = action != null ? action : breakActions.getOrDefault(blockName, null);
+        return Optional.ofNullable(action);
     }
 
     public Optional<AbstractBlockAction> getPlaceAction(String blockId, String blockName) {
+        AbstractBlockAction action = breakActions.getOrDefault(blockId, null);
+        action = action != null ? action : breakActions.getOrDefault(blockName, null);
+        return Optional.ofNullable(action);
 
     }
 
     public Optional<TEFishAction> getFishAction(String itemId, String itemName) {
-
+        TEFishAction action = fishActions.getOrDefault(itemId, null);
+        action = action != null ? action : fishActions.getOrDefault(itemName, null);
+        return Optional.ofNullable(action);
     }
 
     public Optional<TEKillAction> getKillAction(String entityId, String entityName) {
-
+        TEKillAction action = killActions.getOrDefault(entityId, null);
+        action = action != null ? action : killActions.getOrDefault(entityName, null);
+        return Optional.ofNullable(action);
     }
 }
