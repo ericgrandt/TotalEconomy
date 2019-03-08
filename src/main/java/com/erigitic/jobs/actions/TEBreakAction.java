@@ -82,7 +82,7 @@ public class TEBreakAction extends AbstractBlockAction {
 
         final Integer traitValue = (Integer) traitVal.get();
         final Collection<Integer> possibleValues = (Collection<Integer>) trait.get().getPossibleValues();
-        return Optional.of(generateReducibleReward(traitValue, possibleValues, baseReward));
+        return Optional.ofNullable(generateReducibleReward(traitValue, possibleValues, baseReward));
     }
 
     private TEActionReward generateReducibleReward(Integer traitValue, Collection<Integer> possibleValues, TEActionReward baseReward) {
@@ -95,9 +95,13 @@ public class TEBreakAction extends AbstractBlockAction {
             int expReward = (int) (baseReward.getExpReward() * percent);
             double moneyReward = baseReward.getMoneyReward() * percent;
 
-            TEActionReward partialReward = new TEActionReward();
-            partialReward.setValues(expReward, moneyReward, baseReward.getCurrencyId());
-            return partialReward;
+            if (expReward != 0 || moneyReward != 0d) {
+                TEActionReward partialReward = new TEActionReward();
+                partialReward.setValues(expReward, moneyReward, baseReward.getCurrencyId());
+                return partialReward;
+            } else {
+                return null;
+            }
 
         } else {
             // Difference is only 0 when max and min are the same.
