@@ -34,12 +34,7 @@ import com.erigitic.util.MessageManager;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -373,7 +368,7 @@ public class JobManager {
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 
-    private boolean getNotificationState(UUID uuid) {
+    public boolean getNotificationState(UUID uuid) {
         if (databaseEnabled) {
             SqlQuery sqlQuery = SqlQuery.builder(sqlManager.dataSource)
                     .select("job_notifications")
@@ -393,7 +388,7 @@ public class JobManager {
      *
      * @param amount The amount rewarded by the job action
      */
-    private void notifyPlayerOfJobReward(Player player, BigDecimal amount, Currency currency) {
+    public void notifyPlayerOfJobReward(Player player, BigDecimal amount, Currency currency) {
         Text amountText = currency.format(amount, currency.getDefaultFractionDigits());
 
         Map<String, String> messageValues = new HashMap<>();
@@ -1085,5 +1080,20 @@ public class JobManager {
                 }
             }
         }
+    }
+
+    public List<TEJobSet> getSetsApplicableTo(User user) {
+        List<TEJobSet> sets = new LinkedList<>();
+        final Optional<TEJob> optJob = getJob(getPlayerJob(user), true);
+
+        optJob.ifPresent(job -> {
+            job.getSets().stream()
+                    .map(this::getJobSet)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .forEach(sets::add);
+        });
+
+        return sets;
     }
 }

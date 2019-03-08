@@ -5,7 +5,7 @@ import org.spongepowered.api.event.Event;
 
 import java.util.Optional;
 
-public abstract class AbstractTEAction<T extends Event> {
+public abstract class AbstractTEAction<T> {
 
     private TEActionReward baseReward;
 
@@ -13,7 +13,7 @@ public abstract class AbstractTEAction<T extends Event> {
         this.baseReward = baseReward;
     }
 
-    public abstract Optional<TEActionReward> evaluate(T triggerEvent);
+    public abstract Optional<TEActionReward> getRewardFor(T trigger);
 
     public TEActionReward getBaseReward() {
         return baseReward;

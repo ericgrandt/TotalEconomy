@@ -7,7 +7,6 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.event.block.ChangeBlockEvent;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -19,7 +18,7 @@ import java.util.UUID;
  * Break actions allow to decide between block types by ID and a block trait.
  * Break actions can lower the reward for not fully grown block that indicate growth using a numerical block trait.
  */
-public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
+public class TEBreakAction extends AbstractBlockAction {
 
     private static final Logger logger = LoggerFactory.getLogger(TEBreakAction.class);
 
@@ -39,7 +38,7 @@ public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
     }
 
     @Override
-    protected boolean checkTransaction(Transaction<BlockSnapshot> transaction) {
+    public boolean checkTransaction(Transaction<BlockSnapshot> transaction) {
         final Optional<UUID> optCreator = transaction.getOriginal().getCreator();
         // For now: If the block was placed by a player and does not have any growth trait, pay no reward.
         // ==> If the block has no creator OR grows, add aggregate the reward
@@ -47,12 +46,7 @@ public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
     }
 
     @Override
-    protected BlockState getBlockState(Transaction<BlockSnapshot> transaction) {
-        return transaction.getOriginal().getState();
-    }
-
-    @Override
-    protected Optional<TEActionReward> aggregateReward(BlockState blockState) {
+    public Optional<TEActionReward> getRewardFor(BlockState blockState) {
         // If the action has an ID-trait configured, we need to further validate the blocks identity.
         final String blockId = blockState.getType().getId();
         final Optional<TEActionReward> dynamicBaseReward = getTraitedReward(blockState);

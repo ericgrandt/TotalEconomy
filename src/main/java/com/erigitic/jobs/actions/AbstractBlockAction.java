@@ -5,17 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.event.block.ChangeBlockEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
-public abstract class AbstractBlockAction<T extends ChangeBlockEvent> extends AbstractTEAction<T> {
+public abstract class AbstractBlockAction extends AbstractTEAction<BlockState> {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractBlockAction.class);
 
@@ -38,34 +35,6 @@ public abstract class AbstractBlockAction<T extends ChangeBlockEvent> extends Ab
 
     public void addRewardForTraitValue(String traitValue, TEActionReward baseReward) {
         baseRewardsByTrait.put(traitValue, baseReward);
-    }
-
-    @Override
-    public Optional<TEActionReward> evaluate(T changeBlockEvent) {
-        double[] moneyReward = new double[]{0d};
-        int[] expReward = new int[]{0};
-
-        // Aggregate rewards over all transactions in case the player broke multiple blocks
-        for (Transaction<BlockSnapshot> transaction : changeBlockEvent.getTransactions()) {
-            if (checkTransaction(transaction)) {
-                final BlockState blockState = getBlockState(transaction);
-                final BlockType blockType = blockState.getType();
-
-                if (blockType.getId().equalsIgnoreCase(blockId) || blockType.getName().equalsIgnoreCase(blockId)) {
-                    aggregateReward(blockState).ifPresent(reward -> {
-                        moneyReward[0] += reward.getMoneyReward();
-                        expReward[0] += reward.getExpReward();
-                    });
-                }
-            }
-        }
-
-        // If any reward has been collected, construct a single reward for the aggregated result.
-        if (moneyReward[0] == 0 && expReward[0] == 0) {
-            return Optional.empty();
-        } else {
-            return Optional.of(makeReward(moneyReward[0], expReward[0]));
-        }
     }
 
     /**
@@ -103,16 +72,5 @@ public abstract class AbstractBlockAction<T extends ChangeBlockEvent> extends Ab
      * Whether or not this block transaction should be taken into consideration
      * while iterating over transactions.
      */
-    protected abstract boolean checkTransaction(Transaction<BlockSnapshot> transaction);
-
-    /**
-     * Return the block state to consider from the transaction.
-     * (original vs. final block state)
-     */
-    protected abstract BlockState getBlockState(Transaction<BlockSnapshot> transaction);
-
-    /**
-     * Calculate the reward for this particular block state from {@link #getBlockState(Transaction)}.
-     */
-    protected abstract Optional<TEActionReward> aggregateReward(BlockState blockState);
+    public abstract boolean checkTransaction(Transaction<BlockSnapshot> transaction);
 }
