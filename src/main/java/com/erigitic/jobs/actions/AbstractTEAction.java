@@ -1,6 +1,7 @@
 package com.erigitic.jobs.actions;
 
 import com.erigitic.jobs.TEActionReward;
+import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
 
@@ -23,4 +24,6 @@ public abstract class AbstractTEAction<T> {
         reward.setValues(exp, money, getBaseReward().getCurrencyId());
         return reward;
     }
+
+    public abstract Text toText();
 }

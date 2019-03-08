@@ -7,8 +7,10 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.text.Text;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
 
@@ -73,4 +75,19 @@ public abstract class AbstractBlockAction extends AbstractTEAction<BlockState> {
      * while iterating over transactions.
      */
     public abstract boolean checkTransaction(Transaction<BlockSnapshot> transaction);
+
+    @Override
+    public Text toText() {
+
+        if (idTrait != null) {
+            LinkedList<Text> text = new LinkedList<>();
+            baseRewardsByTrait.forEach((k, v) -> {
+                text.add(Text.of(k));
+            });
+
+            return Text.of("[traits=", Text.joinWith(Text.of(", "), text), "]");
+        } else {
+            return Text.of();
+        }
+    }
 }

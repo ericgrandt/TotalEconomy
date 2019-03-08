@@ -7,6 +7,7 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.text.Text;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -108,5 +109,10 @@ public class TEBreakAction extends AbstractBlockAction {
             // We will just say that's 100% grown.
             return getBaseReward();
         }
+    }
+
+    @Override
+    public Text toText() {
+        return Text.of(" ", super.toText(), growthTrait == null ? "" : " [growing=" + growthTrait + "]");
     }
 }

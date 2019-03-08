@@ -32,11 +32,10 @@ import com.erigitic.jobs.actions.TEKillAction;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class TEJobSet {
 
@@ -128,7 +127,41 @@ public class TEJobSet {
         return Optional.ofNullable(action);
     }
 
-    public Iterable<? extends TEAction> getActions() {
-        return Collections.emptyList();
+    public Map<String, AbstractBlockAction> getBreakActions() {
+        return breakActions;
+    }
+
+    public Map<String, AbstractBlockAction> getPlaceActions() {
+        return placeActions;
+    }
+
+    public Map<String, TEFishAction> getFishActions() {
+        return fishActions;
+    }
+
+    public Map<String, TEKillAction> getKillActions() {
+        return killActions;
+    }
+
+    public List<Text> getActionListAsText() {
+        LinkedList<Text> result = new LinkedList<>();
+
+        getBreakActions().forEach((itemIdent, action) -> {
+            result.add(Text.of(TextColors.GRAY, "Break: ", TextColors.GOLD, itemIdent, TextColors.WHITE, action.toText()));
+        });
+
+        getPlaceActions().forEach((itemIdent, action) -> {
+            result.add(Text.of(TextColors.GRAY, "Place: ", TextColors.GOLD, itemIdent, TextColors.WHITE, action.toText()));
+        });
+
+        getFishActions().forEach((itemIdent, action) -> {
+            result.add(Text.of(TextColors.GRAY, "Fish: ", TextColors.GOLD, itemIdent, TextColors.WHITE, action.toText()));
+        });
+
+        getKillActions().forEach((itemIdent, action) -> {
+            result.add(Text.of(TextColors.GRAY, "Kill: ", TextColors.GOLD, itemIdent, TextColors.WHITE, action.toText()));
+        });
+
+        return result;
     }
 }
