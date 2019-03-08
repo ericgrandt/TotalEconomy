@@ -19,31 +19,23 @@ import java.util.UUID;
  * Break actions allow to decide between block types by ID and a block trait.
  * Break actions can lower the reward for not fully grown block that indicate growth using a numerical block trait.
  */
-public class TEBreakAction extends AbstractTEAction<ChangeBlockEvent.Break> {
+public class TEBreakAction extends AbstractBlockAction<ChangeBlockEvent.Break> {
 
     private static final Logger logger = LoggerFactory.getLogger(TEBreakAction.class);
 
     private String growthTrait = null;
-    private String idTrait = null;
-    private String idTraitTargetValue = null;
 
     public TEBreakAction(TEActionReward baseReward) {
         super(baseReward);
     }
 
     public TEBreakAction(TEActionReward baseReward, String growthTrait, String idTrait, String idTraitTargetValue) {
-        super(baseReward);
+        super(baseReward, idTrait, idTraitTargetValue);
         this.growthTrait = growthTrait;
-        this.idTrait = idTrait;
-        this.idTraitTargetValue = idTraitTargetValue;
     }
 
     private boolean hasGrowthTrait() {
         return growthTrait != null && !growthTrait.isEmpty();
-    }
-
-    private boolean hasIdTrait() {
-        return idTrait != null && !idTrait.isEmpty();
     }
 
     @Override
@@ -84,31 +76,6 @@ public class TEBreakAction extends AbstractTEAction<ChangeBlockEvent.Break> {
             return calculateGrowthReward(blockState, blockId);
         } else {
             return Optional.of(getBaseReward());
-        }
-    }
-
-    private boolean checkIdTrait(BlockState blockState) {
-        if (!hasIdTrait()) {
-            return true;
-        }
-
-        String blockId = blockState.getId();
-        Optional<BlockTrait<?>> trait = blockState.getTrait(idTrait);
-
-        if (trait.isPresent()) {
-            Optional<?> traitVal = blockState.getTraitValue(trait.get());
-
-            // If the trait value could not be found, log a warning.
-            if (!traitVal.isPresent()) {
-                logger.warn("ID trait \"{}\" has no stored value. Break: {}", idTrait, blockId);
-                return false;
-            }
-
-            // If the value does not match, this is not the block we are looking for.
-            return traitVal.get().equals(idTraitTargetValue);
-        } else {
-            logger.warn("ID trait \"{}\" not found. Break: {}", idTrait, blockId);
-            return false;
         }
     }
 
