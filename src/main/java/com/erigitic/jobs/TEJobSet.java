@@ -33,6 +33,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -125,5 +126,9 @@ public class TEJobSet {
         TEKillAction action = killActions.getOrDefault(entityId, null);
         action = action != null ? action : killActions.getOrDefault(entityName, null);
         return Optional.ofNullable(action);
+    }
+
+    public Iterable<? extends TEAction> getActions() {
+        return Collections.emptyList();
     }
 }
