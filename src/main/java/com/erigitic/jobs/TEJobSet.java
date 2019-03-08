@@ -60,7 +60,7 @@ public class TEJobSet {
                         registerPlaceActions(targetNode);
                         break;
 
-                    case "fish":
+                    case "catch":
                         registerFishActions(targetNode);
                         break;
 
