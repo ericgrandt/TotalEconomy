@@ -362,6 +362,7 @@ public class TotalEconomy {
 
         if (jobFeatureEnabled) {
             eventManager.registerListeners(this, jobManager);
+            jobManager.registerListers();
         }
 
         if (chestShopEnabled) {
