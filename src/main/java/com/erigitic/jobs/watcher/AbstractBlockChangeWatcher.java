@@ -10,6 +10,7 @@ import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -24,6 +25,11 @@ public abstract class AbstractBlockChangeWatcher<T extends ChangeBlockEvent> ext
         super(totalEconomy);
     }
 
+    /**
+     * Evaluates a reward for a player fishing an item.
+     * Suppressed duplicates: Member {@link ChangeBlockEvent#getTransactions()} has no parent with {@link FishingEvent.Stop#getTransactions()}
+     */
+    @SuppressWarnings("Duplicates")
     public void onChangeBlockEvent(T event) {
         final Optional<Player> optPlayerCause = event.getCause().first(Player.class);
         if (optPlayerCause.isPresent()) {

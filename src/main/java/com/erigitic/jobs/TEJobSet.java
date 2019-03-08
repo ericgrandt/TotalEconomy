@@ -31,6 +31,7 @@ import java.util.Optional;
 
 import com.erigitic.jobs.actions.AbstractBlockAction;
 import com.erigitic.jobs.actions.TEBreakAction;
+import com.erigitic.jobs.actions.TEFishAction;
 import com.erigitic.jobs.actions.TEPlaceAction;
 import ninja.leaping.configurate.ConfigurationNode;
 
@@ -70,6 +71,10 @@ public class TEJobSet {
     }
 
     public Optional<AbstractBlockAction> getPlaceAction(String blockId, String blockName) {
+
+    }
+
+    public Optional<TEFishAction> getFishAction(String itemId, String itemName) {
 
     }
 }

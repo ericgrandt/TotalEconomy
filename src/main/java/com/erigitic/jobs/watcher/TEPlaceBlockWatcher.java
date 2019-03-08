@@ -4,16 +4,10 @@ import com.erigitic.main.TotalEconomy;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
-import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TEPlaceBlockWatcher extends AbstractBlockChangeWatcher<ChangeBlockEvent.Place> {
 

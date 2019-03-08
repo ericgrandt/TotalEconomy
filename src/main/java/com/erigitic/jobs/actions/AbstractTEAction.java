@@ -1,7 +1,6 @@
 package com.erigitic.jobs.actions;
 
 import com.erigitic.jobs.TEActionReward;
-import org.spongepowered.api.event.Event;
 
 import java.util.Optional;
 
