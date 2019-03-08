@@ -4,7 +4,10 @@ import com.erigitic.jobs.TEActionReward;
 import com.erigitic.jobs.TEJobSet;
 import com.erigitic.jobs.actions.TEFishAction;
 import com.erigitic.main.TotalEconomy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.data.manipulator.mutable.item.FishData;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.action.FishingEvent;
@@ -17,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class TEFishWatcher extends AbstractWatcher {
+
+    private static final Logger logger = LoggerFactory.getLogger(TEFishWatcher.class);
 
     public TEFishWatcher(TotalEconomy totalEconomy) {
         super(totalEconomy);
@@ -50,12 +55,18 @@ public class TEFishWatcher extends AbstractWatcher {
         final ItemType itemType = transaction.getFinal().getType();
         final String itemId = itemType.getId();
         final String itemName = itemType.getName();
-        checkDebugNotification(player, itemType);
+        Optional<FishData> optFishData = transaction.getFinal().createStack().get(FishData.class);
+        if (!optFishData.isPresent()) {
+            logger.warn("Could not get fish data of: {}", itemId);
+            return Optional.empty();
+        }
+        String fishName = optFishData.get().type().get().getName().toLowerCase();
+        checkDebugNotification(player, itemType, fishName);
 
         // Calculate the largest applicable reward (money-wise)
         final TEActionReward[] largestReward = {null};
         for (TEJobSet set : sets) {
-            final Optional<TEFishAction> optAction = set.getFishAction(itemId, itemName);
+            final Optional<TEFishAction> optAction = set.getFishAction(itemId, itemName, fishName);
 
             // For all sets, having a break action for this itemId or itemName, check the rewards.
             // Always keep the largest reward found.
@@ -77,11 +88,12 @@ public class TEFishWatcher extends AbstractWatcher {
         return Optional.ofNullable(largestReward[0]);
     }
 
-    private void checkDebugNotification(Player player, ItemType itemType) {
+    private void checkDebugNotification(Player player, ItemType itemType, String fishName) {
         // Enable admins to determine fish information by displaying it to them - WHEN they have the flag enabled
         if (getAccountManager().getUserOption("totaleconomy:entity-fish-info", player).orElse("0").equals("1")) {
             player.sendMessage(Text.of("Fish-Name: ", itemType.getName()));
             player.sendMessage(Text.of("Fish-ID: ", itemType.getId()));
+            player.sendMessage(Text.of("Fish-Data: ", fishName));
         }
     }
 }

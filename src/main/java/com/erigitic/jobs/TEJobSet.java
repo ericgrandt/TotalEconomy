@@ -115,9 +115,10 @@ public class TEJobSet {
         return Optional.ofNullable(action);
     }
 
-    public Optional<TEFishAction> getFishAction(String itemId, String itemName) {
+    public Optional<TEFishAction> getFishAction(String itemId, String itemName, String fishName) {
         TEFishAction action = fishActions.getOrDefault(itemId, null);
         action = action != null ? action : fishActions.getOrDefault(itemName, null);
+        action = action != null ? action : fishActions.getOrDefault(fishName, null);
         return Optional.ofNullable(action);
     }
 
