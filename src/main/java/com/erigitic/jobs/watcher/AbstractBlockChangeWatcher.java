@@ -58,7 +58,7 @@ public abstract class AbstractBlockChangeWatcher<T extends ChangeBlockEvent> ext
         // Calculate the largest applicable reward (money-wise)
         final TEActionReward[] largestReward = {null};
         for (TEJobSet set : sets) {
-            final Optional<AbstractBlockAction> optAction = set.getBreakAction(blockId, blockName);
+            final Optional<AbstractBlockAction> optAction = getAction(blockId, blockName, set);
 
             // For all sets, having a break action for this blockId or blockName, check the rewards.
             // Always keep the largest reward found.
@@ -79,6 +79,8 @@ public abstract class AbstractBlockChangeWatcher<T extends ChangeBlockEvent> ext
 
         return Optional.ofNullable(largestReward[0]);
     }
+
+    protected abstract Optional<AbstractBlockAction> getAction(String blockId, String blockName, TEJobSet set);
 
     protected abstract BlockState getState(Transaction<BlockSnapshot> transaction);
 
