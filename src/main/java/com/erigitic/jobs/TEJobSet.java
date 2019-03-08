@@ -110,10 +110,9 @@ public class TEJobSet {
     }
 
     public Optional<AbstractBlockAction> getPlaceAction(String blockId, String blockName) {
-        AbstractBlockAction action = breakActions.getOrDefault(blockId, null);
-        action = action != null ? action : breakActions.getOrDefault(blockName, null);
+        AbstractBlockAction action = placeActions.getOrDefault(blockId, null);
+        action = action != null ? action : placeActions.getOrDefault(blockName, null);
         return Optional.ofNullable(action);
-
     }
 
     public Optional<TEFishAction> getFishAction(String itemId, String itemName) {
