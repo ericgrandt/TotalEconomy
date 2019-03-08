@@ -29,10 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.erigitic.jobs.actions.AbstractBlockAction;
-import com.erigitic.jobs.actions.TEBreakAction;
-import com.erigitic.jobs.actions.TEFishAction;
-import com.erigitic.jobs.actions.TEPlaceAction;
+import com.erigitic.jobs.actions.*;
 import ninja.leaping.configurate.ConfigurationNode;
 
 public class TEJobSet {
@@ -75,6 +72,10 @@ public class TEJobSet {
     }
 
     public Optional<TEFishAction> getFishAction(String itemId, String itemName) {
+
+    }
+
+    public Optional<TEKillAction> getKillAction(String entityId, String entityName) {
 
     }
 }
