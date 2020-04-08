@@ -10,6 +10,7 @@ bin
 .project
 !gradle-wrapper.jar
 MANIFEST.MF
+.vs
 
 # Mac Stuff
 .DS_STORE
