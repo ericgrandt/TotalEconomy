@@ -23,7 +23,11 @@ public class Database {
         connectionString = plugin.getDefaultConfiguration().getConnectionString();
     }
 
-    public DataSource getDataSource() throws SQLException {
+    public Connection getConnection() throws SQLException {
+        return getDataSource().getConnection();
+    }
+
+    private DataSource getDataSource() throws SQLException {
         if (sql == null) {
             sql = Sponge.getServiceManager().provide(SqlService.class).get();
         }
@@ -33,12 +37,17 @@ public class Database {
 
     public void setup() {
         String createDatabaseQuery = "CREATE DATABASE IF NOT EXISTS totaleconomy";
-        String createUserTable = "CREATE TABLE IF NOT EXISTS totaleconomy.te_user (id VARCHAR(36) NOT NULL, CONSTRAINT user_PK PRIMARY KEY (id))";
-        String createCurrencyTable = "CREATE TABLE IF NOT EXISTS totaleconomy.currency (id INT auto_increment NOT NULL, nameSingular VARCHAR(50) NOT NULL, namePlural VARCHAR(50) NOT NULL, symbol VARCHAR(1) NOT NULL, prefix BOOL DEFAULT true NOT NULL, CONSTRAINT currency_PK PRIMARY KEY (id))";
-        String createBalanceTable = "CREATE TABLE IF NOT EXISTS totaleconomy.balance (userId VARCHAR(36) NOT NULL, currencyId INT NOT NULL, balance NUMERIC DEFAULT 0 NOT NULL, CONSTRAINT balance_user_FK FOREIGN KEY (userId) REFERENCES totaleconomy.te_user(id) ON DELETE CASCADE, CONSTRAINT balance_currency_FK FOREIGN KEY (currencyId) REFERENCES totaleconomy.currency(id) ON DELETE CASCADE)";
+        String setDatabaseQuery = "USE totaleconomy";
+        String createUserTable = "CREATE TABLE IF NOT EXISTS te_user (id VARCHAR(36) NOT NULL, CONSTRAINT user_PK PRIMARY KEY (id))";
+        String createCurrencyTable = "CREATE TABLE IF NOT EXISTS currency (id INT auto_increment NOT NULL, nameSingular VARCHAR(50) NOT NULL UNIQUE, namePlural VARCHAR(50) NOT NULL UNIQUE, symbol VARCHAR(1) NOT NULL, isDefault BOOL NOT NULL, CONSTRAINT currency_PK PRIMARY KEY (id))";
+        String createBalanceTable = "CREATE TABLE IF NOT EXISTS balance (userId VARCHAR(36) NOT NULL, currencyId INT NOT NULL, balance NUMERIC DEFAULT 0 NOT NULL, CONSTRAINT balance_user_FK FOREIGN KEY (userId) REFERENCES totaleconomy.te_user(id) ON DELETE CASCADE, CONSTRAINT balance_currency_FK FOREIGN KEY (currencyId) REFERENCES totaleconomy.currency(id) ON DELETE CASCADE)";
 
-        try (Connection conn = getDataSource().getConnection()) {
+        try (Connection conn = getConnection()) {
             try(PreparedStatement stmt = conn.prepareStatement(createDatabaseQuery)) {
+                stmt.executeQuery();
+            }
+
+            try(PreparedStatement stmt = conn.prepareStatement(setDatabaseQuery)) {
                 stmt.executeQuery();
             }
 
@@ -54,7 +63,7 @@ public class Database {
                 stmt.executeQuery();
             }
         } catch (SQLException e) {
-            logger.error("Error creating database 'totaleconomy'");
+            logger.error("Error setting up database");
         }
     }
 }
