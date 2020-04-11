@@ -40,7 +40,7 @@ public class Database {
         String setDatabaseQuery = "USE totaleconomy";
         String createUserTable = "CREATE TABLE IF NOT EXISTS te_user (id VARCHAR(36) NOT NULL, CONSTRAINT user_PK PRIMARY KEY (id))";
         String createCurrencyTable = "CREATE TABLE IF NOT EXISTS currency (id INT auto_increment NOT NULL, nameSingular VARCHAR(50) NOT NULL UNIQUE, namePlural VARCHAR(50) NOT NULL UNIQUE, symbol VARCHAR(1) NOT NULL, isDefault BOOL NOT NULL, CONSTRAINT currency_PK PRIMARY KEY (id))";
-        String createBalanceTable = "CREATE TABLE IF NOT EXISTS balance (userId VARCHAR(36) NOT NULL, currencyId INT NOT NULL, balance NUMERIC DEFAULT 0 NOT NULL, CONSTRAINT balance_user_FK FOREIGN KEY (userId) REFERENCES totaleconomy.te_user(id) ON DELETE CASCADE, CONSTRAINT balance_currency_FK FOREIGN KEY (currencyId) REFERENCES totaleconomy.currency(id) ON DELETE CASCADE)";
+        String createBalanceTable = "CREATE TABLE IF NOT EXISTS balance (userId VARCHAR(36) NOT NULL, currencyName VARCHAR(50) NOT NULL, balance NUMERIC DEFAULT 0 NOT NULL, CONSTRAINT balance_user_FK FOREIGN KEY (userId) REFERENCES te_user(id) ON DELETE CASCADE, CONSTRAINT balance_currency_FK FOREIGN KEY (currencyName) REFERENCES currency(nameSingular) ON DELETE CASCADE, CONSTRAINT balance_UN UNIQUE KEY (userId, currencyName))";
 
         try (Connection conn = getConnection()) {
             try(PreparedStatement stmt = conn.prepareStatement(createDatabaseQuery)) {

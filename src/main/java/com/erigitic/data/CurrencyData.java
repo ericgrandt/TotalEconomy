@@ -44,27 +44,28 @@ public class CurrencyData {
         return null;
     }
 
-    public Currency getCurrency(String id) {
+    public Currency getCurrency(String identifier) {
         String query = "SELECT nameSingular, namePlural, symbol, isDefault FROM currency WHERE nameSingular = ? LIMIT 1";
 
         try (Connection conn = database.getConnection()) {
             try(PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, id);
+                stmt.setString(1, identifier);
 
                 ResultSet results = stmt.executeQuery();
-                results.next();
 
-                Currency currency = new TECurrency(
-                    Text.of(results.getString("nameSingular")),
-                    Text.of(results.getString("namePlural")),
-                    Text.of(results.getString("symbol").charAt(0)),
-                    results.getBoolean("isDefault")
-                );
+                if (results.next()) {
+                    Currency currency = new TECurrency(
+                        Text.of(results.getString("nameSingular")),
+                        Text.of(results.getString("namePlural")),
+                        Text.of(results.getString("symbol").charAt(0)),
+                        results.getBoolean("isDefault")
+                    );
 
-                return currency;
+                    return currency;
+                }
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error getting default currency from database (Query: %s, Parameters: %s)", query, id));
+            logger.error(String.format("Error getting currency from database (Query: %s, Parameters: %s)", query, identifier));
         }
 
         return null;

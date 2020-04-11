@@ -1,12 +1,14 @@
 package com.erigitic.economy;
 
 import com.erigitic.TotalEconomy;
+import com.erigitic.data.AccountData;
 import com.erigitic.data.CurrencyData;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Optional;
 import java.util.Set;
@@ -15,10 +17,12 @@ import java.util.UUID;
 public class TEEconomyService implements EconomyService {
     private TotalEconomy plugin;
     private CurrencyData currencyData;
+    private AccountData accountData;
 
     public TEEconomyService() {
         this.plugin = TotalEconomy.getPlugin();
         this.currencyData = new CurrencyData(plugin.getDatabase());
+        this.accountData = new AccountData(plugin.getDatabase());
     }
 
     @Override
@@ -37,22 +41,34 @@ public class TEEconomyService implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        return false;
+        boolean hasAccount = false;
+
+        if (accountData.getAccount(uuid).isPresent()) {
+            hasAccount = true;
+        }
+
+        return hasAccount;
     }
 
     @Override
     public boolean hasAccount(String identifier) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
-        return Optional.empty();
+        Optional<UniqueAccount> accountOpt = accountData.getAccount(uuid);
+
+        if (!accountOpt.isPresent()) {
+            accountData.createAccount(uuid);
+        }
+
+        return accountData.getAccount(uuid);
     }
 
     @Override
     public Optional<Account> getOrCreateAccount(String identifier) {
-        return Optional.empty();
+        throw new UnsupportedOperationException();
     }
 
     @Override
