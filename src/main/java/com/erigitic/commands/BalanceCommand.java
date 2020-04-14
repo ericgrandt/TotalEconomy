@@ -1,6 +1,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.TotalEconomy;
+import com.erigitic.economy.TEAccount;
 import com.erigitic.economy.TEEconomyService;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -12,6 +13,7 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 public class BalanceCommand implements CommandExecutor {
@@ -29,26 +31,27 @@ public class BalanceCommand implements CommandExecutor {
             return CommandResult.empty();
         }
 
-        String currencyName = getCurrencyNameArgument(args.getOne("currencyName"));
-        Currency currency = economyService.getCurrency(currencyName);
+        TEAccount account = new TEAccount(((Player) src).getUniqueId());
+        Currency currency = getCurrencyArgOrDefault(args.getOne("currencyName"));
 
-        if (currency == null) {
-            src.sendMessage(Text.of(TextColors.RED, "Invalid currency name"));
+        BigDecimal balance = account.getBalance(currency);
+        if (balance == null) {
+            src.sendMessage(Text.of(TextColors.RED, "Error retrieving balance"));
 
             return CommandResult.empty();
         }
 
-        src.sendMessage(currency.getPluralDisplayName());
+        src.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, currency.getSymbol(), balance.toString()));
 
         return CommandResult.success();
     }
 
-    private String getCurrencyNameArgument(Optional<String> currencyNameOpt) {
-        String currencyName = "";
+    private Currency getCurrencyArgOrDefault(Optional<Currency> currencyNameOpt) {
+        Currency currency = economyService.getDefaultCurrency();
         if (currencyNameOpt.isPresent()) {
-            currencyName = currencyNameOpt.get();
+            currency = currencyNameOpt.get();
         }
 
-        return currencyName;
+        return currency;
     }
 }

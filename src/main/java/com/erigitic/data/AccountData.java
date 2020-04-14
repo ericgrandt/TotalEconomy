@@ -8,7 +8,6 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
 
-import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

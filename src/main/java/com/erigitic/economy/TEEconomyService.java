@@ -8,7 +8,6 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Optional;
 import java.util.Set;

@@ -1,6 +1,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.TotalEconomy;
+import com.erigitic.commands.elements.CurrencyCommandElement;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
@@ -13,7 +14,7 @@ public class CommandRegister {
         .permission("totaleconomy.command.balance")
         .executor(new BalanceCommand())
         .arguments(
-            GenericArguments.optional(GenericArguments.string(Text.of("currencyName")))
+            GenericArguments.optional(new CurrencyCommandElement(Text.of("currencyName")))
         )
         .build();
 
