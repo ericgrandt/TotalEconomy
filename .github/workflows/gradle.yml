@@ -5,9 +5,11 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ terewritten ]
+    branches: 
+      - terewritten
   pull_request:
-    branches: [ terewritten ]
+    branches: 
+      - terewritten
 
 jobs:
   build:
