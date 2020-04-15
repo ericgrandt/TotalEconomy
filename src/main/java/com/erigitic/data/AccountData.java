@@ -3,11 +3,6 @@ package com.erigitic.data;
 import com.erigitic.TotalEconomy;
 import com.erigitic.economy.TEAccount;
 import com.erigitic.economy.TECurrency;
-import org.slf4j.Logger;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.text.Text;
-
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,6 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.text.Text;
 
 public class AccountData {
     private final TotalEconomy plugin;
@@ -34,12 +33,12 @@ public class AccountData {
         String createBalancesQuery = "INSERT INTO balance(userId, currencyName, balance) SELECT ?, nameSingular, 0 FROM currency";
 
         try (Connection conn = database.getConnection()) {
-            try(PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
+            try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
                 stmt.setString(1, uuid);
                 stmt.execute();
             }
 
-            try(PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
+            try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
                 stmt.setString(1, uuid);
                 stmt.execute();
             }
@@ -52,7 +51,7 @@ public class AccountData {
         String query = "SELECT id FROM te_user WHERE id = ? LIMIT 1";
 
         try (Connection conn = database.getConnection()) {
-            try(PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid);
 
                 ResultSet results = stmt.executeQuery();
@@ -75,7 +74,7 @@ public class AccountData {
         String query = "SELECT balance FROM balance WHERE currencyName = ? AND userId = ?";
 
         try (Connection conn = database.getConnection()) {
-            try(PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, currencyIdentifier);
                 stmt.setString(2, uuid);
 
@@ -95,7 +94,7 @@ public class AccountData {
         String query = "SELECT balance, currencyName, currency.namePlural, currency.symbol, currency.isDefault FROM balance INNER JOIN currency ON currency.nameSingular = balance.currencyName WHERE userId = ?";
 
         try (Connection conn = database.getConnection()) {
-            try(PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid);
 
                 ResultSet results = stmt.executeQuery();

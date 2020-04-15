@@ -1,14 +1,13 @@
 package com.erigitic.data;
 
 import com.erigitic.TotalEconomy;
-import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.service.sql.SqlService;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.service.sql.SqlService;
 
 public class Database {
     private final TotalEconomy plugin;
@@ -43,23 +42,23 @@ public class Database {
         String createBalanceTable = "CREATE TABLE IF NOT EXISTS balance (userId VARCHAR(36) NOT NULL, currencyName VARCHAR(50) NOT NULL, balance NUMERIC DEFAULT 0 NOT NULL, CONSTRAINT balance_user_FK FOREIGN KEY (userId) REFERENCES te_user(id) ON DELETE CASCADE, CONSTRAINT balance_currency_FK FOREIGN KEY (currencyName) REFERENCES currency(nameSingular) ON DELETE CASCADE, CONSTRAINT balance_UN UNIQUE KEY (userId, currencyName))";
 
         try (Connection conn = getConnection()) {
-            try(PreparedStatement stmt = conn.prepareStatement(createDatabaseQuery)) {
+            try (PreparedStatement stmt = conn.prepareStatement(createDatabaseQuery)) {
                 stmt.executeQuery();
             }
 
-            try(PreparedStatement stmt = conn.prepareStatement(setDatabaseQuery)) {
+            try (PreparedStatement stmt = conn.prepareStatement(setDatabaseQuery)) {
                 stmt.executeQuery();
             }
 
-            try(PreparedStatement stmt = conn.prepareStatement(createUserTable)) {
+            try (PreparedStatement stmt = conn.prepareStatement(createUserTable)) {
                 stmt.executeQuery();
             }
 
-            try(PreparedStatement stmt = conn.prepareStatement(createCurrencyTable)) {
+            try (PreparedStatement stmt = conn.prepareStatement(createCurrencyTable)) {
                 stmt.executeQuery();
             }
 
-            try(PreparedStatement stmt = conn.prepareStatement(createBalanceTable)) {
+            try (PreparedStatement stmt = conn.prepareStatement(createBalanceTable)) {
                 stmt.executeQuery();
             }
         } catch (SQLException e) {

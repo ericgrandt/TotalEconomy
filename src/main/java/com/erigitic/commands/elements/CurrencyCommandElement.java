@@ -2,6 +2,9 @@ package com.erigitic.commands.elements;
 
 import com.erigitic.TotalEconomy;
 import com.erigitic.economy.TEEconomyService;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
@@ -9,11 +12,6 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CurrencyCommandElement extends CommandElement {
     private final TotalEconomy plugin;

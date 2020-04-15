@@ -1,10 +1,9 @@
 package com.erigitic.economy;
 
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.text.Text;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.text.Text;
 
 public class TECurrency implements Currency {
     private Text singular;

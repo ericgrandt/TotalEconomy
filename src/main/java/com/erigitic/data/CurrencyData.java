@@ -2,12 +2,15 @@ package com.erigitic.data;
 
 import com.erigitic.TotalEconomy;
 import com.erigitic.economy.TECurrency;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
-
-import java.sql.*;
-import java.util.*;
 
 public class CurrencyData {
     private final TotalEconomy plugin;
@@ -24,7 +27,7 @@ public class CurrencyData {
         try (Connection conn = database.getConnection()) {
             String query = "SELECT nameSingular, namePlural, symbol FROM currency WHERE isDefault = true LIMIT 1";
 
-            try(PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet results = stmt.executeQuery();
                 results.next();
 
@@ -48,7 +51,7 @@ public class CurrencyData {
         String query = "SELECT nameSingular, namePlural, symbol, isDefault FROM currency WHERE nameSingular = ? LIMIT 1";
 
         try (Connection conn = database.getConnection()) {
-            try(PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, identifier);
 
                 ResultSet results = stmt.executeQuery();
@@ -75,7 +78,7 @@ public class CurrencyData {
         try (Connection conn = database.getConnection()) {
             String query = "SELECT * FROM currency";
 
-            try(PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet results = stmt.executeQuery();
 
                 Set<Currency> currencies = new HashSet<>();

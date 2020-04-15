@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'org.spongepowered.plugin' version '0.9.0'
+    id 'checkstyle'
 }
 
 compileJava.options.encoding = 'UTF-8'
@@ -11,6 +12,10 @@ description = 'All in one economy plugin for Minecraft and Sponge'
 
 repositories {
     jcenter()
+}
+
+checkstyle {
+    toolVersion '8.31'
 }
 
 dependencies {
