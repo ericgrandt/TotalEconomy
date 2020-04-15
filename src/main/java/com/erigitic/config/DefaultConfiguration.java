@@ -12,12 +12,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class DefaultConfiguration {
-    private TotalEconomy plugin;
-    private PluginContainer pluginContainer;
-    private Logger logger;
+    private final TotalEconomy plugin;
+    private final PluginContainer pluginContainer;
+    private final Logger logger;
 
-    private File config;
-    private ConfigurationLoader<CommentedConfigurationNode> loader;
+    private final File config;
+    private final ConfigurationLoader<CommentedConfigurationNode> loader;
     private ConfigurationNode configurationNode;
 
     public DefaultConfiguration() {

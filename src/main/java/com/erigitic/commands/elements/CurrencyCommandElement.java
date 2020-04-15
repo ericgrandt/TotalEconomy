@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CurrencyCommandElement extends CommandElement {
-    private TotalEconomy plugin;
-    private TEEconomyService economyService;
+    private final TotalEconomy plugin;
+    private final TEEconomyService economyService;
 
     public CurrencyCommandElement(Text key) {
         super(key);

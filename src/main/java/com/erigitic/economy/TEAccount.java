@@ -18,9 +18,9 @@ import java.math.RoundingMode;
 import java.util.*;
 
 public class TEAccount implements UniqueAccount {
-    private TotalEconomy plugin;
-    private AccountData accountData;
-    private UUID uuid;
+    private final TotalEconomy plugin;
+    private final AccountData accountData;
+    private final UUID uuid;
 
     public TEAccount(UUID uuid) {
         this.uuid = uuid;

@@ -10,7 +10,7 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 public class PlayerListener {
     private final TotalEconomy plugin;
     private final Logger logger;
-    private TEEconomyService economyService;
+    private final TEEconomyService economyService;
 
     public PlayerListener() {
         plugin = TotalEconomy.getPlugin();

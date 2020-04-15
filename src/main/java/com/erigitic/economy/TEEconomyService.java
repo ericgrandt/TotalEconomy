@@ -14,9 +14,9 @@ import java.util.Set;
 import java.util.UUID;
 
 public class TEEconomyService implements EconomyService {
-    private TotalEconomy plugin;
-    private CurrencyData currencyData;
-    private AccountData accountData;
+    private final TotalEconomy plugin;
+    private final CurrencyData currencyData;
+    private final AccountData accountData;
 
     public TEEconomyService() {
         this.plugin = TotalEconomy.getPlugin();
