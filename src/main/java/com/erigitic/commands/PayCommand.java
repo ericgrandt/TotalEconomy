@@ -40,9 +40,9 @@ public class PayCommand implements CommandExecutor {
 
         Player fromPlayer = (Player) src;
         Player toPlayer = args.<Player>getOne(Text.of("player")).get();
-//        if (fromPlayer.getUniqueId() == toPlayer.getUniqueId()) {
-//            throw new CommandException(Text.of("You can't pay yourself"));
-//        }
+        if (fromPlayer.getUniqueId() == toPlayer.getUniqueId()) {
+            throw new CommandException(Text.of("You can't pay yourself"));
+        }
 
         TEAccount fromAccount = new TEAccount(fromPlayer.getUniqueId());
         TEAccount toAccount = new TEAccount(toPlayer.getUniqueId());
