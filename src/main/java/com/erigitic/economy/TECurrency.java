@@ -37,7 +37,7 @@ public class TECurrency implements Currency {
 
     @Override
     public Text format(BigDecimal amount, int numFractionDigits) {
-        return Text.of(symbol, amount.setScale(numFractionDigits, RoundingMode.HALF_UP));
+        return Text.of(symbol, amount.setScale(numFractionDigits, RoundingMode.HALF_DOWN));
     }
 
     @Override

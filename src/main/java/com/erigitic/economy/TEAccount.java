@@ -137,15 +137,14 @@ public class TEAccount implements UniqueAccount {
             return new TETransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
         }
 
-        BigDecimal newBalance = currentBalance.subtract(amount).setScale(0, RoundingMode.HALF_DOWN);
-        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+        BigDecimal fromBalance = currentBalance.subtract(amount).setScale(0, RoundingMode.HALF_DOWN);
+        if (fromBalance.compareTo(BigDecimal.ZERO) < 0) {
             return new TETransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
         }
 
-        BigDecimal toBalance = to.getBalance(currency);
-        BigDecimal newToBalance = toBalance.add(amount).setScale(0, RoundingMode.HALF_DOWN);
+        BigDecimal toBalance = to.getBalance(currency).add(amount).setScale(0, RoundingMode.HALF_DOWN);
 
-        int rowsAffected = accountData.transfer(currency.getId(), getIdentifier(), to.getIdentifier(), newBalance, newToBalance);
+        int rowsAffected = accountData.transfer(currency.getId(), getIdentifier(), to.getIdentifier(), fromBalance, toBalance);
         if (rowsAffected < 2) {
             return new TETransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
         }

@@ -27,30 +27,21 @@ public class BalanceCommand implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (!(src instanceof Player)) {
-            return CommandResult.empty();
+            throw new CommandException(Text.of("Only players can use this command"));
         }
 
-        TEAccount account = new TEAccount(((Player) src).getUniqueId());
-        Currency currency = getCurrencyArgOrDefault(args.getOne("currencyName"));
+        Player player = (Player) src;
+        TEAccount account = new TEAccount(player.getUniqueId());
+        Optional<Currency> currencyOptional = args.getOne("currencyName");
+        Currency currency = currencyOptional.isPresent() ? currencyOptional.get() : economyService.getDefaultCurrency();
 
         BigDecimal balance = account.getBalance(currency);
         if (balance == null) {
-            src.sendMessage(Text.of(TextColors.RED, "Error retrieving balance"));
-
-            return CommandResult.empty();
+            throw new CommandException(Text.of("Error retrieving balance"));
         }
 
-        src.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, currency.getSymbol(), balance.toString()));
+        player.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, currency.format(balance)));
 
         return CommandResult.success();
-    }
-
-    private Currency getCurrencyArgOrDefault(Optional<Currency> currencyNameOpt) {
-        Currency currency = economyService.getDefaultCurrency();
-        if (currencyNameOpt.isPresent()) {
-            currency = currencyNameOpt.get();
-        }
-
-        return currency;
     }
 }

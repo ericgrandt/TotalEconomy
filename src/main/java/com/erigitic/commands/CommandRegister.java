@@ -17,6 +17,16 @@ public class CommandRegister {
             GenericArguments.optional(new CurrencyCommandElement(Text.of("currencyName")))
         )
         .build();
+    private final CommandSpec payCommandSpec = CommandSpec.builder()
+        .description(Text.of("Pay another player"))
+        .permission("totaleconomy.command.pay")
+        .executor(new PayCommand())
+        .arguments(
+            GenericArguments.player(Text.of("player")),
+            GenericArguments.bigDecimal(Text.of("amount")),
+            GenericArguments.optional(new CurrencyCommandElement(Text.of("currencyName")))
+        )
+        .build();
 
     public CommandRegister() {
         plugin = TotalEconomy.getPlugin();
@@ -24,5 +34,6 @@ public class CommandRegister {
 
     public void registerCommands() {
         Sponge.getCommandManager().register(plugin, balanceCommandSpec, "balance");
+        Sponge.getCommandManager().register(plugin, payCommandSpec, "pay");
     }
 }
