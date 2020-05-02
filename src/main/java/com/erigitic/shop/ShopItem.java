@@ -1,9 +1,8 @@
 package com.erigitic.shop;
 
 import com.erigitic.economy.TECurrency;
-import org.spongepowered.api.item.inventory.ItemStack;
-
 import java.math.BigDecimal;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 public class ShopItem {
     private final TECurrency currency;

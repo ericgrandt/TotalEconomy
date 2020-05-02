@@ -48,11 +48,11 @@ public class PlayerListener {
         Player player = (Player) event.getSource();
         player.sendMessage(Text.of(event.getTargetEntity().get(ShopKeys.SHOP_ID).get()));
 
-//        Inventory inventory = Inventory.builder()
-//            .of(InventoryArchetypes.CHEST)
-//            .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of("MY SHOP")))
-//            .build(plugin);
-//
-//        player.openInventory(inventory);
+        // Inventory inventory = Inventory.builder()
+        //     .of(InventoryArchetypes.CHEST)
+        //     .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of("MY SHOP")))
+        //     .build(plugin);
+        //
+        // player.openInventory(inventory);
     }
 }

@@ -1,12 +1,11 @@
 package com.erigitic.data;
 
 import com.erigitic.TotalEconomy;
-import org.slf4j.Logger;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
+import org.slf4j.Logger;
 
 public class ShopData {
     private final TotalEconomy plugin;
