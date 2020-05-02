@@ -23,9 +23,9 @@ public class AccountData {
     private final Database database;
 
     public AccountData(Database database) {
+        this.plugin = TotalEconomy.getPlugin();
+        this.logger = plugin.getLogger();
         this.database = database;
-        plugin = TotalEconomy.getPlugin();
-        logger = plugin.getLogger();
     }
 
     public void createAccount(String uuid) {
@@ -43,7 +43,7 @@ public class AccountData {
                 stmt.execute();
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid.toString(), createBalancesQuery, uuid.toString()));
+            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
         }
     }
 

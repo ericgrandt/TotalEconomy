@@ -5,12 +5,18 @@ import com.erigitic.config.DefaultConfiguration;
 import com.erigitic.data.Database;
 import com.erigitic.economy.TEEconomyService;
 import com.erigitic.player.PlayerListener;
+import com.erigitic.shop.data.ImmutableShopData;
+import com.erigitic.shop.data.MutableShopData;
+import com.erigitic.shop.data.ShopDataBuilder;
+import com.erigitic.shop.data.ShopKeys;
 import com.google.inject.Inject;
 import java.io.File;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.DataManager;
+import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
@@ -60,6 +66,16 @@ public class TotalEconomy {
 
         economyService = new TEEconomyService();
         Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
+
+        // TODO: Move to separate class
+        // Have to initialize keys otherwise they won't load in time
+        ShopKeys.initShopKeys();
+        DataRegistration.builder()
+            .id("shop")
+            .dataClass(MutableShopData.class)
+            .immutableClass(ImmutableShopData.class)
+            .builder(new ShopDataBuilder())
+            .build();
     }
 
     @Listener
