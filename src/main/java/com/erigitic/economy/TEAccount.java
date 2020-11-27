@@ -2,13 +2,6 @@ package com.erigitic.economy;
 
 import com.erigitic.TotalEconomy;
 import com.erigitic.data.AccountData;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
@@ -21,6 +14,10 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 public class TEAccount implements UniqueAccount {
     private final TotalEconomy plugin;
@@ -55,16 +52,12 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
-        BigDecimal balance = accountData.getBalance(currency.getId(), uuid.toString());
-
-        return balance;
+        return accountData.getBalance(currency.getId(), uuid.toString());
     }
 
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        Map<Currency, BigDecimal> balances = accountData.getBalances(uuid.toString());
-
-        return balances;
+        return accountData.getBalances(uuid.toString());
     }
 
     @Override

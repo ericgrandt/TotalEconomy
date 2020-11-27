@@ -1,23 +1,22 @@
 package com.erigitic.data;
 
 import com.erigitic.TotalEconomy;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.sql.SqlService;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 public class Database {
-    private final TotalEconomy plugin;
     private final Logger logger;
     private final String connectionString;
-
     private SqlService sql;
 
     public Database() {
-        plugin = TotalEconomy.getPlugin();
+        TotalEconomy plugin = TotalEconomy.getPlugin();
         logger = plugin.getLogger();
         connectionString = plugin.getDefaultConfiguration().getConnectionString();
     }

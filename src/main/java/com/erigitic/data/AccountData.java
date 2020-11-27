@@ -3,6 +3,11 @@ package com.erigitic.data;
 import com.erigitic.TotalEconomy;
 import com.erigitic.economy.TEAccount;
 import com.erigitic.economy.TECurrency;
+import org.slf4j.Logger;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.text.Text;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,18 +17,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.text.Text;
 
 public class AccountData {
-    private final TotalEconomy plugin;
     private final Logger logger;
     private final Database database;
 
     public AccountData(Database database) {
-        this.plugin = TotalEconomy.getPlugin();
+        TotalEconomy plugin = TotalEconomy.getPlugin();
         this.logger = plugin.getLogger();
         this.database = database;
     }
@@ -87,7 +87,7 @@ public class AccountData {
             logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, currencyIdentifier, uuid.toString()));
         }
 
-        return null;
+        return BigDecimal.ZERO;
     }
 
     public Map<Currency, BigDecimal> getBalances(String uuid) {
