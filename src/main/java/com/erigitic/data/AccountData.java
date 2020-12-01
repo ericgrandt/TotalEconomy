@@ -30,7 +30,7 @@ public class AccountData {
 
     public void createAccount(String uuid) {
         String createUserQuery = "INSERT INTO te_user VALUES (?)";
-        String createBalancesQuery = "INSERT INTO balance(userId, currencyName, balance) SELECT ?, nameSingular, 0 FROM currency";
+        // String createBalancesQuery = "INSERT INTO balance(userId, currencyName, balance) SELECT ?, nameSingular, 0 FROM currency";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
@@ -38,12 +38,12 @@ public class AccountData {
                 stmt.execute();
             }
 
-            try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-                stmt.setString(1, uuid);
-                stmt.execute();
-            }
+            // try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
+            //     stmt.setString(1, uuid);
+            //     stmt.execute();
+            // }
         } catch (SQLException e) {
-            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
+            // logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
         }
     }
 
@@ -64,7 +64,8 @@ public class AccountData {
                 }
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error getting account (Query: %s, Parameters: %s)", query, uuid.toString()));
+            logger.error(e.getMessage());
+            logger.error(String.format("Error getting account (Query: %s, Parameters: %s)", query, uuid));
         }
 
         return Optional.empty();

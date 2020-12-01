@@ -1,2 +1,8 @@
-site_name: My Docs
+site_name: Total Economy
 theme: readthedocs
+extra_css:
+  - custom.css
+nav:
+  - Installation: 'installation.md'
+  - Storage:
+    - Database: 'storage/database.md'

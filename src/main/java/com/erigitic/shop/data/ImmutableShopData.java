@@ -1,6 +1,7 @@
 package com.erigitic.shop.data;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableSingleData;
 import org.spongepowered.api.data.value.immutable.ImmutableValue;
 
@@ -22,5 +23,10 @@ public class ImmutableShopData extends AbstractImmutableSingleData<String, Immut
     @Override
     public int getContentVersion() {
         return 1;
+    }
+
+    @Override
+    protected DataContainer fillContainer(DataContainer dataContainer) {
+        return null;
     }
 }

@@ -68,13 +68,13 @@ public class TotalEconomy {
 
         // TODO: Move to separate class
         // Have to initialize keys otherwise they won't load in time
-        ShopKeys.initShopKeys();
-        DataRegistration.builder()
-            .id("shop")
-            .dataClass(MutableShopData.class)
-            .immutableClass(ImmutableShopData.class)
-            .builder(new ShopDataBuilder())
-            .build();
+        // ShopKeys.initShopKeys();
+        // DataRegistration.builder()
+        //     .id("shop")
+        //     .dataClass(MutableShopData.class)
+        //     .immutableClass(ImmutableShopData.class)
+        //     .builder(new ShopDataBuilder())
+        //     .build();
     }
 
     @Listener

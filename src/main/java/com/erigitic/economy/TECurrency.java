@@ -2,6 +2,8 @@ package com.erigitic.economy;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+
+import org.spongepowered.api.CatalogKey;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 
@@ -51,8 +53,8 @@ public class TECurrency implements Currency {
     }
 
     @Override
-    public String getId() {
-        return singular.toPlain().toLowerCase();
+    public CatalogKey getKey() {
+        return CatalogKey.of("totaleconomy", singular.toPlain().toLowerCase());
     }
 
     @Override

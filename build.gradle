@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
     id 'java'
     id 'org.spongepowered.plugin' version '0.9.0'
     id 'checkstyle'
@@ -19,5 +20,16 @@ checkstyle {
 }
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:7.2.0'
+    compile 'org.spongepowered:spongeapi:8.0.0-SNAPSHOT'
+    compile group: 'org.apache.ibatis', name: 'ibatis-core', version: '3.0'
 }
+
+shadowJar {
+    archiveName = "${baseName}-${version}.${extension}"
+    dependencies {
+        include(dependency('org.apache.ibatis:ibatis-core'))
+    }
+}
+
+jar.enabled = false
+tasks.build.dependsOn tasks.shadowJar

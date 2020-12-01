@@ -15,12 +15,12 @@ public class ShopInventory {
         this.shopName = shopName;
     }
 
-    public Inventory createInventory() {
-        Inventory inventory = Inventory.builder()
-            .of(InventoryArchetypes.CHEST)
-            .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(shopName)))
-            .build(plugin);
-
-        return inventory;
-    }
+    // public Inventory createInventory() {
+    //     Inventory inventory = Inventory.builder()
+    //         .of(InventoryArchetypes.CHEST)
+    //         .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(shopName)))
+    //         .build(plugin);
+    //
+    //     return inventory;
+    // }
 }

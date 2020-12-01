@@ -35,7 +35,7 @@ public class TEAccount implements UniqueAccount {
     public Text getDisplayName() {
         Optional<Player> playerOpt = Sponge.getServer().getPlayer(uuid);
 
-        return playerOpt.isPresent() ? Text.of(playerOpt.get().getName()) : Text.EMPTY;
+        return playerOpt.isPresent() ? Text.of(playerOpt.get().getName()) : Text.empty();
     }
 
     @Override
