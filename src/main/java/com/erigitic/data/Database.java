@@ -33,11 +33,9 @@ public class Database {
     }
 
     public void setup() {
-        String filePath = String.format("schema/%s.sql", database);
-        Optional<Asset> sqlFileOpt = plugin.getPluginContainer().getAsset(filePath);
-
-        if (sqlFileOpt.isPresent()) {
-            runSqlScript(sqlFileOpt.get());
+        if (database.equals("mysql")) {
+            Optional<Asset> sqlFileOpt = plugin.getPluginContainer().getAsset("schema/mysql.sql");
+            sqlFileOpt.ifPresent(this::runSqlScript);
             return;
         }
 
