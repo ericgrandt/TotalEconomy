@@ -7,5 +7,5 @@ markdown_extensions:
     - toc:
         toc_depth: 0
 nav:
-  - Installation: 'installation.md'
+  - Installation: 'index.md'
   - Storage: 'storage.md'
