@@ -1,8 +1,11 @@
-site_name: Total Economy
-theme: readthedocs
-extra_css:
-  - custom.css
+site_name: Total Economy Docs
+theme:
+  name: material
+  palette:
+    scheme: slate
+markdown_extensions:
+    - toc:
+        toc_depth: 0
 nav:
   - Installation: 'installation.md'
-  - Storage:
-    - Database: 'storage/database.md'
+  - Storage: 'storage.md'
