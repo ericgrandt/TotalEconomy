@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 import org.apache.ibatis.jdbc.ScriptRunner;
 
 public class Database {
@@ -32,24 +33,15 @@ public class Database {
     }
 
     public void setup() {
-        if (database.equals("mysql")) {
-            Asset mysqlFile = plugin.getPluginContainer().getAsset("schema/mysql.sql").get();
+        String filePath = String.format("schema/%s.sql", database);
+        Optional<Asset> sqlFileOpt = plugin.getPluginContainer().getAsset(filePath);
 
-            try (Connection conn = getConnection();
-                 InputStreamReader reader = new InputStreamReader(mysqlFile.getUrl().openStream())
-            ) {
-                logger.info("Successfully connected");
-
-                ScriptRunner runner = new ScriptRunner(conn);
-                runner.runScript(reader);
-
-                logger.info("Database successfully setup");
-            } catch (SQLException e) {
-                logger.error("Unable to connect to the database");
-            } catch (IOException e) {
-                logger.error("Could not find SQL file");
-            }
+        if (sqlFileOpt.isPresent()) {
+            runSqlScript(sqlFileOpt.get());
+            return;
         }
+
+        logger.error("Could not find SQL file");
     }
 
     private DataSource getDataSource() throws SQLException {
@@ -62,5 +54,22 @@ public class Database {
 
     private String getDatabase() {
         return connectionString.split("jdbc:")[1].split(":")[0];
+    }
+
+    private void runSqlScript(Asset sqlScript) {
+        try (Connection conn = getConnection();
+             InputStreamReader reader = new InputStreamReader(sqlScript.getUrl().openStream())
+        ) {
+            logger.info("Successfully connected");
+
+            ScriptRunner runner = new ScriptRunner(conn);
+            runner.runScript(reader);
+
+            logger.info("Database successfully setup");
+        } catch (SQLException e) {
+            logger.error("Unable to connect to the database");
+        } catch (IOException e) {
+            logger.error("Could not read SQL file");
+        }
     }
 }
