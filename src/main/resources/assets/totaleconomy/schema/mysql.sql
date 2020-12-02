@@ -11,8 +11,10 @@ CREATE TABLE IF NOT EXISTS te_currency (
 );
 
 CREATE TABLE IF NOT EXISTS te_balance (
-    user_id VARCHAR(36) NOT NULL REFERENCES te_user(id) ON DELETE CASCADE,
-    currency_id INT NOT NULL REFERENCES te_currency(id) ON DELETE CASCADE,
+    user_id VARCHAR(36) NOT NULL,
+    currency_id INT NOT NULL,
     balance NUMERIC DEFAULT 0 NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES te_user(id) ON DELETE CASCADE,
+    FOREIGN KEY (currency_id) REFERENCES te_currency(id) ON DELETE CASCADE,
     UNIQUE(user_id, currency_id)
 );
