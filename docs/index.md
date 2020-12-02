@@ -1,3 +1,5 @@
+# Installation
+
 1. Download [Total Economy](https://ore.spongepowered.org/Erigitic/Total-Economy/versions)
 2. Put the Total Economy jar file into the mods folder
 3. Start the server in order to initialize the configuration files
