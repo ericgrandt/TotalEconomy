@@ -142,42 +142,44 @@ public class AccountData {
     }
 
     public int transfer(String currencyIdentifier, String fromUuid, String toUuid, BigDecimal fromBalance, BigDecimal toBalance) {
-    //     String query = "UPDATE balance SET balance = ? WHERE currencyName = ? AND userId = ?";
-    //
-    //     try (Connection conn = database.getConnection()) {
-    //         int updatedRows = 0;
-    //         conn.setAutoCommit(false);
-    //
-    //         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-    //             stmt.setString(1, fromBalance.toString());
-    //             stmt.setString(2, currencyIdentifier);
-    //             stmt.setString(3, fromUuid);
-    //
-    //             updatedRows += stmt.executeUpdate();
-    //         } catch (SQLException e) {
-    //             conn.rollback();
-    //             logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, fromBalance, currencyIdentifier, fromUuid));
-    //         }
-    //
-    //         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-    //             stmt.setString(1, toBalance.toString());
-    //             stmt.setString(2, currencyIdentifier);
-    //             stmt.setString(3, toUuid);
-    //
-    //             updatedRows += stmt.executeUpdate();
-    //         } catch (SQLException e) {
-    //             conn.rollback();
-    //             logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, toBalance, currencyIdentifier, toUuid));
-    //         }
-    //
-    //         conn.commit();
-    //         conn.setAutoCommit(true);
-    //
-    //         return updatedRows;
-    //     } catch (SQLException e) {
-    //         logger.error("Error setting balance");
-    //     }
-    //
+        String query = "UPDATE te_balance SET balance = ? WHERE currency_id = ? AND user_id = ?";
+
+        try (Connection conn = database.getConnection()) {
+            int updatedRows = 0;
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, fromBalance.toString());
+                stmt.setString(2, currencyIdentifier);
+                stmt.setString(3, fromUuid);
+
+                updatedRows += stmt.executeUpdate();
+
+                stmt.setString(1, toBalance.toString());
+                stmt.setString(2, currencyIdentifier);
+                stmt.setString(3, toUuid);
+
+                updatedRows += stmt.executeUpdate();
+            } catch (SQLException e) {
+                conn.rollback();
+                logger.error(String.format(
+                    "Error setting balance (Query: %s, Parameters: (fromBalance: %.0f, toBalance: %.0f), %s, %s)",
+                    query,
+                    fromBalance,
+                    toBalance,
+                    currencyIdentifier,
+                    fromUuid)
+                );
+            }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+
+            return updatedRows;
+        } catch (SQLException e) {
+            logger.error("Error setting balance");
+        }
+
         return 0;
     }
 }
