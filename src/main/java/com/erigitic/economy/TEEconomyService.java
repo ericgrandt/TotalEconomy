@@ -28,8 +28,8 @@ public class TEEconomyService implements EconomyService {
         return currencyData.getDefaultCurrency();
     }
 
-    public Currency getCurrency(String id) {
-        return currencyData.getCurrency(id);
+    public Currency getCurrency(String currencyName) {
+        return currencyData.getCurrency(currencyName);
     }
 
     @Override

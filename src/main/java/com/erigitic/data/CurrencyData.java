@@ -34,7 +34,7 @@ public class CurrencyData {
                     results.getInt("id"),
                     Text.of(results.getString("name_singular")),
                     Text.of(results.getString("name_plural")),
-                    Text.of(results.getString("symbol").charAt(0)),
+                    Text.of(results.getString("symbol")),
                     results.getBoolean("prefix_symbol"),
                     true
                 );
@@ -46,12 +46,12 @@ public class CurrencyData {
         return null;
     }
 
-    public Currency getCurrency(String identifier) {
-        String query = "SELECT * FROM currency WHERE nameSingular = ? LIMIT 1";
+    public Currency getCurrency(String currencyName) {
+        String query = "SELECT * FROM te_currency WHERE name_singular = ? LIMIT 1";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, identifier);
+                stmt.setString(1, currencyName);
 
                 ResultSet results = stmt.executeQuery();
 
@@ -60,14 +60,14 @@ public class CurrencyData {
                         results.getInt("id"),
                         Text.of(results.getString("name_singular")),
                         Text.of(results.getString("name_plural")),
-                        Text.of(results.getString("symbol").charAt(0)),
+                        Text.of(results.getString("symbol")),
                         results.getBoolean("prefix_symbol"),
                         results.getBoolean("is_default")
                     );
                 }
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error getting currency from database (Query: %s, Parameters: %s)", query, identifier));
+            logger.error(String.format("Error getting currency from database (Query: %s, Parameters: %s)", query, currencyName));
         }
 
         return null;
@@ -75,7 +75,7 @@ public class CurrencyData {
 
     public Set<Currency> getCurrencies() {
         try (Connection conn = database.getConnection()) {
-            String query = "SELECT * FROM currency";
+            String query = "SELECT * FROM te_currency";
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet results = stmt.executeQuery();
@@ -86,7 +86,7 @@ public class CurrencyData {
                         results.getInt("id"),
                         Text.of(results.getString("name_singular")),
                         Text.of(results.getString("name_plural")),
-                        Text.of(results.getString("symbol").charAt(0)),
+                        Text.of(results.getString("symbol")),
                         results.getBoolean("prefix_symbol"),
                         results.getBoolean("is_default")
                     );
