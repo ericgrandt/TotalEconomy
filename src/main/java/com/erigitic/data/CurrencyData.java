@@ -13,32 +13,31 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 
 public class CurrencyData {
-    private final TotalEconomy plugin;
     private final Logger logger;
     private final Database database;
 
     public CurrencyData(Database database) {
-        this.plugin = TotalEconomy.getPlugin();
+        TotalEconomy plugin = TotalEconomy.getPlugin();
         this.logger = plugin.getLogger();
         this.database = database;
     }
 
     public Currency getDefaultCurrency() {
         try (Connection conn = database.getConnection()) {
-            String query = "SELECT nameSingular, namePlural, symbol FROM currency WHERE isDefault = true LIMIT 1";
+            String query = "SELECT * FROM te_currency WHERE is_default = true LIMIT 1";
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet results = stmt.executeQuery();
                 results.next();
 
-                Currency defaultCurrency = new TECurrency(
-                    Text.of(results.getString("nameSingular")),
-                    Text.of(results.getString("namePlural")),
+                return new TECurrency(
+                    results.getInt("id"),
+                    Text.of(results.getString("name_singular")),
+                    Text.of(results.getString("name_plural")),
                     Text.of(results.getString("symbol").charAt(0)),
+                    results.getBoolean("prefix_symbol"),
                     true
                 );
-
-                return defaultCurrency;
             }
         } catch (SQLException e) {
             logger.error("Error getting default currency from database");
@@ -48,7 +47,7 @@ public class CurrencyData {
     }
 
     public Currency getCurrency(String identifier) {
-        String query = "SELECT nameSingular, namePlural, symbol, isDefault FROM currency WHERE nameSingular = ? LIMIT 1";
+        String query = "SELECT * FROM currency WHERE nameSingular = ? LIMIT 1";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -57,14 +56,14 @@ public class CurrencyData {
                 ResultSet results = stmt.executeQuery();
 
                 if (results.next()) {
-                    Currency currency = new TECurrency(
-                        Text.of(results.getString("nameSingular")),
-                        Text.of(results.getString("namePlural")),
+                    return new TECurrency(
+                        results.getInt("id"),
+                        Text.of(results.getString("name_singular")),
+                        Text.of(results.getString("name_plural")),
                         Text.of(results.getString("symbol").charAt(0)),
-                        results.getBoolean("isDefault")
+                        results.getBoolean("prefix_symbol"),
+                        results.getBoolean("is_default")
                     );
-
-                    return currency;
                 }
             }
         } catch (SQLException e) {
@@ -84,10 +83,12 @@ public class CurrencyData {
                 Set<Currency> currencies = new HashSet<>();
                 while (results.next()) {
                     Currency currency = new TECurrency(
-                        Text.of(results.getString("nameSingular")),
-                        Text.of(results.getString("namePlural")),
+                        results.getInt("id"),
+                        Text.of(results.getString("name_singular")),
+                        Text.of(results.getString("name_plural")),
                         Text.of(results.getString("symbol").charAt(0)),
-                        results.getBoolean("isDefault")
+                        results.getBoolean("prefix_symbol"),
+                        results.getBoolean("is_default")
                     );
 
                     currencies.add(currency);

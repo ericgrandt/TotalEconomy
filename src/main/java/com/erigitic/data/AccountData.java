@@ -30,7 +30,7 @@ public class AccountData {
 
     public void createAccount(String uuid) {
         String createUserQuery = "INSERT INTO te_user VALUES (?)";
-        // String createBalancesQuery = "INSERT INTO balance(userId, currencyName, balance) SELECT ?, nameSingular, 0 FROM currency";
+        String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
@@ -38,12 +38,12 @@ public class AccountData {
                 stmt.execute();
             }
 
-            // try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-            //     stmt.setString(1, uuid);
-            //     stmt.execute();
-            // }
+            try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
+                stmt.setString(1, uuid);
+                stmt.execute();
+            }
         } catch (SQLException e) {
-            // logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
+            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
         }
     }
 
@@ -72,7 +72,7 @@ public class AccountData {
     }
 
     public BigDecimal getBalance(String currencyIdentifier, String uuid) {
-        String query = "SELECT balance FROM balance WHERE currencyName = ? AND userId = ?";
+        String query = "SELECT balance FROM te_balance WHERE currency_id = ? AND user_id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -92,91 +92,93 @@ public class AccountData {
     }
 
     public Map<Currency, BigDecimal> getBalances(String uuid) {
-        String query = "SELECT balance, currencyName, currency.namePlural, currency.symbol, currency.isDefault FROM balance INNER JOIN currency ON currency.nameSingular = balance.currencyName WHERE userId = ?";
-
-        try (Connection conn = database.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, uuid);
-
-                ResultSet results = stmt.executeQuery();
-
-                Map<Currency, BigDecimal> balances = new HashMap<>();
-                while (results.next()) {
-                    BigDecimal balance = results.getBigDecimal("balance");
-                    Currency currency = new TECurrency(
-                        Text.of(results.getString("currencyName")),
-                        Text.of(results.getString("namePlural")),
-                        Text.of(results.getString("symbol").charAt(0)),
-                        results.getBoolean("isDefault")
-                    );
-
-                    balances.put(currency, balance);
-                }
-
-                return balances;
-            }
-        } catch (SQLException e) {
-            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s)", query, uuid.toString()));
-        }
-
+    //     String query = "SELECT balance, currencyName, currency.namePlural, currency.symbol, currency.isDefault FROM te_balance INNER JOIN te_currency ON te_currency.id = balance.currency_id WHERE userId = ?";
+    //
+    //     try (Connection conn = database.getConnection()) {
+    //         try (PreparedStatement stmt = conn.prepareStatement(query)) {
+    //             stmt.setString(1, uuid);
+    //
+    //             ResultSet results = stmt.executeQuery();
+    //
+    //             Map<Currency, BigDecimal> balances = new HashMap<>();
+    //             while (results.next()) {
+    //                 BigDecimal balance = results.getBigDecimal("balance");
+    //                 Currency currency = new TECurrency(
+    //                     results.getInt("id"),
+    //                     Text.of(results.getString("name_singular")),
+    //                     Text.of(results.getString("name_plural")),
+    //                     Text.of(results.getString("symbol").charAt(0)),
+    //                     results.getBoolean("prefix_symbol"),
+    //                     results.getBoolean("is_default")
+    //                 );
+    //
+    //                 balances.put(currency, balance);
+    //             }
+    //
+    //             return balances;
+    //         }
+    //     } catch (SQLException e) {
+    //         logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s)", query, uuid.toString()));
+    //     }
+    //
         return new HashMap<>();
     }
 
     public int setBalance(String currencyIdentifier, String uuid, BigDecimal balance) {
-        String query = "UPDATE balance SET balance = ? WHERE currencyName = ? AND userId = ?";
-
-        try (Connection conn = database.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, balance.toString());
-                stmt.setString(2, currencyIdentifier);
-                stmt.setString(3, uuid);
-
-                return stmt.executeUpdate();
-            }
-        } catch (SQLException e) {
-            logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, balance, currencyIdentifier, uuid.toString()));
-        }
-
+    //     String query = "UPDATE balance SET balance = ? WHERE currencyName = ? AND userId = ?";
+    //
+    //     try (Connection conn = database.getConnection()) {
+    //         try (PreparedStatement stmt = conn.prepareStatement(query)) {
+    //             stmt.setString(1, balance.toString());
+    //             stmt.setString(2, currencyIdentifier);
+    //             stmt.setString(3, uuid);
+    //
+    //             return stmt.executeUpdate();
+    //         }
+    //     } catch (SQLException e) {
+    //         logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, balance, currencyIdentifier, uuid.toString()));
+    //     }
+    //
         return 0;
     }
 
     public int transfer(String currencyIdentifier, String fromUuid, String toUuid, BigDecimal fromBalance, BigDecimal toBalance) {
-        String query = "UPDATE balance SET balance = ? WHERE currencyName = ? AND userId = ?";
-
-        try (Connection conn = database.getConnection()) {
-            int updatedRows = 0;
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, fromBalance.toString());
-                stmt.setString(2, currencyIdentifier);
-                stmt.setString(3, fromUuid);
-
-                updatedRows += stmt.executeUpdate();
-            } catch (SQLException e) {
-                conn.rollback();
-                logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, fromBalance, currencyIdentifier, fromUuid));
-            }
-
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, toBalance.toString());
-                stmt.setString(2, currencyIdentifier);
-                stmt.setString(3, toUuid);
-
-                updatedRows += stmt.executeUpdate();
-            } catch (SQLException e) {
-                conn.rollback();
-                logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, toBalance, currencyIdentifier, toUuid));
-            }
-
-            conn.commit();
-            conn.setAutoCommit(true);
-
-            return updatedRows;
-        } catch (SQLException e) {
-            logger.error("Error setting balance");
-        }
-
+    //     String query = "UPDATE balance SET balance = ? WHERE currencyName = ? AND userId = ?";
+    //
+    //     try (Connection conn = database.getConnection()) {
+    //         int updatedRows = 0;
+    //         conn.setAutoCommit(false);
+    //
+    //         try (PreparedStatement stmt = conn.prepareStatement(query)) {
+    //             stmt.setString(1, fromBalance.toString());
+    //             stmt.setString(2, currencyIdentifier);
+    //             stmt.setString(3, fromUuid);
+    //
+    //             updatedRows += stmt.executeUpdate();
+    //         } catch (SQLException e) {
+    //             conn.rollback();
+    //             logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, fromBalance, currencyIdentifier, fromUuid));
+    //         }
+    //
+    //         try (PreparedStatement stmt = conn.prepareStatement(query)) {
+    //             stmt.setString(1, toBalance.toString());
+    //             stmt.setString(2, currencyIdentifier);
+    //             stmt.setString(3, toUuid);
+    //
+    //             updatedRows += stmt.executeUpdate();
+    //         } catch (SQLException e) {
+    //             conn.rollback();
+    //             logger.error(String.format("Error setting balance (Query: %s, Parameters: %d, %s, %s)", query, toBalance, currencyIdentifier, toUuid));
+    //         }
+    //
+    //         conn.commit();
+    //         conn.setAutoCommit(true);
+    //
+    //         return updatedRows;
+    //     } catch (SQLException e) {
+    //         logger.error("Error setting balance");
+    //     }
+    //
         return 0;
     }
 }

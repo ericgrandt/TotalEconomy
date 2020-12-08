@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS te_currency (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name_singular VARCHAR(50) NOT NULL UNIQUE,
     name_plural VARCHAR(50) NOT NULL UNIQUE,
-    symbol VARCHAR(1) NOT NULL,
+    symbol VARCHAR(2) NOT NULL,
+    prefix_symbol BOOL NOT NULL DEFAULT true,
     is_default BOOL NOT NULL
 );
 

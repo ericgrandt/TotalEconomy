@@ -3,22 +3,25 @@ package com.erigitic.economy;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import org.spongepowered.api.CatalogKey;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 
 public class TECurrency implements Currency {
-    private Text singular;
-    private Text plural;
-    private Text symbol;
-    private int numFractionDigits;
-    private boolean isDefault;
+    private final int id;
+    private final Text singular;
+    private final Text plural;
+    private final Text symbol;
+    private final int numFractionDigits;
+    private final boolean prefixSymbol;
+    private final boolean isDefault;
 
-    public TECurrency(Text singular, Text plural, Text symbol, boolean isDefault) {
+    public TECurrency(int id, Text singular, Text plural, Text symbol, boolean prefixSymbol, boolean isDefault) {
+        this.id = id;
         this.singular = singular;
         this.plural = plural;
         this.symbol = symbol;
         this.numFractionDigits = 0;
+        this.prefixSymbol = prefixSymbol;
         this.isDefault = isDefault;
     }
 
@@ -53,12 +56,16 @@ public class TECurrency implements Currency {
     }
 
     @Override
-    public CatalogKey getKey() {
-        return CatalogKey.of("totaleconomy", singular.toPlain().toLowerCase());
+    public String getId() {
+        return String.valueOf(id);
     }
 
     @Override
     public String getName() {
         return singular.toPlain();
+    }
+
+    public boolean isPrefixSymbol() {
+        return prefixSymbol;
     }
 }

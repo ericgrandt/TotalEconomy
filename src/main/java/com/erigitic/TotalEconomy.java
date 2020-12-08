@@ -5,17 +5,11 @@ import com.erigitic.config.DefaultConfiguration;
 import com.erigitic.data.Database;
 import com.erigitic.economy.TEEconomyService;
 import com.erigitic.player.PlayerListener;
-import com.erigitic.shop.data.ImmutableShopData;
-import com.erigitic.shop.data.MutableShopData;
-import com.erigitic.shop.data.ShopDataBuilder;
-import com.erigitic.shop.data.ShopKeys;
 import com.google.inject.Inject;
-import java.io.File;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
-import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
@@ -25,6 +19,8 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
+
+import java.io.File;
 
 @Plugin(id = "totaleconomy", name = "Total Economy", version = "2.0.0", description = "All in one economy plugin for Minecraft and Sponge")
 public class TotalEconomy {
