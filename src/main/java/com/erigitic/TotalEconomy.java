@@ -22,7 +22,7 @@ import org.spongepowered.api.service.economy.EconomyService;
 
 import java.io.File;
 
-@Plugin(id = "totaleconomy", name = "Total Economy", version = "2.0.0", description = "All in one economy plugin for Minecraft and Sponge")
+@Plugin(id="totaleconomy", name="Total Economy", version="2.0.0", description="All in one economy plugin for Minecraft and Sponge")
 public class TotalEconomy {
     @Inject
     private Logger logger;
