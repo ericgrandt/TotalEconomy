@@ -8,6 +8,7 @@ import com.erigitic.player.PlayerListener;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
@@ -21,6 +22,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 
 import java.io.File;
+import java.io.IOException;
 
 @Plugin(id="totaleconomy", name="Total Economy", version="2.0.0", description="All in one economy plugin for Minecraft and Sponge")
 public class TotalEconomy {
@@ -52,15 +54,15 @@ public class TotalEconomy {
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
         eventContext = EventContext.builder().add(EventContextKeys.PLUGIN, pluginContainer).build();
+        copyResourcesToConfigDirectory();
 
-        defaultConfiguration = new DefaultConfiguration();
-        defaultConfiguration.loadConfiguration();
+        defaultConfiguration = new DefaultConfiguration(this);
 
-        database = new Database();
-        database.setup();
-
-        economyService = new TEEconomyService();
-        Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
+        // database = new Database();
+        // database.setup();
+        //
+        // economyService = new TEEconomyService();
+        // Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
     }
 
     @Listener
@@ -69,6 +71,17 @@ public class TotalEconomy {
         commandRegister.registerCommands();
 
         Sponge.getEventManager().registerListeners(this, new PlayerListener());
+    }
+
+    private void copyResourcesToConfigDirectory() {
+        File config = new File(configDir, "totaleconomy.conf");
+        Asset defaultConf = pluginContainer.getAsset("totaleconomy.conf").get();
+
+        try {
+            defaultConf.copyToFile(config.toPath(), false);
+        } catch (IOException e) {
+            logger.error("Configuration files could not be copied");
+        }
     }
 
     @Listener
