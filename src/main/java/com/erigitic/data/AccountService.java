@@ -1,9 +1,9 @@
 package com.erigitic.data;
 
-import com.erigitic.TotalEconomy;
 import com.erigitic.economy.TEAccount;
 import com.erigitic.economy.TECurrency;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
@@ -18,19 +18,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AccountData {
-    private final Logger logger;
+public class AccountService {
+    private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
     private final Database database;
 
-    public AccountData(Database database) {
-        TotalEconomy plugin = TotalEconomy.getPlugin();
-        this.logger = plugin.getLogger();
+    public AccountService(Database database) {
         this.database = database;
     }
 
     public void createAccount(String uuid) {
         String createUserQuery = "INSERT INTO te_user VALUES (?)";
-        String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
+        // String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
@@ -38,12 +36,12 @@ public class AccountData {
                 stmt.execute();
             }
 
-            try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-                stmt.setString(1, uuid);
-                stmt.execute();
-            }
+            // try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
+            //     stmt.setString(1, uuid);
+            //     stmt.execute();
+            // }
         } catch (SQLException e) {
-            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
+            // logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
         }
     }
 

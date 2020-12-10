@@ -43,9 +43,20 @@ task integrationTest(type: Test) {
     }
 }
 
+task fullTest(type: Test) {
+    dependsOn 'cleanTest'
+
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
 dependencies {
     compile 'org.spongepowered:spongeapi:7.2.0'
     compile group: 'org.apache.ibatis', name: 'ibatis-core', version: '3.0'
+    testCompile group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     testImplementation 'org.mockito:mockito-core:3.6.28'

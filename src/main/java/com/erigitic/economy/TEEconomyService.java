@@ -1,7 +1,7 @@
 package com.erigitic.economy;
 
 import com.erigitic.TotalEconomy;
-import com.erigitic.data.AccountData;
+import com.erigitic.data.AccountService;
 import com.erigitic.data.CurrencyData;
 import java.util.Optional;
 import java.util.Set;
@@ -15,12 +15,12 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 public class TEEconomyService implements EconomyService {
     private final TotalEconomy plugin;
     private final CurrencyData currencyData;
-    private final AccountData accountData;
+    private final AccountService accountData;
 
     public TEEconomyService() {
         this.plugin = TotalEconomy.getPlugin();
         this.currencyData = new CurrencyData(plugin.getDatabase());
-        this.accountData = new AccountData(plugin.getDatabase());
+        this.accountData = new AccountService(plugin.getDatabase());
     }
 
     @Override
