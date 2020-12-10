@@ -20,7 +20,27 @@ checkstyle {
 }
 
 test {
-    useJUnitPlatform()
+    dependsOn 'cleanTest'
+
+    useJUnitPlatform {
+        includeTags 'Unit'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+task integrationTest(type: Test) {
+    dependsOn 'cleanTest'
+
+    useJUnitPlatform {
+        includeTags 'Integration'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 dependencies {

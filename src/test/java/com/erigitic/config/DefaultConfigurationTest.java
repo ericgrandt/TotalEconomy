@@ -1,7 +1,9 @@
 package com.erigitic.config;
 
 import com.erigitic.TotalEconomy;
+import ninja.leaping.configurate.ConfigurationNode;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -12,6 +14,7 @@ import java.io.File;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@Tag("Unit")
 @ExtendWith(MockitoExtension.class)
 public class DefaultConfigurationTest {
     private DefaultConfiguration sut;
@@ -26,8 +29,10 @@ public class DefaultConfigurationTest {
     }
 
     @Test
-    public void loadConfiguration_WithValidFile_ShouldNotBeNull() {
-        assertNotNull(sut.loadConfiguration("totaleconomy.conf"));
+    public void loadConfiguration_WithValidFile_ShouldReturnAConfigurationNode() {
+        ConfigurationNode result = sut.loadConfiguration("totaleconomy.conf");
+
+        assertNotNull(result);
     }
 
     @Test
