@@ -60,7 +60,7 @@ public class TotalEconomy {
 
         defaultConfiguration = new DefaultConfiguration(this);
 
-        AccountService accountService = new AccountService(null);
+        // AccountService accountService = new AccountService(null);
 
         // database = new Database();
         // database.setup();
