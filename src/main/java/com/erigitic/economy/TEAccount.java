@@ -1,7 +1,7 @@
 package com.erigitic.economy;
 
 import com.erigitic.TotalEconomy;
-import com.erigitic.data.AccountService;
+import com.erigitic.data.AccountData;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
@@ -20,15 +20,14 @@ import java.math.RoundingMode;
 import java.util.*;
 
 public class TEAccount implements UniqueAccount {
-    private final TotalEconomy plugin;
-    private final AccountService accountData;
+    private final AccountData accountData;
     private final UUID uuid;
 
     public TEAccount(UUID uuid) {
         this.uuid = uuid;
 
-        plugin = TotalEconomy.getPlugin();
-        accountData = new AccountService(plugin.getDatabase());
+        TotalEconomy plugin = TotalEconomy.getPlugin();
+        accountData = new AccountData(plugin.getDatabase());
     }
 
     @Override

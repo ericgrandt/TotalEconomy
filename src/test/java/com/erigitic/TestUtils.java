@@ -1,5 +1,8 @@
 package com.erigitic;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -10,6 +13,23 @@ import java.sql.Statement;
 import java.util.Properties;
 
 public class TestUtils {
+    private static HikariConfig config = new HikariConfig();
+    private static HikariDataSource ds;
+
+    static {
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/totaleconomytest");
+        config.setUsername("te_dev");
+        config.setPassword("Password1!");
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        ds = new HikariDataSource(config);
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return ds.getConnection();
+    }
+
     public static Connection createTestConnection() {
         URL testPropsPath = TestUtils.class.getClassLoader().getResource("test.properties");
         Properties testProps = new Properties();
@@ -34,22 +54,28 @@ public class TestUtils {
     }
 
     public static void seedDb() {
-        try (Connection conn = TestUtils.createTestConnection()) {
+        try (Connection conn = TestUtils.getConnection()) {
             String insertDollarCurrency = "INSERT INTO te_currency\n" +
-                "VALUES(0, 'Dollar', 'Dollars', '$', true, true)";
+                "VALUES(1, 'Dollar', 'Dollars', '$', true, true)";
             String insertEuroCurrency = "INSERT INTO te_currency\n" +
-                "VALUES(1, 'Euro', 'Euros', '\u20ac', false, true)";
+                "VALUES(2, 'Euro', 'Euros', '\u20ac', false, true)";
+            String insertAccount = "INSERT INTO te_user\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0');";
+            String insertBalance = "INSERT INTO te_balance\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 123)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDollarCurrency);
             statement.execute(insertEuroCurrency);
+            statement.execute(insertAccount);
+            statement.execute(insertBalance);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public static void resetDb() {
-        try (Connection conn = TestUtils.createTestConnection()) {
+        try (Connection conn = TestUtils.getConnection()) {
             String truncateUsers = "DELETE FROM te_user";
             String truncateBalances = "DELETE FROM te_balance";
             String truncateCurrencies = "DELETE FROM te_currency";

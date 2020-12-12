@@ -1,5 +1,6 @@
 package com.erigitic.data;
 
+import com.erigitic.domain.Balance;
 import com.erigitic.economy.TEAccount;
 import com.erigitic.economy.TECurrency;
 import org.slf4j.Logger;
@@ -18,11 +19,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AccountService {
+public class AccountData {
     private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
     private final Database database;
 
-    public AccountService(Database database) {
+    public AccountData(Database database) {
         this.database = database;
     }
 
@@ -67,6 +68,30 @@ public class AccountService {
         }
 
         return Optional.empty();
+    }
+
+    public Balance getBalance2(int currencyId, String uuid) {
+        String query = "SELECT * FROM te_balance WHERE currency_id = ? AND user_id = ?";
+
+        try (Connection conn = database.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, currencyId);
+                stmt.setString(2, uuid);
+
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    return new Balance(
+                        rs.getString("user_id"),
+                        rs.getInt("currency_id"),
+                        rs.getBigDecimal("balance")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, currencyId, uuid));
+        }
+
+        return null;
     }
 
     public BigDecimal getBalance(String currencyId, String uuid) {
