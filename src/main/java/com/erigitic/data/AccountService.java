@@ -28,7 +28,7 @@ public class AccountService {
 
     public void createAccount(String uuid) {
         String createUserQuery = "INSERT INTO te_user VALUES (?)";
-        // String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
+        String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
@@ -36,12 +36,12 @@ public class AccountService {
                 stmt.execute();
             }
 
-            // try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-            //     stmt.setString(1, uuid);
-            //     stmt.execute();
-            // }
+            try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
+                stmt.setString(1, uuid);
+                stmt.execute();
+            }
         } catch (SQLException e) {
-            // logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
+            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
         }
     }
 

@@ -33,14 +33,31 @@ public class TestUtils {
         return null;
     }
 
+    public static void seedDb() {
+        try (Connection conn = TestUtils.createTestConnection()) {
+            String insertDollarCurrency = "INSERT INTO te_currency\n" +
+                "VALUES(0, 'Dollar', 'Dollars', '$', true, true)";
+            String insertEuroCurrency = "INSERT INTO te_currency\n" +
+                "VALUES(1, 'Euro', 'Euros', '\u20ac', false, true)";
+
+            Statement statement = conn.createStatement();
+            statement.execute(insertDollarCurrency);
+            statement.execute(insertEuroCurrency);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void resetDb() {
         try (Connection conn = TestUtils.createTestConnection()) {
             String truncateUsers = "DELETE FROM te_user";
             String truncateBalances = "DELETE FROM te_balance";
+            String truncateCurrencies = "DELETE FROM te_currency";
 
             Statement statement = conn.createStatement();
             statement.execute(truncateUsers);
             statement.execute(truncateBalances);
+            statement.execute(truncateCurrencies);
         } catch (SQLException e) {
             e.printStackTrace();
         }
