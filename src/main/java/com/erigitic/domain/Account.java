@@ -7,6 +7,7 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -57,7 +58,7 @@ public class Account implements UniqueAccount {
 
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
@@ -67,12 +68,12 @@ public class Account implements UniqueAccount {
 
     @Override
     public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
