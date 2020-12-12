@@ -6,6 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
@@ -27,7 +32,7 @@ public class AccountTest {
         Text result = account.getDisplayName();
         Text expectedResult = Text.of("MyUsername");
 
-        assertEquals(result, expectedResult);
+        assertEquals(expectedResult, result);
     }
 
     @Test
@@ -37,7 +42,7 @@ public class AccountTest {
         BigDecimal result = account.getDefaultBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.ZERO;
 
-        assertEquals(result, expectedResult);
+        assertEquals(expectedResult, result);
     }
 
     @Test
@@ -81,7 +86,7 @@ public class AccountTest {
         BigDecimal result = account.getBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.valueOf(123);
 
-        assertEquals(result, expectedResult);
+        assertEquals(expectedResult, result);
     }
 
     @Test
@@ -96,6 +101,65 @@ public class AccountTest {
         BigDecimal result = account.getBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.valueOf(0);
 
-        assertEquals(result, expectedResult);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void setBalance_WithValidCurrency_ShouldReturnCorrectTransactionResultAndSetBalance() {
+        UUID uuid = UUID.randomUUID();
+        List<Balance> balances = Collections.singletonList(
+            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+        );
+        Account account = new Account(uuid, "MyUsername", balances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+        when(currencyMock.getId()).thenReturn("1");
+
+        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(10), cause);
+
+        assertEquals(BigDecimal.valueOf(10), result.getAmount());
+        assertEquals(ResultType.SUCCESS, result.getResult());
+        assertEquals(TransactionTypes.DEPOSIT, result.getType());
+        assertEquals(BigDecimal.valueOf(10), balances.get(0).balance);
+    }
+
+    @Test
+    public void setBalance_WithInvalidCurrency_ShouldReturnFailedTransactionResultAndNotSetBalance() {
+        UUID uuid = UUID.randomUUID();
+        List<Balance> balances = Collections.singletonList(
+            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+        );
+        Account account = new Account(uuid, "MyUsername", balances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+        when(currencyMock.getId()).thenReturn("123");
+
+        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(10), cause);
+
+        assertEquals(BigDecimal.valueOf(10), result.getAmount());
+        assertEquals(ResultType.FAILED, result.getResult());
+        assertEquals(TransactionTypes.DEPOSIT, result.getType());
+        assertEquals(BigDecimal.valueOf(123), balances.get(0).balance);
+    }
+
+    @Test
+    public void setBalance_WithAmountLessThan0_ShouldReturnFailedTransactionResultAndNotSetBalance() {
+        UUID uuid = UUID.randomUUID();
+        List<Balance> balances = Collections.singletonList(
+            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+        );
+        Account account = new Account(uuid, "MyUsername", balances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(-1), cause);
+
+        assertEquals(BigDecimal.valueOf(-1), result.getAmount());
+        assertEquals(ResultType.FAILED, result.getResult());
+        assertEquals(TransactionTypes.DEPOSIT, result.getType());
+        assertEquals(BigDecimal.valueOf(123), balances.get(0).balance);
     }
 }
