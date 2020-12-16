@@ -26,13 +26,13 @@ public class AccountData {
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
-                stmt.setString(1, account.userId);
-                stmt.setString(2, account.displayName);
+                stmt.setString(1, account.getIdentifier());
+                stmt.setString(2, account.getDisplayName().toString());
                 stmt.execute();
             }
 
             try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-                stmt.setString(1, account.userId);
+                stmt.setString(1, account.getIdentifier());
                 stmt.execute();
             }
         } catch (SQLException e) {
@@ -40,9 +40,9 @@ public class AccountData {
                 String.format(
                     "Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)",
                     createUserQuery,
-                    account.userId,
+                    account.getIdentifier(),
                     createBalancesQuery,
-                    account.userId
+                    account.getIdentifier()
                 )
             );
         }
@@ -146,15 +146,23 @@ public class AccountData {
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setBigDecimal(1, balance.balance);
-                stmt.setString(2, balance.userId);
-                stmt.setInt(3, balance.currencyId);
+                stmt.setBigDecimal(1, balance.getBalance());
+                stmt.setString(2, balance.getUserId());
+                stmt.setInt(3, balance.getCurrencyId());
                 stmt.executeUpdate();
 
                 return balance;
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error setting balance (Query: %s, Parameters: %.0f, %s, %s)", query, balance.balance, balance.userId, balance.currencyId));
+            logger.error(
+                String.format(
+                    "Error setting balance (Query: %s, Parameters: %.0f, %s, %s)",
+                    query,
+                    balance.getBalance(),
+                    balance.getUserId(),
+                    balance.getCurrencyId()
+                )
+            );
         }
 
         return null;
@@ -167,14 +175,14 @@ public class AccountData {
             conn.setAutoCommit(false);
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setBigDecimal(1, updatedFromBalance.balance);
-                stmt.setString(2, updatedFromBalance.userId);
-                stmt.setInt(3, updatedFromBalance.currencyId);
+                stmt.setBigDecimal(1, updatedFromBalance.getBalance());
+                stmt.setString(2, updatedFromBalance.getUserId());
+                stmt.setInt(3, updatedFromBalance.getCurrencyId());
                 stmt.executeUpdate();
 
-                stmt.setBigDecimal(1, updatedToBalance.balance);
-                stmt.setString(2, updatedToBalance.userId);
-                stmt.setInt(3, updatedToBalance.currencyId);
+                stmt.setBigDecimal(1, updatedToBalance.getBalance());
+                stmt.setString(2, updatedToBalance.getUserId());
+                stmt.setInt(3, updatedToBalance.getCurrencyId());
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 conn.rollback();
@@ -182,12 +190,12 @@ public class AccountData {
                     String.format(
                         "Error on transfer (Query: %s, Parameters: %s, %.0f, %s, %s, %.0f, %s)",
                         query,
-                        updatedFromBalance.userId,
-                        updatedFromBalance.balance,
-                        updatedFromBalance.currencyId,
-                        updatedToBalance.userId,
-                        updatedToBalance.balance,
-                        updatedToBalance.currencyId
+                        updatedFromBalance.getUserId(),
+                        updatedFromBalance.getBalance(),
+                        updatedFromBalance.getCurrencyId(),
+                        updatedToBalance.getUserId(),
+                        updatedToBalance.getBalance(),
+                        updatedToBalance.getCurrencyId()
                     )
                 );
 
@@ -202,12 +210,12 @@ public class AccountData {
                 String.format(
                     "Error on transfer (Query: %s, Parameters: %s, %.0f, %s, %s, %.0f, %s)",
                     query,
-                    updatedFromBalance.userId,
-                    updatedFromBalance.balance,
-                    updatedFromBalance.currencyId,
-                    updatedToBalance.userId,
-                    updatedToBalance.balance,
-                    updatedToBalance.currencyId
+                    updatedFromBalance.getUserId(),
+                    updatedFromBalance.getBalance(),
+                    updatedFromBalance.getCurrencyId(),
+                    updatedToBalance.getUserId(),
+                    updatedToBalance.getBalance(),
+                    updatedToBalance.getCurrencyId()
                 )
             );
         }

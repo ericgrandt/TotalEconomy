@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -105,16 +104,39 @@ public class AccountServiceTest {
 
     @Test
     public void transfer_WithValidData_ShouldUpdateBothBalances() {
+        Balance from = new Balance("random-uuid", 1, BigDecimal.valueOf(100));
+        Balance to = new Balance("random-uuid-2", 1, BigDecimal.valueOf(50));
 
+        when(accountDataMock.setTransferBalances(any(Balance.class), any(Balance.class))).thenReturn(true);
+
+        boolean result = sut.transfer(from, to, BigDecimal.valueOf(40));
+
+        assertTrue(result);
+        assertEquals(BigDecimal.valueOf(60), from.getBalance());
+        assertEquals(BigDecimal.valueOf(90), to.getBalance());
     }
 
     @Test
     public void transfer_WithNotEnoughMoneyInFromBalance_ShouldThrowIllegalArgumentException() {
+        Balance from = new Balance("random-uuid", 1, BigDecimal.valueOf(24));
+        Balance to = new Balance("random-uuid-2", 1, BigDecimal.valueOf(50));
 
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> sut.transfer(from, to, BigDecimal.valueOf(25)),
+            "Transfer amount is more than the user has"
+        );
     }
 
     @Test
     public void transfer_WithNonMatchingCurrencyIds_ShouldThrowIllegalArgumentException() {
+        Balance from = new Balance("random-uuid", 1, BigDecimal.valueOf(100));
+        Balance to = new Balance("random-uuid-2", 2, BigDecimal.valueOf(50));
 
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> sut.transfer(from, to, BigDecimal.valueOf(25)),
+            "Currency ids do not match"
+        );
     }
 }

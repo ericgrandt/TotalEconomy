@@ -31,13 +31,25 @@ public class AccountService {
     }
 
     public Balance setBalance(Balance balance) {
-        if (balance.balance.compareTo(BigDecimal.ZERO) < 0) {
+        if (balance.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Balance must be greater than or equal to zero");
         }
 
         return accountData.setBalance(balance);
     }
 
-    // TODO: transfer() should check that the "from" balance has enough money
-    // TODO: transfer() should check that the currency exists for both users
+    public boolean transfer(Balance from, Balance to, BigDecimal amount) {
+        if (from.getBalance().subtract(to.getBalance()).compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Transfer amount is more than the user has");
+        }
+
+        if (from.getCurrencyId() != to.getCurrencyId()) {
+            throw new IllegalArgumentException("Currency ids do not match");
+        }
+
+        from.setBalance(from.getBalance().subtract(amount));
+        to.setBalance(to.getBalance().add(amount));
+
+        return accountData.setTransferBalances(from, to);
+    }
 }

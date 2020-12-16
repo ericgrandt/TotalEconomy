@@ -52,7 +52,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
-        return accountData.getBalance(uuid.toString(), Integer.parseInt(currency.getId())).balance;
+        return accountData.getBalance(uuid.toString(), Integer.parseInt(currency.getId())).getBalance();
     }
 
     @Override

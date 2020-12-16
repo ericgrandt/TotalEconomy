@@ -18,9 +18,9 @@ import java.util.Set;
 import java.util.UUID;
 
 public class Account implements UniqueAccount {
-    public String userId;
-    public String displayName;
-    public List<Balance> balances;
+    private final String userId;
+    private final String displayName;
+    private List<Balance> balances;
 
     public Account(String userId, String displayName, List<Balance> balances) {
         this.userId = userId;
@@ -41,26 +41,21 @@ public class Account implements UniqueAccount {
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
         return balances.stream()
-            .anyMatch(balance -> balance.currencyId == Integer.parseInt(currency.getId()));
+            .anyMatch(balance -> balance.getCurrencyId() == Integer.parseInt(currency.getId()));
     }
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
         Balance balanceForCurrency = balances.stream()
-            .filter(balance -> balance.currencyId == Integer.parseInt(currency.getId()))
+            .filter(balance -> balance.getCurrencyId() == Integer.parseInt(currency.getId()))
             .findFirst()
             .orElse(null);
 
         if (balanceForCurrency != null) {
-            return balanceForCurrency.balance;
+            return balanceForCurrency.getBalance();
         }
 
         return BigDecimal.ZERO;
-    }
-
-    @Override
-    public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -70,12 +65,12 @@ public class Account implements UniqueAccount {
         }
 
         Balance balanceForCurrency = balances.stream()
-            .filter(balance -> balance.currencyId == Integer.parseInt(currency.getId()))
+            .filter(balance -> balance.getCurrencyId() == Integer.parseInt(currency.getId()))
             .findFirst()
             .orElse(null);
 
         if (balanceForCurrency != null) {
-            balanceForCurrency.balance = amount;
+            balanceForCurrency.setBalance(amount);
 
             return new TETransactionResult(
                 this,
@@ -98,16 +93,6 @@ public class Account implements UniqueAccount {
     }
 
     @Override
-    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         return null;
     }
@@ -118,13 +103,8 @@ public class Account implements UniqueAccount {
     }
 
     @Override
-    public TransferResult transfer(org.spongepowered.api.service.economy.account.Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        return null;
-    }
-
-    @Override
     public String getIdentifier() {
-        return null;
+        return userId;
     }
 
     @Override
@@ -134,11 +114,15 @@ public class Account implements UniqueAccount {
 
     @Override
     public UUID getUniqueId() {
-        return null;
+        return UUID.fromString(userId);
     }
 
     public void addBalance(Balance balance) {
         this.balances.add(balance);
+    }
+
+    public List<Balance> getBalancesList() {
+        return balances;
     }
 
     public boolean equals(Object obj) {
@@ -150,5 +134,25 @@ public class Account implements UniqueAccount {
         return this.userId.equals(other.userId)
             && this.displayName.equals(other.displayName)
             && this.balances.equals(other.balances);
+    }
+
+    @Override
+    public TransferResult transfer(org.spongepowered.api.service.economy.account.Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
+        throw new UnsupportedOperationException();
     }
 }

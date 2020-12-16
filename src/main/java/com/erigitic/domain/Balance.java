@@ -1,16 +1,31 @@
 package com.erigitic.domain;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 public class Balance {
-    public String userId;
-    public int currencyId;
-    public BigDecimal balance;
+    private final String userId;
+    private final int currencyId;
+    private BigDecimal balance;
 
     public Balance(String userId, int currencyId, BigDecimal balance) {
         this.userId = userId;
         this.currencyId = currencyId;
+        this.balance = balance;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public int getCurrencyId() {
+        return currencyId;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 

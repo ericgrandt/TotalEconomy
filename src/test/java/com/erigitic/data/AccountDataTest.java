@@ -78,7 +78,7 @@ public class AccountDataTest {
             int userCountResult = userResult.getInt("rowcount");
             String displayNameResult = userResult.getString("display_name");
             int expectedUserCount = 1;
-            String expectedDisplayName = account.displayName;
+            String expectedDisplayName = account.getDisplayName().toString();
             List<Balance> expectedBalances = Arrays.asList(
                 new Balance("ba64d376-8580-43b3-a3ee-2d6321114042", 1, BigDecimal.ZERO),
                 new Balance("ba64d376-8580-43b3-a3ee-2d6321114042", 2, BigDecimal.ZERO)

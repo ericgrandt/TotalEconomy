@@ -123,7 +123,7 @@ public class AccountTest {
         assertEquals(BigDecimal.valueOf(10), result.getAmount());
         assertEquals(ResultType.SUCCESS, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
-        assertEquals(BigDecimal.valueOf(10), balances.get(0).balance);
+        assertEquals(BigDecimal.valueOf(10), balances.get(0).getBalance());
     }
 
     @Test
@@ -143,7 +143,7 @@ public class AccountTest {
         assertEquals(BigDecimal.valueOf(10), result.getAmount());
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
-        assertEquals(BigDecimal.valueOf(123), balances.get(0).balance);
+        assertEquals(BigDecimal.valueOf(123), balances.get(0).getBalance());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class AccountTest {
         assertEquals(BigDecimal.valueOf(-1), result.getAmount());
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
-        assertEquals(BigDecimal.valueOf(123), balances.get(0).balance);
+        assertEquals(BigDecimal.valueOf(123), balances.get(0).getBalance());
     }
 
     @Test
@@ -172,6 +172,6 @@ public class AccountTest {
 
         account.addBalance(new Balance(uuid.toString(), 1, BigDecimal.ZERO));
 
-        assertEquals(1, account.balances.size());
+        assertEquals(1, account.getBalancesList().size());
     }
 }
