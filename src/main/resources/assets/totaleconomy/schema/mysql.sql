@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS te_user (
-    id VARCHAR(36) PRIMARY KEY
+    id VARCHAR(36) PRIMARY KEY,
+    display_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS te_currency (

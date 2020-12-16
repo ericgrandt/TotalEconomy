@@ -53,22 +53,55 @@ public class TestUtils {
         return null;
     }
 
-    public static void seedDb() {
+    public static void seedCurrencies() {
         try (Connection conn = TestUtils.getConnection()) {
             String insertDollarCurrency = "INSERT INTO te_currency\n" +
                 "VALUES(1, 'Dollar', 'Dollars', '$', true, true)";
             String insertEuroCurrency = "INSERT INTO te_currency\n" +
                 "VALUES(2, 'Euro', 'Euros', '\u20ac', false, true)";
-            String insertAccount = "INSERT INTO te_user\n" +
-                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0');";
-            String insertBalance = "INSERT INTO te_balance\n" +
-                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 123)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDollarCurrency);
             statement.execute(insertEuroCurrency);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void seedUser() {
+        try (Connection conn = TestUtils.getConnection()) {
+            String insertAccount = "INSERT INTO te_user\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 'Display Name');";
+            String insertBalance = "INSERT INTO te_balance\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 123)";
+            String insertBalance2 = "INSERT INTO te_balance\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 2, 456)";
+
+            Statement statement = conn.createStatement();
             statement.execute(insertAccount);
             statement.execute(insertBalance);
+            statement.execute(insertBalance2);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void seedUsers() {
+        try (Connection conn = TestUtils.getConnection()) {
+            String insertAccount = "INSERT INTO te_user\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 'Display Name');";
+            String insertBalance = "INSERT INTO te_balance\n" +
+                "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 50)";
+            String insertAccount2 = "INSERT INTO te_user\n" +
+                "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', 'Display Name 2');";
+            String insertBalance2 = "INSERT INTO te_balance\n" +
+                "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', 1, 100)";
+
+            Statement statement = conn.createStatement();
+            statement.execute(insertAccount);
+            statement.execute(insertBalance);
+            statement.execute(insertAccount2);
+            statement.execute(insertBalance2);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,8 +1,9 @@
 package com.erigitic.commands;
 
 import com.erigitic.TotalEconomy;
-import com.erigitic.economy.TEAccount;
+import com.erigitic.domain.Balance;
 import com.erigitic.economy.TEEconomyService;
+import com.erigitic.services.AccountService;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -13,15 +14,16 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 public class BalanceCommand implements CommandExecutor {
     private final TEEconomyService economyService;
+    private final AccountService accountService;
 
-    public BalanceCommand() {
+    public BalanceCommand(AccountService accountService) {
         TotalEconomy plugin = TotalEconomy.getPlugin();
         this.economyService = plugin.getEconomyService();
+        this.accountService = accountService;
     }
 
     @Override
@@ -31,12 +33,11 @@ public class BalanceCommand implements CommandExecutor {
         }
 
         Player player = (Player) src;
-        TEAccount account = new TEAccount(player.getUniqueId());
         Optional<Currency> currencyOptional = args.getOne("currencyName");
         Currency currency = currencyOptional.orElseGet(economyService::getDefaultCurrency);
-        BigDecimal balance = account.getBalance(currency);
+        Balance balance = accountService.getBalance(player.getUniqueId().toString(), Integer.parseInt(currency.getId()));
 
-        player.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, currency.format(balance)));
+        player.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, currency.format(balance.balance)));
 
         return CommandResult.success();
     }

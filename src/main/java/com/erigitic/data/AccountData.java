@@ -1,23 +1,16 @@
 package com.erigitic.data;
 
+import com.erigitic.domain.Account;
 import com.erigitic.domain.Balance;
-import com.erigitic.economy.TEAccount;
-import com.erigitic.economy.TECurrency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.text.Text;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccountData {
     private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
@@ -27,56 +20,81 @@ public class AccountData {
         this.database = database;
     }
 
-    public void createAccount(String uuid) {
-        String createUserQuery = "INSERT INTO te_user VALUES (?)";
+    public void addAccount(Account account) {
+        String createUserQuery = "INSERT INTO te_user VALUES (?, ?)";
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
-                stmt.setString(1, uuid);
+                stmt.setString(1, account.userId);
+                stmt.setString(2, account.displayName);
                 stmt.execute();
             }
 
             try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-                stmt.setString(1, uuid);
+                stmt.setString(1, account.userId);
                 stmt.execute();
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)", createUserQuery, uuid, createBalancesQuery, uuid));
+            logger.error(
+                String.format(
+                    "Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)",
+                    createUserQuery,
+                    account.userId,
+                    createBalancesQuery,
+                    account.userId
+                )
+            );
         }
     }
 
-    public Optional<UniqueAccount> getAccount(String uuid) {
-        String query = "SELECT id FROM te_user WHERE id = ? LIMIT 1";
+    public Account getAccount(String uuid) {
+        String query = "SELECT id, display_name, currency_id, balance\n" +
+            "FROM te_user tu\n" +
+            "INNER JOIN te_balance tb ON\n" +
+            "tu.id = tb.user_id\n" +
+            "WHERE tu.id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid);
 
                 ResultSet results = stmt.executeQuery();
-                if (results.next()) {
-                    UniqueAccount account = new TEAccount(
-                        UUID.fromString(results.getString("id"))
+                Account account = null;
+                while (results.next()) {
+                    if(account == null) {
+                        account = new Account(
+                            results.getString("id"),
+                            results.getString("display_name"),
+                            new ArrayList<>()
+                        );
+                    }
+
+                    Balance balance = new Balance(
+                        results.getString("id"),
+                        results.getInt("currency_id"),
+                        results.getBigDecimal("balance")
                     );
 
-                    return Optional.of(account);
+                    account.addBalance(balance);
                 }
+
+                return account;
             }
         } catch (SQLException e) {
-            logger.error(e.getMessage());
             logger.error(String.format("Error getting account (Query: %s, Parameters: %s)", query, uuid));
         }
 
-        return Optional.empty();
+        return null;
     }
 
-    public Balance getBalance2(int currencyId, String uuid) {
-        String query = "SELECT * FROM te_balance WHERE currency_id = ? AND user_id = ?";
+    public Balance getBalance(String userId, int currencyId) {
+        String query = "SELECT * FROM te_balance WHERE user_id = ? AND currency_id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setInt(1, currencyId);
-                stmt.setString(2, uuid);
+                stmt.setString(1, userId);
+                stmt.setInt(2, currencyId);
 
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
@@ -88,121 +106,112 @@ public class AccountData {
                 }
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, currencyId, uuid));
+            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, currencyId, userId));
         }
 
         return null;
     }
 
-    public BigDecimal getBalance(String currencyId, String uuid) {
-        String query = "SELECT balance FROM te_balance WHERE currency_id = ? AND user_id = ?";
+    public List<Balance> getBalances(String userId) {
+        String query = "SELECT user_id, currency_id, balance \n" +
+            "FROM te_balance\n" +
+            "WHERE user_id = ?";
 
+        List<Balance> balances = new ArrayList<>();
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, currencyId);
-                stmt.setString(2, uuid);
+                stmt.setString(1, userId);
 
                 ResultSet results = stmt.executeQuery();
-                if (results.next()) {
-                    return results.getBigDecimal("balance");
-                }
-            }
-        } catch (SQLException e) {
-            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, currencyId, uuid));
-        }
-
-        return BigDecimal.ZERO;
-    }
-
-    public Map<Currency, BigDecimal> getBalances(String uuid) {
-        String query = "SELECT balance, currency_id, c.name_plural, c.symbol FROM te_balance AS b INNER JOIN te_currency AS c ON c.id = b.currency_id WHERE user_id = ?;";
-
-        try (Connection conn = database.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, uuid);
-
-                ResultSet results = stmt.executeQuery();
-                Map<Currency, BigDecimal> balances = new HashMap<>();
                 while (results.next()) {
-                    BigDecimal balance = results.getBigDecimal("balance");
-                    Currency currency = new TECurrency(
-                        results.getInt("id"),
-                        Text.of(results.getString("name_singular")),
-                        Text.of(results.getString("name_plural")),
-                        Text.of(results.getString("symbol")),
-                        results.getBoolean("prefix_symbol"),
-                        results.getBoolean("is_default")
+                    Balance balance = new Balance(
+                        results.getString("user_id"),
+                        results.getInt("currency_id"),
+                        results.getBigDecimal("balance")
                     );
-
-                    balances.put(currency, balance);
+                    balances.add(balance);
                 }
 
                 return balances;
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s)", query, uuid.toString()));
+            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s)", query, userId));
         }
 
-        return new HashMap<>();
+        return balances;
     }
 
-    public int setBalance(String currencyId, String uuid, BigDecimal balance) {
-        String query = "UPDATE te_balance SET balance = ? WHERE currency_id = ? AND user_id = ?";
+    public Balance setBalance(Balance balance) {
+        String query = "UPDATE te_balance SET balance = ? WHERE user_id = ? AND currency_id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, balance.toString());
-                stmt.setString(2, currencyId);
-                stmt.setString(3, uuid);
+                stmt.setBigDecimal(1, balance.balance);
+                stmt.setString(2, balance.userId);
+                stmt.setInt(3, balance.currencyId);
+                stmt.executeUpdate();
 
-                return stmt.executeUpdate();
+                return balance;
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error setting balance (Query: %s, Parameters: %.0f, %s, %s)", query, balance, currencyId, uuid));
+            logger.error(String.format("Error setting balance (Query: %s, Parameters: %.0f, %s, %s)", query, balance.balance, balance.userId, balance.currencyId));
         }
 
-        return 0;
+        return null;
     }
 
-    public int transfer(String currencyIdentifier, String fromUuid, String toUuid, BigDecimal fromBalance, BigDecimal toBalance) {
-        String query = "UPDATE te_balance SET balance = ? WHERE currency_id = ? AND user_id = ?";
+    public boolean setTransferBalances(Balance updatedFromBalance, Balance updatedToBalance) {
+        String query = "UPDATE te_balance SET balance = ? WHERE user_id = ? AND currency_id = ?";
 
         try (Connection conn = database.getConnection()) {
-            int updatedRows = 0;
             conn.setAutoCommit(false);
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, fromBalance.toString());
-                stmt.setString(2, currencyIdentifier);
-                stmt.setString(3, fromUuid);
+                stmt.setBigDecimal(1, updatedFromBalance.balance);
+                stmt.setString(2, updatedFromBalance.userId);
+                stmt.setInt(3, updatedFromBalance.currencyId);
+                stmt.executeUpdate();
 
-                updatedRows += stmt.executeUpdate();
-
-                stmt.setString(1, toBalance.toString());
-                stmt.setString(2, currencyIdentifier);
-                stmt.setString(3, toUuid);
-
-                updatedRows += stmt.executeUpdate();
+                stmt.setBigDecimal(1, updatedToBalance.balance);
+                stmt.setString(2, updatedToBalance.userId);
+                stmt.setInt(3, updatedToBalance.currencyId);
+                stmt.executeUpdate();
             } catch (SQLException e) {
                 conn.rollback();
-                logger.error(String.format(
-                    "Error setting balance (Query: %s, Parameters: (fromBalance: %.0f, toBalance: %.0f), %s, %s)",
-                    query,
-                    fromBalance,
-                    toBalance,
-                    currencyIdentifier,
-                    fromUuid)
+                logger.error(
+                    String.format(
+                        "Error on transfer (Query: %s, Parameters: %s, %.0f, %s, %s, %.0f, %s)",
+                        query,
+                        updatedFromBalance.userId,
+                        updatedFromBalance.balance,
+                        updatedFromBalance.currencyId,
+                        updatedToBalance.userId,
+                        updatedToBalance.balance,
+                        updatedToBalance.currencyId
+                    )
                 );
+
+                return false;
             }
 
             conn.commit();
-            conn.setAutoCommit(true);
 
-            return updatedRows;
+            return true;
         } catch (SQLException e) {
-            logger.error("Error setting balance");
+            logger.error(
+                String.format(
+                    "Error on transfer (Query: %s, Parameters: %s, %.0f, %s, %s, %.0f, %s)",
+                    query,
+                    updatedFromBalance.userId,
+                    updatedFromBalance.balance,
+                    updatedFromBalance.currencyId,
+                    updatedToBalance.userId,
+                    updatedToBalance.balance,
+                    updatedToBalance.currencyId
+                )
+            );
         }
 
-        return 0;
+        return false;
     }
 }

@@ -41,9 +41,9 @@ public class TEEconomyService implements EconomyService {
     public boolean hasAccount(UUID uuid) {
         boolean hasAccount = false;
 
-        if (accountData.getAccount(uuid.toString()).isPresent()) {
-            hasAccount = true;
-        }
+        // if (accountData.getAccount(uuid.toString()).isPresent()) {
+        //     hasAccount = true;
+        // }
 
         return hasAccount;
     }
@@ -55,13 +55,14 @@ public class TEEconomyService implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
-        Optional<UniqueAccount> accountOpt = accountData.getAccount(uuid.toString());
+        return Optional.empty();
+        // Optional<UniqueAccount> accountOpt = accountData.getAccount(uuid.toString());
+        //
+        // if (!accountOpt.isPresent()) {
+        //     accountData.createAccount(uuid.toString());
+        // }
 
-        if (!accountOpt.isPresent()) {
-            accountData.createAccount(uuid.toString());
-        }
-
-        return accountData.getAccount(uuid.toString());
+        // return accountData.getAccount(uuid.toString());
     }
 
     @Override

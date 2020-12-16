@@ -19,6 +19,7 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.service.economy.EconomyService;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,16 +60,16 @@ public class TotalEconomy {
 
         // AccountService accountService = new AccountService(null);
 
-        // database = new Database();
-        // database.setup();
-        //
-        // economyService = new TEEconomyService();
-        // Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
+        database = new Database();
+        database.setup();
+
+        economyService = new TEEconomyService();
+        Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
     }
 
     @Listener
     public void onInit(GameInitializationEvent event) {
-        CommandRegister commandRegister = new CommandRegister();
+        CommandRegister commandRegister = new CommandRegister(this);
         commandRegister.registerCommands();
 
         Sponge.getEventManager().registerListeners(this, new PlayerListener());

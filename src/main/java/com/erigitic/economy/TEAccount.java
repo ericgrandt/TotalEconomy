@@ -2,6 +2,7 @@ package com.erigitic.economy;
 
 import com.erigitic.TotalEconomy;
 import com.erigitic.data.AccountData;
+import com.erigitic.domain.Balance;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
@@ -44,32 +45,33 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
-        BigDecimal balance = accountData.getBalance(currency.getId(), uuid.toString());
+        Balance balance = accountData.getBalance(uuid.toString(), Integer.parseInt(currency.getId()));
 
         return balance != null;
     }
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
-        return accountData.getBalance(currency.getId(), uuid.toString());
+        return accountData.getBalance(uuid.toString(), Integer.parseInt(currency.getId())).balance;
     }
 
     @Override
     public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
-        return accountData.getBalances(uuid.toString());
+        // return accountData.getBalances(uuid.toString());
+        return null;
     }
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        int rowsAffected = accountData.setBalance(
-            currency.getId(),
-            uuid.toString(),
-            amount.setScale(0, RoundingMode.HALF_DOWN)
-        );
-
-        if (rowsAffected <= 0) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, null);
-        }
+        // int rowsAffected = accountData.setBalance(
+        //     currency.getId(),
+        //     uuid.toString(),
+        //     amount.setScale(0, RoundingMode.HALF_DOWN)
+        // );
+        //
+        // if (rowsAffected <= 0) {
+        //     return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, null);
+        // }
 
         return new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, null);
     }
@@ -86,60 +88,60 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        BigDecimal currentBalance = accountData.getBalance(currency.getId(), uuid.toString());
-        if (currentBalance == null) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        }
-
-        BigDecimal newBalance = currentBalance.add(amount).setScale(0, RoundingMode.HALF_DOWN);
-        TransactionResult result = setBalance(currency, newBalance, cause, contexts);
-        if (result.getResult() == ResultType.FAILED) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        }
-
-        // TODO: Check if number is too big? And return ResultType.ACCOUNT_NO_SPACE?
+        // BigDecimal currentBalance = accountData.getBalance(currency.getId(), uuid.toString());
+        // if (currentBalance == null) {
+        //     return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        // }
+        //
+        // BigDecimal newBalance = currentBalance.add(amount).setScale(0, RoundingMode.HALF_DOWN);
+        // TransactionResult result = setBalance(currency, newBalance, cause, contexts);
+        // if (result.getResult() == ResultType.FAILED) {
+        //     return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        // }
+        //
+        // // TODO: Check if number is too big? And return ResultType.ACCOUNT_NO_SPACE?
 
         return new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        BigDecimal currentBalance = accountData.getBalance(currency.getId(), uuid.toString());
-        if (currentBalance == null) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
-        }
-
-        BigDecimal newBalance = currentBalance.subtract(amount).setScale(0, RoundingMode.HALF_DOWN);
-        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
-        }
-
-        TransactionResult result = setBalance(currency, newBalance, cause, contexts);
-        if (result.getResult() == ResultType.FAILED) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
-        }
+        // BigDecimal currentBalance = accountData.getBalance(currency.getId(), uuid.toString());
+        // if (currentBalance == null) {
+        //     return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        // }
+        //
+        // BigDecimal newBalance = currentBalance.subtract(amount).setScale(0, RoundingMode.HALF_DOWN);
+        // if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+        //     return new TETransactionResult(this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
+        // }
+        //
+        // TransactionResult result = setBalance(currency, newBalance, cause, contexts);
+        // if (result.getResult() == ResultType.FAILED) {
+        //     return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+        // }
 
         return new TETransactionResult(this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
     }
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        BigDecimal currentBalance = accountData.getBalance(currency.getId(), uuid.toString());
-        if (currentBalance == null) {
-            return new TETransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
-        }
-
-        BigDecimal fromBalance = currentBalance.subtract(amount).setScale(0, RoundingMode.HALF_DOWN);
-        if (fromBalance.compareTo(BigDecimal.ZERO) < 0) {
-            return new TETransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
-        }
-
-        BigDecimal toBalance = to.getBalance(currency).add(amount).setScale(0, RoundingMode.HALF_DOWN);
-
-        int rowsAffected = accountData.transfer(currency.getId(), getIdentifier(), to.getIdentifier(), fromBalance, toBalance);
-        if (rowsAffected < 2) {
-            return new TETransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
-        }
+        // BigDecimal currentBalance = accountData.getBalance(currency.getId(), uuid.toString());
+        // if (currentBalance == null) {
+        //     return new TETransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+        // }
+        //
+        // BigDecimal fromBalance = currentBalance.subtract(amount).setScale(0, RoundingMode.HALF_DOWN);
+        // if (fromBalance.compareTo(BigDecimal.ZERO) < 0) {
+        //     return new TETransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
+        // }
+        //
+        // BigDecimal toBalance = to.getBalance(currency).add(amount).setScale(0, RoundingMode.HALF_DOWN);
+        //
+        // int rowsAffected = accountData.transfer(currency.getId(), getIdentifier(), to.getIdentifier(), fromBalance, toBalance);
+        // if (rowsAffected < 2) {
+        //     return new TETransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+        // }
 
         return new TETransferResult(to, this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
     }

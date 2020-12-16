@@ -1,6 +1,7 @@
 package com.erigitic.domain;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class Balance {
     public String userId;

@@ -27,7 +27,8 @@ public class AccountTest {
 
     @Test
     public void getDisplayName_ShouldReturnTheCorrectDisplayName() {
-        Account account = new Account(UUID.randomUUID(), "MyUsername", null);
+        String uuid = UUID.randomUUID().toString();
+        Account account = new Account(uuid, "MyUsername", null);
 
         Text result = account.getDisplayName();
         Text expectedResult = Text.of("MyUsername");
@@ -37,7 +38,8 @@ public class AccountTest {
 
     @Test
     public void getDefaultBalance_ShouldReturnZero() {
-        Account account = new Account(UUID.randomUUID(), "MyUsername", null);
+        String uuid = UUID.randomUUID().toString();
+        Account account = new Account(uuid, "MyUsername", null);
 
         BigDecimal result = account.getDefaultBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.ZERO;
@@ -47,10 +49,10 @@ public class AccountTest {
 
     @Test
     public void hasBalance_WithExistingBalance_ShouldReturnTrue() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Arrays.asList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123)),
-            new Balance(uuid.toString(), 2, BigDecimal.valueOf(456))
+            new Balance(uuid, 1, BigDecimal.valueOf(123)),
+            new Balance(uuid, 2, BigDecimal.valueOf(456))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         when(currencyMock.getId()).thenReturn("1");
@@ -62,9 +64,9 @@ public class AccountTest {
 
     @Test
     public void hasBalance_WithNonExistingBalance_ShouldReturnFalse() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Collections.singletonList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+            new Balance(uuid, 1, BigDecimal.valueOf(123))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         when(currencyMock.getId()).thenReturn("123");
@@ -76,9 +78,9 @@ public class AccountTest {
 
     @Test
     public void getBalance_WithValidCurrency_ShouldReturnBigDecimal() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Collections.singletonList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+            new Balance(uuid, 1, BigDecimal.valueOf(123))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         when(currencyMock.getId()).thenReturn("1");
@@ -91,9 +93,9 @@ public class AccountTest {
 
     @Test
     public void getBalance_WithInvalidCurrency_ShouldReturnZero() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Collections.singletonList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+            new Balance(uuid, 1, BigDecimal.valueOf(123))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         when(currencyMock.getId()).thenReturn("123");
@@ -106,9 +108,9 @@ public class AccountTest {
 
     @Test
     public void setBalance_WithValidCurrency_ShouldReturnCorrectTransactionResultAndSetBalance() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Collections.singletonList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+            new Balance(uuid, 1, BigDecimal.valueOf(123))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         Cause cause = Cause.builder()
@@ -126,9 +128,9 @@ public class AccountTest {
 
     @Test
     public void setBalance_WithInvalidCurrency_ShouldReturnFailedTransactionResultAndNotSetBalance() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Collections.singletonList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+            new Balance(uuid, 1, BigDecimal.valueOf(123))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         Cause cause = Cause.builder()
@@ -146,9 +148,9 @@ public class AccountTest {
 
     @Test
     public void setBalance_WithAmountLessThan0_ShouldReturnFailedTransactionResultAndNotSetBalance() {
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         List<Balance> balances = Collections.singletonList(
-            new Balance(uuid.toString(), 1, BigDecimal.valueOf(123))
+            new Balance(uuid, 1, BigDecimal.valueOf(123))
         );
         Account account = new Account(uuid, "MyUsername", balances);
         Cause cause = Cause.builder()
@@ -161,5 +163,15 @@ public class AccountTest {
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
         assertEquals(BigDecimal.valueOf(123), balances.get(0).balance);
+    }
+
+    @Test
+    public void addBalance_ShouldAddNewBalance() {
+        UUID uuid = UUID.randomUUID();
+        Account account = new Account(uuid.toString(), "MyUsername", new ArrayList<>());
+
+        account.addBalance(new Balance(uuid.toString(), 1, BigDecimal.ZERO));
+
+        assertEquals(1, account.balances.size());
     }
 }

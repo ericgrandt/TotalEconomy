@@ -18,12 +18,12 @@ import java.util.Set;
 import java.util.UUID;
 
 public class Account implements UniqueAccount {
-    public UUID uuid;
+    public String userId;
     public String displayName;
     public List<Balance> balances;
 
-    public Account(UUID uuid, String displayName, List<Balance> balances) {
-        this.uuid = uuid;
+    public Account(String userId, String displayName, List<Balance> balances) {
+        this.userId = userId;
         this.displayName = displayName;
         this.balances = balances;
     }
@@ -135,5 +135,20 @@ public class Account implements UniqueAccount {
     @Override
     public UUID getUniqueId() {
         return null;
+    }
+
+    public void addBalance(Balance balance) {
+        this.balances.add(balance);
+    }
+
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Account)) {
+            return false;
+        }
+
+        Account other = (Account) obj;
+        return this.userId.equals(other.userId)
+            && this.displayName.equals(other.displayName)
+            && this.balances.equals(other.balances);
     }
 }
