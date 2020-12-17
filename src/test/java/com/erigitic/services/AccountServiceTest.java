@@ -36,7 +36,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void createAccount_ShouldCallCreateAccountInAccountData() {
+    public void addAccount_ShouldCallCreateAccountInAccountData() {
         TEAccount account = new TEAccount("random-uuid", "Display Name", null);
 
         sut.addAccount(account);
