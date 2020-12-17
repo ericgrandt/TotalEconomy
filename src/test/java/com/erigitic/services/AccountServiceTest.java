@@ -1,17 +1,19 @@
 package com.erigitic.services;
 
 import com.erigitic.data.AccountData;
-import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
+import com.erigitic.domain.TEAccount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.service.economy.Currency;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +26,9 @@ public class AccountServiceTest {
 
     @Mock
     AccountData accountDataMock;
+
+    @Mock
+    Currency currencyMock;
 
     @BeforeEach
     public void init() {
@@ -39,23 +44,24 @@ public class AccountServiceTest {
         verify(accountDataMock, times(1)).addAccount(account);
     }
 
-    // @Test
-    // public void getAccount_ShouldReturnTheCorrectAccount() {
-    //     List<Balance> balances = Arrays.asList(
-    //         new Balance("random-uuid", 1, BigDecimal.valueOf(123)),
-    //         new Balance("random-uuid", 2, BigDecimal.valueOf(456))
-    //     );
-    //     Account account = new Account(
-    //         "random-uuid",
-    //         "Display Name",
-    //         balances
-    //     );
-    //     when(accountDataMock.getAccount("random-uuid")).thenReturn(account);
-    //
-    //     Account result = sut.getAccount("random-uuid");
-    //
-    //     assertEquals(account, result);
-    // }
+    @Test
+    public void getAccount_ShouldReturnTheCorrectAccount() {
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
+        );
+        TEAccount account = new TEAccount(
+            "random-uuid",
+            "Display Name",
+            balances
+        );
+        when(accountDataMock.getAccount("random-uuid")).thenReturn(account);
+
+        TEAccount result = sut.getAccount("random-uuid");
+
+        assertEquals(account, result);
+    }
 
     @Test
     public void getBalance_ShouldReturnTheCorrectBalance() {

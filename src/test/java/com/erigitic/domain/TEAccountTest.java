@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 
 @Tag("Unit")
 @ExtendWith(MockitoExtension.class)
-public class AccountTest {
+public class TEAccountTest {
     @Mock
     TECurrency currencyMock;
 
@@ -51,7 +51,6 @@ public class AccountTest {
 
     @Test
     public void hasBalance_WithExistingBalance_ShouldReturnTrue() {
-        String uuid = UUID.randomUUID().toString();
         HashMap<Currency, BigDecimal> balances = new HashMap<>();
         balances.put(
             currencyMock,
