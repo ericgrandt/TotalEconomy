@@ -22,11 +22,6 @@ public class CommandRegister {
             GenericArguments.optional(new CurrencyCommandElement(Text.of("currencyName")))
         )
         .build();
-    private final CommandSpec debugCommandSpec = CommandSpec.builder()
-        .description(Text.of("Debug command"))
-        .permission("totaleconomy.command.debug")
-        .executor(new DebugCommand())
-        .build();
 
     public CommandRegister(TotalEconomy plugin) {
         this.plugin = plugin;
@@ -44,6 +39,5 @@ public class CommandRegister {
     public void registerCommands() {
         Sponge.getCommandManager().register(plugin, balanceCommandSpec, "balance");
         Sponge.getCommandManager().register(plugin, payCommandSpec, "pay");
-        Sponge.getCommandManager().register(plugin, debugCommandSpec, "debug");
     }
 }

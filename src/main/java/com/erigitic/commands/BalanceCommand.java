@@ -35,7 +35,10 @@ public class BalanceCommand implements CommandExecutor {
         Player player = (Player) src;
         Optional<Currency> currencyOptional = args.getOne("currencyName");
         Currency currency = currencyOptional.orElseGet(economyService::getDefaultCurrency);
-        Balance balance = accountService.getBalance(player.getUniqueId().toString(), Integer.parseInt(currency.getId()));
+        Balance balance = accountService.getBalance(
+            player.getUniqueId().toString(),
+            Integer.parseInt(currency.getId())
+        );
 
         player.sendMessage(Text.of(TextColors.GRAY, "Balance: ", TextColors.GOLD, currency.format(balance.getBalance())));
 
