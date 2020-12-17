@@ -58,7 +58,7 @@ public class TestUtils {
             String insertDollarCurrency = "INSERT INTO te_currency\n" +
                 "VALUES(1, 'Dollar', 'Dollars', '$', true, true)";
             String insertEuroCurrency = "INSERT INTO te_currency\n" +
-                "VALUES(2, 'Euro', 'Euros', '\u20ac', false, true)";
+                "VALUES(2, 'Euro', 'Euros', 'E', false, false)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDollarCurrency);

@@ -1,6 +1,7 @@
 package com.erigitic.domain;
 
 import com.erigitic.economy.TETransactionResult;
+import com.google.common.base.Objects;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
@@ -12,17 +13,16 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public class Account implements UniqueAccount {
+public class TEAccount implements UniqueAccount {
     private final String userId;
     private final String displayName;
-    private List<Balance> balances;
+    public final Map<Currency, BigDecimal> balances;
 
-    public Account(String userId, String displayName, List<Balance> balances) {
+    public TEAccount(String userId, String displayName, Map<Currency, BigDecimal> balances) {
         this.userId = userId;
         this.displayName = displayName;
         this.balances = balances;
@@ -40,54 +40,41 @@ public class Account implements UniqueAccount {
 
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
-        return balances.stream()
-            .anyMatch(balance -> balance.getCurrencyId() == Integer.parseInt(currency.getId()));
+        TECurrency teCurrency = (TECurrency) currency;
+        return balances.containsKey(teCurrency);
     }
 
     @Override
     public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
-        Balance balanceForCurrency = balances.stream()
-            .filter(balance -> balance.getCurrencyId() == Integer.parseInt(currency.getId()))
-            .findFirst()
-            .orElse(null);
+        TECurrency teCurrency = (TECurrency) currency;
+        BigDecimal balance = balances.get(teCurrency);
 
-        if (balanceForCurrency != null) {
-            return balanceForCurrency.getBalance();
+        if (balance == null) {
+            return BigDecimal.ZERO;
         }
 
-        return BigDecimal.ZERO;
+        return balance;
+    }
+
+    @Override
+    public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
+        return balances;
     }
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+        if (amount.compareTo(BigDecimal.ZERO) < 0 || !hasBalance(currency)) {
             return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         }
 
-        Balance balanceForCurrency = balances.stream()
-            .filter(balance -> balance.getCurrencyId() == Integer.parseInt(currency.getId()))
-            .findFirst()
-            .orElse(null);
-
-        if (balanceForCurrency != null) {
-            balanceForCurrency.setBalance(amount);
-
-            return new TETransactionResult(
-                this,
-                currency,
-                amount,
-                contexts,
-                ResultType.SUCCESS,
-                TransactionTypes.DEPOSIT
-            );
-        }
+        balances.replace(currency, amount);
 
         return new TETransactionResult(
             this,
             currency,
             amount,
             contexts,
-            ResultType.FAILED,
+            ResultType.SUCCESS,
             TransactionTypes.DEPOSIT
         );
     }
@@ -117,23 +104,29 @@ public class Account implements UniqueAccount {
         return UUID.fromString(userId);
     }
 
-    public void addBalance(Balance balance) {
-        this.balances.add(balance);
+    public void addBalance(TECurrency currency, BigDecimal balance) {
+        this.balances.put(currency, balance);
     }
 
-    public List<Balance> getBalancesList() {
-        return balances;
-    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
 
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Account)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        Account other = (Account) obj;
-        return this.userId.equals(other.userId)
-            && this.displayName.equals(other.displayName)
-            && this.balances.equals(other.balances);
+        TEAccount other = (TEAccount) o;
+        return Objects.equal(userId, other.userId) &&
+            Objects.equal(displayName, other.displayName) &&
+            Objects.equal(balances, other.balances);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(userId, displayName, balances);
     }
 
     @Override
@@ -148,11 +141,6 @@ public class Account implements UniqueAccount {
 
     @Override
     public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
         throw new UnsupportedOperationException();
     }
 }

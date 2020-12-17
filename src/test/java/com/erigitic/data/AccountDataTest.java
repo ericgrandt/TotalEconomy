@@ -1,14 +1,16 @@
 package com.erigitic.data;
 
 import com.erigitic.TestUtils;
-import com.erigitic.domain.Account;
+import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
+import com.erigitic.domain.TECurrency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.service.economy.Currency;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -40,7 +42,7 @@ public class AccountDataTest {
     @Test
     public void addAccount_WithValidData_ShouldInsertASingleAccountAndABalanceForBothCurrencies() throws SQLException {
         // Arrange
-        Account account = new Account(
+        TEAccount account = new TEAccount(
             "ba64d376-8580-43b3-a3ee-2d6321114042",
             "Display Name",
             null
@@ -98,14 +100,19 @@ public class AccountDataTest {
 
         String userId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
         String displayName = "Display Name";
-        List<Balance> balances = Arrays.asList(
-            new Balance("62694fb0-07cc-4396-8d63-4f70646d75f0", 1, BigDecimal.valueOf(123)),
-            new Balance("62694fb0-07cc-4396-8d63-4f70646d75f0", 2, BigDecimal.valueOf(456))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            new TECurrency(1, "Dollar", "Dollars", "$", true),
+            BigDecimal.valueOf(123)
+        );
+        balances.put(
+            new TECurrency(2, "Euro", "Euros", "E", false),
+            BigDecimal.valueOf(456)
         );
 
         // Act
-        Account result = sut.getAccount(userId);
-        Account expectedResult = new Account(
+        TEAccount result = sut.getAccount(userId);
+        TEAccount expectedResult = new TEAccount(
             userId,
             displayName,
             balances
@@ -113,7 +120,7 @@ public class AccountDataTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(expectedResult, result);
+        assertEquals(result, expectedResult);
     }
 
     @Test

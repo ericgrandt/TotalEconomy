@@ -1,5 +1,7 @@
 package com.erigitic.domain;
 
+import com.google.common.base.Objects;
+
 import java.math.BigDecimal;
 
 public class Balance {
@@ -29,14 +31,24 @@ public class Balance {
         this.balance = balance;
     }
 
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Balance)) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        Balance other = (Balance) obj;
-        return this.userId.equals(other.userId)
-            && this.currencyId == other.currencyId
-            && this.balance.equals(other.balance);
+        Balance other = (Balance) o;
+        return currencyId == other.currencyId &&
+            Objects.equal(userId, other.userId) &&
+            Objects.equal(balance, other.balance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(userId, currencyId, balance);
     }
 }

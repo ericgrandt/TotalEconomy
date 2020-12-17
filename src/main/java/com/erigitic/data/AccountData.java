@@ -1,15 +1,18 @@
 package com.erigitic.data;
 
-import com.erigitic.domain.Account;
+import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
+import com.erigitic.domain.TECurrency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class AccountData {
@@ -20,7 +23,7 @@ public class AccountData {
         this.database = database;
     }
 
-    public void addAccount(Account account) {
+    public void addAccount(TEAccount account) {
         String createUserQuery = "INSERT INTO te_user VALUES (?, ?)";
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
@@ -48,11 +51,13 @@ public class AccountData {
         }
     }
 
-    public Account getAccount(String uuid) {
-        String query = "SELECT id, display_name, currency_id, balance\n" +
+    public TEAccount getAccount(String uuid) {
+        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, prefix_symbol, is_default\n" +
             "FROM te_user tu\n" +
             "INNER JOIN te_balance tb ON\n" +
             "tu.id = tb.user_id\n" +
+            "INNER JOIN te_currency tc ON\n" +
+            "tc.id = tb.currency_id\n" +
             "WHERE tu.id = ?";
 
         try (Connection conn = database.getConnection()) {
@@ -60,23 +65,26 @@ public class AccountData {
                 stmt.setString(1, uuid);
 
                 ResultSet results = stmt.executeQuery();
-                Account account = null;
+                TEAccount account = null;
                 while (results.next()) {
                     if(account == null) {
-                        account = new Account(
+                        account = new TEAccount(
                             results.getString("id"),
                             results.getString("display_name"),
-                            new ArrayList<>()
+                            new HashMap<>()
                         );
                     }
 
-                    Balance balance = new Balance(
-                        results.getString("id"),
+                    TECurrency currency = new TECurrency(
                         results.getInt("currency_id"),
-                        results.getBigDecimal("balance")
+                        results.getString("name_singular"),
+                        results.getString("name_plural"),
+                        results.getString("symbol"),
+                        results.getBoolean("is_default")
                     );
+                    BigDecimal balance = results.getBigDecimal("balance");
 
-                    account.addBalance(balance);
+                    account.addBalance(currency, balance);
                 }
 
                 return account;

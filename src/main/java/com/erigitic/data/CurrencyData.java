@@ -1,16 +1,16 @@
 package com.erigitic.data;
 
 import com.erigitic.TotalEconomy;
-import com.erigitic.economy.TECurrency;
+import com.erigitic.domain.TECurrency;
+import org.slf4j.Logger;
+import org.spongepowered.api.service.economy.Currency;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.text.Text;
 
 public class CurrencyData {
     private final Logger logger;
@@ -32,10 +32,9 @@ public class CurrencyData {
 
                 return new TECurrency(
                     results.getInt("id"),
-                    Text.of(results.getString("name_singular")),
-                    Text.of(results.getString("name_plural")),
-                    Text.of(results.getString("symbol")),
-                    results.getBoolean("prefix_symbol"),
+                    results.getString("name_singular"),
+                    results.getString("name_plural"),
+                    results.getString("symbol"),
                     true
                 );
             }
@@ -58,10 +57,9 @@ public class CurrencyData {
                 if (results.next()) {
                     return new TECurrency(
                         results.getInt("id"),
-                        Text.of(results.getString("name_singular")),
-                        Text.of(results.getString("name_plural")),
-                        Text.of(results.getString("symbol")),
-                        results.getBoolean("prefix_symbol"),
+                        results.getString("name_singular"),
+                        results.getString("name_plural"),
+                        results.getString("symbol"),
                         results.getBoolean("is_default")
                     );
                 }
@@ -84,10 +82,9 @@ public class CurrencyData {
                 while (results.next()) {
                     Currency currency = new TECurrency(
                         results.getInt("id"),
-                        Text.of(results.getString("name_singular")),
-                        Text.of(results.getString("name_plural")),
-                        Text.of(results.getString("symbol")),
-                        results.getBoolean("prefix_symbol"),
+                        results.getString("name_singular"),
+                        results.getString("name_plural"),
+                        results.getString("symbol"),
                         results.getBoolean("is_default")
                     );
 

@@ -1,6 +1,5 @@
 package com.erigitic.domain;
 
-import com.erigitic.economy.TECurrency;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,16 +7,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @Tag("Unit")
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +30,7 @@ public class AccountTest {
     @Test
     public void getDisplayName_ShouldReturnTheCorrectDisplayName() {
         String uuid = UUID.randomUUID().toString();
-        Account account = new Account(uuid, "MyUsername", null);
+        TEAccount account = new TEAccount(uuid, "MyUsername", null);
 
         Text result = account.getDisplayName();
         Text expectedResult = Text.of("MyUsername");
@@ -39,7 +41,7 @@ public class AccountTest {
     @Test
     public void getDefaultBalance_ShouldReturnZero() {
         String uuid = UUID.randomUUID().toString();
-        Account account = new Account(uuid, "MyUsername", null);
+        TEAccount account = new TEAccount(uuid, "MyUsername", null);
 
         BigDecimal result = account.getDefaultBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.ZERO;
@@ -50,12 +52,12 @@ public class AccountTest {
     @Test
     public void hasBalance_WithExistingBalance_ShouldReturnTrue() {
         String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Arrays.asList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123)),
-            new Balance(uuid, 2, BigDecimal.valueOf(456))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
-        when(currencyMock.getId()).thenReturn("1");
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
 
         boolean result = account.hasBalance(currencyMock);
 
@@ -64,26 +66,26 @@ public class AccountTest {
 
     @Test
     public void hasBalance_WithNonExistingBalance_ShouldReturnFalse() {
-        String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Collections.singletonList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
-        when(currencyMock.getId()).thenReturn("123");
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
 
-        boolean result = account.hasBalance(currencyMock);
+        boolean result = account.hasBalance(mock(TECurrency.class));
 
         assertFalse(result);
     }
 
     @Test
     public void getBalance_WithValidCurrency_ShouldReturnBigDecimal() {
-        String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Collections.singletonList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
-        when(currencyMock.getId()).thenReturn("1");
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
 
         BigDecimal result = account.getBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.valueOf(123);
@@ -93,14 +95,14 @@ public class AccountTest {
 
     @Test
     public void getBalance_WithInvalidCurrency_ShouldReturnZero() {
-        String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Collections.singletonList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
-        when(currencyMock.getId()).thenReturn("123");
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
 
-        BigDecimal result = account.getBalance(currencyMock);
+        BigDecimal result = account.getBalance(mock(TECurrency.class));
         BigDecimal expectedResult = BigDecimal.valueOf(0);
 
         assertEquals(expectedResult, result);
@@ -108,70 +110,77 @@ public class AccountTest {
 
     @Test
     public void setBalance_WithValidCurrency_ShouldReturnCorrectTransactionResultAndSetBalance() {
-        String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Collections.singletonList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
         Cause cause = Cause.builder()
             .append(this)
             .build(EventContext.empty());
-        when(currencyMock.getId()).thenReturn("1");
 
         TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(10), cause);
 
         assertEquals(BigDecimal.valueOf(10), result.getAmount());
         assertEquals(ResultType.SUCCESS, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
-        assertEquals(BigDecimal.valueOf(10), balances.get(0).getBalance());
+        assertEquals(BigDecimal.valueOf(10), balances.get(currencyMock));
     }
 
     @Test
     public void setBalance_WithInvalidCurrency_ShouldReturnFailedTransactionResultAndNotSetBalance() {
-        String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Collections.singletonList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
         Cause cause = Cause.builder()
             .append(this)
             .build(EventContext.empty());
-        when(currencyMock.getId()).thenReturn("123");
 
-        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(10), cause);
+        TransactionResult result = account.setBalance(mock(TECurrency.class), BigDecimal.valueOf(10), cause);
 
         assertEquals(BigDecimal.valueOf(10), result.getAmount());
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
-        assertEquals(BigDecimal.valueOf(123), balances.get(0).getBalance());
+        assertEquals(BigDecimal.valueOf(123), balances.get(currencyMock));
     }
 
     @Test
     public void setBalance_WithAmountLessThan0_ShouldReturnFailedTransactionResultAndNotSetBalance() {
-        String uuid = UUID.randomUUID().toString();
-        List<Balance> balances = Collections.singletonList(
-            new Balance(uuid, 1, BigDecimal.valueOf(123))
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(123)
         );
-        Account account = new Account(uuid, "MyUsername", balances);
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
         Cause cause = Cause.builder()
             .append(this)
             .build(EventContext.empty());
 
-        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(-1), cause);
+        TransactionResult result = account.setBalance(mock(TECurrency.class), BigDecimal.valueOf(-0.01), cause);
 
-        assertEquals(BigDecimal.valueOf(-1), result.getAmount());
+        assertEquals(BigDecimal.valueOf(-0.01), result.getAmount());
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
-        assertEquals(BigDecimal.valueOf(123), balances.get(0).getBalance());
+        assertEquals(BigDecimal.valueOf(123), balances.get(currencyMock));
     }
 
     @Test
     public void addBalance_ShouldAddNewBalance() {
-        UUID uuid = UUID.randomUUID();
-        Account account = new Account(uuid.toString(), "MyUsername", new ArrayList<>());
+        TEAccount account = new TEAccount("random-uuid", "MyUsername", new HashMap<>());
+        TECurrency currency = mock(TECurrency.class);
 
-        account.addBalance(new Balance(uuid.toString(), 1, BigDecimal.ZERO));
+        account.addBalance(currency, BigDecimal.ZERO);
 
-        assertEquals(1, account.getBalancesList().size());
+        assertEquals(1, account.getBalances().size());
+    }
+
+    @Test
+    public void blah() {
+        System.out.println(TEAccount.class.getClassLoader());
+        System.out.println(Account.class.getInterfaces()[0].getClassLoader());
     }
 }

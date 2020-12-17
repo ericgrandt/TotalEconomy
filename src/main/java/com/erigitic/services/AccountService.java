@@ -1,7 +1,7 @@
 package com.erigitic.services;
 
 import com.erigitic.data.AccountData;
-import com.erigitic.domain.Account;
+import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
 
 import java.math.BigDecimal;
@@ -14,11 +14,11 @@ public class AccountService {
         this.accountData = accountData;
     }
 
-    public void addAccount(Account account) {
+    public void addAccount(TEAccount account) {
         accountData.addAccount(account);
     }
 
-    public Account getAccount(String userId) {
+    public TEAccount getAccount(String userId) {
         return accountData.getAccount(userId);
     }
 
