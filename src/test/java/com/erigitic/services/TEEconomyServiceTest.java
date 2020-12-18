@@ -1,9 +1,22 @@
 package com.erigitic.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.erigitic.data.AccountData;
 import com.erigitic.data.CurrencyData;
 import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.TECurrency;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -12,12 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @Tag("Unit")
 @ExtendWith(MockitoExtension.class)
@@ -54,7 +61,6 @@ public class TEEconomyServiceTest {
     @Test
     public void getCurrencies_ShouldReturnCorrectSetOfCurrencies() {
         Set<Currency> currencies = new HashSet<>();
-
         currencies.add(
             new TECurrency(
                 1,

@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 
+@SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
 @Tag("Integration")
 @ExtendWith(MockitoExtension.class)
 public class AccountDataTest {
@@ -66,8 +66,8 @@ public class AccountDataTest {
             UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
             Statement userStmt = conn.createStatement();
             ResultSet userResult = userStmt.executeQuery(
-                "SELECT COUNT(*) as rowcount, display_name FROM te_user\n" +
-                    "WHERE id='ba64d376-8580-43b3-a3ee-2d6321114042'"
+                "SELECT COUNT(*) as rowcount, display_name FROM te_user\n"
+                    + "WHERE id='ba64d376-8580-43b3-a3ee-2d6321114042'"
             );
             userResult.next();
 
@@ -190,9 +190,9 @@ public class AccountDataTest {
 
             Statement balanceStmt = conn.createStatement();
             ResultSet balanceResult = balanceStmt.executeQuery(
-                "SELECT balance\n" +
-                    "FROM te_balance\n" +
-                    "WHERE user_id='62694fb0-07cc-4396-8d63-4f70646d75f0' AND currency_id=1"
+                "SELECT balance\n"
+                    + "FROM te_balance\n"
+                    + "WHERE user_id='62694fb0-07cc-4396-8d63-4f70646d75f0' AND currency_id=1"
             );
             balanceResult.next();
 
@@ -230,17 +230,17 @@ public class AccountDataTest {
 
             Statement fromBalanceStmt = conn.createStatement();
             ResultSet fromBalanceResult = fromBalanceStmt.executeQuery(
-                "SELECT balance\n" +
-                    "FROM te_balance\n" +
-                    "WHERE user_id='62694fb0-07cc-4396-8d63-4f70646d75f0' AND currency_id=1"
+                "SELECT balance\n"
+                    + "FROM te_balance\n"
+                    + "WHERE user_id='62694fb0-07cc-4396-8d63-4f70646d75f0' AND currency_id=1"
             );
             fromBalanceResult.next();
 
             Statement toBalanceStmt = conn.createStatement();
             ResultSet toBalanceResult = toBalanceStmt.executeQuery(
-                "SELECT balance\n" +
-                    "FROM te_balance\n" +
-                    "WHERE user_id='551fe9be-f77f-4bcb-81db-548db6e77aea' AND currency_id=1"
+                "SELECT balance\n"
+                    + "FROM te_balance\n"
+                    + "WHERE user_id='551fe9be-f77f-4bcb-81db-548db6e77aea' AND currency_id=1"
             );
             toBalanceResult.next();
 
