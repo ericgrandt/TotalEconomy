@@ -2,6 +2,10 @@ package com.erigitic.domain;
 
 import com.erigitic.economy.TETransactionResult;
 import com.google.common.base.Objects;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
@@ -11,11 +15,6 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
-
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 public class TEAccount implements UniqueAccount {
     private final UUID userId;
@@ -119,9 +118,9 @@ public class TEAccount implements UniqueAccount {
         }
 
         TEAccount other = (TEAccount) o;
-        return Objects.equal(userId, other.userId) &&
-            Objects.equal(displayName, other.displayName) &&
-            Objects.equal(balances, other.balances);
+        return Objects.equal(userId, other.userId)
+            && Objects.equal(displayName, other.displayName)
+            && Objects.equal(balances, other.balances);
     }
 
     @Override

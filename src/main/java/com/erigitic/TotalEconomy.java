@@ -8,6 +8,8 @@ import com.erigitic.data.Database;
 import com.erigitic.player.PlayerListener;
 import com.erigitic.services.TEEconomyService;
 import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
@@ -23,9 +25,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 
-import java.io.File;
-import java.io.IOException;
-
+@SuppressWarnings("checkstyle:WhitespaceAround")
 @Plugin(id="totaleconomy", name="Total Economy", version="2.0.0", description="All in one economy plugin for Minecraft and Sponge")
 public class TotalEconomy {
     @Inject

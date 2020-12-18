@@ -3,10 +3,6 @@ package com.erigitic.data;
 import com.erigitic.domain.Balance;
 import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.TECurrency;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,6 +12,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 public class AccountData {
     private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
@@ -54,13 +53,13 @@ public class AccountData {
     }
 
     public UniqueAccount getAccount(UUID uuid) {
-        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, is_default\n" +
-            "FROM te_user tu\n" +
-            "INNER JOIN te_balance tb ON\n" +
-            "tu.id = tb.user_id\n" +
-            "INNER JOIN te_currency tc ON\n" +
-            "tc.id = tb.currency_id\n" +
-            "WHERE tu.id = ?";
+        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, is_default\n"
+            + "FROM te_user tu\n"
+            + "INNER JOIN te_balance tb ON\n"
+            + "tu.id = tb.user_id\n"
+            + "INNER JOIN te_currency tc ON\n"
+            + "tc.id = tb.currency_id\n"
+            + "WHERE tu.id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -69,7 +68,7 @@ public class AccountData {
                 ResultSet results = stmt.executeQuery();
                 TEAccount account = null;
                 while (results.next()) {
-                    if(account == null) {
+                    if (account == null) {
                         account = new TEAccount(
                             UUID.fromString(results.getString("id")),
                             results.getString("display_name"),
@@ -123,9 +122,9 @@ public class AccountData {
     }
 
     public List<Balance> getBalances(UUID userId) {
-        String query = "SELECT user_id, currency_id, balance \n" +
-            "FROM te_balance\n" +
-            "WHERE user_id = ?";
+        String query = "SELECT user_id, currency_id, balance \n"
+            + "FROM te_balance\n"
+            + "WHERE user_id = ?";
 
         List<Balance> balances = new ArrayList<>();
         try (Connection conn = database.getConnection()) {

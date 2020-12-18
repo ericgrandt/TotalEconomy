@@ -1,7 +1,6 @@
 package com.erigitic.domain;
 
 import com.google.common.base.Objects;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -43,9 +42,9 @@ public class Balance {
         }
 
         Balance other = (Balance) o;
-        return currencyId == other.currencyId &&
-            Objects.equal(userId, other.userId) &&
-            Objects.equal(balance, other.balance);
+        return currencyId == other.currencyId
+            && Objects.equal(userId, other.userId)
+            && Objects.equal(balance, other.balance);
     }
 
     @Override

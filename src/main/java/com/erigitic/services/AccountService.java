@@ -3,11 +3,10 @@ package com.erigitic.services;
 import com.erigitic.data.AccountData;
 import com.erigitic.domain.Balance;
 import com.erigitic.domain.TEAccount;
-import org.spongepowered.api.service.economy.account.Account;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.spongepowered.api.service.economy.account.Account;
 
 public class AccountService {
     private final AccountData accountData;

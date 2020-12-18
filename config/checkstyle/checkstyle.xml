@@ -41,6 +41,7 @@
     </module>
 
     <module name="TreeWalker">
+        <module name="SuppressWarningsHolder"/>
         <module name="OuterTypeFilename"/>
         <module name="IllegalTokenText">
             <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
@@ -284,4 +285,5 @@
             <property name="optional" value="true"/>
         </module>
     </module>
+    <module name="SuppressWarningsFilter"/>
 </module>

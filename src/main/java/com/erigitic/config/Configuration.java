@@ -1,13 +1,12 @@
 package com.erigitic.config;
 
 import com.erigitic.TotalEconomy;
+import java.io.File;
+import java.io.IOException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-
-import java.io.File;
-import java.io.IOException;
 
 public abstract class Configuration {
     private final TotalEconomy plugin;

@@ -1,18 +1,17 @@
 package com.erigitic.data;
 
 import com.erigitic.TotalEconomy;
-import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.asset.Asset;
-import org.spongepowered.api.service.sql.SqlService;
-
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
+import javax.sql.DataSource;
 import org.apache.ibatis.jdbc.ScriptRunner;
+import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.asset.Asset;
+import org.spongepowered.api.service.sql.SqlService;
 
 public class Database {
     private final TotalEconomy plugin;

@@ -3,16 +3,15 @@ package com.erigitic.services;
 import com.erigitic.data.AccountData;
 import com.erigitic.data.CurrencyData;
 import com.erigitic.domain.TEAccount;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 public class TEEconomyService implements EconomyService {
     private final AccountData accountData;

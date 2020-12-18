@@ -1,11 +1,10 @@
 package com.erigitic.domain;
 
 import com.google.common.base.Objects;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.text.Text;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.text.Text;
 
 public class TECurrency implements Currency {
     private final int id;
@@ -75,12 +74,12 @@ public class TECurrency implements Currency {
         }
 
         TECurrency other = (TECurrency) o;
-        return id == other.id &&
-            numFractionDigits == other.numFractionDigits &&
-            isDefault == other.isDefault &&
-            Objects.equal(singular, other.singular) &&
-            Objects.equal(plural, other.plural) &&
-            Objects.equal(symbol, other.symbol);
+        return id == other.id
+            && numFractionDigits == other.numFractionDigits
+            && isDefault == other.isDefault
+            && Objects.equal(singular, other.singular)
+            && Objects.equal(plural, other.plural)
+            && Objects.equal(symbol, other.symbol);
     }
 
     @Override

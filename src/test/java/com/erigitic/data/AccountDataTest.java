@@ -1,9 +1,26 @@
 package com.erigitic.data;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.erigitic.TestUtils;
 import com.erigitic.domain.Balance;
 import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.TECurrency;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -12,16 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
-
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 @Tag("Integration")
 @ExtendWith(MockitoExtension.class)
@@ -66,8 +73,8 @@ public class AccountDataTest {
 
             Statement balancesStmt = conn.createStatement();
             ResultSet balancesResultSet = balancesStmt.executeQuery(
-                "SELECT * FROM te_balance\n" +
-                    "WHERE user_id='ba64d376-8580-43b3-a3ee-2d6321114042'"
+                "SELECT * FROM te_balance\n"
+                    + "WHERE user_id='ba64d376-8580-43b3-a3ee-2d6321114042'"
             );
             List<Balance> balances = new ArrayList<>();
             while (balancesResultSet.next()) {
@@ -102,7 +109,7 @@ public class AccountDataTest {
 
         UUID userId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
         String displayName = "Display Name";
-        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        Map<Currency, BigDecimal> balances = new HashMap<>();
         balances.put(
             new TECurrency(1, "Dollar", "Dollars", "$", true),
             BigDecimal.valueOf(123)
