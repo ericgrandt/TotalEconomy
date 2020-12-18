@@ -1,21 +1,12 @@
 package com.erigitic.commands;
 
 import com.erigitic.TotalEconomy;
-import com.erigitic.economy.TEEconomyService;
-import java.math.BigDecimal;
-import java.util.Optional;
+import com.erigitic.services.TEEconomyService;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransferResult;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 public class PayCommand implements CommandExecutor {
     private final TotalEconomy plugin;

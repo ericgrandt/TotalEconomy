@@ -2,9 +2,11 @@ package com.erigitic;
 
 import com.erigitic.commands.CommandRegister;
 import com.erigitic.config.DefaultConfiguration;
+import com.erigitic.data.AccountData;
+import com.erigitic.data.CurrencyData;
 import com.erigitic.data.Database;
-import com.erigitic.economy.TEEconomyService;
 import com.erigitic.player.PlayerListener;
+import com.erigitic.services.TEEconomyService;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
@@ -63,7 +65,10 @@ public class TotalEconomy {
         database = new Database();
         database.setup();
 
-        economyService = new TEEconomyService();
+        AccountData accountData = new AccountData(database);
+        CurrencyData currencyData = new CurrencyData(database);
+
+        economyService = new TEEconomyService(accountData, currencyData);
         Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
     }
 

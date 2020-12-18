@@ -18,11 +18,11 @@ import java.util.Set;
 import java.util.UUID;
 
 public class TEAccount implements UniqueAccount {
-    private final String userId;
+    private final UUID userId;
     private final String displayName;
     public final Map<Currency, BigDecimal> balances;
 
-    public TEAccount(String userId, String displayName, Map<Currency, BigDecimal> balances) {
+    public TEAccount(UUID userId, String displayName, Map<Currency, BigDecimal> balances) {
         this.userId = userId;
         this.displayName = displayName;
         this.balances = balances;
@@ -91,7 +91,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public String getIdentifier() {
-        return userId;
+        return userId.toString();
     }
 
     @Override
@@ -101,7 +101,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public UUID getUniqueId() {
-        return UUID.fromString(userId);
+        return userId;
     }
 
     public void addBalance(TECurrency currency, BigDecimal balance) {

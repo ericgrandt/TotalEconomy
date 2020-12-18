@@ -1,11 +1,13 @@
 package com.erigitic.services;
 
 import com.erigitic.data.AccountData;
-import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
+import com.erigitic.domain.TEAccount;
+import org.spongepowered.api.service.economy.account.Account;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 public class AccountService {
     private final AccountData accountData;
@@ -18,15 +20,15 @@ public class AccountService {
         accountData.addAccount(account);
     }
 
-    public TEAccount getAccount(String userId) {
+    public Account getAccount(UUID userId) {
         return accountData.getAccount(userId);
     }
 
-    public Balance getBalance(String userId, int currencyId) {
+    public Balance getBalance(UUID userId, int currencyId) {
         return accountData.getBalance(userId, currencyId);
     }
 
-    public List<Balance> getBalances(String userId) {
+    public List<Balance> getBalances(UUID userId) {
         return accountData.getBalances(userId);
     }
 

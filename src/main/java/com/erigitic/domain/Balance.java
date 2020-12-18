@@ -3,19 +3,20 @@ package com.erigitic.domain;
 import com.google.common.base.Objects;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class Balance {
-    private final String userId;
+    private final UUID userId;
     private final int currencyId;
     private BigDecimal balance;
 
-    public Balance(String userId, int currencyId, BigDecimal balance) {
+    public Balance(UUID userId, int currencyId, BigDecimal balance) {
         this.userId = userId;
         this.currencyId = currencyId;
         this.balance = balance;
     }
 
-    public String getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 

@@ -1,8 +1,8 @@
 package com.erigitic.data;
 
 import com.erigitic.TestUtils;
-import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
+import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.TECurrency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.Account;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -43,7 +44,7 @@ public class AccountDataTest {
     public void addAccount_WithValidData_ShouldInsertASingleAccountAndABalanceForBothCurrencies() throws SQLException {
         // Arrange
         TEAccount account = new TEAccount(
-            "ba64d376-8580-43b3-a3ee-2d6321114042",
+            UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042"),
             "Display Name",
             null
         );
@@ -55,6 +56,7 @@ public class AccountDataTest {
         try (Connection conn = TestUtils.createTestConnection()) {
             assert conn != null;
 
+            UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
             Statement userStmt = conn.createStatement();
             ResultSet userResult = userStmt.executeQuery(
                 "SELECT COUNT(*) as rowcount, display_name FROM te_user\n" +
@@ -70,7 +72,7 @@ public class AccountDataTest {
             List<Balance> balances = new ArrayList<>();
             while (balancesResultSet.next()) {
                 Balance balance = new Balance(
-                    balancesResultSet.getString("user_id"),
+                    UUID.fromString(balancesResultSet.getString("user_id")),
                     balancesResultSet.getInt("currency_id"),
                     balancesResultSet.getBigDecimal("balance")
                 );
@@ -82,8 +84,8 @@ public class AccountDataTest {
             int expectedUserCount = 1;
             String expectedDisplayName = account.getDisplayName().toString();
             List<Balance> expectedBalances = Arrays.asList(
-                new Balance("ba64d376-8580-43b3-a3ee-2d6321114042", 1, BigDecimal.ZERO),
-                new Balance("ba64d376-8580-43b3-a3ee-2d6321114042", 2, BigDecimal.ZERO)
+                new Balance(uuid, 1, BigDecimal.ZERO),
+                new Balance(uuid, 2, BigDecimal.ZERO)
             );
 
             assertEquals(expectedUserCount, userCountResult);
@@ -98,7 +100,7 @@ public class AccountDataTest {
         // Arrange
         TestUtils.seedUser();
 
-        String userId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        UUID userId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
         String displayName = "Display Name";
         HashMap<Currency, BigDecimal> balances = new HashMap<>();
         balances.put(
@@ -111,8 +113,8 @@ public class AccountDataTest {
         );
 
         // Act
-        TEAccount result = sut.getAccount(userId);
-        TEAccount expectedResult = new TEAccount(
+        Account result = sut.getAccount(userId);
+        Account expectedResult = new TEAccount(
             userId,
             displayName,
             balances
@@ -128,7 +130,7 @@ public class AccountDataTest {
         // Arrange
         TestUtils.seedUser();
 
-        String userId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        UUID userId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
         int currencyId = 1;
 
         // Act
@@ -148,7 +150,7 @@ public class AccountDataTest {
         // Arrange
         TestUtils.seedUser();
 
-        String userId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        UUID userId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
 
         // Act
         List<Balance> result = sut.getBalances(userId);
@@ -167,7 +169,7 @@ public class AccountDataTest {
         TestUtils.seedUser();
 
         Balance balance = new Balance(
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
+            UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"),
             1,
             BigDecimal.valueOf(1000)
         );
@@ -202,12 +204,12 @@ public class AccountDataTest {
 
         int currencyId = 1;
         Balance updatedFromBalance = new Balance(
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
+            UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"),
             currencyId,
             BigDecimal.valueOf(25)
         );
         Balance updatedToBalance = new Balance(
-            "551fe9be-f77f-4bcb-81db-548db6e77aea",
+            UUID.fromString("551fe9be-f77f-4bcb-81db-548db6e77aea"),
             currencyId,
             BigDecimal.valueOf(125)
         );

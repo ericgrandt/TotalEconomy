@@ -29,7 +29,7 @@ public class TEAccountTest {
 
     @Test
     public void getDisplayName_ShouldReturnTheCorrectDisplayName() {
-        String uuid = UUID.randomUUID().toString();
+        UUID uuid = UUID.randomUUID();
         TEAccount account = new TEAccount(uuid, "MyUsername", null);
 
         Text result = account.getDisplayName();
@@ -40,7 +40,7 @@ public class TEAccountTest {
 
     @Test
     public void getDefaultBalance_ShouldReturnZero() {
-        String uuid = UUID.randomUUID().toString();
+        UUID uuid = UUID.randomUUID();
         TEAccount account = new TEAccount(uuid, "MyUsername", null);
 
         BigDecimal result = account.getDefaultBalance(currencyMock);
@@ -56,7 +56,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
 
         boolean result = account.hasBalance(currencyMock);
 
@@ -70,7 +70,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
 
         boolean result = account.hasBalance(mock(TECurrency.class));
 
@@ -84,7 +84,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
 
         BigDecimal result = account.getBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.valueOf(123);
@@ -99,7 +99,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
 
         BigDecimal result = account.getBalance(mock(TECurrency.class));
         BigDecimal expectedResult = BigDecimal.valueOf(0);
@@ -114,7 +114,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
         Cause cause = Cause.builder()
             .append(this)
             .build(EventContext.empty());
@@ -134,7 +134,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
         Cause cause = Cause.builder()
             .append(this)
             .build(EventContext.empty());
@@ -154,7 +154,7 @@ public class TEAccountTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", balances);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
         Cause cause = Cause.builder()
             .append(this)
             .build(EventContext.empty());
@@ -169,7 +169,7 @@ public class TEAccountTest {
 
     @Test
     public void addBalance_ShouldAddNewBalance() {
-        TEAccount account = new TEAccount("random-uuid", "MyUsername", new HashMap<>());
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", new HashMap<>());
         TECurrency currency = mock(TECurrency.class);
 
         account.addBalance(currency, BigDecimal.ZERO);

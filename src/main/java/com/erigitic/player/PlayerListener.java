@@ -1,10 +1,11 @@
 package com.erigitic.player;
 
 import com.erigitic.TotalEconomy;
-import com.erigitic.economy.TEEconomyService;
+import com.erigitic.services.TEEconomyService;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+
 public class PlayerListener {
     private final TEEconomyService economyService;
 

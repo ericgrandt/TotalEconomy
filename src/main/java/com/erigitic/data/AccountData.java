@@ -1,10 +1,11 @@
 package com.erigitic.data;
 
-import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.Balance;
+import com.erigitic.domain.TEAccount;
 import com.erigitic.domain.TECurrency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -14,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class AccountData {
     private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
@@ -23,19 +25,19 @@ public class AccountData {
         this.database = database;
     }
 
-    public void addAccount(TEAccount account) {
+    public void addAccount(UniqueAccount account) {
         String createUserQuery = "INSERT INTO te_user VALUES (?, ?)";
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
-                stmt.setString(1, account.getIdentifier());
+                stmt.setString(1, account.getUniqueId().toString());
                 stmt.setString(2, account.getDisplayName().toString());
                 stmt.execute();
             }
 
             try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-                stmt.setString(1, account.getIdentifier());
+                stmt.setString(1, account.getUniqueId().toString());
                 stmt.execute();
             }
         } catch (SQLException e) {
@@ -43,16 +45,16 @@ public class AccountData {
                 String.format(
                     "Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)",
                     createUserQuery,
-                    account.getIdentifier(),
+                    account.getUniqueId(),
                     createBalancesQuery,
-                    account.getIdentifier()
+                    account.getUniqueId()
                 )
             );
         }
     }
 
-    public TEAccount getAccount(String uuid) {
-        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, prefix_symbol, is_default\n" +
+    public UniqueAccount getAccount(UUID uuid) {
+        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, is_default\n" +
             "FROM te_user tu\n" +
             "INNER JOIN te_balance tb ON\n" +
             "tu.id = tb.user_id\n" +
@@ -62,14 +64,14 @@ public class AccountData {
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, uuid);
+                stmt.setString(1, uuid.toString());
 
                 ResultSet results = stmt.executeQuery();
                 TEAccount account = null;
                 while (results.next()) {
                     if(account == null) {
                         account = new TEAccount(
-                            results.getString("id"),
+                            UUID.fromString(results.getString("id")),
                             results.getString("display_name"),
                             new HashMap<>()
                         );
@@ -96,18 +98,18 @@ public class AccountData {
         return null;
     }
 
-    public Balance getBalance(String userId, int currencyId) {
+    public Balance getBalance(UUID userId, int currencyId) {
         String query = "SELECT * FROM te_balance WHERE user_id = ? AND currency_id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, userId);
+                stmt.setString(1, userId.toString());
                 stmt.setInt(2, currencyId);
 
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
                     return new Balance(
-                        rs.getString("user_id"),
+                        UUID.fromString(rs.getString("user_id")),
                         rs.getInt("currency_id"),
                         rs.getBigDecimal("balance")
                     );
@@ -120,7 +122,7 @@ public class AccountData {
         return null;
     }
 
-    public List<Balance> getBalances(String userId) {
+    public List<Balance> getBalances(UUID userId) {
         String query = "SELECT user_id, currency_id, balance \n" +
             "FROM te_balance\n" +
             "WHERE user_id = ?";
@@ -128,12 +130,12 @@ public class AccountData {
         List<Balance> balances = new ArrayList<>();
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, userId);
+                stmt.setString(1, userId.toString());
 
                 ResultSet results = stmt.executeQuery();
                 while (results.next()) {
                     Balance balance = new Balance(
-                        results.getString("user_id"),
+                        UUID.fromString(results.getString("user_id")),
                         results.getInt("currency_id"),
                         results.getBigDecimal("balance")
                     );
@@ -155,7 +157,7 @@ public class AccountData {
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setBigDecimal(1, balance.getBalance());
-                stmt.setString(2, balance.getUserId());
+                stmt.setString(2, balance.getUserId().toString());
                 stmt.setInt(3, balance.getCurrencyId());
                 stmt.executeUpdate();
 
@@ -167,7 +169,7 @@ public class AccountData {
                     "Error setting balance (Query: %s, Parameters: %.0f, %s, %s)",
                     query,
                     balance.getBalance(),
-                    balance.getUserId(),
+                    balance.getUserId().toString(),
                     balance.getCurrencyId()
                 )
             );
@@ -184,12 +186,12 @@ public class AccountData {
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setBigDecimal(1, updatedFromBalance.getBalance());
-                stmt.setString(2, updatedFromBalance.getUserId());
+                stmt.setString(2, updatedFromBalance.getUserId().toString());
                 stmt.setInt(3, updatedFromBalance.getCurrencyId());
                 stmt.executeUpdate();
 
                 stmt.setBigDecimal(1, updatedToBalance.getBalance());
-                stmt.setString(2, updatedToBalance.getUserId());
+                stmt.setString(2, updatedToBalance.getUserId().toString());
                 stmt.setInt(3, updatedToBalance.getCurrencyId());
                 stmt.executeUpdate();
             } catch (SQLException e) {
@@ -198,10 +200,10 @@ public class AccountData {
                     String.format(
                         "Error on transfer (Query: %s, Parameters: %s, %.0f, %s, %s, %.0f, %s)",
                         query,
-                        updatedFromBalance.getUserId(),
+                        updatedFromBalance.getUserId().toString(),
                         updatedFromBalance.getBalance(),
                         updatedFromBalance.getCurrencyId(),
-                        updatedToBalance.getUserId(),
+                        updatedToBalance.getUserId().toString(),
                         updatedToBalance.getBalance(),
                         updatedToBalance.getCurrencyId()
                     )
@@ -218,10 +220,10 @@ public class AccountData {
                 String.format(
                     "Error on transfer (Query: %s, Parameters: %s, %.0f, %s, %s, %.0f, %s)",
                     query,
-                    updatedFromBalance.getUserId(),
+                    updatedFromBalance.getUserId().toString(),
                     updatedFromBalance.getBalance(),
                     updatedFromBalance.getCurrencyId(),
-                    updatedToBalance.getUserId(),
+                    updatedToBalance.getUserId().toString(),
                     updatedToBalance.getBalance(),
                     updatedToBalance.getCurrencyId()
                 )

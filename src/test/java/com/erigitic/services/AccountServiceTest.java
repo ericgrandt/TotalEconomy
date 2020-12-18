@@ -10,11 +10,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.Account;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,7 +39,7 @@ public class AccountServiceTest {
 
     @Test
     public void addAccount_ShouldCallCreateAccountInAccountData() {
-        TEAccount account = new TEAccount("random-uuid", "Display Name", null);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "Display Name", null);
 
         sut.addAccount(account);
 
@@ -51,46 +53,49 @@ public class AccountServiceTest {
             currencyMock,
             BigDecimal.valueOf(123)
         );
+        UUID uuid = UUID.randomUUID();
         TEAccount account = new TEAccount(
-            "random-uuid",
+            uuid,
             "Display Name",
             balances
         );
-        when(accountDataMock.getAccount("random-uuid")).thenReturn(account);
+        when(accountDataMock.getAccount(uuid)).thenReturn(account);
 
-        TEAccount result = sut.getAccount("random-uuid");
+        Account result = sut.getAccount(uuid);
 
         assertEquals(account, result);
     }
 
     @Test
     public void getBalance_ShouldReturnTheCorrectBalance() {
-        Balance balance = new Balance("random-uuid", 1, BigDecimal.valueOf(123));
-        when(accountDataMock.getBalance("random-uuid", 1)).thenReturn(balance);
+        UUID uuid = UUID.randomUUID();
+        Balance balance = new Balance(uuid, 1, BigDecimal.valueOf(123));
+        when(accountDataMock.getBalance(uuid, 1)).thenReturn(balance);
 
-        Balance result = sut.getBalance("random-uuid", 1);
+        Balance result = sut.getBalance(uuid, 1);
 
         assertEquals(balance, result);
     }
 
     @Test
     public void getBalances_ShouldReturnAListOfBalances() {
+        UUID uuid = UUID.randomUUID();
         List<Balance> balances = Arrays.asList(
-            new Balance("random-uuid", 1, BigDecimal.valueOf(123)),
-            new Balance("random-uuid", 2, BigDecimal.valueOf(456))
+            new Balance(uuid, 1, BigDecimal.valueOf(123)),
+            new Balance(uuid, 2, BigDecimal.valueOf(456))
         );
-        when(accountDataMock.getBalances("random-uuid")).thenReturn(balances);
+        when(accountDataMock.getBalances(uuid)).thenReturn(balances);
 
-        List<Balance> result = sut.getBalances("random-uuid");
+        List<Balance> result = sut.getBalances(uuid);
 
         assertEquals(balances, result);
     }
 
     @Test
     public void setBalance_WithNumberGreaterThanOrEqualToZero_ShouldSetBalance() {
-        Balance updatedBalance = new Balance("random-uuid", 1, BigDecimal.valueOf(0));
+        Balance updatedBalance = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(0));
 
-        when(accountDataMock.setBalance(any(Balance.class))).thenReturn(updatedBalance);
+        when(accountDataMock.setBalance(updatedBalance)).thenReturn(updatedBalance);
 
         Balance result = sut.setBalance(updatedBalance);
 
@@ -99,7 +104,7 @@ public class AccountServiceTest {
 
     @Test
     public void setBalance_WithNumberLessThanZero_ShouldThrowAnIllegalArgumentException() {
-        Balance updatedBalance = new Balance("random-uuid", 1, BigDecimal.valueOf(-1));
+        Balance updatedBalance = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(-1));
 
         assertThrows(
             IllegalArgumentException.class,
@@ -110,10 +115,10 @@ public class AccountServiceTest {
 
     @Test
     public void transfer_WithValidData_ShouldUpdateBothBalances() {
-        Balance from = new Balance("random-uuid", 1, BigDecimal.valueOf(100));
-        Balance to = new Balance("random-uuid-2", 1, BigDecimal.valueOf(50));
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
+        Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
 
-        when(accountDataMock.setTransferBalances(any(Balance.class), any(Balance.class))).thenReturn(true);
+        when(accountDataMock.setTransferBalances(from, to)).thenReturn(true);
 
         boolean result = sut.transfer(from, to, BigDecimal.valueOf(40));
 
@@ -124,8 +129,8 @@ public class AccountServiceTest {
 
     @Test
     public void transfer_WithNotEnoughMoneyInFromBalance_ShouldThrowIllegalArgumentException() {
-        Balance from = new Balance("random-uuid", 1, BigDecimal.valueOf(24));
-        Balance to = new Balance("random-uuid-2", 1, BigDecimal.valueOf(50));
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(24));
+        Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
 
         assertThrows(
             IllegalArgumentException.class,
@@ -136,8 +141,8 @@ public class AccountServiceTest {
 
     @Test
     public void transfer_WithNonMatchingCurrencyIds_ShouldThrowIllegalArgumentException() {
-        Balance from = new Balance("random-uuid", 1, BigDecimal.valueOf(100));
-        Balance to = new Balance("random-uuid-2", 2, BigDecimal.valueOf(50));
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
+        Balance to = new Balance(UUID.randomUUID(), 2, BigDecimal.valueOf(50));
 
         assertThrows(
             IllegalArgumentException.class,
