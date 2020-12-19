@@ -6,6 +6,7 @@ import com.erigitic.data.AccountData;
 import com.erigitic.data.CurrencyData;
 import com.erigitic.data.Database;
 import com.erigitic.player.PlayerListener;
+import com.erigitic.services.AccountService;
 import com.erigitic.services.TEEconomyService;
 import com.google.inject.Inject;
 import java.io.File;
@@ -48,6 +49,7 @@ public class TotalEconomy {
     private DefaultConfiguration defaultConfiguration;
     private Database database;
     private TEEconomyService economyService;
+    private AccountService accountService;
 
     public TotalEconomy() {
         plugin = this;
@@ -60,21 +62,20 @@ public class TotalEconomy {
 
         defaultConfiguration = new DefaultConfiguration(this);
 
-        // AccountService accountService = new AccountService(null);
-
         database = new Database();
         database.setup();
 
         AccountData accountData = new AccountData(database);
         CurrencyData currencyData = new CurrencyData(database);
 
+        accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);
         Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
     }
 
     @Listener
     public void onInit(GameInitializationEvent event) {
-        CommandRegister commandRegister = new CommandRegister(this);
+        CommandRegister commandRegister = new CommandRegister(this, economyService, accountService);
         commandRegister.registerCommands();
 
         Sponge.getEventManager().registerListeners(this, new PlayerListener());

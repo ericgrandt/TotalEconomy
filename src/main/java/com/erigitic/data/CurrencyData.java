@@ -9,15 +9,14 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.api.service.economy.Currency;
 
 public class CurrencyData {
-    private final Logger logger;
+    private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
     private final Database database;
 
     public CurrencyData(Database database) {
-        TotalEconomy plugin = TotalEconomy.getPlugin();
-        this.logger = plugin.getLogger();
         this.database = database;
     }
 
