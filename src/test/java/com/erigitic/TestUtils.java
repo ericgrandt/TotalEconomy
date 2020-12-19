@@ -2,14 +2,9 @@ package com.erigitic;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Properties;
 
 public class TestUtils {
     private static final HikariConfig config = new HikariConfig();
@@ -27,29 +22,6 @@ public class TestUtils {
 
     public static Connection getConnection() throws SQLException {
         return ds.getConnection();
-    }
-
-    public static Connection createTestConnection() {
-        URL testPropsPath = TestUtils.class.getClassLoader().getResource("test.properties");
-        Properties testProps = new Properties();
-
-        try {
-            testProps.load(new FileInputStream(testPropsPath.getFile()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String connectionString = testProps.getProperty("connectionString");
-        String user = testProps.getProperty("user");
-        String password = testProps.getProperty("password");
-
-        try {
-            return DriverManager.getConnection(String.format("%s?user=%s&password=%s", connectionString, user, password));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     public static void seedCurrencies() {

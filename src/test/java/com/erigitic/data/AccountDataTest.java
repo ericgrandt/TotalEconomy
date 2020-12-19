@@ -60,7 +60,7 @@ public class AccountDataTest {
         sut.addAccount(account);
 
         // Assert
-        try (Connection conn = TestUtils.createTestConnection()) {
+        try (Connection conn = TestUtils.getConnection()) {
             assert conn != null;
 
             UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
@@ -185,7 +185,7 @@ public class AccountDataTest {
         Balance result = sut.setBalance(balance);
 
         // Assert
-        try (Connection conn = TestUtils.createTestConnection()) {
+        try (Connection conn = TestUtils.getConnection()) {
             assert conn != null;
 
             Statement balanceStmt = conn.createStatement();
@@ -225,7 +225,7 @@ public class AccountDataTest {
         boolean result = sut.setTransferBalances(updatedFromBalance, updatedToBalance);
 
         // Assert
-        try (Connection conn = TestUtils.createTestConnection()) {
+        try (Connection conn = TestUtils.getConnection()) {
             assert conn != null;
 
             Statement fromBalanceStmt = conn.createStatement();
