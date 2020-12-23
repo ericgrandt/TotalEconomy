@@ -11,8 +11,8 @@
 5. If the database name you specified in the connection string does not exist, you'll have to create it first
 6. Start the server
 
-## HikariPool-1 - Exception during pool initialization
-
-This exception is expected when initializing Total Economy for the first time. But if you're still receiving this exception after adding your database connection information to the configuration file, make sure to double check it and verify that it's correct.
-
-A good way to check if the information is correct is to attempt to connect to your database from another tool, such as [DBeaver](https://dbeaver.io/).
+> ## Note
+>
+> The following exception is expected when initializing Total Economy for the first time: `HikariPool-1 - Exception during pool initialization`. If you continue to recieve this exception after adding your database connection information to the configuration file, make sure to double check it and verify that it's correct.
+>
+> A good way to check if the information is correct is to attempt to connect to your database from another tool, such as [DBeaver](https://dbeaver.io/).

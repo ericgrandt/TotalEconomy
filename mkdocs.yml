@@ -10,4 +10,5 @@ nav:
   - Installation: 'index.md'
   - Storage: 'storage.md'
   - Development:
-    - Testing: 'developers/testing.md'
+    - Design: development/design.md
+    - Testing: 'development/testing.md'
