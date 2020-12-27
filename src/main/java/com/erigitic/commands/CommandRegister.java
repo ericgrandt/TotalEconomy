@@ -35,8 +35,7 @@ public class CommandRegister {
             .executor(new PayCommand(economyService))
             .arguments(
                 GenericArguments.player(Text.of("player")),
-                GenericArguments.bigDecimal(Text.of("amount")),
-                GenericArguments.optional(new CurrencyCommandElement(Text.of("currencyName")))
+                GenericArguments.bigDecimal(Text.of("amount"))
             )
             .build();
     }

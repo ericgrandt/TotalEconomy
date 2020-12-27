@@ -64,7 +64,7 @@ public class BalanceCommandTest {
 
     @Test
     @Tag("Integration")
-    public void execute_WithValidData_ShouldReturnCommandResultSuccess() throws CommandException, SQLException {
+    public void execute_WithValidData_ShouldReturnCommandResultSuccess() throws SQLException, CommandException {
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
         TestUtils.seedUser();

@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
@@ -103,6 +104,21 @@ public class TEAccount implements UniqueAccount {
         return userId;
     }
 
+    @Override
+    public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
+        throw new UnsupportedOperationException();
+    }
+
     public void addBalance(TECurrency currency, BigDecimal balance) {
         this.balances.put(currency, balance);
     }
@@ -126,20 +142,5 @@ public class TEAccount implements UniqueAccount {
     @Override
     public int hashCode() {
         return Objects.hashCode(userId, displayName, balances);
-    }
-
-    @Override
-    public TransferResult transfer(org.spongepowered.api.service.economy.account.Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
     }
 }
