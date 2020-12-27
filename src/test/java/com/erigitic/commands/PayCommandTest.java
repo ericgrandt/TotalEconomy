@@ -179,26 +179,26 @@ public class PayCommandTest {
         assertEquals(expectedResult, result);
     }
 
-    @Test
-    @Tag("Unit")
-    public void execute_WithGetOrCreateAccountIssue_ShouldThrowCommandException() {
-        CommandContext ctx = new CommandContext();
-        ctx.putArg("player", mock(Player.class));
-        ctx.putArg("amount", BigDecimal.valueOf(100));
-
-        sut = new PayCommand(economyServiceMock);
-
-        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
-        CommandException e = assertThrows(
-            CommandException.class,
-            () -> sut.execute(playerMock, ctx)
-        );
-
-        Text result = e.getText();
-        Text expectedResult = Text.of("Failed to run command");
-
-        assertEquals(expectedResult, result);
-    }
+    // @Test
+    // @Tag("Unit")
+    // public void execute_WithGetOrCreateAccountIssue_ShouldThrowCommandException() {
+    //     CommandContext ctx = new CommandContext();
+    //     ctx.putArg("player", mock(Player.class));
+    //     ctx.putArg("amount", BigDecimal.valueOf(100));
+    //
+    //     sut = new PayCommand(economyServiceMock);
+    //
+    //     when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+    //     CommandException e = assertThrows(
+    //         CommandException.class,
+    //         () -> sut.execute(playerMock, ctx)
+    //     );
+    //
+    //     Text result = e.getText();
+    //     Text expectedResult = Text.of("Failed to run command");
+    //
+    //     assertEquals(expectedResult, result);
+    // }
 
     @Test
     @Tag("Integration")
