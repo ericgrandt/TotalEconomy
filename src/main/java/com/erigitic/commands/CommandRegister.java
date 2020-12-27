@@ -32,7 +32,7 @@ public class CommandRegister {
         payCommandSpec = CommandSpec.builder()
             .description(Text.of("Pay another player"))
             .permission("totaleconomy.command.pay")
-            .executor(new PayCommand())
+            .executor(new PayCommand(economyService))
             .arguments(
                 GenericArguments.player(Text.of("player")),
                 GenericArguments.bigDecimal(Text.of("amount")),

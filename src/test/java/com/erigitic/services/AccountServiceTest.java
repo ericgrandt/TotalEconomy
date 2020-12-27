@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 
@@ -109,11 +110,15 @@ public class AccountServiceTest {
     public void setBalance_WithNumberLessThanZero_ShouldThrowAnIllegalArgumentException() {
         Balance updatedBalance = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(-1));
 
-        assertThrows(
+        IllegalArgumentException e = assertThrows(
             IllegalArgumentException.class,
-            () -> sut.setBalance(updatedBalance),
-            "Balance must be greater than or equal to zero"
+            () -> sut.setBalance(updatedBalance)
         );
+
+        String result = e.getMessage();
+        String expectedResult = "Balance must be greater than or equal to zero";
+
+        assertEquals(expectedResult, result);
     }
 
     @Test
@@ -135,11 +140,15 @@ public class AccountServiceTest {
         Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(24));
         Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
 
-        assertThrows(
+        IllegalArgumentException e = assertThrows(
             IllegalArgumentException.class,
-            () -> sut.transfer(from, to, BigDecimal.valueOf(25)),
-            "Transfer amount is more than the user has"
+            () -> sut.transfer(from, to, BigDecimal.valueOf(25))
         );
+
+        String result = e.getMessage();
+        String expectedResult = "Transfer amount is more than the user has";
+
+        assertEquals(expectedResult, result);
     }
 
     @Test
@@ -147,10 +156,14 @@ public class AccountServiceTest {
         Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         Balance to = new Balance(UUID.randomUUID(), 2, BigDecimal.valueOf(50));
 
-        assertThrows(
+        IllegalArgumentException e = assertThrows(
             IllegalArgumentException.class,
-            () -> sut.transfer(from, to, BigDecimal.valueOf(25)),
-            "Currency ids do not match"
+            () -> sut.transfer(from, to, BigDecimal.valueOf(25))
         );
+
+        String result = e.getMessage();
+        String expectedResult = "Currency ids do not match";
+
+        assertEquals(expectedResult, result);
     }
 }

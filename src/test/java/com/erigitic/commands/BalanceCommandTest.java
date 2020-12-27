@@ -2,7 +2,6 @@ package com.erigitic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +13,9 @@ import com.erigitic.data.Database;
 import com.erigitic.domain.TECurrency;
 import com.erigitic.services.AccountService;
 import com.erigitic.services.TEEconomyService;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -30,27 +32,18 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.util.UUID;
-
 @ExtendWith(MockitoExtension.class)
 public class BalanceCommandTest {
-    BalanceCommand sut;
+    private BalanceCommand sut;
 
     @Mock
     private Database databaseMock;
 
     @Mock
-    TEEconomyService economyServiceMock;
+    private TEEconomyService economyServiceMock;
 
     @Mock
-    Player playerMock;
-
-    @BeforeEach
-    public void init() {
-
-    }
+    private Player playerMock;
 
     @Test
     @Tag("Unit")
@@ -58,11 +51,15 @@ public class BalanceCommandTest {
         CommandContext ctx = new CommandContext();
         sut = new BalanceCommand(economyServiceMock, mock(AccountService.class));
 
-        assertThrows(
+        CommandException e = assertThrows(
             CommandException.class,
-            () -> sut.execute(mock(CommandBlock.class), ctx),
-            "Only players can use this command"
+            () -> sut.execute(mock(CommandBlock.class), ctx)
         );
+
+        Text result = e.getText();
+        Text expectedResult = Text.of("Only players can use this command");
+
+        assertEquals(expectedResult, result);
     }
 
     @Test

@@ -7,22 +7,34 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.text.Text;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 public class PayCommand implements CommandExecutor {
-    private final TotalEconomy plugin;
-    private final TEEconomyService economyService;
+    private final EconomyService economyService;
 
-    public PayCommand() {
-        plugin = TotalEconomy.getPlugin();
-        economyService = plugin.getEconomyService();
+    public PayCommand(EconomyService economyService) {
+        this.economyService = economyService;
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        // if (!(src instanceof Player)) {
-        //     throw new CommandException(Text.of("Only players can use this command"));
-        // }
-        //
+        if (!(src instanceof Player)) {
+            throw new CommandException(Text.of("Only players can use this command"));
+        }
+
+        Optional<BigDecimal> amountOpt = args.getOne("amount");
+        if (!amountOpt.isPresent()) {
+            throw new CommandException(Text.of("Amount argument is missing"));
+        } else if (!(amountOpt.get().compareTo(BigDecimal.ZERO) > 0)) {
+            throw new CommandException(Text.of("Amount must be greater than 0"));
+        }
+
+
         // BigDecimal amount = args.<BigDecimal>getOne(Text.of("amount")).get();
         // if (amount.compareTo(BigDecimal.ONE) < 0) {
         //     throw new CommandException(Text.of("Amount must be greater than 0"));
