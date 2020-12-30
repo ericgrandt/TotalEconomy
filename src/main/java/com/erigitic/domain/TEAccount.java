@@ -1,6 +1,7 @@
 package com.erigitic.domain;
 
 import com.erigitic.economy.TETransactionResult;
+import com.erigitic.economy.TETransferResult;
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -81,18 +82,40 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        if (!hasBalance(currency) || amount.compareTo(BigDecimal.ZERO) < 0) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        }
-
         BigDecimal currentBalance = getBalance(currency);
+
+        if (!hasBalance(currency) || amount.compareTo(BigDecimal.ZERO) < 0) {
+            return new TETransactionResult(this, currency, currentBalance, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        }
 
         return setBalance(currency, currentBalance.add(amount), cause);
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        return null;
+        BigDecimal currentBalance = getBalance(currency);
+
+        if (!hasBalance(currency) || amount.compareTo(BigDecimal.ZERO) < 0) {
+            return new TETransactionResult(this, currency, currentBalance, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        }
+
+        return setBalance(currency, currentBalance.subtract(amount), cause);
+    }
+
+    @Override
+    public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+        withdraw(currency, amount, cause);
+        to.deposit(currency, amount, cause);
+
+        return new TETransferResult(
+            to,
+            this,
+            currency,
+            amount,
+            contexts,
+            ResultType.SUCCESS,
+            TransactionTypes.TRANSFER
+        );
     }
 
     @Override
@@ -108,11 +131,6 @@ public class TEAccount implements UniqueAccount {
     @Override
     public UUID getUniqueId() {
         return userId;
-    }
-
-    @Override
-    public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
