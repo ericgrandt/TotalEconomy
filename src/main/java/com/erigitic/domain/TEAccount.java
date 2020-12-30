@@ -1,7 +1,5 @@
 package com.erigitic.domain;
 
-import com.erigitic.economy.TETransactionResult;
-import com.erigitic.economy.TETransferResult;
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -65,7 +63,7 @@ public class TEAccount implements UniqueAccount {
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
         if (amount.compareTo(BigDecimal.ZERO) < 0 || !hasBalance(currency)) {
-            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+            return new TETransactionResult(this, currency, getBalance(currency), contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
         }
 
         balances.replace(currency, amount);
@@ -73,7 +71,7 @@ public class TEAccount implements UniqueAccount {
         return new TETransactionResult(
             this,
             currency,
-            amount,
+            getBalance(currency),
             contexts,
             ResultType.SUCCESS,
             TransactionTypes.DEPOSIT
@@ -104,14 +102,26 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        withdraw(currency, amount, cause);
+        if (!hasBalance(currency) || !to.hasBalance(currency)) {
+            return new TETransferResult(
+                to,
+                this,
+                currency,
+                getBalance(currency),
+                contexts,
+                ResultType.FAILED,
+                TransactionTypes.TRANSFER
+            );
+        }
+
+        TransactionResult withdrawResult = withdraw(currency, amount, cause);
         to.deposit(currency, amount, cause);
 
         return new TETransferResult(
             to,
             this,
             currency,
-            amount,
+            withdrawResult.getAmount(),
             contexts,
             ResultType.SUCCESS,
             TransactionTypes.TRANSFER
