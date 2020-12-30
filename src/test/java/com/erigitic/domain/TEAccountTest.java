@@ -8,6 +8,8 @@ import static org.mockito.Mockito.mock;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.UUID;
+
+import com.erigitic.economy.TETransactionResult;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -146,10 +148,11 @@ public class TEAccountTest {
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
         assertEquals(BigDecimal.valueOf(123), balances.get(currencyMock));
+        assertEquals(balances.size(), 1);
     }
 
     @Test
-    public void setBalance_WithAmountLessThan0_ShouldReturnFailedTransactionResultAndNotSetBalance() {
+    public void setBalance_WithAmountLessThanZero_ShouldReturnFailedTransactionResultAndNotSetBalance() {
         HashMap<Currency, BigDecimal> balances = new HashMap<>();
         balances.put(
             currencyMock,
@@ -166,6 +169,7 @@ public class TEAccountTest {
         assertEquals(ResultType.FAILED, result.getResult());
         assertEquals(TransactionTypes.DEPOSIT, result.getType());
         assertEquals(BigDecimal.valueOf(123), balances.get(currencyMock));
+        assertEquals(balances.size(), 1);
     }
 
     @Test
@@ -179,8 +183,67 @@ public class TEAccountTest {
     }
 
     @Test
-    public void blah() {
-        System.out.println(TEAccount.class.getClassLoader());
-        System.out.println(Account.class.getInterfaces()[0].getClassLoader());
+    public void deposit_WithValidCurrency_ShouldAddToBalance() {
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(100)
+        );
+        BigDecimal amountToDeposit = BigDecimal.ONE;
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        TransactionResult result = account.deposit(currencyMock, amountToDeposit, cause);
+        BigDecimal expectedBalance = BigDecimal.valueOf(101);
+
+        assertEquals(expectedBalance, result.getAmount());
+        assertEquals(ResultType.SUCCESS, result.getResult());
+        assertEquals(TransactionTypes.DEPOSIT, result.getType());
+        assertEquals(expectedBalance, balances.get(currencyMock));
+    }
+
+    @Test
+    public void deposit_WithInvalidCurrency_ShouldReturnFailedTransactionResultAndNotUpdateBalance() {
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(100)
+        );
+        BigDecimal amountToDeposit = BigDecimal.ONE;
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        TransactionResult result = account.deposit(mock(TECurrency.class), amountToDeposit, cause);
+
+        assertEquals(amountToDeposit, result.getAmount());
+        assertEquals(ResultType.FAILED, result.getResult());
+        assertEquals(TransactionTypes.DEPOSIT, result.getType());
+        assertEquals(BigDecimal.valueOf(100), balances.get(currencyMock));
+        assertEquals(balances.size(), 1);
+    }
+
+    @Test
+    public void deposit_WithNegativeAmount_ShouldReturnFailedTransactionResultAndNotUpdateBalance() {
+        HashMap<Currency, BigDecimal> balances = new HashMap<>();
+        balances.put(
+            currencyMock,
+            BigDecimal.valueOf(100)
+        );
+        BigDecimal amountToDeposit = BigDecimal.valueOf(-1);
+        TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        TransactionResult result = account.deposit(currencyMock, amountToDeposit, cause);
+
+        assertEquals(amountToDeposit, result.getAmount());
+        assertEquals(ResultType.FAILED, result.getResult());
+        assertEquals(TransactionTypes.DEPOSIT, result.getType());
+        assertEquals(BigDecimal.valueOf(100), balances.get(currencyMock));
     }
 }

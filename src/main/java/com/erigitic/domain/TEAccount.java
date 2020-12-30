@@ -81,7 +81,13 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        return null;
+        if (!hasBalance(currency) || amount.compareTo(BigDecimal.ZERO) < 0) {
+            return new TETransactionResult(this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+        }
+
+        BigDecimal currentBalance = getBalance(currency);
+
+        return setBalance(currency, currentBalance.add(amount), cause);
     }
 
     @Override

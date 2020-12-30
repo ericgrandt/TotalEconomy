@@ -40,7 +40,7 @@ public class AccountService {
     }
 
     public boolean transfer(Balance from, Balance to, BigDecimal amount) {
-        if (from.getBalance().subtract(to.getBalance()).compareTo(BigDecimal.ZERO) < 0) {
+        if (from.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Transfer amount is more than the user has");
         }
 

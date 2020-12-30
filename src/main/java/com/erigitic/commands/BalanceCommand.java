@@ -3,8 +3,6 @@ package com.erigitic.commands;
 import com.erigitic.domain.Balance;
 import com.erigitic.services.AccountService;
 import java.util.Optional;
-import java.util.UUID;
-
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;

@@ -63,6 +63,10 @@ public class TECurrency implements Currency {
         return singular;
     }
 
+    public int getIntId() {
+        return id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
