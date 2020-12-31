@@ -622,6 +622,103 @@ public class TEAccountTest {
         assertEquals(expectedResult, result);
     }
 
-    // TODO: Test not enough funds
-    // TODO: Test negative to make sure it returns a failed result AND does not update balances
+    @Test
+    public void transfer_WithInsufficientFunds_ShouldNotUpdateBalances() {
+        HashMap<Currency, BigDecimal> fromBalances = new HashMap<>();
+        fromBalances.put(currencyMock, BigDecimal.ONE);
+        HashMap<Currency, BigDecimal> toBalances = new HashMap<>();
+        toBalances.put(currencyMock, BigDecimal.valueOf(100));
+
+        BigDecimal amountToTransfer = BigDecimal.TEN;
+        TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
+        TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        BigDecimal expectedFromBalance = BigDecimal.ONE;
+        BigDecimal expectedToBalance = BigDecimal.valueOf(100);
+
+        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+    }
+
+    @Test
+    public void transfer_WithInsufficientFunds_ShouldReturnCorrectTransferResult() {
+        HashMap<Currency, BigDecimal> fromBalances = new HashMap<>();
+        fromBalances.put(currencyMock, BigDecimal.ONE);
+        HashMap<Currency, BigDecimal> toBalances = new HashMap<>();
+        toBalances.put(currencyMock, BigDecimal.valueOf(100));
+
+        BigDecimal amountToTransfer = BigDecimal.TEN;
+        TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
+        TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult expectedResult = new TETransferResult(
+            toAccount,
+            fromAccount,
+            currencyMock,
+            BigDecimal.ONE,
+            null,
+            ResultType.ACCOUNT_NO_FUNDS,
+            TransactionTypes.TRANSFER
+        );
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void transfer_WithNegativeTransferAmount_ShouldNotUpdateBalances() {
+        HashMap<Currency, BigDecimal> fromBalances = new HashMap<>();
+        fromBalances.put(currencyMock, BigDecimal.valueOf(100));
+        HashMap<Currency, BigDecimal> toBalances = new HashMap<>();
+        toBalances.put(currencyMock, BigDecimal.valueOf(100));
+
+        BigDecimal amountToTransfer = BigDecimal.valueOf(-1);
+        TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
+        TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        BigDecimal expectedFromBalance = BigDecimal.valueOf(100);
+        BigDecimal expectedToBalance = BigDecimal.valueOf(100);
+
+        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+    }
+
+    @Test
+    public void transfer_WithNegativeTransferAmount_ShouldReturnCorrectTransferResult() {
+        HashMap<Currency, BigDecimal> fromBalances = new HashMap<>();
+        fromBalances.put(currencyMock, BigDecimal.valueOf(100));
+        HashMap<Currency, BigDecimal> toBalances = new HashMap<>();
+        toBalances.put(currencyMock, BigDecimal.valueOf(100));
+
+        BigDecimal amountToTransfer = BigDecimal.valueOf(-1);
+        TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
+        TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
+        Cause cause = Cause.builder()
+            .append(this)
+            .build(EventContext.empty());
+
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult expectedResult = new TETransferResult(
+            toAccount,
+            fromAccount,
+            currencyMock,
+            BigDecimal.valueOf(100),
+            null,
+            ResultType.FAILED,
+            TransactionTypes.TRANSFER
+        );
+
+        assertEquals(expectedResult, result);
+    }
 }

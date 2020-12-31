@@ -102,7 +102,10 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        if (!hasBalance(currency) || !to.hasBalance(currency)) {
+        if (!hasBalance(currency)
+            || !to.hasBalance(currency)
+            || amount.compareTo(BigDecimal.ZERO) < 0
+        ) {
             return new TETransferResult(
                 to,
                 this,
@@ -110,6 +113,16 @@ public class TEAccount implements UniqueAccount {
                 getBalance(currency),
                 contexts,
                 ResultType.FAILED,
+                TransactionTypes.TRANSFER
+            );
+        } else if (getBalance(currency).compareTo(amount) < 0) {
+            return new TETransferResult(
+                to,
+                this,
+                currency,
+                getBalance(currency),
+                contexts,
+                ResultType.ACCOUNT_NO_FUNDS,
                 TransactionTypes.TRANSFER
             );
         }
