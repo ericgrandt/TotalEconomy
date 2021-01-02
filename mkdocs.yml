@@ -9,6 +9,7 @@ markdown_extensions:
 nav:
   - Installation: 'index.md'
   - Storage: 'storage.md'
+  - Commands: 'commands.md'
   - Development:
     - Design: development/design.md
     - Testing: 'development/testing.md'
