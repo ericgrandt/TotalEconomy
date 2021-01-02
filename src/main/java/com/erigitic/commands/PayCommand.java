@@ -1,5 +1,8 @@
 package com.erigitic.commands;
 
+import com.erigitic.domain.Balance;
+import com.erigitic.domain.TECurrency;
+import com.erigitic.services.AccountService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.spongepowered.api.command.CommandException;
@@ -13,14 +16,15 @@ import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 
 public class PayCommand implements CommandExecutor {
     private final EconomyService economyService;
+    private final AccountService accountService;
 
-    public PayCommand(EconomyService economyService) {
+    public PayCommand(EconomyService economyService, AccountService accountService) {
         this.economyService = economyService;
+        this.accountService = accountService;
     }
 
     @Override
@@ -36,27 +40,34 @@ public class PayCommand implements CommandExecutor {
             throw new CommandException(Text.of("You cannot pay yourself"));
         }
 
-        // TODO: Get balances
-        // TODO: Call AccountService.transfer()
+        UniqueAccount fromAccount = economyService.getOrCreateAccount(fromPlayer.getUniqueId()).orElse(null);
+        UniqueAccount toAccount = economyService.getOrCreateAccount(toPlayer.getUniqueId()).orElse(null);
+        if (fromAccount == null || toAccount == null) {
+            throw new CommandException(Text.of("Failed to run command: invalid account(s)"));
+        }
 
-        // Optional<UniqueAccount> fromAccount = economyService.getOrCreateAccount(fromPlayer.getUniqueId());
-        // Optional<UniqueAccount> toAccount = economyService.getOrCreateAccount(toPlayer.getUniqueId());
-        // if (!fromAccount.isPresent() || !toAccount.isPresent()) {
-        //     throw new CommandException(Text.of("Failed to run command"));
-        // }
+        TECurrency defaultCurrency = (TECurrency) economyService.getDefaultCurrency();
+        EventContext context = EventContext.builder()
+            .add(EventContextKeys.PLAYER, fromPlayer)
+            .build();
+        fromAccount.transfer(toAccount, defaultCurrency, amount, Cause.of(context, fromPlayer));
 
-        // EventContext context = EventContext.builder()
-        //     .add(EventContextKeys.PLAYER, fromPlayer)
-        //     .build();
-        // TransferResult result = fromAccount.get().transfer(
-        //     toAccount.get(),
-        //     economyService.getDefaultCurrency(),
-        //     amount,
-        //     Cause.of(context, fromPlayer)
-        // );
-        // if (isTransferSuccessful(result)) {
-        //     sendMessages(result, fromPlayer, toPlayer);
-        // }
+        Balance fromBalance = new Balance(
+            fromAccount.getUniqueId(),
+            defaultCurrency.getIntId(),
+            fromAccount.getBalance(defaultCurrency)
+        );
+        Balance toBalance = new Balance(
+            toAccount.getUniqueId(),
+            defaultCurrency.getIntId(),
+            toAccount.getBalance(defaultCurrency)
+        );
+
+        boolean isSuccessful = accountService.setTransferBalances(fromBalance, toBalance);
+
+        if (!isSuccessful) {
+            throw new CommandException(Text.of("Failed to run command: unable to set balances"));
+        }
 
         return CommandResult.success();
     }

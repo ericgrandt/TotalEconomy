@@ -44,6 +44,7 @@ public class TEEconomyService implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
+        // NOTE: This ends up making two of the same database calls but could become one if we didn't use hasAccount
         if (hasAccount(uuid)) {
             return Optional.of(accountData.getAccount(uuid));
         }

@@ -2,6 +2,7 @@ package com.erigitic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +10,9 @@ import com.erigitic.TestUtils;
 import com.erigitic.data.AccountData;
 import com.erigitic.data.CurrencyData;
 import com.erigitic.data.Database;
+import com.erigitic.domain.Balance;
+import com.erigitic.domain.TEAccount;
+import com.erigitic.domain.TECurrency;
 import com.erigitic.services.AccountService;
 import com.erigitic.services.TEEconomyService;
 import java.math.BigDecimal;
@@ -16,6 +20,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -27,7 +32,9 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,13 +48,16 @@ public class PayCommandTest {
     private TEEconomyService economyServiceMock;
 
     @Mock
+    private AccountService accountServiceMock;
+
+    @Mock
     private Player playerMock;
 
     @Test
     @Tag("Unit")
     public void execute_WithNonPlayerCommandSource_ShouldThrowCommandException() {
         CommandContext ctx = new CommandContext();
-        sut = new PayCommand(economyServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -66,7 +76,7 @@ public class PayCommandTest {
         CommandContext ctx = new CommandContext();
         ctx.putArg("player", mock(Player.class));
 
-        sut = new PayCommand(economyServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -86,7 +96,7 @@ public class PayCommandTest {
         ctx.putArg("player", mock(Player.class));
         ctx.putArg("amount", BigDecimal.ZERO);
 
-        sut = new PayCommand(economyServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -106,7 +116,7 @@ public class PayCommandTest {
         ctx.putArg("player", mock(Player.class));
         ctx.putArg("amount", BigDecimal.valueOf(-1));
 
-        sut = new PayCommand(economyServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -119,25 +129,34 @@ public class PayCommandTest {
         assertEquals(expectedResult, result);
     }
 
-    // @Test
-    // @Tag("Unit")
-    // public void execute_WithInsufficientBalance_ShouldThrowCommandException() {
-    //     CommandContext ctx = new CommandContext();
-    //     ctx.putArg("player", mock(Player.class));
-    //     ctx.putArg("amount", BigDecimal.valueOf(100));
-    //
-    //     sut = new PayCommand(economyServiceMock);
-    //
-    //     CommandException e = assertThrows(
-    //         CommandException.class,
-    //         () -> sut.execute(playerMock, ctx)
-    //     );
-    //
-    //     Text result = e.getText();
-    //     Text expectedResult = Text.of("Insufficient balance");
-    //
-    //     assertEquals(expectedResult, result);
-    // }
+    @Test
+    @Tag("Unit")
+    public void execute_WithUnsuccessfulTransfer_ShouldThrowCommandException() {
+        Player toPlayerMock = mock(Player.class);
+        CommandContext ctx = new CommandContext();
+        ctx.putArg("player", toPlayerMock);
+        ctx.putArg("amount", BigDecimal.valueOf(100));
+
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
+
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(toPlayerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(economyServiceMock.getOrCreateAccount(any(UUID.class)))
+            .thenReturn(Optional.of(mock(UniqueAccount.class)))
+            .thenReturn(Optional.of(mock(UniqueAccount.class)));
+        when(economyServiceMock.getDefaultCurrency()).thenReturn(mock(TECurrency.class));
+        when(accountServiceMock.setTransferBalances(any(Balance.class), any(Balance.class))).thenReturn(false);
+
+        CommandException e = assertThrows(
+            CommandException.class,
+            () -> sut.execute(playerMock, ctx)
+        );
+
+        Text result = e.getText();
+        Text expectedResult = Text.of("Failed to run command: unable to set balances");
+
+        assertEquals(expectedResult, result);
+    }
 
     @Test
     @Tag("Unit")
@@ -145,7 +164,7 @@ public class PayCommandTest {
         CommandContext ctx = new CommandContext();
         ctx.putArg("amount", BigDecimal.valueOf(100));
 
-        sut = new PayCommand(economyServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -165,7 +184,7 @@ public class PayCommandTest {
         ctx.putArg("player", playerMock);
         ctx.putArg("amount", BigDecimal.valueOf(100));
 
-        sut = new PayCommand(economyServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
 
         when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
         CommandException e = assertThrows(
@@ -179,26 +198,26 @@ public class PayCommandTest {
         assertEquals(expectedResult, result);
     }
 
-    // @Test
-    // @Tag("Unit")
-    // public void execute_WithGetOrCreateAccountIssue_ShouldThrowCommandException() {
-    //     CommandContext ctx = new CommandContext();
-    //     ctx.putArg("player", mock(Player.class));
-    //     ctx.putArg("amount", BigDecimal.valueOf(100));
-    //
-    //     sut = new PayCommand(economyServiceMock);
-    //
-    //     when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
-    //     CommandException e = assertThrows(
-    //         CommandException.class,
-    //         () -> sut.execute(playerMock, ctx)
-    //     );
-    //
-    //     Text result = e.getText();
-    //     Text expectedResult = Text.of("Failed to run command");
-    //
-    //     assertEquals(expectedResult, result);
-    // }
+    @Test
+    @Tag("Unit")
+    public void execute_WithGetOrCreateAccountIssue_ShouldThrowCommandException() {
+        CommandContext ctx = new CommandContext();
+        ctx.putArg("player", mock(Player.class));
+        ctx.putArg("amount", BigDecimal.valueOf(100));
+
+        sut = new PayCommand(economyServiceMock, accountServiceMock);
+
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+        CommandException e = assertThrows(
+            CommandException.class,
+            () -> sut.execute(playerMock, ctx)
+        );
+
+        Text result = e.getText();
+        Text expectedResult = Text.of("Failed to run command: invalid account(s)");
+
+        assertEquals(expectedResult, result);
+    }
 
     @Test
     @Tag("Integration")
@@ -209,25 +228,33 @@ public class PayCommandTest {
         TestUtils.seedUsers();
         when(databaseMock.getConnection())
             .thenReturn(TestUtils.getConnection())
+            .thenReturn(TestUtils.getConnection())
+            .thenReturn(TestUtils.getConnection())
+            .thenReturn(TestUtils.getConnection())
+            .thenReturn(TestUtils.getConnection())
             .thenReturn(TestUtils.getConnection());
 
         AccountData accountData = new AccountData(databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);
         EconomyService economyService = new TEEconomyService(accountData, currencyData);
+        AccountService accountService = new AccountService(accountData);
         Player toPlayer = mock(Player.class);
-        sut = new PayCommand(economyService);
+        sut = new PayCommand(economyService, accountService);
+
+        when(toPlayer.getUniqueId()).thenReturn(UUID.fromString("551fe9be-f77f-4bcb-81db-548db6e77aea"));
 
         CommandContext ctx = new CommandContext();
         ctx.putArg("player", toPlayer);
         ctx.putArg("amount", BigDecimal.valueOf(10));
 
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"));
-        when(toPlayer.getUniqueId()).thenReturn(UUID.fromString("551fe9be-f77f-4bcb-81db-548db6e77aea"));
 
         // Act
         CommandResult result = sut.execute(playerMock, ctx);
 
         // Assert
+        assertEquals(CommandResult.success(), result);
+
         try (Connection conn = TestUtils.getConnection()) {
             assert conn != null;
 
@@ -236,9 +263,22 @@ public class PayCommandTest {
                 "SELECT balance FROM te_balance\n"
                 + "WHERE currency_id=1 AND user_id='62694fb0-07cc-4396-8d63-4f70646d75f0'"
             );
+            fromPlayerBalanceResult.next();
+
             BigDecimal fromPlayerBalance = fromPlayerBalanceResult.getBigDecimal("balance");
             BigDecimal expectedFromPlayerBalance = BigDecimal.valueOf(40);
             assertEquals(expectedFromPlayerBalance, fromPlayerBalance);
+
+            Statement toPlayerBalanceStmt = conn.createStatement();
+            ResultSet toPlayerBalanceResult = toPlayerBalanceStmt.executeQuery(
+                "SELECT balance FROM te_balance\n"
+                    + "WHERE currency_id=1 AND user_id='551fe9be-f77f-4bcb-81db-548db6e77aea'"
+            );
+            toPlayerBalanceResult.next();
+
+            BigDecimal toPlayerBalance = toPlayerBalanceResult.getBigDecimal("balance");
+            BigDecimal expectedToPlayerBalance = BigDecimal.valueOf(110);
+            assertEquals(expectedToPlayerBalance, toPlayerBalance);
         }
     }
 }

@@ -122,6 +122,66 @@ public class AccountServiceTest {
     }
 
     @Test
+    public void setTransferBalances_WithValidData_ShouldUpdateBothBalances() {
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
+        Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
+
+        when(accountDataMock.setTransferBalances(from, to)).thenReturn(true);
+
+        boolean result = sut.setTransferBalances(from, to);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void setTransferBalances_WithNegativeFromBalance_ShouldThrowIllegalArgumentException() {
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(-1));
+        Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
+
+        IllegalArgumentException e = assertThrows(
+            IllegalArgumentException.class,
+            () -> sut.setTransferBalances(from, to)
+        );
+
+        String result = e.getMessage();
+        String expectedResult = "From balance cannot be negative";
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void setTransferBalances_WithNegativeToBalance_ShouldThrowIllegalArgumentException() {
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
+        Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(-1));
+
+        IllegalArgumentException e = assertThrows(
+            IllegalArgumentException.class,
+            () -> sut.setTransferBalances(from, to)
+        );
+
+        String result = e.getMessage();
+        String expectedResult = "To balance cannot be negative";
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void setTransferBalances_WithNonMatchingCurrencyIds_ShouldThrowIllegalArgumentException() {
+        Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
+        Balance to = new Balance(UUID.randomUUID(), 2, BigDecimal.valueOf(50));
+
+        IllegalArgumentException e = assertThrows(
+            IllegalArgumentException.class,
+            () -> sut.setTransferBalances(from, to)
+        );
+
+        String result = e.getMessage();
+        String expectedResult = "Currency ids do not match";
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
     public void transfer_WithValidData_ShouldUpdateBothBalances() {
         Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
