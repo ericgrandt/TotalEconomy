@@ -9,7 +9,10 @@ markdown_extensions:
 nav:
   - Installation: 'index.md'
   - Storage: 'storage.md'
-  - Commands: 'commands.md'
+  - Commands:
+    - Overview: 'commands/overview.md'
+    - Balance: 'commands/balance.md'
+    - Pay: 'commands/pay.md'
   - Development:
-    - Design: development/design.md
+    - Design: 'development/design.md'
     - Testing: 'development/testing.md'
