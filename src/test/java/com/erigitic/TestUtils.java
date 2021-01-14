@@ -2,6 +2,9 @@ package com.erigitic;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.ibatis.jdbc.ScriptRunner;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,25 +14,37 @@ public class TestUtils {
     private static final HikariDataSource ds;
 
     static {
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/totaleconomytest");
-        config.setUsername("te_dev");
-        config.setPassword("Password1!");
+        config.setJdbcUrl("jdbc:h2:mem:totaleconomy");
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         ds = new HikariDataSource(config);
+        setupDb();
     }
 
     public static Connection getConnection() throws SQLException {
         return ds.getConnection();
     }
 
+    public static void setupDb() {
+        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        InputStream is = classloader.getResourceAsStream("schema.sql");
+        try (Connection conn = TestUtils.getConnection();
+             InputStreamReader reader = new InputStreamReader(is)
+        ) {
+            ScriptRunner runner = new ScriptRunner(conn);
+            runner.runScript(reader);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void seedCurrencies() {
         try (Connection conn = TestUtils.getConnection()) {
             String insertDollarCurrency = "INSERT INTO te_currency\n"
-                + "VALUES(1, 'Dollar', 'Dollars', '$', true, true)";
+                + "VALUES(1, 'Dollar', 'Dollars', '$', true)";
             String insertEuroCurrency = "INSERT INTO te_currency\n"
-                + "VALUES(2, 'Euro', 'Euros', 'E', false, false)";
+                + "VALUES(2, 'Euro', 'Euros', 'E', false)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDollarCurrency);
