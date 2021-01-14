@@ -23,7 +23,7 @@ test {
     dependsOn 'cleanTest'
 
     useJUnitPlatform {
-        includeTags 'Unit'
+        includeTags 'Unit', 'Integration'
     }
 
     testLogging {
