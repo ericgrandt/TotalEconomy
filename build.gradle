@@ -22,30 +22,6 @@ checkstyle {
 test {
     dependsOn 'cleanTest'
 
-    useJUnitPlatform {
-        includeTags 'Unit', 'Integration'
-    }
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
-
-task integrationTest(type: Test) {
-    dependsOn 'cleanTest'
-
-    useJUnitPlatform {
-        includeTags 'Integration'
-    }
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
-
-task fullTest(type: Test) {
-    dependsOn 'cleanTest'
-
     useJUnitPlatform()
 
     testLogging {
