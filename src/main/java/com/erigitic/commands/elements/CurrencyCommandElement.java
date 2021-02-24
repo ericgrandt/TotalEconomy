@@ -11,24 +11,25 @@ import org.spongepowered.api.command.args.CommandArgs;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 
 public class CurrencyCommandElement extends CommandElement {
-    private final TEEconomyService economyService;
+    private final EconomyService economyService;
 
-    public CurrencyCommandElement(Text key) {
+    public CurrencyCommandElement(EconomyService economyService, Text key) {
         super(key);
-        economyService = TotalEconomy.getPlugin().getEconomyService();
+        this.economyService = economyService;
     }
 
     @Nullable
     @Override
-    protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+    protected Currency parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String currencyName = args.next();
 
         Currency currency = economyService.getCurrencies()
             .stream()
-            .filter(c -> c.getDisplayName().toPlainSingle().equals(currencyName))
+            .filter(c -> c.getName().equals(currencyName))
             .findFirst()
             .orElse(null);
 
@@ -44,7 +45,7 @@ public class CurrencyCommandElement extends CommandElement {
         List<String> currencyNames = new ArrayList<>();
 
         economyService.getCurrencies()
-            .forEach(currency -> currencyNames.add(currency.getDisplayName().toPlainSingle()));
+            .forEach(currency -> currencyNames.add(currency.getName()));
 
         return currencyNames;
     }

@@ -7,6 +7,7 @@ import com.erigitic.services.TEEconomyService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 
 public class CommandRegister {
@@ -16,7 +17,7 @@ public class CommandRegister {
 
     public CommandRegister(
         TotalEconomy plugin,
-        TEEconomyService economyService,
+        EconomyService economyService,
         AccountService accountService
     ) {
         this.plugin = plugin;
@@ -26,7 +27,7 @@ public class CommandRegister {
             .permission("totaleconomy.command.balance")
             .executor(new BalanceCommand(economyService, accountService))
             .arguments(
-                GenericArguments.optional(new CurrencyCommandElement(Text.of("currencyName")))
+                GenericArguments.optional(new CurrencyCommandElement(economyService, Text.of("currencyName")))
             )
             .build();
         payCommandSpec = CommandSpec.builder()
