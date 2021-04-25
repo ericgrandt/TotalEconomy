@@ -2,7 +2,6 @@ package com.erigitic.domain;
 
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
