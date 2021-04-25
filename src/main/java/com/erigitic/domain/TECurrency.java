@@ -3,9 +3,11 @@ package com.erigitic.domain;
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.text.Text;
 
+import net.kyori.adventure.text.Component;
+import org.spongepowered.api.service.economy.Currency;
+
+// TODO: Tests
 public class TECurrency implements Currency {
     private final int id;
     private final String singular;
@@ -24,27 +26,28 @@ public class TECurrency implements Currency {
     }
 
     @Override
-    public Text getDisplayName() {
-        return Text.of(singular);
+    public Component displayName() {
+        return Component.text(singular);
     }
 
     @Override
-    public Text getPluralDisplayName() {
-        return Text.of(plural);
+    public Component pluralDisplayName() {
+        return Component.text(plural);
     }
 
     @Override
-    public Text getSymbol() {
-        return Text.of(symbol);
+    public Component symbol() {
+        return Component.text(symbol);
     }
 
     @Override
-    public Text format(BigDecimal amount, int numFractionDigits) {
-        return Text.of(amount.setScale(numFractionDigits, RoundingMode.HALF_DOWN), symbol);
+    public Component format(BigDecimal amount, int numFractionDigits) {
+        return Component.text(symbol)
+            .append(Component.text(amount.setScale(numFractionDigits, RoundingMode.HALF_DOWN).toString()));
     }
 
     @Override
-    public int getDefaultFractionDigits() {
+    public int defaultFractionDigits() {
         return numFractionDigits;
     }
 
@@ -53,17 +56,7 @@ public class TECurrency implements Currency {
         return isDefault;
     }
 
-    @Override
-    public String getId() {
-        return String.valueOf(id);
-    }
-
-    @Override
-    public String getName() {
-        return singular;
-    }
-
-    public int getIntId() {
+    public int getId() {
         return id;
     }
 

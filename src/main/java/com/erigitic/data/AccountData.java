@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 public class AccountData {
-    private final Logger logger = LoggerFactory.getLogger("TotalEconomy");
+    private final Logger logger = LogManager.getLogger("TotalEconomy");
     private final Database database;
 
     public AccountData(Database database) {
@@ -30,13 +31,13 @@ public class AccountData {
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
-                stmt.setString(1, account.getUniqueId().toString());
-                stmt.setString(2, account.getDisplayName().toString());
+                stmt.setString(1, account.uniqueId().toString());
+                stmt.setString(2, account.displayName().toString());
                 stmt.execute();
             }
 
             try (PreparedStatement stmt = conn.prepareStatement(createBalancesQuery)) {
-                stmt.setString(1, account.getUniqueId().toString());
+                stmt.setString(1, account.uniqueId().toString());
                 stmt.execute();
             }
         } catch (SQLException e) {
@@ -44,9 +45,9 @@ public class AccountData {
                 String.format(
                     "Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)",
                     createUserQuery,
-                    account.getUniqueId(),
+                    account.uniqueId(),
                     createBalancesQuery,
-                    account.getUniqueId()
+                    account.uniqueId()
                 )
             );
         }
@@ -85,7 +86,7 @@ public class AccountData {
                     );
                     BigDecimal balance = results.getBigDecimal("balance");
 
-                    account.addBalance(currency, balance);
+                    account.balances.put(currency, balance);
                 }
 
                 return account;

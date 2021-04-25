@@ -3,10 +3,11 @@ package com.erigitic.config;
 import com.erigitic.TotalEconomy;
 import java.io.File;
 import java.io.IOException;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
+
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 public abstract class Configuration {
     private final TotalEconomy plugin;
@@ -17,7 +18,7 @@ public abstract class Configuration {
 
     protected ConfigurationNode loadConfiguration(String configName) {
         File config = new File(plugin.getConfigDir(), configName);
-        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setFile(config).build();
+        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().file(config).build();
 
         try {
             return loader.load();

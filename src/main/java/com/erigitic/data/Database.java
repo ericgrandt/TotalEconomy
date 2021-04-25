@@ -8,17 +8,17 @@ import java.sql.SQLException;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
-import org.spongepowered.api.service.sql.SqlService;
+import org.spongepowered.api.sql.SqlManager;
 
 public class Database {
     private final TotalEconomy plugin;
     private final Logger logger;
     private final String connectionString;
     private final String database;
-    private SqlService sql;
+    private SqlManager sql;
 
     public Database() {
         plugin = TotalEconomy.getPlugin();
@@ -33,7 +33,7 @@ public class Database {
 
     public void setup() {
         if (database.equals("mysql")) {
-            Optional<Asset> sqlFileOpt = plugin.getPluginContainer().getAsset("schema/mysql.sql");
+            Optional<Asset> sqlFileOpt = Sponge.assetManager().asset("schema/mysql.sql");
             sqlFileOpt.ifPresent(this::runSqlScript);
             return;
         }
@@ -43,10 +43,10 @@ public class Database {
 
     private DataSource getDataSource() throws SQLException {
         if (sql == null) {
-            sql = Sponge.getServiceManager().provide(SqlService.class).get();
+            sql = Sponge.serviceProvider().provide(SqlManager.class).get();
         }
 
-        return sql.getDataSource(connectionString);
+        return sql.dataSource(connectionString);
     }
 
     private String getDatabase() {
@@ -55,7 +55,7 @@ public class Database {
 
     private void runSqlScript(Asset sqlScript) {
         try (Connection conn = getConnection();
-             InputStreamReader reader = new InputStreamReader(sqlScript.getUrl().openStream())
+             InputStreamReader reader = new InputStreamReader(sqlScript.url().openStream())
         ) {
             logger.info("Successfully connected");
 

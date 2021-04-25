@@ -4,7 +4,7 @@ import com.erigitic.TotalEconomy;
 import com.erigitic.services.TEEconomyService;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.event.network.ServerSideConnectionEvent;
 
 public class PlayerListener {
     private final TEEconomyService economyService;
@@ -15,9 +15,9 @@ public class PlayerListener {
     }
 
     @Listener
-    public void onPlayerJoin(ClientConnectionEvent.Join event) {
-        Player player = event.getTargetEntity();
+    public void onPlayerJoin(ServerSideConnectionEvent.Join event) {
+        Player player = event.player();
 
-        economyService.getOrCreateAccount(player.getUniqueId());
+        economyService.findOrCreateAccount(player.uniqueId());
     }
 }

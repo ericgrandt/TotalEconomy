@@ -11,23 +11,22 @@ import com.erigitic.services.TEEconomyService;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import org.slf4j.Logger;
+
+import org.apache.logging.log4j.Logger;
+import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
+import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.EventContext;
-import org.spongepowered.api.event.cause.EventContextKeys;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
-import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
+import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
+import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
+import org.spongepowered.plugin.PluginContainer;
+import org.spongepowered.plugin.jvm.Plugin;
 
-@SuppressWarnings("checkstyle:WhitespaceAround")
-@Plugin(id="totaleconomy", name="Total Economy", version="2.0.0", description="All in one economy plugin for Minecraft and Sponge")
+@Plugin("totaleconomy")
 public class TotalEconomy {
     @Inject
     private Logger logger;
@@ -43,8 +42,6 @@ public class TotalEconomy {
     @Inject
     private PluginContainer pluginContainer;
 
-    private EventContext eventContext;
-
     private static TotalEconomy plugin;
     private DefaultConfiguration defaultConfiguration;
     private Database database;
@@ -56,8 +53,7 @@ public class TotalEconomy {
     }
 
     @Listener
-    public void onPreInit(GamePreInitializationEvent event) {
-        eventContext = EventContext.builder().add(EventContextKeys.PLUGIN, pluginContainer).build();
+    public void onConstructPlugin(ConstructPluginEvent event) {
         copyResourcesToConfigDirectory();
 
         defaultConfiguration = new DefaultConfiguration(this);
@@ -70,35 +66,29 @@ public class TotalEconomy {
 
         accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);
-        Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
+        // Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
     }
 
     @Listener
-    public void onInit(GameInitializationEvent event) {
-        CommandRegister commandRegister = new CommandRegister(this, economyService, accountService);
-        commandRegister.registerCommands();
+    public void onServerStarting(final StartingEngineEvent<Server> event) {
+        Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener());
+        Sponge.eventManager().registerListeners(pluginContainer, new CommandRegister(pluginContainer, economyService, accountService));
+    }
 
-        Sponge.getEventManager().registerListeners(this, new PlayerListener());
+    @Listener
+    public void onServerStarted(StartedEngineEvent<Server> event) {
+        logger.info("TotalEconomy started successfully");
     }
 
     private void copyResourcesToConfigDirectory() {
         File config = new File(configDir, "totaleconomy.conf");
-        Asset defaultConf = pluginContainer.getAsset("totaleconomy.conf").get();
+        Asset defaultConf = Sponge.assetManager().asset("totaleconomy.conf").get();
 
         try {
             defaultConf.copyToFile(config.toPath(), false);
         } catch (IOException e) {
             logger.error("Configuration files could not be copied");
         }
-    }
-
-    @Listener
-    public void onServerStart(GameStartedServerEvent event) {
-        logger.info("TotalEconomy started successfully");
-    }
-
-    public EventContext getEventContext() {
-        return eventContext;
     }
 
     public static TotalEconomy getPlugin() {

@@ -9,19 +9,17 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.UUID;
 
+import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
-import org.spongepowered.api.text.Text;
 
 @Tag("Unit")
 @ExtendWith(MockitoExtension.class)
@@ -34,8 +32,8 @@ public class TEAccountTest {
         UUID uuid = UUID.randomUUID();
         TEAccount account = new TEAccount(uuid, "MyUsername", null);
 
-        Text result = account.getDisplayName();
-        Text expectedResult = Text.of("MyUsername");
+        Component result = account.displayName();
+        Component expectedResult = Component.text("MyUsername");
 
         assertEquals(expectedResult, result);
     }
@@ -45,7 +43,7 @@ public class TEAccountTest {
         UUID uuid = UUID.randomUUID();
         TEAccount account = new TEAccount(uuid, "MyUsername", null);
 
-        BigDecimal result = account.getDefaultBalance(currencyMock);
+        BigDecimal result = account.defaultBalance(currencyMock);
         BigDecimal expectedResult = BigDecimal.ZERO;
 
         assertEquals(expectedResult, result);
@@ -82,7 +80,7 @@ public class TEAccountTest {
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
 
-        BigDecimal result = account.getBalance(currencyMock);
+        BigDecimal result = account.balance(currencyMock);
         BigDecimal expectedResult = BigDecimal.valueOf(123);
 
         assertEquals(expectedResult, result);
@@ -95,7 +93,7 @@ public class TEAccountTest {
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
 
-        BigDecimal result = account.getBalance(mock(TECurrency.class));
+        BigDecimal result = account.balance(mock(TECurrency.class));
         BigDecimal expectedResult = BigDecimal.ZERO;
 
         assertEquals(expectedResult, result);
@@ -107,18 +105,15 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(123));
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(10), cause);
+        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(10));
         TransactionResult expectedResult = new TETransactionResult(
             account,
             currencyMock,
             BigDecimal.TEN,
             null,
             ResultType.SUCCESS,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -130,14 +125,11 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(123));
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.setBalance(currencyMock, BigDecimal.valueOf(10), cause);
+        account.setBalance(currencyMock, BigDecimal.valueOf(10));
         BigDecimal expectedBalance = BigDecimal.TEN;
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -146,19 +138,16 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(123));
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
         Currency invalidCurrency = mock(TECurrency.class);
-        TransactionResult result = account.setBalance(invalidCurrency, BigDecimal.valueOf(10), cause);
+        TransactionResult result = account.setBalance(invalidCurrency, BigDecimal.valueOf(10));
         TransactionResult expectedResult = new TETransactionResult(
             account,
             invalidCurrency,
             BigDecimal.ZERO,
             null,
             ResultType.FAILED,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -170,15 +159,12 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(123));
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
         Currency invalidCurrency = mock(TECurrency.class);
-        account.setBalance(invalidCurrency, BigDecimal.valueOf(10), cause);
+        account.setBalance(invalidCurrency, BigDecimal.valueOf(10));
         BigDecimal expectedBalance = BigDecimal.ZERO;
 
-        assertEquals(expectedBalance, account.getBalance(invalidCurrency));
+        assertEquals(expectedBalance, account.balance(invalidCurrency));
     }
 
     @Test
@@ -187,18 +173,15 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(123));
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(-0.01), cause);
+        TransactionResult result = account.setBalance(currencyMock, BigDecimal.valueOf(-0.01));
         TransactionResult expectedResult = new TETransactionResult(
             account,
             currencyMock,
             BigDecimal.valueOf(123),
             null,
             ResultType.FAILED,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -210,14 +193,11 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(123));
 
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.setBalance(currencyMock, BigDecimal.valueOf(-0.01), cause);
+        account.setBalance(currencyMock, BigDecimal.valueOf(-0.01));
         BigDecimal expectedBalance = BigDecimal.valueOf(123);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -225,9 +205,9 @@ public class TEAccountTest {
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", new HashMap<>());
         TECurrency currency = mock(TECurrency.class);
 
-        account.addBalance(currency, BigDecimal.ZERO);
+        account.balances.put(currency, BigDecimal.ZERO);
 
-        assertEquals(1, account.getBalances().size());
+        assertEquals(1, account.balances().size());
     }
 
     @Test
@@ -237,18 +217,15 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransactionResult result = account.deposit(currencyMock, amountToDeposit, cause);
+        TransactionResult result = account.deposit(currencyMock, amountToDeposit);
         TransactionResult expectedResult = new TETransactionResult(
             account,
             currencyMock,
             BigDecimal.valueOf(101),
             null,
             ResultType.SUCCESS,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -261,14 +238,11 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.deposit(currencyMock, amountToDeposit, cause);
+        account.deposit(currencyMock, amountToDeposit);
         BigDecimal expectedBalance = BigDecimal.valueOf(101);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -278,19 +252,16 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
         Currency invalidCurrency = mock(TECurrency.class);
-        TransactionResult result = account.deposit(invalidCurrency, amountToDeposit, cause);
+        TransactionResult result = account.deposit(invalidCurrency, amountToDeposit);
         TransactionResult expectedResult = new TETransactionResult(
             account,
             invalidCurrency,
             BigDecimal.ZERO,
             null,
             ResultType.FAILED,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -303,14 +274,11 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.deposit(mock(TECurrency.class), amountToDeposit, cause);
+        account.deposit(mock(TECurrency.class), amountToDeposit);
         BigDecimal expectedBalance = BigDecimal.valueOf(100);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -320,18 +288,15 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.valueOf(-1);
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransactionResult result = account.deposit(currencyMock, amountToDeposit, cause);
+        TransactionResult result = account.deposit(currencyMock, amountToDeposit);
         TransactionResult expectedResult = new TETransactionResult(
             account,
             currencyMock,
             BigDecimal.valueOf(100),
             null,
             ResultType.FAILED,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -344,14 +309,11 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.valueOf(-1);
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.deposit(currencyMock, amountToDeposit, cause);
+        account.deposit(currencyMock, amountToDeposit);
         BigDecimal expectedBalance = BigDecimal.valueOf(100);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -361,18 +323,15 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransactionResult result = account.withdraw(currencyMock, amountToDeposit, cause);
+        TransactionResult result = account.withdraw(currencyMock, amountToDeposit);
         TransactionResult expectedResult = new TETransactionResult(
             account,
             currencyMock,
             BigDecimal.valueOf(99),
             null,
             ResultType.SUCCESS,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -385,14 +344,11 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.withdraw(currencyMock, amountToDeposit, cause);
+        account.withdraw(currencyMock, amountToDeposit);
         BigDecimal expectedBalance = BigDecimal.valueOf(99);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -402,19 +358,16 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
         Currency invalidCurrency = mock(TECurrency.class);
-        TransactionResult result = account.withdraw(invalidCurrency, amountToDeposit, cause);
+        TransactionResult result = account.withdraw(invalidCurrency, amountToDeposit);
         TransactionResult expectedResult = new TETransactionResult(
             account,
             invalidCurrency,
             BigDecimal.ZERO,
             null,
             ResultType.FAILED,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -427,14 +380,11 @@ public class TEAccountTest {
 
         BigDecimal amountToDeposit = BigDecimal.ONE;
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.withdraw(mock(TECurrency.class), amountToDeposit, cause);
+        account.withdraw(mock(TECurrency.class), amountToDeposit);
         BigDecimal expectedBalance = BigDecimal.valueOf(100);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -443,18 +393,15 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(100));
         BigDecimal amountToDeposit = BigDecimal.valueOf(-1);
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransactionResult result = account.withdraw(currencyMock, amountToDeposit, cause);
+        TransactionResult result = account.withdraw(currencyMock, amountToDeposit);
         TransactionResult expectedResult = new TETransactionResult(
             account,
             currencyMock,
             BigDecimal.valueOf(100),
             null,
             ResultType.FAILED,
-            TransactionTypes.DEPOSIT
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -466,14 +413,11 @@ public class TEAccountTest {
         balances.put(currencyMock, BigDecimal.valueOf(100));
         BigDecimal amountToDeposit = BigDecimal.valueOf(-1);
         TEAccount account = new TEAccount(UUID.randomUUID(), "MyUsername", balances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        account.withdraw(currencyMock, amountToDeposit, cause);
+        account.withdraw(currencyMock, amountToDeposit);
         BigDecimal expectedBalance = BigDecimal.valueOf(100);
 
-        assertEquals(expectedBalance, account.getBalance(currencyMock));
+        assertEquals(expectedBalance, account.balance(currencyMock));
     }
 
     @Test
@@ -486,16 +430,13 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         BigDecimal expectedFromBalance = BigDecimal.valueOf(90);
         BigDecimal expectedToBalance = BigDecimal.valueOf(160);
 
-        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
-        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+        assertEquals(expectedFromBalance, fromAccount.balance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.balance(currencyMock));
     }
 
     @Test
@@ -508,11 +449,8 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         TransferResult expectedResult = new TETransferResult(
             toAccount,
             fromAccount,
@@ -520,7 +458,7 @@ public class TEAccountTest {
             BigDecimal.valueOf(90),
             null,
             ResultType.SUCCESS,
-            TransactionTypes.TRANSFER
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -535,16 +473,13 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         BigDecimal expectedFromBalance = BigDecimal.ZERO;
         BigDecimal expectedToBalance = BigDecimal.valueOf(150);
 
-        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
-        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+        assertEquals(expectedFromBalance, fromAccount.balance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.balance(currencyMock));
     }
 
     @Test
@@ -556,11 +491,8 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         TransferResult expectedResult = new TETransferResult(
             toAccount,
             fromAccount,
@@ -568,7 +500,7 @@ public class TEAccountTest {
             BigDecimal.ZERO,
             null,
             ResultType.FAILED,
-            TransactionTypes.TRANSFER
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -583,16 +515,13 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         BigDecimal expectedFromBalance = BigDecimal.valueOf(100);
         BigDecimal expectedToBalance = BigDecimal.ZERO;
 
-        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
-        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+        assertEquals(expectedFromBalance, fromAccount.balance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.balance(currencyMock));
     }
 
     @Test
@@ -604,11 +533,8 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         TransferResult expectedResult = new TETransferResult(
             toAccount,
             fromAccount,
@@ -616,7 +542,7 @@ public class TEAccountTest {
             BigDecimal.valueOf(100),
             null,
             ResultType.FAILED,
-            TransactionTypes.TRANSFER
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -632,16 +558,13 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         BigDecimal expectedFromBalance = BigDecimal.ONE;
         BigDecimal expectedToBalance = BigDecimal.valueOf(100);
 
-        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
-        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+        assertEquals(expectedFromBalance, fromAccount.balance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.balance(currencyMock));
     }
 
     @Test
@@ -654,11 +577,8 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.TEN;
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         TransferResult expectedResult = new TETransferResult(
             toAccount,
             fromAccount,
@@ -666,7 +586,7 @@ public class TEAccountTest {
             BigDecimal.ONE,
             null,
             ResultType.ACCOUNT_NO_FUNDS,
-            TransactionTypes.TRANSFER
+            null
         );
 
         assertEquals(expectedResult, result);
@@ -682,16 +602,13 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.valueOf(-1);
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         BigDecimal expectedFromBalance = BigDecimal.valueOf(100);
         BigDecimal expectedToBalance = BigDecimal.valueOf(100);
 
-        assertEquals(expectedFromBalance, fromAccount.getBalance(currencyMock));
-        assertEquals(expectedToBalance, toAccount.getBalance(currencyMock));
+        assertEquals(expectedFromBalance, fromAccount.balance(currencyMock));
+        assertEquals(expectedToBalance, toAccount.balance(currencyMock));
     }
 
     @Test
@@ -704,11 +621,8 @@ public class TEAccountTest {
         BigDecimal amountToTransfer = BigDecimal.valueOf(-1);
         TEAccount fromAccount = new TEAccount(UUID.randomUUID(), "MyUsername", fromBalances);
         TEAccount toAccount = new TEAccount(UUID.randomUUID(), "MyUsername2", toBalances);
-        Cause cause = Cause.builder()
-            .append(this)
-            .build(EventContext.empty());
 
-        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer, cause);
+        TransferResult result = fromAccount.transfer(toAccount, currencyMock, amountToTransfer);
         TransferResult expectedResult = new TETransferResult(
             toAccount,
             fromAccount,
@@ -716,7 +630,7 @@ public class TEAccountTest {
             BigDecimal.valueOf(100),
             null,
             ResultType.FAILED,
-            TransactionTypes.TRANSFER
+            null
         );
 
         assertEquals(expectedResult, result);

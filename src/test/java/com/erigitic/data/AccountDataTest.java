@@ -66,7 +66,7 @@ public class AccountDataTest {
             UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
             Statement userStmt = conn.createStatement();
             ResultSet userResult = userStmt.executeQuery(
-                "SELECT COUNT(*) as rowcount, display_name FROM te_user\n"
+                "SELECT COUNT(1) as rowcount, display_name FROM te_user\n"
                     + "WHERE id='ba64d376-8580-43b3-a3ee-2d6321114042'"
             );
             userResult.next();
@@ -89,7 +89,7 @@ public class AccountDataTest {
             int userCountResult = userResult.getInt("rowcount");
             String displayNameResult = userResult.getString("display_name");
             int expectedUserCount = 1;
-            String expectedDisplayName = account.getDisplayName().toString();
+            String expectedDisplayName = account.displayName().toString();
             List<Balance> expectedBalances = Arrays.asList(
                 new Balance(uuid, 1, BigDecimal.ZERO),
                 new Balance(uuid, 2, BigDecimal.ZERO)

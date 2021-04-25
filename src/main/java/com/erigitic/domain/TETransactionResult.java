@@ -11,13 +11,15 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransactionType;
 
 public class TETransactionResult implements TransactionResult {
-    private Account account;
-    private Currency currency;
-    private BigDecimal amount;
-    private Set<Context> contexts;
-    private ResultType resultType;
-    private TransactionType transactionType;
+    private final Account account;
+    private final Currency currency;
+    private final BigDecimal amount;
+    private final Set<Context> contexts;
+    private final ResultType resultType;
+    private final TransactionType transactionType;
 
+    // NOTE: TransactionType is currently always set to null since SpongeAPI is calling the static Sponge.game()
+    // when using TransactionTypes.VALUE which makes it impossible to test. Is there a workaround?
     public TETransactionResult(Account account, Currency currency, BigDecimal amount, Set<Context> contexts, ResultType resultType, TransactionType transactionType) {
         this.account = account;
         this.currency = currency;
@@ -28,32 +30,32 @@ public class TETransactionResult implements TransactionResult {
     }
 
     @Override
-    public Account getAccount() {
+    public Account account() {
         return account;
     }
 
     @Override
-    public Currency getCurrency() {
+    public Currency currency() {
         return currency;
     }
 
     @Override
-    public BigDecimal getAmount() {
+    public BigDecimal amount() {
         return amount;
     }
 
     @Override
-    public Set<Context> getContexts() {
+    public Set<Context> contexts() {
         return contexts;
     }
 
     @Override
-    public ResultType getResult() {
+    public ResultType result() {
         return resultType;
     }
 
     @Override
-    public TransactionType getType() {
+    public TransactionType type() {
         return transactionType;
     }
 

@@ -1,48 +1,52 @@
 package com.erigitic.commands;
 
-import com.erigitic.TotalEconomy;
-import com.erigitic.commands.elements.CurrencyCommandElement;
 import com.erigitic.services.AccountService;
-import com.erigitic.services.TEEconomyService;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.command.Command;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.text.Text;
+import org.spongepowered.plugin.PluginContainer;
 
 public class CommandRegister {
-    private final TotalEconomy plugin;
-    private final CommandSpec balanceCommandSpec;
-    private final CommandSpec payCommandSpec;
+    private final PluginContainer plugin;
+    private final EconomyService economyService;
+    private final AccountService accountService;
 
     public CommandRegister(
-        TotalEconomy plugin,
+        PluginContainer plugin,
         EconomyService economyService,
         AccountService accountService
     ) {
         this.plugin = plugin;
+        this.economyService = economyService;
+        this.accountService = accountService;
 
-        balanceCommandSpec = CommandSpec.builder()
-            .description(Text.of("Displays your balance"))
-            .permission("totaleconomy.command.balance")
-            .executor(new BalanceCommand(economyService, accountService))
-            .arguments(
-                GenericArguments.optional(new CurrencyCommandElement(economyService, Text.of("currencyName")))
-            )
-            .build();
-        payCommandSpec = CommandSpec.builder()
-            .description(Text.of("Pay another player"))
-            .permission("totaleconomy.command.pay")
-            .executor(new PayCommand(economyService, accountService))
-            .arguments(
-                GenericArguments.player(Text.of("player")),
-                GenericArguments.bigDecimal(Text.of("amount"))
-            )
-            .build();
+        // payCommandSpec = CommandSpec.builder()
+        //     .description(Text.of("Pay another player"))
+        //     .permission("totaleconomy.command.pay")
+        //     .executor(new PayCommand(economyService, accountService))
+        //     .arguments(
+        //         GenericArguments.player(Text.of("player")),
+        //         GenericArguments.bigDecimal(Text.of("amount"))
+        //     )
+        //     .build();
     }
 
-    public void registerCommands() {
-        Sponge.getCommandManager().register(plugin, balanceCommandSpec, "balance");
-        Sponge.getCommandManager().register(plugin, payCommandSpec, "pay");
+    // public void registerCommands() {
+    //     Sponge.getCommandManager().register(plugin, balanceCommandSpec, "balance");
+    //     Sponge.getCommandManager().register(plugin, payCommandSpec, "pay");
+    // }
+
+    @Listener
+    public void onRegisterCommands(final RegisterCommandEvent<Command> event) {
+        registerBalanceCommand(event);
+    }
+
+    private void registerBalanceCommand(final RegisterCommandEvent<Command> event) {
+        event.register(
+            plugin,
+            new BalanceCommand(economyService, accountService),
+            "balance"
+        );
     }
 }

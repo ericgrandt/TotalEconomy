@@ -53,7 +53,7 @@ public class TEEconomyServiceTest {
         );
         when(currencyDataMock.getDefaultCurrency()).thenReturn(currency);
 
-        Currency result = sut.getDefaultCurrency();
+        Currency result = sut.defaultCurrency();
 
         assertEquals(currency, result);
     }
@@ -81,7 +81,7 @@ public class TEEconomyServiceTest {
         );
         when(currencyDataMock.getCurrencies()).thenReturn(currencies);
 
-        Set<Currency> result = sut.getCurrencies();
+        Set<Currency> result = sut.currencies();
 
         assertEquals(currencies, result);
     }
@@ -129,7 +129,7 @@ public class TEEconomyServiceTest {
 
         when(accountDataMock.getAccount(any(UUID.class))).thenReturn(account);
 
-        Optional<UniqueAccount> result = sut.getOrCreateAccount(uuid);
+        Optional<UniqueAccount> result = sut.findOrCreateAccount(uuid);
 
         assertEquals(account, result.orElse(null));
     }
@@ -145,7 +145,7 @@ public class TEEconomyServiceTest {
 
         when(accountDataMock.getAccount(any(UUID.class))).thenReturn(account);
 
-        sut.getOrCreateAccount(uuid);
+        sut.findOrCreateAccount(uuid);
 
         verify(accountDataMock, times(0)).addAccount(any(TEAccount.class));
     }
@@ -161,7 +161,7 @@ public class TEEconomyServiceTest {
 
         when(accountDataMock.getAccount(uuid)).thenReturn(null);
 
-        Optional<UniqueAccount> result = sut.getOrCreateAccount(uuid);
+        Optional<UniqueAccount> result = sut.findOrCreateAccount(uuid);
 
         verify(accountDataMock, times(1)).addAccount(any(TEAccount.class));
         assertEquals(account, result.orElse(null));

@@ -2,19 +2,19 @@ package com.erigitic.domain;
 
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.spongepowered.api.event.cause.Cause;
+
+import net.kyori.adventure.text.Component;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
-import org.spongepowered.api.text.Text;
 
 public class TEAccount implements UniqueAccount {
     private final UUID userId;
@@ -28,12 +28,12 @@ public class TEAccount implements UniqueAccount {
     }
 
     @Override
-    public Text getDisplayName() {
-        return Text.of(displayName);
+    public Component displayName() {
+        return Component.text(displayName);
     }
 
     @Override
-    public BigDecimal getDefaultBalance(Currency currency) {
+    public BigDecimal defaultBalance(Currency currency) {
         return BigDecimal.ZERO;
     }
 
@@ -44,7 +44,7 @@ public class TEAccount implements UniqueAccount {
     }
 
     @Override
-    public BigDecimal getBalance(Currency currency, Set<Context> contexts) {
+    public BigDecimal balance(Currency currency, Set<Context> contexts) {
         TECurrency teCurrency = (TECurrency) currency;
         BigDecimal balance = balances.get(teCurrency);
 
@@ -56,52 +56,73 @@ public class TEAccount implements UniqueAccount {
     }
 
     @Override
-    public Map<Currency, BigDecimal> getBalances(Set<Context> contexts) {
+    public Map<Currency, BigDecimal> balances(Set<Context> contexts) {
         return balances;
     }
 
     @Override
-    public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0 || !hasBalance(currency)) {
-            return new TETransactionResult(this, currency, getBalance(currency), contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
-        }
+    public TransactionResult setBalance(Currency currency, BigDecimal amount, Set<Context> contexts) {
+            if (amount.compareTo(BigDecimal.ZERO) < 0 || !hasBalance(currency)) {
+                return new TETransactionResult(
+                    this,
+                    currency,
+                    balance(currency),
+                    contexts,
+                    ResultType.FAILED,
+                    null
+                );
+            }
 
-        balances.replace(currency, amount);
+            balances.replace(currency, amount);
 
-        return new TETransactionResult(
-            this,
-            currency,
-            getBalance(currency),
-            contexts,
-            ResultType.SUCCESS,
-            TransactionTypes.DEPOSIT
-        );
+            return new TETransactionResult(
+                this,
+                currency,
+                balance(currency),
+                contexts,
+                ResultType.SUCCESS,
+                null
+            );
     }
 
     @Override
-    public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        BigDecimal currentBalance = getBalance(currency);
+    public TransactionResult deposit(Currency currency, BigDecimal amount, Set<Context> contexts) {
+        BigDecimal currentBalance = balance(currency);
 
         if (!hasBalance(currency) || amount.compareTo(BigDecimal.ZERO) < 0) {
-            return new TETransactionResult(this, currency, currentBalance, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+            return new TETransactionResult(
+                this,
+                currency,
+                currentBalance,
+                contexts,
+                ResultType.FAILED,
+                null
+            );
         }
 
-        return setBalance(currency, currentBalance.add(amount), cause);
+        return setBalance(currency, currentBalance.add(amount), contexts);
     }
 
     @Override
-    public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-        BigDecimal currentBalance = getBalance(currency);
+    public TransactionResult withdraw(Currency currency, BigDecimal amount, Set<Context> contexts) {
+        BigDecimal currentBalance = balance(currency);
 
         if (!hasBalance(currency) || amount.compareTo(BigDecimal.ZERO) < 0) {
-            return new TETransactionResult(this, currency, currentBalance, contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+            return new TETransactionResult(
+                this,
+                currency,
+                currentBalance,
+                contexts,
+                ResultType.FAILED,
+                null
+            );
         }
 
-        return setBalance(currency, currentBalance.subtract(amount), cause);
+        return setBalance(currency, currentBalance.subtract(amount), contexts);
     }
 
     @Override
-    public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
+    public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Set<Context> contexts) {
         if (!hasBalance(currency)
             || !to.hasBalance(currency)
             || amount.compareTo(BigDecimal.ZERO) < 0
@@ -110,65 +131,62 @@ public class TEAccount implements UniqueAccount {
                 to,
                 this,
                 currency,
-                getBalance(currency),
+                balance(currency),
                 contexts,
                 ResultType.FAILED,
-                TransactionTypes.TRANSFER
+                null
             );
-        } else if (getBalance(currency).compareTo(amount) < 0) {
+        } else if (balance(currency).compareTo(amount) < 0) {
             return new TETransferResult(
                 to,
                 this,
                 currency,
-                getBalance(currency),
+                balance(currency),
                 contexts,
                 ResultType.ACCOUNT_NO_FUNDS,
-                TransactionTypes.TRANSFER
+                null
             );
         }
 
-        TransactionResult withdrawResult = withdraw(currency, amount, cause);
-        to.deposit(currency, amount, cause);
+        TransactionResult withdrawResult = withdraw(currency, amount, contexts);
+        to.deposit(currency, amount, contexts);
 
         return new TETransferResult(
             to,
             this,
             currency,
-            withdrawResult.getAmount(),
+            withdrawResult.amount(),
             contexts,
             ResultType.SUCCESS,
-            TransactionTypes.TRANSFER
+            null
         );
     }
 
     @Override
-    public String getIdentifier() {
+    public String identifier() {
         return userId.toString();
     }
 
     @Override
-    public Set<Context> getActiveContexts() {
-        return null;
-    }
-
-    @Override
-    public UUID getUniqueId() {
+    public UUID uniqueId() {
         return userId;
     }
 
     @Override
-    public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
+    public Map<Currency, TransactionResult> resetBalances(Set<Context> contexts) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public TransactionResult resetBalance(Currency currency, Cause cause, Set<Context> contexts) {
+    public TransactionResult resetBalance(Currency currency, Set<Context> contexts) {
         throw new UnsupportedOperationException();
     }
 
-    public void addBalance(TECurrency currency, BigDecimal balance) {
-        this.balances.put(currency, balance);
+    @Override
+    public Set<Context> activeContexts() {
+        return null;
     }
+
 
     @Override
     public boolean equals(Object o) {
