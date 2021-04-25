@@ -9,57 +9,63 @@ import com.erigitic.player.PlayerListener;
 import com.erigitic.services.AccountService;
 import com.erigitic.services.TEEconomyService;
 import com.google.inject.Inject;
-import java.io.File;
-import java.io.IOException;
 
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
-import org.spongepowered.api.command.Command;
-import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.asset.AssetId;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.reference.ConfigurationReference;
+import org.spongepowered.configurate.reference.ValueReference;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.jvm.Plugin;
 
 @Plugin("totaleconomy")
 public class TotalEconomy {
-    @Inject
-    private Logger logger;
+    private final Logger logger;
 
-    @Inject
-    @ConfigDir(sharedRoot = false)
-    private File configDir;
-
-    @Inject
-    @DefaultConfig(sharedRoot = false)
-    private File config;
+    private final ConfigurationReference<CommentedConfigurationNode> reference;
+    private ValueReference<DefaultConfiguration, CommentedConfigurationNode> config;
 
     @Inject
     private PluginContainer pluginContainer;
 
+    @Inject
+    @AssetId("schema/mysql.sql")
+    private Asset mysqlSchema;
+
     private static TotalEconomy plugin;
-    private DefaultConfiguration defaultConfiguration;
     private Database database;
     private TEEconomyService economyService;
     private AccountService accountService;
 
-    public TotalEconomy() {
+    @Inject
+    public TotalEconomy(final Logger logger, final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> reference) {
         plugin = this;
+        this.logger = logger;
+        this.reference = reference;
     }
 
     @Listener
     public void onConstructPlugin(ConstructPluginEvent event) {
-        copyResourcesToConfigDirectory();
+        try {
+            config = reference.referenceTo(DefaultConfiguration.class);
+            this.reference.save();
+        } catch (final ConfigurateException ex) {
+            logger.error("Unable to load test configuration", ex);
+        }
 
-        defaultConfiguration = new DefaultConfiguration(this);
-
+        logger.info("Setting up database");
         database = new Database();
         database.setup();
+        logger.info("Done setting up database");
 
         AccountData accountData = new AccountData(database);
         CurrencyData currencyData = new CurrencyData(database);
@@ -80,17 +86,6 @@ public class TotalEconomy {
         logger.info("TotalEconomy started successfully");
     }
 
-    private void copyResourcesToConfigDirectory() {
-        File config = new File(configDir, "totaleconomy.conf");
-        Asset defaultConf = Sponge.assetManager().asset("totaleconomy.conf").get();
-
-        try {
-            defaultConf.copyToFile(config.toPath(), false);
-        } catch (IOException e) {
-            logger.error("Configuration files could not be copied");
-        }
-    }
-
     public static TotalEconomy getPlugin() {
         return plugin;
     }
@@ -99,16 +94,12 @@ public class TotalEconomy {
         return logger;
     }
 
-    public File getConfigDir() {
-        return configDir;
-    }
-
     public PluginContainer getPluginContainer() {
         return pluginContainer;
     }
 
-    public DefaultConfiguration getDefaultConfiguration() {
-        return defaultConfiguration;
+    public ValueReference<DefaultConfiguration, CommentedConfigurationNode> getDefaultConfiguration() {
+        return config;
     }
 
     public Database getDatabase() {
@@ -117,5 +108,9 @@ public class TotalEconomy {
 
     public TEEconomyService getEconomyService() {
         return economyService;
+    }
+
+    public Asset getMysqlSchema() {
+        return mysqlSchema;
     }
 }

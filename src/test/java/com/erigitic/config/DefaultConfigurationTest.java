@@ -19,28 +19,15 @@ import org.spongepowered.configurate.ConfigurationNode;
 public class DefaultConfigurationTest {
     private DefaultConfiguration sut;
 
-    @Mock
-    private TotalEconomy pluginMock;
-
     @BeforeEach
     public void init() {
-        sut = new DefaultConfiguration(pluginMock);
-        when(pluginMock.getConfigDir()).thenReturn(new File("src/test/resources/assets/totaleconomy"));
-    }
-
-    @Test
-    public void loadConfiguration_WithValidFile_ShouldReturnAConfigurationNode() {
-        ConfigurationNode result = sut.loadConfiguration("totaleconomy.conf");
-
-        assertNotNull(result);
+        sut = new DefaultConfiguration();
     }
 
     @Test
     public void getConnectionString_WithValidConfig_ShouldReturnCorrectString() {
-        sut.loadConfiguration("totaleconomy.conf");
-
         String result = sut.getConnectionString();
 
-        assertEquals(result, "jdbc:mysql://test:1234/database?user=username&password=password");
+        assertEquals(result, "jdbc:mysql://localhost:3306/totaleconomy?user=user&password=password");
     }
 }

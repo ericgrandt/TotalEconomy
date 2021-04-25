@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Optional;
+import java.util.Objects;
 import javax.sql.DataSource;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.logging.log4j.Logger;
@@ -17,14 +17,14 @@ public class Database {
     private final TotalEconomy plugin;
     private final Logger logger;
     private final String connectionString;
-    private final String database;
+    private final String databaseProvider;
     private SqlManager sql;
 
     public Database() {
         plugin = TotalEconomy.getPlugin();
         logger = plugin.getLogger();
-        connectionString = plugin.getDefaultConfiguration().getConnectionString();
-        database = getDatabase();
+        connectionString = Objects.requireNonNull(plugin.getDefaultConfiguration().get()).getConnectionString();
+        databaseProvider = getDatabaseProvider();
     }
 
     public Connection getConnection() throws SQLException {
@@ -32,24 +32,23 @@ public class Database {
     }
 
     public void setup() {
-        if (database.equals("mysql")) {
-            Optional<Asset> sqlFileOpt = Sponge.assetManager().asset("schema/mysql.sql");
-            sqlFileOpt.ifPresent(this::runSqlScript);
+        if (!databaseProvider.equals("mysql")) {
+            logger.error("Could not find SQL file");
             return;
         }
 
-        logger.error("Could not find SQL file");
+        runSqlScript(plugin.getMysqlSchema());
     }
 
     private DataSource getDataSource() throws SQLException {
         if (sql == null) {
-            sql = Sponge.serviceProvider().provide(SqlManager.class).get();
+            sql = Sponge.sqlManager();
         }
 
         return sql.dataSource(connectionString);
     }
 
-    private String getDatabase() {
+    private String getDatabaseProvider() {
         return connectionString.split("jdbc:")[1].split(":")[0];
     }
 
@@ -64,7 +63,7 @@ public class Database {
 
             logger.info("Database successfully setup");
         } catch (SQLException e) {
-            logger.error("Unable to connect to the database");
+            logger.error("Unable to connect to the database: {}", e.getMessage());
         } catch (IOException e) {
             logger.error("Could not read SQL file");
         }

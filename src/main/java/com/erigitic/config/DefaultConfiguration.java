@@ -1,19 +1,38 @@
 package com.erigitic.config;
 
-import com.erigitic.TotalEconomy;
-import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-public class DefaultConfiguration extends Configuration {
-    public DefaultConfiguration(TotalEconomy plugin) {
-        super(plugin);
-    }
+@ConfigSerializable
+public class DefaultConfiguration {
+    @Setting("database")
+    private DatabaseSettings databaseSettings = new DatabaseSettings();
 
     public String getConnectionString() {
-        ConfigurationNode configurationNode = loadConfiguration("totaleconomy.conf");
-        String connectionString = configurationNode.node("database", "connectionString").getString();
-        String user = configurationNode.node("database", "connectionUser").getString();
-        String password = configurationNode.node("database", "connectionPassword").getString();
+        return String.format(
+            "%s?user=%s&password=%s",
+            databaseSettings.getConnectionString(),
+            databaseSettings.getUser(),
+            databaseSettings.getPassword()
+        );
+    }
+}
 
-        return String.format("%s?user=%s&password=%s", connectionString, user, password);
+@ConfigSerializable
+class DatabaseSettings {
+    private String connectionString = "jdbc:mysql://localhost:3306/totaleconomy";
+    private String user = "user";
+    private String password = "password";
+
+    public String getConnectionString() {
+        return connectionString;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }
