@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -30,9 +31,11 @@ public class AccountData {
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
+            String displayName = PlainComponentSerializer.plain().serialize(account.displayName());
+
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
                 stmt.setString(1, account.uniqueId().toString());
-                stmt.setString(2, account.displayName().toString());
+                stmt.setString(2, displayName);
                 stmt.execute();
             }
 

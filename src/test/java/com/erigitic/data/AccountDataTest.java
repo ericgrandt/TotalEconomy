@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -50,8 +52,9 @@ public class AccountDataTest {
     @Test
     public void addAccount_WithValidData_ShouldInsertASingleAccountAndABalanceForBothCurrencies() throws SQLException {
         // Arrange
+        UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
         TEAccount account = new TEAccount(
-            UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042"),
+            uuid,
             "Display Name",
             null
         );
@@ -63,10 +66,16 @@ public class AccountDataTest {
         try (Connection conn = TestUtils.getConnection()) {
             assert conn != null;
 
-            UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
+            Statement countStmt = conn.createStatement();
+            ResultSet countResult = countStmt.executeQuery(
+                "SELECT COUNT(1) as rowcount FROM te_user\n"
+                    + "WHERE id='ba64d376-8580-43b3-a3ee-2d6321114042'"
+            );
+            countResult.next();
+
             Statement userStmt = conn.createStatement();
             ResultSet userResult = userStmt.executeQuery(
-                "SELECT COUNT(1) as rowcount, display_name FROM te_user\n"
+                "SELECT display_name FROM te_user\n"
                     + "WHERE id='ba64d376-8580-43b3-a3ee-2d6321114042'"
             );
             userResult.next();
@@ -86,10 +95,10 @@ public class AccountDataTest {
                 balances.add(balance);
             }
 
-            int userCountResult = userResult.getInt("rowcount");
+            int userCountResult = countResult.getInt("rowcount");
             String displayNameResult = userResult.getString("display_name");
             int expectedUserCount = 1;
-            String expectedDisplayName = account.displayName().toString();
+            String expectedDisplayName = PlainComponentSerializer.plain().serialize(account.displayName());
             List<Balance> expectedBalances = Arrays.asList(
                 new Balance(uuid, 1, BigDecimal.ZERO),
                 new Balance(uuid, 2, BigDecimal.ZERO)
