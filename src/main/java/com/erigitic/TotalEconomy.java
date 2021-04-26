@@ -64,10 +64,8 @@ public class TotalEconomy {
             logger.error("Unable to load test configuration", ex);
         }
 
-        logger.info("Setting up database");
         database = new Database();
         database.setup();
-        logger.info("Done setting up database");
 
         AccountData accountData = new AccountData(database);
         CurrencyData currencyData = new CurrencyData(database);

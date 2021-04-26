@@ -49,6 +49,7 @@ public class Database {
             logger.info("Successfully connected");
 
             ScriptRunner runner = new ScriptRunner(conn);
+            runner.setLogWriter(null);
             runner.runScript(reader);
 
             logger.info("Database successfully setup");
