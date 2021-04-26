@@ -35,12 +35,12 @@ public class BalanceCommand implements CommandExecutor {
         );
 
         player.sendMessage(
-            Component.text("Balance", NamedTextColor.GRAY)
+            Component.text("Balance: ", NamedTextColor.GRAY)
                 .append(
                     currency.format(balance.getBalance()).color(NamedTextColor.GOLD)
                 )
         );
 
-        return CommandResult.success();
+        return new TECommandResult(true);
     }
 }

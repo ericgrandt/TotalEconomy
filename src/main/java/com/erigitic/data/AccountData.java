@@ -138,7 +138,7 @@ public class AccountData {
                 }
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, currencyId, userId));
+            logger.error(String.format("Error getting balance from database (Query: %s, Parameters: %s, %s)", query, userId, currencyId));
         }
 
         return null;

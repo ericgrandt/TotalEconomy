@@ -1,9 +1,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.services.AccountService;
-import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.Command;
-import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.plugin.PluginContainer;
