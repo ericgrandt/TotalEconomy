@@ -4,21 +4,19 @@ import com.erigitic.TotalEconomy;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Objects;
-import javax.sql.DataSource;
+
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.logging.log4j.Logger;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
-import org.spongepowered.api.sql.SqlManager;
 
 public class Database {
     private final TotalEconomy plugin;
     private final Logger logger;
     private final String connectionString;
     private final String databaseProvider;
-    private SqlManager sql;
 
     public Database() {
         plugin = TotalEconomy.getPlugin();
@@ -28,7 +26,7 @@ public class Database {
     }
 
     public Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
+        return DriverManager.getConnection(connectionString);
     }
 
     public void setup() {
@@ -38,14 +36,6 @@ public class Database {
         }
 
         runSqlScript(plugin.getMysqlSchema());
-    }
-
-    private DataSource getDataSource() throws SQLException {
-        if (sql == null) {
-            sql = Sponge.sqlManager();
-        }
-
-        return sql.dataSource(connectionString);
     }
 
     private String getDatabaseProvider() {

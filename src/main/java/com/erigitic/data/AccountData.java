@@ -56,6 +56,25 @@ public class AccountData {
         }
     }
 
+    public boolean hasAccount(UUID uuid) {
+        String query = "SELECT COUNT(1) AS user_count FROM te_user WHERE id = ?";
+
+        try (Connection conn = database.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, uuid.toString());
+
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt("user_count") > 0;
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(String.format("Error checking for account existence (Query: %s, Parameters: %s, %s)", query));
+        }
+
+        return false;
+    }
+
     public UniqueAccount getAccount(UUID uuid) {
         String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, is_default\n"
             + "FROM te_user tu\n"

@@ -1,6 +1,7 @@
 package com.erigitic.commands;
 
 import com.erigitic.services.AccountService;
+import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
@@ -32,20 +33,12 @@ public class CommandRegister {
         //     .build();
     }
 
-    // public void registerCommands() {
-    //     Sponge.getCommandManager().register(plugin, balanceCommandSpec, "balance");
-    //     Sponge.getCommandManager().register(plugin, payCommandSpec, "pay");
-    // }
-
-    @Listener
-    public void onRegisterCommands(final RegisterCommandEvent<Command> event) {
-        registerBalanceCommand(event);
-    }
-
-    private void registerBalanceCommand(final RegisterCommandEvent<Command> event) {
+    public void registerBalanceCommand(final RegisterCommandEvent<Command.Parameterized> event) {
         event.register(
             plugin,
-            new BalanceCommand(economyService, accountService),
+            Command.builder()
+                .executor(new BalanceCommand(economyService, accountService))
+                .build(),
             "balance"
         );
     }

@@ -7,9 +7,12 @@ CREATE TABLE IF NOT EXISTS te_currency (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name_singular VARCHAR(50) NOT NULL UNIQUE,
     name_plural VARCHAR(50) NOT NULL UNIQUE,
-    symbol VARCHAR(2) NOT NULL CHARACTER SET utf8 COLLATE utf8_general_ci,
+    symbol VARCHAR(2) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
     is_default BOOL NOT NULL
 );
+
+INSERT IGNORE INTO te_currency (id, name_singular, name_plural, symbol, is_default)
+VALUES(1, 'Dollar', 'Dollars', '$', 1);
 
 CREATE TABLE IF NOT EXISTS te_balance (
     user_id VARCHAR(36) NOT NULL,

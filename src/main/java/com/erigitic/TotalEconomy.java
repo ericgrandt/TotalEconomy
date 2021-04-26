@@ -15,9 +15,11 @@ import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetId;
+import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
+import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -78,7 +80,12 @@ public class TotalEconomy {
     @Listener
     public void onServerStarting(final StartingEngineEvent<Server> event) {
         Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener());
-        Sponge.eventManager().registerListeners(pluginContainer, new CommandRegister(pluginContainer, economyService, accountService));
+    }
+
+    @Listener
+    public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
+        CommandRegister commandRegister = new CommandRegister(pluginContainer, economyService, accountService);
+        commandRegister.registerBalanceCommand(event);
     }
 
     @Listener

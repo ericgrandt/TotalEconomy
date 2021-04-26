@@ -35,7 +35,7 @@ public class TEEconomyService implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        return accountData.getAccount(uuid) != null;
+        return accountData.hasAccount(uuid);
     }
 
     @Override
@@ -45,14 +45,13 @@ public class TEEconomyService implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
-        // NOTE: This ends up making two of the same database calls but could become one if we didn't use hasAccount
         if (hasAccount(uuid)) {
             return Optional.of(accountData.getAccount(uuid));
         }
 
         UniqueAccount account = new TEAccount(
             uuid,
-            "",
+            "", // TODO: Set the correct display name
             new HashMap<>()
         );
         accountData.addAccount(account);

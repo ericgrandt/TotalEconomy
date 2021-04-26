@@ -4,6 +4,7 @@ import org.spongepowered.plugin.metadata.PluginDependency
 plugins {
     `java-library`
     id("org.spongepowered.gradle.plugin") version "1.0.3"
+    id("com.github.johnrengelman.shadow") version "4.0.4"
     checkstyle
 }
 
@@ -58,12 +59,12 @@ tasks.withType(AbstractArchiveTask::class).configureEach {
 }
 
 dependencies {
-    compileOnly("org.apache.ibatis:ibatis-core:3.0")
+    implementation("org.mybatis:mybatis:3.5.6")
 
-    testImplementation("org.apache.ibatis:ibatis-core:3.0")
+    testImplementation("org.mybatis:mybatis:3.5.6")
     testImplementation("org.spongepowered:spongeapi:8.0.0-SNAPSHOT")
     testImplementation("com.h2database:h2:1.3.148")
-    testImplementation("com.zaxxer:HikariCP:3.3.0")
+    testImplementation("com.zaxxer:HikariCP:2.6.3")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
@@ -79,4 +80,23 @@ tasks.test {
     testLogging {
         events("passed", "skipped", "failed")
     }
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("TotalEconomy")
+    dependencies {
+        include(dependency("org.mybatis:mybatis"))
+    }
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
+}
+
+tasks.runServer {
+    dependsOn(tasks.shadowJar)
 }
