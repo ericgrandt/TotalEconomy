@@ -15,7 +15,6 @@ import com.erigitic.domain.TECurrency;
 import com.erigitic.services.AccountService;
 import com.erigitic.services.TEEconomyService;
 
-import java.awt.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.entity.CommandBlock;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandResult;
@@ -55,7 +53,7 @@ public class BalanceCommandTest {
     public void execute_WithNonPlayerCommandSource_ShouldThrowCommandException() {
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
-        when(ctx.cause().root()).thenReturn(CommandBlock.class);
+        when(ctx.cause().root()).thenReturn(mock(CommandBlock.class));
         sut = new BalanceCommand(economyServiceMock, mock(AccountService.class));
 
         CommandException e = assertThrows(
@@ -72,6 +70,7 @@ public class BalanceCommandTest {
     @Test
     @Tag("Integration")
     public void execute_WithValidData_ShouldReturnCommandResultSuccess() throws SQLException, CommandException {
+        // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
         TestUtils.seedUser();
@@ -91,44 +90,14 @@ public class BalanceCommandTest {
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(playerMock);
 
+        // Act
         CommandResult result = sut.execute(ctx);
 
+        // Assert
         verify(playerMock).sendMessage(
             Component.text("Balance: ", NamedTextColor.GRAY)
                 .append(currency.format(BigDecimal.valueOf(123)).color(NamedTextColor.GOLD))
         );
         assertTrue(result.isSuccess());
     }
-
-    // @Test
-    // @Tag("Integration")
-    // public void execute_WithInvalidCurrency_ShouldUseDefaultCurrencyAndReturnCommandResultSuccess() throws CommandException, SQLException {
-    //     TestUtils.resetDb();
-    //     TestUtils.seedCurrencies();
-    //     TestUtils.seedUser();
-    //     when(databaseMock.getConnection())
-    //         .thenReturn(TestUtils.getConnection())
-    //         .thenReturn(TestUtils.getConnection());
-    //     when(playerMock.getUniqueId()).thenReturn(UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"));
-    //
-    //     Currency defaultCurrency = new TECurrency(1, "Dollar", "Dollars", "$", true);
-    //     AccountData accountData = new AccountData(databaseMock);
-    //     CurrencyData currencyData = new CurrencyData(databaseMock);
-    //     AccountService accountService = new AccountService(accountData);
-    //     EconomyService economyService = new TEEconomyService(accountData, currencyData);
-    //     sut = new BalanceCommand(economyService, accountService);
-    //
-    //     CommandResult result = sut.execute(playerMock, new CommandContext());
-    //     CommandResult expected = CommandResult.success();
-    //
-    //     verify(playerMock).sendMessage(
-    //         Text.of(
-    //             TextColors.GRAY,
-    //             "Balance: ",
-    //             TextColors.GOLD,
-    //             defaultCurrency.format(BigDecimal.valueOf(123))
-    //         )
-    //     );
-    //     assertEquals(expected, result);
-    // }
 }

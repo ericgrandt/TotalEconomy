@@ -43,7 +43,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void getDefaultCurrency_ShouldReturnCorrectCurrency() {
+    public void defaultCurrency_ShouldReturnCorrectCurrency() {
         TECurrency currency = new TECurrency(
             1,
             "Test",
@@ -59,7 +59,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void getCurrencies_ShouldReturnCorrectSetOfCurrencies() {
+    public void currencies_ShouldReturnCorrectSetOfCurrencies() {
         Set<Currency> currencies = new HashSet<>();
         currencies.add(
             new TECurrency(
@@ -87,7 +87,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void hasAccountUuid_WithValidUuid_ShouldReturnTrue() {
+    public void hasAccount_WithValidUuid_ShouldReturnTrue() {
         UUID uuid = UUID.randomUUID();
         UniqueAccount account = new TEAccount(
             uuid,
@@ -95,7 +95,7 @@ public class TEEconomyServiceTest {
             new HashMap<>()
         );
 
-        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(account);
+        when(accountDataMock.hasAccount(any(UUID.class))).thenReturn(true);
 
         boolean result = sut.hasAccount(uuid);
 
@@ -103,7 +103,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void hasAccountUuid_WithInvalidUuid_ShouldReturnFalse() {
+    public void hasAccount_WithInvalidUuid_ShouldReturnFalse() {
         UUID uuid = UUID.randomUUID();
         UniqueAccount account = new TEAccount(
             uuid,
@@ -111,7 +111,7 @@ public class TEEconomyServiceTest {
             new HashMap<>()
         );
 
-        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(null);
+        when(accountDataMock.hasAccount(any(UUID.class))).thenReturn(false);
 
         boolean result = sut.hasAccount(uuid);
 
@@ -119,7 +119,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void getOrCreateAccountUuid_WithExistingUuid_ShouldReturnExistingAccount() {
+    public void findOrCreateAccount_WithExistingUuid_ShouldReturnExistingAccount() {
         UUID uuid = UUID.randomUUID();
         UniqueAccount account = new TEAccount(
             uuid,
@@ -127,6 +127,7 @@ public class TEEconomyServiceTest {
             new HashMap<>()
         );
 
+        when(accountDataMock.hasAccount(any(UUID.class))).thenReturn(true);
         when(accountDataMock.getAccount(any(UUID.class))).thenReturn(account);
 
         Optional<UniqueAccount> result = sut.findOrCreateAccount(uuid);
@@ -135,7 +136,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void getOrCreateAccountUuid_WithExistingUuid_ShouldNotAddAccount() {
+    public void findOrCreateAccount_WithExistingUuid_ShouldNotAddAccount() {
         UUID uuid = UUID.randomUUID();
         UniqueAccount account = new TEAccount(
             uuid,
@@ -143,6 +144,7 @@ public class TEEconomyServiceTest {
             new HashMap<>()
         );
 
+        when(accountDataMock.hasAccount(any(UUID.class))).thenReturn(true);
         when(accountDataMock.getAccount(any(UUID.class))).thenReturn(account);
 
         sut.findOrCreateAccount(uuid);
@@ -151,7 +153,7 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void getOrCreateAccountUuid_WithNonExistingUuid_ShouldAddAccountAndReturnIt() {
+    public void findOrCreateAccount_WithNonExistingUuid_ShouldAddAccountAndReturnIt() {
         UUID uuid = UUID.randomUUID();
         UniqueAccount account = new TEAccount(
             uuid,
@@ -159,7 +161,7 @@ public class TEEconomyServiceTest {
             new HashMap<>()
         );
 
-        when(accountDataMock.getAccount(uuid)).thenReturn(null);
+        when(accountDataMock.hasAccount(uuid)).thenReturn(false);
 
         Optional<UniqueAccount> result = sut.findOrCreateAccount(uuid);
 
