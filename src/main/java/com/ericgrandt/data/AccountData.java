@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -31,7 +31,7 @@ public class AccountData {
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
-            String displayName = PlainComponentSerializer.plain().serialize(account.displayName());
+            String displayName = PlainTextComponentSerializer.plainText().serialize(account.displayName());
 
             try (PreparedStatement stmt = conn.prepareStatement(createUserQuery)) {
                 stmt.setString(1, account.uniqueId().toString());
@@ -69,7 +69,7 @@ public class AccountData {
                 }
             }
         } catch (SQLException e) {
-            logger.error(String.format("Error checking for account existence (Query: %s, Parameters: %s, %s)", query));
+            logger.error(String.format("Error checking for account existence (Query: %s, Parameters: %s)", query, uuid.toString()));
         }
 
         return false;
