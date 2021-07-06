@@ -20,7 +20,7 @@ sponge {
     plugin("totaleconomy") {
         loader(PluginLoaders.JAVA_PLAIN)
         displayName("Total Economy")
-        mainClass("com.erigitic.TotalEconomy")
+        mainClass("com.ericgrandt.TotalEconomy")
         description("All in one economy plugin for Minecraft and Sponge")
         links {
             homepage("https://github.com/Erigitic/TotalEconomy")
