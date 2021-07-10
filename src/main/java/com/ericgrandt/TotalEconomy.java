@@ -1,5 +1,6 @@
 package com.ericgrandt;
 
+import com.ericgrandt.commands.CommandBuilder;
 import com.ericgrandt.commands.CommandRegister;
 import com.ericgrandt.config.DefaultConfiguration;
 import com.ericgrandt.data.AccountData;
@@ -82,8 +83,13 @@ public class TotalEconomy {
 
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
-        CommandRegister commandRegister = new CommandRegister(pluginContainer, economyService, accountService);
-        commandRegister.registerBalanceCommand(event);
+        CommandRegister commandRegister = new CommandRegister(
+            pluginContainer,
+            economyService,
+            accountService,
+            new CommandBuilder()
+        );
+        commandRegister.registerCommands(event);
     }
 
     @Listener

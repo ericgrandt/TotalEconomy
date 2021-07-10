@@ -10,15 +10,18 @@ public class CommandRegister {
     private final PluginContainer plugin;
     private final EconomyService economyService;
     private final AccountService accountService;
+    private final CommandBuilder commandBuilder;
 
     public CommandRegister(
         PluginContainer plugin,
         EconomyService economyService,
-        AccountService accountService
+        AccountService accountService,
+        CommandBuilder commandBuilder
     ) {
         this.plugin = plugin;
         this.economyService = economyService;
         this.accountService = accountService;
+        this.commandBuilder = commandBuilder;
 
         // payCommandSpec = CommandSpec.builder()
         //     .description(Text.of("Pay another player"))
@@ -31,12 +34,18 @@ public class CommandRegister {
         //     .build();
     }
 
-    public void registerBalanceCommand(final RegisterCommandEvent<Command.Parameterized> event) {
+    public void registerCommands(final RegisterCommandEvent<Command.Parameterized> event) {
+        registerBalanceCommand(event);
+    }
+
+    void registerBalanceCommand(final RegisterCommandEvent<Command.Parameterized> event) {
+        Command.Parameterized command = commandBuilder.getBuilder()
+            .executor(new BalanceCommand(economyService, accountService))
+            .build();
+
         event.register(
             plugin,
-            Command.builder()
-                .executor(new BalanceCommand(economyService, accountService))
-                .build(),
+            command,
             "balance"
         );
     }

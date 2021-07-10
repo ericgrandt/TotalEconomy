@@ -15,7 +15,6 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class TEAccount implements UniqueAccount {
     private final UUID userId;
@@ -40,7 +39,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
-        throw new NotImplementedException();
+        return hasBalance(currency, (Cause) null);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public BigDecimal balance(Currency currency, Set<Context> contexts) {
-        throw new NotImplementedException();
+        return balance(currency, (Cause) null);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public Map<Currency, BigDecimal> balances(Set<Context> contexts) {
-        throw new NotImplementedException();
+        return balances((Cause) null);
     }
 
     @Override
@@ -78,7 +77,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Set<Context> contexts) {
-        throw new NotImplementedException();
+        return setBalance(currency, amount, (Cause) null);
     }
 
     @Override
@@ -108,7 +107,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Set<Context> contexts) {
-        throw new NotImplementedException();
+        return deposit(currency, amount, (Cause) null);
     }
 
     @Override
@@ -131,7 +130,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Set<Context> contexts) {
-        throw new NotImplementedException();
+        return withdraw(currency, amount, (Cause) null);
     }
 
     @Override
@@ -154,7 +153,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Set<Context> contexts) {
-        throw new NotImplementedException();
+        return transfer(to, currency, amount, (Cause) null);
     }
 
     @Override
