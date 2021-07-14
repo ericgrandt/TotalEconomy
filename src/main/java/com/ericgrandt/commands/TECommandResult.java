@@ -19,11 +19,11 @@ public class TECommandResult implements CommandResult {
 
     @Override
     public int result() {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Optional<Component> errorMessage() {
-        return Optional.empty();
+        throw new UnsupportedOperationException();
     }
 }

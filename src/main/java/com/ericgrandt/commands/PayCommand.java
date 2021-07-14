@@ -69,7 +69,7 @@ public class PayCommand implements CommandExecutor {
     }
 
     private BigDecimal getAmountArgument(CommandContext args) throws CommandException {
-        TECommandParameterKey<BigDecimal> key = new TECommandParameterKey<>("amount");
+        TECommandParameterKey<BigDecimal> key = new TECommandParameterKey<>("amount", BigDecimal.class);
         Optional<BigDecimal> amountOpt = args.one(key);
         if (!amountOpt.isPresent()) {
             throw new CommandException(Component.text("Amount argument is missing"));
@@ -81,7 +81,7 @@ public class PayCommand implements CommandExecutor {
     }
 
     private Player getPlayerArgument(CommandContext args) throws CommandException {
-        TECommandParameterKey<Player> key = new TECommandParameterKey<>("player");
+        TECommandParameterKey<Player> key = new TECommandParameterKey<>("player", Player.class);
         Optional<Player> toPlayerOpt = args.one(key);
         if (!toPlayerOpt.isPresent()) {
             throw new CommandException(Component.text("Player argument is missing"));

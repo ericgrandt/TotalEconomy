@@ -6,9 +6,11 @@ import java.lang.reflect.Type;
 
 public class TECommandParameterKey<T> implements Parameter.Key<T> {
     private final String key;
+    private final Type type;
 
-    public TECommandParameterKey(String key) {
+    public TECommandParameterKey(String key, Type type) {
         this.key = key;
+        this.type = type;
     }
 
     @Override
@@ -18,16 +20,21 @@ public class TECommandParameterKey<T> implements Parameter.Key<T> {
 
     @Override
     public Type type() {
-        return null;
+        return type;
     }
 
     @Override
     public boolean isInstance(Object value) {
+        if (type instanceof Class) {
+            Class<?> typeClass = (Class<?>) type;
+            return typeClass.isInstance(value);
+        }
+
         return false;
     }
 
     @Override
     public T cast(Object value) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

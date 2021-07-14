@@ -22,8 +22,6 @@ import static org.mockito.Mockito.when;
 @Tag("Unit")
 @ExtendWith(MockitoExtension.class)
 public class CommandRegisterTest {
-    private CommandRegister sut;
-
     @Mock
     private PluginContainer pluginMock;
 
@@ -45,7 +43,7 @@ public class CommandRegisterTest {
         when(commandBuilderMock.getBuilder()).thenReturn(builderMock);
         when(registerCommandEventMock.register(any(), any(), any())).thenReturn(null);
 
-        sut = spy(new CommandRegister(pluginMock, economyServiceMock, accountServiceMock, commandBuilderMock));
+        CommandRegister sut = spy(new CommandRegister(pluginMock, economyServiceMock, accountServiceMock, commandBuilderMock));
 
         sut.registerCommands(registerCommandEventMock);
         verify(sut, times(1)).registerBalanceCommand(any());
