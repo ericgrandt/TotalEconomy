@@ -1,8 +1,14 @@
 package com.ericgrandt.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.TestUtils;
@@ -11,6 +17,7 @@ import com.ericgrandt.domain.TEAccount;
 import com.ericgrandt.domain.TECurrency;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -22,17 +29,19 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-@Tag("Integration")
 @ExtendWith(MockitoExtension.class)
 public class AccountDataTest {
     private AccountData sut;
@@ -40,16 +49,175 @@ public class AccountDataTest {
     @Mock
     private Database databaseMock;
 
+    @Mock
+    private Logger loggerMock;
+
     @BeforeEach
-    public void init() throws SQLException {
+    public void init(TestInfo info) throws SQLException {
+        sut = new AccountData(loggerMock, databaseMock);
+
+        if (info.getTags().contains("Unit")) {
+            return;
+        }
+
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
 
-        sut = new AccountData(databaseMock);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
     }
 
     @Test
+    @Tag("Unit")
+    public void addAccount_WithSQLException_ShouldCatchSQLException() throws SQLException {
+        TEAccount account = mock(TEAccount.class);
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        sut.addAccount(account);
+
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasAccount_WithSQLException_ShouldReturnFalse() throws SQLException {
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        boolean result = sut.hasAccount(UUID.randomUUID());
+
+        assertFalse(result);
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasAccount_WithEmptyResultSet_ShouldReturnFalse() throws SQLException {
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(any(String.class))).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(false);
+
+        boolean result = sut.hasAccount(UUID.randomUUID());
+
+        assertFalse(result);
+        verify(loggerMock, times(0)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccount_WithSQLException_ShouldReturnNull() throws SQLException {
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        UniqueAccount result = sut.getAccount(UUID.randomUUID());
+
+        assertNull(result);
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getBalance_WithSQLException_ShouldReturnNull() throws SQLException {
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        Balance result = sut.getBalance(UUID.randomUUID(), 0);
+
+        assertNull(result);
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getBalance_WithEmptyResultSet_ShouldReturnFalse() throws SQLException {
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(any(String.class))).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(false);
+
+        Balance result = sut.getBalance(UUID.randomUUID(), 0);
+
+        assertNull(result);
+        verify(loggerMock, times(0)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getBalances_WithSQLException_ShouldReturnEmptyList() throws SQLException {
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        List<Balance> result = sut.getBalances(UUID.randomUUID());
+
+        assertTrue(result.isEmpty());
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithSQLException_ShouldReturnNull() throws SQLException {
+        Balance balance = new Balance(
+            UUID.randomUUID(),
+            0,
+            BigDecimal.ZERO
+        );
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        Balance result = sut.setBalance(balance);
+
+        assertNull(result);
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setTransferBalances_WithSQLExceptionOnConnection_ShouldReturnFalse() throws SQLException {
+        Balance fromBalance = new Balance(
+            UUID.randomUUID(),
+            0,
+            BigDecimal.ZERO
+        );
+        Balance toBalance = new Balance(
+            UUID.randomUUID(),
+            0,
+            BigDecimal.ZERO
+        );
+        Connection connectionMock = mock(Connection.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(any(String.class))).thenThrow(SQLException.class);
+
+        boolean result = sut.setTransferBalances(fromBalance, toBalance);
+
+        assertFalse(result);
+        verify(connectionMock, times(1)).rollback();
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setTransferBalances_WithSQLExceptionOnQueryRun_ShouldReturnNull() throws SQLException {
+        Balance fromBalance = new Balance(
+            UUID.randomUUID(),
+            0,
+            BigDecimal.ZERO
+        );
+        Balance toBalance = new Balance(
+            UUID.randomUUID(),
+            0,
+            BigDecimal.ZERO
+        );
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        boolean result = sut.setTransferBalances(fromBalance, toBalance);
+
+        assertFalse(result);
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
+    @Tag("Integration")
     public void addAccount_WithValidData_ShouldInsertASingleAccountAndABalanceForBothCurrencies() throws SQLException {
         // Arrange
         UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
@@ -112,7 +280,38 @@ public class AccountDataTest {
     }
 
     @Test
-    public void getAccount_WithValidUuid_ShouldReturnTheCorrectAccount() throws SQLException {
+    @Tag("Integration")
+    public void hasAccount_WithValidUuid_ShouldReturnTrue() {
+        // Arrange
+        TestUtils.seedUser();
+
+        UUID userId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
+
+        // Act
+        boolean result = sut.hasAccount(userId);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void hasAccount_WithInvalidUuid_ShouldReturnTrue() {
+        // Arrange
+        TestUtils.seedUser();
+
+        UUID userId = UUID.fromString("12345678-07cc-4396-8d63-4f70646d75f0");
+
+        // Act
+        boolean result = sut.hasAccount(userId);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getAccount_WithValidUuid_ShouldReturnTheCorrectAccount() {
         // Arrange
         TestUtils.seedUser();
 
@@ -142,7 +341,8 @@ public class AccountDataTest {
     }
 
     @Test
-    public void getBalance_WithValidUuidAndCurrencyId_ShouldReturnBalance() throws SQLException {
+    @Tag("Integration")
+    public void getBalance_WithValidUuidAndCurrencyId_ShouldReturnBalance() {
         // Arrange
         TestUtils.seedUser();
 
@@ -162,6 +362,7 @@ public class AccountDataTest {
     }
 
     @Test
+    @Tag("Integration")
     public void getBalances_WithValidUuid_ShouldReturnAllBalances() {
         // Arrange
         TestUtils.seedUser();
@@ -180,6 +381,7 @@ public class AccountDataTest {
     }
 
     @Test
+    @Tag("Integration")
     public void setBalance_WithValidBalance_ShouldUpdateTheBalanceAndReturnIt() throws SQLException {
         // Arrange
         TestUtils.seedUser();
@@ -214,7 +416,8 @@ public class AccountDataTest {
     }
 
     @Test
-    public void transfer_WithValidData_ShouldUpdateBothBalances() throws SQLException {
+    @Tag("Integration")
+    public void setTransferBalances_WithValidData_ShouldUpdateBothBalances() throws SQLException {
         // Arrange
         TestUtils.seedUsers();
 

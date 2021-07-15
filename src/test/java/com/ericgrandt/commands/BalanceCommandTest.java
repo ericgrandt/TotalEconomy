@@ -80,7 +80,7 @@ public class BalanceCommandTest {
         when(playerMock.uniqueId()).thenReturn(UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"));
 
         Currency currency = new TECurrency(1, "Dollar", "Dollars", "$", true);
-        AccountData accountData = new AccountData(databaseMock);
+        AccountData accountData = new AccountData(null, databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);
         AccountService accountService = new AccountService(accountData);
         EconomyService economyService = new TEEconomyService(accountData, currencyData);

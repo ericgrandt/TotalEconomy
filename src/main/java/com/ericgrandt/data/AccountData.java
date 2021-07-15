@@ -14,15 +14,15 @@ import java.util.List;
 import java.util.UUID;
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 public class AccountData {
-    private final Logger logger = LogManager.getLogger("TotalEconomy");
+    private final Logger logger;
     private final Database database;
 
-    public AccountData(Database database) {
+    public AccountData(Logger logger, Database database) {
+        this.logger = logger;
         this.database = database;
     }
 

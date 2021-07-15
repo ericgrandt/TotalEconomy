@@ -11,6 +11,7 @@ import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import com.google.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -32,7 +33,7 @@ import org.spongepowered.plugin.jvm.Plugin;
 
 @Plugin("totaleconomy")
 public class TotalEconomy {
-    private final Logger logger;
+    private final Logger logger = LogManager.getLogger("TotalEconomy");
 
     private final ConfigurationReference<CommentedConfigurationNode> reference;
     private ValueReference<DefaultConfiguration, CommentedConfigurationNode> config;
@@ -50,9 +51,8 @@ public class TotalEconomy {
     private AccountService accountService;
 
     @Inject
-    public TotalEconomy(final Logger logger, final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> reference) {
+    public TotalEconomy(final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> reference) {
         plugin = this;
-        this.logger = logger;
         this.reference = reference;
     }
 
@@ -68,7 +68,7 @@ public class TotalEconomy {
         database = new Database();
         database.setup();
 
-        AccountData accountData = new AccountData(database);
+        AccountData accountData = new AccountData(logger, database);
         CurrencyData currencyData = new CurrencyData(database);
 
         accountService = new AccountService(accountData);
