@@ -78,7 +78,7 @@ public class TotalEconomy {
 
     @Listener
     public void onServerStarting(final StartingEngineEvent<Server> event) {
-        Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener());
+        Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener(economyService));
     }
 
     @Listener
@@ -97,28 +97,12 @@ public class TotalEconomy {
         logger.info("TotalEconomy started successfully");
     }
 
-    public static TotalEconomy getPlugin() {
-        return plugin;
-    }
-
-    public Logger getLogger() {
-        return logger;
-    }
-
-    public PluginContainer getPluginContainer() {
-        return pluginContainer;
-    }
-
     public ValueReference<DefaultConfiguration, CommentedConfigurationNode> getDefaultConfiguration() {
         return config;
     }
 
     public Database getDatabase() {
         return database;
-    }
-
-    public TEEconomyService getEconomyService() {
-        return economyService;
     }
 
     public Asset getMysqlSchema() {
