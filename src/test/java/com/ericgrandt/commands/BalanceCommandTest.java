@@ -81,7 +81,7 @@ public class BalanceCommandTest {
 
         Currency currency = new TECurrency(1, "Dollar", "Dollars", "$", true);
         AccountData accountData = new AccountData(null, databaseMock);
-        CurrencyData currencyData = new CurrencyData(databaseMock);
+        CurrencyData currencyData = new CurrencyData(null, databaseMock);
         AccountService accountService = new AccountService(accountData);
         EconomyService economyService = new TEEconomyService(accountData, currencyData);
         sut = new BalanceCommand(economyService, accountService);

@@ -8,15 +8,15 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 
 public class CurrencyData {
-    private final Logger logger = LogManager.getLogger("TotalEconomy");
+    private final Logger logger;
     private final Database database;
 
-    public CurrencyData(Database database) {
+    public CurrencyData(Logger logger, Database database) {
+        this.logger = logger;
         this.database = database;
     }
 
@@ -38,32 +38,6 @@ public class CurrencyData {
             }
         } catch (SQLException e) {
             logger.error("Error getting default currency from database");
-        }
-
-        return null;
-    }
-
-    public Currency getCurrency(String currencyName) {
-        String query = "SELECT * FROM te_currency WHERE name_singular = ? LIMIT 1";
-
-        try (Connection conn = database.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, currencyName);
-
-                ResultSet results = stmt.executeQuery();
-
-                if (results.next()) {
-                    return new TECurrency(
-                        results.getInt("id"),
-                        results.getString("name_singular"),
-                        results.getString("name_plural"),
-                        results.getString("symbol"),
-                        results.getBoolean("is_default")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            logger.error(String.format("Error getting currency from database (Query: %s, Parameters: %s)", query, currencyName));
         }
 
         return null;

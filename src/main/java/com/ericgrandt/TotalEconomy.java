@@ -69,7 +69,7 @@ public class TotalEconomy {
         database.setup();
 
         AccountData accountData = new AccountData(logger, database);
-        CurrencyData currencyData = new CurrencyData(database);
+        CurrencyData currencyData = new CurrencyData(logger, database);
 
         accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);

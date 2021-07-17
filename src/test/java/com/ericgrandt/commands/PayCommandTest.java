@@ -292,7 +292,7 @@ public class PayCommandTest {
             .thenReturn(TestUtils.getConnection());
 
         AccountData accountData = new AccountData(null, databaseMock);
-        CurrencyData currencyData = new CurrencyData(databaseMock);
+        CurrencyData currencyData = new CurrencyData(null, databaseMock);
         EconomyService economyService = new TEEconomyService(accountData, currencyData);
         AccountService accountService = new AccountService(accountData);
         Player toPlayer = mock(Player.class);
