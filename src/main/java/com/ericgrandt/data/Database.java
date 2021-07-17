@@ -15,34 +15,35 @@ import org.spongepowered.api.asset.Asset;
 public class Database {
     private final TotalEconomy plugin;
     private final Logger logger;
-    private final String connectionString;
-    private final String databaseProvider;
 
-    public Database() {
-        plugin = TotalEconomy.getPlugin();
-        logger = plugin.getLogger();
-        connectionString = Objects.requireNonNull(plugin.getDefaultConfiguration().get()).getConnectionString();
-        databaseProvider = getDatabaseProvider();
+    public Database(Logger logger, TotalEconomy plugin) {
+        this.plugin = plugin;
+        this.logger = logger;
     }
 
     public Connection getConnection() throws SQLException {
+        String connectionString = Objects.requireNonNull(plugin.getDefaultConfiguration().get()).getConnectionString();
         return DriverManager.getConnection(connectionString);
     }
 
     public void setup() {
-        if (!databaseProvider.equals("mysql")) {
+        String databaseProvider = getDatabaseProvider();
+        if (!databaseProvider.equals("mysql") && !databaseProvider.equals("h2")) {
             logger.error("Could not find SQL file");
             return;
         }
 
-        runSqlScript(plugin.getMysqlSchema());
+        runSqlScript();
     }
 
     private String getDatabaseProvider() {
+        String connectionString = Objects.requireNonNull(plugin.getDefaultConfiguration().get()).getConnectionString();
         return connectionString.split("jdbc:")[1].split(":")[0];
     }
 
-    private void runSqlScript(Asset sqlScript) {
+    private void runSqlScript() {
+        Asset sqlScript = plugin.getMysqlSchema();
+
         try (Connection conn = getConnection();
              InputStreamReader reader = new InputStreamReader(sqlScript.url().openStream())
         ) {

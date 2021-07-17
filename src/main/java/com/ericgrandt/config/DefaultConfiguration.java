@@ -6,7 +6,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 @ConfigSerializable
 public class DefaultConfiguration {
     @Setting("database")
-    private DatabaseSettings databaseSettings = new DatabaseSettings();
+    private final DatabaseSettings databaseSettings = new DatabaseSettings();
 
     public String getConnectionString() {
         return String.format(
@@ -20,19 +20,15 @@ public class DefaultConfiguration {
 
 @ConfigSerializable
 class DatabaseSettings {
-    private String connectionString = "jdbc:mysql://localhost:3306/totaleconomy";
-    private String user = "user";
-    private String password = "password";
-
     public String getConnectionString() {
-        return connectionString;
+        return  "jdbc:mysql://localhost:3306/totaleconomy";
     }
 
     public String getUser() {
-        return user;
+        return "user";
     }
 
     public String getPassword() {
-        return password;
+        return "password";
     }
 }

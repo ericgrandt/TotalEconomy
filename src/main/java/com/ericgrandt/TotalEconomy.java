@@ -65,7 +65,7 @@ public class TotalEconomy {
             logger.error("Unable to load test configuration", ex);
         }
 
-        database = new Database();
+        database = new Database(logger, plugin);
         database.setup();
 
         AccountData accountData = new AccountData(logger, database);

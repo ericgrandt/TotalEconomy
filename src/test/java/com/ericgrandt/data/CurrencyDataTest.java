@@ -1,7 +1,6 @@
 package com.ericgrandt.data;
 
 import com.ericgrandt.TestUtils;
-import com.ericgrandt.domain.TEAccount;
 import com.ericgrandt.domain.TECurrency;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,13 +15,11 @@ import org.spongepowered.api.service.economy.Currency;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
