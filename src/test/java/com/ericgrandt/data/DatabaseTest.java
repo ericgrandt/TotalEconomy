@@ -44,12 +44,6 @@ public class DatabaseTest {
     @BeforeEach
     public void init(TestInfo info) throws SQLException {
         sut = new Database(loggerMock, pluginMock);
-
-        if (info.getTags().contains("Unit")) {
-            return;
-        }
-
-        // when(DriverManager.getConnection("jdbc:h2:mem:totaleconomy")).thenReturn(TestUtils.getConnection());
     }
 
     @Test
@@ -68,6 +62,42 @@ public class DatabaseTest {
     }
 
     @Test
+    @Tag("Unit")
+    public void setup_WithSQLException_ShouldLogError() {
+        sut = new Database(loggerMock, pluginMock);
+        ValueReference valueReference = mock(ValueReference.class);
+        DefaultConfiguration config = mock(DefaultConfiguration.class);
+        when(pluginMock.getDefaultConfiguration()).thenReturn(valueReference);
+        when(pluginMock.getDefaultConfiguration().get()).thenReturn(config);
+        when(pluginMock.getDefaultConfiguration().get().getConnectionString())
+            .thenReturn("jdbc:h2:error:totaleconomy");
+
+        sut.setup();
+        verify(loggerMock, times(1)).error(any(String.class), any(String.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setup_WithIOException_ShouldLogError() throws IOException {
+        sut = new Database(loggerMock, pluginMock);
+        ValueReference valueReference = mock(ValueReference.class);
+        DefaultConfiguration config = mock(DefaultConfiguration.class);
+        when(pluginMock.getDefaultConfiguration()).thenReturn(valueReference);
+        when(pluginMock.getDefaultConfiguration().get()).thenReturn(config);
+        when(pluginMock.getDefaultConfiguration().get().getConnectionString())
+            .thenReturn("jdbc:h2:mem:totaleconomy");
+
+        URL urlMock = mock(URL.class);
+        InputStream inputStreamMock = IOUtils.getInputStream(";");
+        when(pluginMock.getMysqlSchema()).thenReturn(assetMock);
+        when(assetMock.url()).thenReturn(urlMock);
+        when(urlMock.openStream()).thenThrow(IOException.class);
+
+        sut.setup();
+        verify(loggerMock, times(1)).error(any(String.class));
+    }
+
+    @Test
     @Tag("Integration")
     public void setup_WithSupportedDbProvider_ShouldNotLogError() throws IOException {
         sut = new Database(loggerMock, pluginMock);
@@ -79,7 +109,7 @@ public class DatabaseTest {
             .thenReturn("jdbc:h2:mem:totaleconomy");
 
         URL urlMock = mock(URL.class);
-        InputStream inputStreamMock = IOUtils.getInputStream(";");;
+        InputStream inputStreamMock = IOUtils.getInputStream(";");
         when(pluginMock.getMysqlSchema()).thenReturn(assetMock);
         when(assetMock.url()).thenReturn(urlMock);
         when(urlMock.openStream()).thenReturn(inputStreamMock);
