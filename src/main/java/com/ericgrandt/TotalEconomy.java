@@ -1,6 +1,6 @@
 package com.ericgrandt;
 
-import com.ericgrandt.commands.CommandBuilder;
+import com.ericgrandt.wrappers.CommandBuilder;
 import com.ericgrandt.commands.CommandRegister;
 import com.ericgrandt.config.DefaultConfiguration;
 import com.ericgrandt.data.AccountData;

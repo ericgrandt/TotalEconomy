@@ -69,31 +69,31 @@ public class TEEconomyService implements EconomyService {
 
     @Override
     public Stream<UniqueAccount> streamUniqueAccounts() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Collection<UniqueAccount> uniqueAccounts() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Stream<VirtualAccount> streamVirtualAccounts() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Collection<VirtualAccount> virtualAccounts() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public AccountDeletionResultType deleteAccount(UUID uuid) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

@@ -1,6 +1,7 @@
 package com.ericgrandt.commands;
 
 import com.ericgrandt.services.AccountService;
+import com.ericgrandt.wrappers.CommandBuilder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

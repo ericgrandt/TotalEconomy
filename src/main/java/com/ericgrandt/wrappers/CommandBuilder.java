@@ -1,4 +1,4 @@
-package com.ericgrandt.commands;
+package com.ericgrandt.wrappers;
 
 import org.spongepowered.api.command.Command;
 

@@ -18,8 +18,6 @@ public class TETransactionResult implements TransactionResult {
     private final ResultType resultType;
     private final TransactionType transactionType;
 
-    // NOTE: TransactionType is currently always set to null since SpongeAPI is calling the static Sponge.game()
-    // when using TransactionTypes.VALUE which makes it impossible to test. Is there a workaround?
     public TETransactionResult(Account account, Currency currency, BigDecimal amount, Set<Context> contexts, ResultType resultType, TransactionType transactionType) {
         this.account = account;
         this.currency = currency;

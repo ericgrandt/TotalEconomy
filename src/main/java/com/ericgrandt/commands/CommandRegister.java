@@ -1,6 +1,7 @@
 package com.ericgrandt.commands;
 
 import com.ericgrandt.services.AccountService;
+import com.ericgrandt.wrappers.CommandBuilder;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.service.economy.EconomyService;
