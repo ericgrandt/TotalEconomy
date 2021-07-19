@@ -7,7 +7,6 @@ import java.math.RoundingMode;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.service.economy.Currency;
 
-// TODO: Tests
 public class TECurrency implements Currency {
     private final int id;
     private final String singular;

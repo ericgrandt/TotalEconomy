@@ -28,6 +28,16 @@ public class TEAccount implements UniqueAccount {
     }
 
     @Override
+    public UUID uniqueId() {
+        return userId;
+    }
+
+    @Override
+    public String identifier() {
+        return userId.toString();
+    }
+
+    @Override
     public Component displayName() {
         return Component.text(displayName);
     }
@@ -195,16 +205,6 @@ public class TEAccount implements UniqueAccount {
             ResultType.SUCCESS,
             null
         );
-    }
-
-    @Override
-    public String identifier() {
-        return userId.toString();
-    }
-
-    @Override
-    public UUID uniqueId() {
-        return userId;
     }
 
     @Override

@@ -76,6 +76,15 @@ public class BalanceTest {
     }
 
     @Test
+    public void equals_WithNullObject_ShouldReturnFalse() {
+        Balance sut = new Balance(uuid, 1, BigDecimal.ONE);
+
+        boolean result = sut.equals(null);
+
+        assertFalse(result);
+    }
+
+    @Test
     public void equals_WithDifferentObjectClass_ShouldReturnFalse() {
         Balance sut = new Balance(uuid, 1, BigDecimal.ONE);
 

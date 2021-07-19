@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -266,7 +267,7 @@ public class AccountDataTest {
             int userCountResult = countResult.getInt("rowcount");
             String displayNameResult = userResult.getString("display_name");
             int expectedUserCount = 1;
-            String expectedDisplayName = PlainComponentSerializer.plain().serialize(account.displayName());
+            String expectedDisplayName = PlainTextComponentSerializer.plainText().serialize(account.displayName());
             List<Balance> expectedBalances = Arrays.asList(
                 new Balance(uuid, 1, BigDecimal.ZERO),
                 new Balance(uuid, 2, BigDecimal.ZERO)
