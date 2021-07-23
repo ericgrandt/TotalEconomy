@@ -52,19 +52,4 @@ public class AccountService {
 
         return accountData.setTransferBalances(from, to);
     }
-
-    public boolean transfer(Balance from, Balance to, BigDecimal amount) {
-        if (from.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Transfer amount is more than the user has");
-        }
-
-        if (from.getCurrencyId() != to.getCurrencyId()) {
-            throw new IllegalArgumentException("Currency ids do not match");
-        }
-
-        from.setBalance(from.getBalance().subtract(amount));
-        to.setBalance(to.getBalance().add(amount));
-
-        return accountData.setTransferBalances(from, to);
-    }
 }

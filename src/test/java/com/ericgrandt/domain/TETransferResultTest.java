@@ -22,7 +22,10 @@ import static org.mockito.Mockito.mock;
 
 @Tag("Unit")
 @ExtendWith(MockitoExtension.class)
-public class TETransactionResultTest {
+public class TETransferResultTest {
+    @Mock
+    TEAccount toAccountMock;
+
     @Mock
     TEAccount accountMock;
 
@@ -36,8 +39,26 @@ public class TETransactionResultTest {
     TransactionType transactionTypeMock;
 
     @Test
+    public void accountTo_ShouldReturnToAccount() {
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
+            accountMock,
+            currencyMock,
+            BigDecimal.ONE,
+            new HashSet<>(),
+            resultTypeMock,
+            transactionTypeMock
+        );
+
+        Account result = sut.accountTo();
+
+        assertEquals(toAccountMock, result);
+    }
+
+    @Test
     public void account_ShouldReturnAccount() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -53,7 +74,8 @@ public class TETransactionResultTest {
 
     @Test
     public void currency_ShouldReturnCurrency() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -69,7 +91,8 @@ public class TETransactionResultTest {
 
     @Test
     public void amount_ShouldReturnAmount() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -85,10 +108,11 @@ public class TETransactionResultTest {
     }
 
     @Test
-    public void context_ShouldReturnContexts() {
+    public void contexts_ShouldReturnContexts() {
         Set<Context> contexts = new HashSet<>();
         contexts.add(new Context("test-key", "test-value"));
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -104,7 +128,8 @@ public class TETransactionResultTest {
 
     @Test
     public void result_ShouldReturnResult() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -120,7 +145,8 @@ public class TETransactionResultTest {
 
     @Test
     public void type_ShouldReturnType() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -136,7 +162,8 @@ public class TETransactionResultTest {
 
     @Test
     public void equals_WithSameObject_ShouldReturnTrue() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -152,7 +179,8 @@ public class TETransactionResultTest {
 
     @Test
     public void equals_WithEqualObjects_ShouldReturnTrue() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -160,7 +188,8 @@ public class TETransactionResultTest {
             resultTypeMock,
             transactionTypeMock
         );
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -169,14 +198,15 @@ public class TETransactionResultTest {
             transactionTypeMock
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertTrue(result);
     }
 
     @Test
     public void equals_WithNullObject_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -192,7 +222,8 @@ public class TETransactionResultTest {
 
     @Test
     public void equals_WithDifferentObjectClass_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -207,8 +238,9 @@ public class TETransactionResultTest {
     }
 
     @Test
-    public void equals_WithDifferentAccount_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+    public void equals_WithDifferentToAccount_ShouldReturnFalse() {
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -216,7 +248,34 @@ public class TETransactionResultTest {
             resultTypeMock,
             transactionTypeMock
         );
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            mock(TEAccount.class),
+            accountMock,
+            currencyMock,
+            BigDecimal.ONE,
+            new HashSet<>(),
+            resultTypeMock,
+            transactionTypeMock
+        );
+
+        boolean result = sut.equals(transferResult);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void equals_WithDifferentAccount_ShouldReturnFalse() {
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
+            accountMock,
+            currencyMock,
+            BigDecimal.ONE,
+            new HashSet<>(),
+            resultTypeMock,
+            transactionTypeMock
+        );
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             mock(TEAccount.class),
             currencyMock,
             BigDecimal.ONE,
@@ -225,14 +284,15 @@ public class TETransactionResultTest {
             transactionTypeMock
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertFalse(result);
     }
 
     @Test
     public void equals_WithDifferentCurrency_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -240,23 +300,25 @@ public class TETransactionResultTest {
             resultTypeMock,
             transactionTypeMock
         );
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             accountMock,
-            mock(TECurrency.class),
+            mock(Currency.class),
             BigDecimal.ONE,
             new HashSet<>(),
             resultTypeMock,
             transactionTypeMock
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertFalse(result);
     }
 
     @Test
     public void equals_WithDifferentAmount_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -264,7 +326,8 @@ public class TETransactionResultTest {
             resultTypeMock,
             transactionTypeMock
         );
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.TEN,
@@ -273,14 +336,15 @@ public class TETransactionResultTest {
             transactionTypeMock
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertFalse(result);
     }
 
     @Test
     public void equals_WithDifferentContexts_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -290,7 +354,8 @@ public class TETransactionResultTest {
         );
         Set<Context> contexts = new HashSet<>();
         contexts.add(new Context("test-key", "test-value"));
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -299,14 +364,15 @@ public class TETransactionResultTest {
             transactionTypeMock
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertFalse(result);
     }
 
     @Test
     public void equals_WithDifferentResultType_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -314,23 +380,25 @@ public class TETransactionResultTest {
             resultTypeMock,
             transactionTypeMock
         );
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
-            BigDecimal.TEN,
+            BigDecimal.ONE,
             new HashSet<>(),
             mock(ResultType.class),
             transactionTypeMock
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertFalse(result);
     }
 
     @Test
     public void equals_WithDifferentTransactionType_ShouldReturnFalse() {
-        TETransactionResult sut = new TETransactionResult(
+        TETransferResult sut = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
             BigDecimal.ONE,
@@ -338,16 +406,17 @@ public class TETransactionResultTest {
             resultTypeMock,
             transactionTypeMock
         );
-        TETransactionResult transactionResult = new TETransactionResult(
+        TETransferResult transferResult = new TETransferResult(
+            toAccountMock,
             accountMock,
             currencyMock,
-            BigDecimal.TEN,
+            BigDecimal.ONE,
             new HashSet<>(),
             resultTypeMock,
             mock(TransactionType.class)
         );
 
-        boolean result = sut.equals(transactionResult);
+        boolean result = sut.equals(transferResult);
 
         assertFalse(result);
     }

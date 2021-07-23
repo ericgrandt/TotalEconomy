@@ -2,6 +2,7 @@ package com.ericgrandt.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -60,44 +61,8 @@ public class TEEconomyServiceTest {
     }
 
     @Test
-    public void currencies_ShouldReturnCorrectSetOfCurrencies() {
-        Set<Currency> currencies = new HashSet<>();
-        currencies.add(
-            new TECurrency(
-                1,
-            "Test",
-            "Tests",
-            "$",
-            0,
-            true
-            )
-        );
-        currencies.add(
-            new TECurrency(
-                2,
-                "Test2",
-                "Tests2",
-                "A",
-                0,
-                false
-            )
-        );
-        when(currencyDataMock.getCurrencies()).thenReturn(currencies);
-
-        Set<Currency> result = sut.currencies();
-
-        assertEquals(currencies, result);
-    }
-
-    @Test
     public void hasAccount_WithValidUuid_ShouldReturnTrue() {
         UUID uuid = UUID.randomUUID();
-        UniqueAccount account = new TEAccount(
-            uuid,
-            "Display Name",
-            new HashMap<>()
-        );
-
         when(accountDataMock.hasAccount(any(UUID.class))).thenReturn(true);
 
         boolean result = sut.hasAccount(uuid);
@@ -108,17 +73,19 @@ public class TEEconomyServiceTest {
     @Test
     public void hasAccount_WithInvalidUuid_ShouldReturnFalse() {
         UUID uuid = UUID.randomUUID();
-        UniqueAccount account = new TEAccount(
-            uuid,
-            "Display Name",
-            new HashMap<>()
-        );
-
         when(accountDataMock.hasAccount(any(UUID.class))).thenReturn(false);
 
         boolean result = sut.hasAccount(uuid);
 
         assertFalse(result);
+    }
+
+    @Test
+    public void hasAccountString_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.hasAccount("")
+        );
     }
 
     @Test
@@ -170,5 +137,91 @@ public class TEEconomyServiceTest {
 
         verify(accountDataMock, times(1)).addAccount(any(TEAccount.class));
         assertEquals(account, result.orElse(null));
+    }
+
+    @Test
+    public void findOrCreateAccountString_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.findOrCreateAccount("")
+        );
+    }
+
+    @Test
+    public void streamUniqueAccounts_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.streamUniqueAccounts()
+        );
+    }
+
+    @Test
+    public void uniqueAccounts_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.uniqueAccounts()
+        );
+    }
+
+    @Test
+    public void streamVirtualAccounts_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.streamVirtualAccounts()
+        );
+    }
+
+    @Test
+    public void virtualAccounts_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.virtualAccounts()
+        );
+    }
+
+    @Test
+    public void deleteAccount_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.deleteAccount(UUID.randomUUID())
+        );
+    }
+
+    @Test
+    public void deleteAccountIdentifier_ShouldThrowUnsupportedOperationException() {
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> sut.deleteAccount("")
+        );
+    }
+
+    @Test
+    public void currencies_ShouldReturnCorrectSetOfCurrencies() {
+        Set<Currency> currencies = new HashSet<>();
+        currencies.add(
+            new TECurrency(
+                1,
+                "Test",
+                "Tests",
+                "$",
+                0,
+                true
+            )
+        );
+        currencies.add(
+            new TECurrency(
+                2,
+                "Test2",
+                "Tests2",
+                "A",
+                0,
+                false
+            )
+        );
+        when(currencyDataMock.getCurrencies()).thenReturn(currencies);
+
+        Set<Currency> result = sut.currencies();
+
+        assertEquals(currencies, result);
     }
 }

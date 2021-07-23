@@ -17,6 +17,7 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class TEEconomyService implements EconomyService {
     private final AccountData accountData;
@@ -58,10 +59,6 @@ public class TEEconomyService implements EconomyService {
         return Optional.of(account);
     }
 
-    public Set<Currency> currencies() {
-        return currencyData.getCurrencies();
-    }
-
     @Override
     public Optional<Account> findOrCreateAccount(String identifier) {
         throw new UnsupportedOperationException();
@@ -95,5 +92,9 @@ public class TEEconomyService implements EconomyService {
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
         throw new UnsupportedOperationException();
+    }
+
+    public Set<Currency> currencies() {
+        return currencyData.getCurrencies();
     }
 }
