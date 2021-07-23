@@ -33,6 +33,7 @@ public class CurrencyData {
                     results.getString("name_singular"),
                     results.getString("name_plural"),
                     results.getString("symbol"),
+                    results.getInt("num_fraction_digits"),
                     true
                 );
             }
@@ -57,6 +58,7 @@ public class CurrencyData {
                         results.getString("name_singular"),
                         results.getString("name_plural"),
                         results.getString("symbol"),
+                        results.getInt("num_fraction_digits"),
                         results.getBoolean("is_default")
                     );
 

@@ -320,11 +320,11 @@ public class AccountDataTest {
         String displayName = "Display Name";
         Map<Currency, BigDecimal> balances = new HashMap<>();
         balances.put(
-            new TECurrency(1, "Dollar", "Dollars", "$", true),
+            new TECurrency(1, "Dollar", "Dollars", "$", 0, true),
             BigDecimal.valueOf(123)
         );
         balances.put(
-            new TECurrency(2, "Euro", "Euros", "E", false),
+            new TECurrency(2, "Euro", "Euros", "E", 1, false),
             BigDecimal.valueOf(456)
         );
 

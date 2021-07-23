@@ -76,7 +76,7 @@ public class AccountData {
     }
 
     public UniqueAccount getAccount(UUID uuid) {
-        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, is_default\n"
+        String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, num_fraction_digits, is_default\n"
             + "FROM te_user tu\n"
             + "INNER JOIN te_balance tb ON\n"
             + "tu.id = tb.user_id\n"
@@ -104,6 +104,7 @@ public class AccountData {
                         results.getString("name_singular"),
                         results.getString("name_plural"),
                         results.getString("symbol"),
+                        results.getInt("num_fraction_digits"),
                         results.getBoolean("is_default")
                     );
                     BigDecimal balance = results.getBigDecimal("balance");

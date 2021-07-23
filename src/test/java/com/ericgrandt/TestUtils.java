@@ -42,9 +42,9 @@ public class TestUtils {
     public static void seedCurrencies() {
         try (Connection conn = TestUtils.getConnection()) {
             String insertDollarCurrency = "INSERT INTO te_currency\n"
-                + "VALUES(1, 'Dollar', 'Dollars', '$', true)";
+                + "VALUES(1, 'Dollar', 'Dollars', '$', 0, true)";
             String insertEuroCurrency = "INSERT INTO te_currency\n"
-                + "VALUES(2, 'Euro', 'Euros', 'E', false)";
+                + "VALUES(2, 'Euro', 'Euros', 'E', 1, false)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDollarCurrency);

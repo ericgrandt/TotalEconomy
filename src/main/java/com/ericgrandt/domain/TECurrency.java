@@ -15,12 +15,12 @@ public class TECurrency implements Currency {
     private final int numFractionDigits;
     private final boolean isDefault;
 
-    public TECurrency(int id, String singular, String plural, String symbol, boolean isDefault) {
+    public TECurrency(int id, String singular, String plural, String symbol, int numFractionDigits, boolean isDefault) {
         this.id = id;
         this.singular = singular;
         this.plural = plural;
         this.symbol = symbol;
-        this.numFractionDigits = 0;
+        this.numFractionDigits = numFractionDigits;
         this.isDefault = isDefault;
     }
 
@@ -41,8 +41,10 @@ public class TECurrency implements Currency {
 
     @Override
     public Component format(BigDecimal amount, int numFractionDigits) {
-        return Component.text(symbol)
-            .append(Component.text(amount.setScale(numFractionDigits, RoundingMode.HALF_DOWN).toString()));
+        BigDecimal scaledAmount = amount.setScale(numFractionDigits, RoundingMode.HALF_DOWN);
+        String formattedAmount = String.format("$%s", scaledAmount);
+
+        return Component.text(formattedAmount);
     }
 
     @Override
@@ -71,11 +73,11 @@ public class TECurrency implements Currency {
 
         TECurrency other = (TECurrency) o;
         return id == other.id
-            && numFractionDigits == other.numFractionDigits
-            && isDefault == other.isDefault
             && Objects.equal(singular, other.singular)
             && Objects.equal(plural, other.plural)
-            && Objects.equal(symbol, other.symbol);
+            && Objects.equal(symbol, other.symbol)
+            && numFractionDigits == other.numFractionDigits
+            && isDefault == other.isDefault;
     }
 
     @Override

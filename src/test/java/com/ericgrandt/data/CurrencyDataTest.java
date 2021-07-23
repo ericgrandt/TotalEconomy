@@ -83,6 +83,7 @@ public class CurrencyDataTest {
             "Dollar",
             "Dollars",
             "$",
+            0,
             true
         );
 
@@ -105,6 +106,7 @@ public class CurrencyDataTest {
                 "Dollar",
                 "Dollars",
                 "$",
+                0,
                 true
             )
         );
@@ -114,6 +116,7 @@ public class CurrencyDataTest {
                 "Euro",
                 "Euros",
                 "E",
+                1,
                 false
             )
         );

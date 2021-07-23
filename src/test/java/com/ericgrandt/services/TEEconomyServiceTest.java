@@ -49,6 +49,7 @@ public class TEEconomyServiceTest {
             "Test",
             "Tests",
             "$",
+            0,
             true
         );
         when(currencyDataMock.getDefaultCurrency()).thenReturn(currency);
@@ -67,6 +68,7 @@ public class TEEconomyServiceTest {
             "Test",
             "Tests",
             "$",
+            0,
             true
             )
         );
@@ -76,6 +78,7 @@ public class TEEconomyServiceTest {
                 "Test2",
                 "Tests2",
                 "A",
+                0,
                 false
             )
         );
