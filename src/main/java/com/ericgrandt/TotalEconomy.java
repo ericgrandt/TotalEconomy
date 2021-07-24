@@ -73,7 +73,6 @@ public class TotalEconomy {
 
         accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);
-        // Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
     }
 
     @Listener

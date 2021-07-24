@@ -17,7 +17,6 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class TEEconomyService implements EconomyService {
     private final AccountData accountData;
