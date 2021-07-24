@@ -1,5 +1,6 @@
 build
 out
+run
 .gradle
 .idea
 *.iml
@@ -10,6 +11,8 @@ bin
 .project
 !gradle-wrapper.jar
 MANIFEST.MF
+.vs
 
 # Mac Stuff
 .DS_STORE
+src/test/resources/test.properties

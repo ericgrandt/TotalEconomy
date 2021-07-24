@@ -1,0 +1,18 @@
+site_name: Total Economy Docs
+theme:
+  name: material
+  palette:
+    scheme: slate
+markdown_extensions:
+    - toc:
+        toc_depth: 0
+nav:
+  - Installation: 'index.md'
+  - Storage: 'storage.md'
+  - Commands:
+    - Overview: 'commands/overview.md'
+    - Balance: 'commands/balance.md'
+    - Pay: 'commands/pay.md'
+  - Development:
+    - Design: 'development/design.md'
+    - Testing: 'development/testing.md'
