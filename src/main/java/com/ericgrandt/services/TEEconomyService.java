@@ -48,9 +48,11 @@ public class TEEconomyService implements EconomyService {
             return Optional.of(accountData.getAccount(uuid));
         }
 
+        // TODO: It's currently super difficult to get the display name and then unit test it.
+        // TODO: Figure out how to handle this when/if needed.
         UniqueAccount account = new TEAccount(
             uuid,
-            "", // TODO: Set the correct display name
+            "",
             new HashMap<>()
         );
         accountData.addAccount(account);

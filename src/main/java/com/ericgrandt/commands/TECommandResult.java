@@ -19,7 +19,7 @@ public class TECommandResult implements CommandResult {
 
     @Override
     public int result() {
-        throw new UnsupportedOperationException();
+        return isSuccess ? 0 : 1;
     }
 
     @Override
