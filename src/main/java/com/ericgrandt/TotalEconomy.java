@@ -11,6 +11,8 @@ import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import com.google.inject.Inject;
 
+import java.util.function.Supplier;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;
@@ -21,9 +23,11 @@ import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
+import org.spongepowered.api.event.lifecycle.ProvideServiceEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
+import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.reference.ConfigurationReference;
@@ -78,6 +82,17 @@ public class TotalEconomy {
     @Listener
     public void onServerStarting(final StartingEngineEvent<Server> event) {
         Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener(economyService));
+    }
+   
+    @Listener
+    public void onProvideService(ProvideServiceEvent<EconomyService> event) {
+        Supplier<EconomyService> economySupplier = new Supplier<EconomyService>() {
+            @Override
+            public EconomyService get() {
+                return economyService;
+            }
+        };
+        event.suggest(economySupplier);
     }
 
     @Listener
