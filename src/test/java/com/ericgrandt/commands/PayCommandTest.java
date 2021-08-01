@@ -13,6 +13,7 @@ import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.Database;
 import com.ericgrandt.domain.Balance;
 import com.ericgrandt.domain.TEAccount;
+import com.ericgrandt.domain.TECommandParameterKey;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
@@ -37,7 +38,6 @@ import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 @ExtendWith(MockitoExtension.class)
 public class PayCommandTest {

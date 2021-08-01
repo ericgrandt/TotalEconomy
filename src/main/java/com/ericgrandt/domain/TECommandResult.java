@@ -1,4 +1,4 @@
-package com.ericgrandt.commands;
+package com.ericgrandt.domain;
 
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.CommandResult;

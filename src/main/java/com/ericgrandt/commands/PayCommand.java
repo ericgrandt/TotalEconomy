@@ -2,6 +2,8 @@ package com.ericgrandt.commands;
 
 import com.ericgrandt.domain.Balance;
 import com.ericgrandt.domain.TEAccount;
+import com.ericgrandt.domain.TECommandParameterKey;
+import com.ericgrandt.domain.TECommandResult;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
 import java.math.BigDecimal;
@@ -15,7 +17,6 @@ import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 // TODO: Use requireOne
 public class PayCommand implements CommandExecutor {

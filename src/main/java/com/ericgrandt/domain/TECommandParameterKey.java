@@ -1,4 +1,4 @@
-package com.ericgrandt.commands;
+package com.ericgrandt.domain;
 
 import org.spongepowered.api.command.parameter.Parameter;
 

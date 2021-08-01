@@ -1,6 +1,7 @@
 package com.ericgrandt.commands;
 
 import com.ericgrandt.domain.Balance;
+import com.ericgrandt.domain.TECommandResult;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
 import net.kyori.adventure.text.Component;
