@@ -1,6 +1,5 @@
 package com.ericgrandt.domain;
 
-import com.ericgrandt.domain.TECommandResult;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 

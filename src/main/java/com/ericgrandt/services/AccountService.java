@@ -6,7 +6,6 @@ import com.ericgrandt.domain.TEAccount;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import org.spongepowered.api.service.economy.account.Account;
 
 public class AccountService {
     private final AccountData accountData;

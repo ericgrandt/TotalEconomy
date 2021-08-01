@@ -294,7 +294,7 @@ public class PayCommandTest {
 
         AccountData accountData = new AccountData(null, databaseMock);
         CurrencyData currencyData = new CurrencyData(null, databaseMock);
-        EconomyService economyService = new TEEconomyService(accountData, currencyData);
+        TEEconomyService economyService = new TEEconomyService(accountData, currencyData);
         AccountService accountService = new AccountService(accountData);
         Player toPlayer = mock(Player.class);
         sut = new PayCommand(economyService, accountService);

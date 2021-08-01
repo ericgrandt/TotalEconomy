@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+
+import com.ericgrandt.domain.TECurrency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,7 +35,7 @@ public class AccountServiceTest {
     AccountData accountDataMock;
 
     @Mock
-    Currency currencyMock;
+    TECurrency currencyMock;
 
     @BeforeEach
     public void init() {
@@ -121,7 +123,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void setTransferBalances_WithValidData_ShouldUpdateBothBalances() {
+    public void setTransferBalances_WithValidData_ShouldReturnTrue() {
         Balance from = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         Balance to = new Balance(UUID.randomUUID(), 1, BigDecimal.valueOf(50));
 
