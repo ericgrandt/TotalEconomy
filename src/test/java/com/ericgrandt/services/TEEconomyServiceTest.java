@@ -91,7 +91,7 @@ public class TEEconomyServiceTest {
     @Test
     public void findOrCreateAccount_WithExistingUuid_ShouldReturnExistingAccount() {
         UUID uuid = UUID.randomUUID();
-        UniqueAccount account = new TEAccount(
+        TEAccount account = new TEAccount(
             uuid,
             "Display Name",
             new HashMap<>()
@@ -108,7 +108,7 @@ public class TEEconomyServiceTest {
     @Test
     public void findOrCreateAccount_WithExistingUuid_ShouldNotAddAccount() {
         UUID uuid = UUID.randomUUID();
-        UniqueAccount account = new TEAccount(
+        TEAccount account = new TEAccount(
             uuid,
             "Display Name",
             new HashMap<>()

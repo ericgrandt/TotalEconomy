@@ -65,8 +65,7 @@ public class TEAccount implements UniqueAccount {
 
     @Override
     public BigDecimal balance(Currency currency, Cause cause) {
-        TECurrency teCurrency = (TECurrency) currency;
-        BigDecimal balance = balances.get(teCurrency);
+        BigDecimal balance = balances.get(currency);
 
         if (balance == null) {
             return BigDecimal.ZERO;

@@ -1,6 +1,7 @@
 package com.ericgrandt.commands;
 
 import com.ericgrandt.domain.Balance;
+import com.ericgrandt.domain.TEAccount;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
 import java.math.BigDecimal;
@@ -39,8 +40,8 @@ public class PayCommand implements CommandExecutor {
             throw new CommandException(Component.text("You cannot pay yourself"));
         }
 
-        UniqueAccount fromAccount = economyService.findOrCreateAccount(fromPlayer.uniqueId()).orElse(null);
-        UniqueAccount toAccount = economyService.findOrCreateAccount(toPlayer.uniqueId()).orElse(null);
+        TEAccount fromAccount = (TEAccount) economyService.findOrCreateAccount(fromPlayer.uniqueId()).orElse(null);
+        TEAccount toAccount = (TEAccount) economyService.findOrCreateAccount(toPlayer.uniqueId()).orElse(null);
         if (fromAccount == null || toAccount == null) {
             throw new CommandException(Component.text("Failed to run command: invalid account(s)"));
         }

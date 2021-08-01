@@ -12,6 +12,7 @@ import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.Database;
 import com.ericgrandt.domain.Balance;
+import com.ericgrandt.domain.TEAccount;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
@@ -162,8 +163,8 @@ public class PayCommandTest {
         when(playerMock.uniqueId()).thenReturn(UUID.randomUUID());
         when(toPlayerMock.uniqueId()).thenReturn(UUID.randomUUID());
         when(economyServiceMock.findOrCreateAccount(any(UUID.class)))
-            .thenReturn(Optional.of(mock(UniqueAccount.class)))
-            .thenReturn(Optional.of(mock(UniqueAccount.class)));
+            .thenReturn(Optional.of(mock(TEAccount.class)))
+            .thenReturn(Optional.of(mock(TEAccount.class)));
         when(economyServiceMock.defaultCurrency()).thenReturn(mock(TECurrency.class));
         when(accountServiceMock.setTransferBalances(any(Balance.class), any(Balance.class))).thenReturn(false);
 

@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.Logger;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 public class AccountData {
     private final Logger logger;
@@ -26,7 +25,7 @@ public class AccountData {
         this.database = database;
     }
 
-    public void addAccount(UniqueAccount account) {
+    public void addAccount(TEAccount account) {
         String createUserQuery = "INSERT INTO te_user VALUES (?, ?)";
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
@@ -75,7 +74,7 @@ public class AccountData {
         return false;
     }
 
-    public UniqueAccount getAccount(UUID uuid) {
+    public TEAccount getAccount(UUID uuid) {
         String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, num_fraction_digits, is_default\n"
             + "FROM te_user tu\n"
             + "INNER JOIN te_balance tb ON\n"

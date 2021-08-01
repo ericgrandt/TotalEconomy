@@ -50,7 +50,7 @@ public class TEEconomyService implements EconomyService {
 
         // TODO: It's currently super difficult to get the display name and then unit test it.
         // TODO: Figure out how to handle this when/if needed.
-        UniqueAccount account = new TEAccount(
+        TEAccount account = new TEAccount(
             uuid,
             "",
             new HashMap<>()

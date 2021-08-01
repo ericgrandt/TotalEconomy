@@ -19,7 +19,7 @@ public class AccountService {
         accountData.addAccount(account);
     }
 
-    public Account getAccount(UUID userId) {
+    public TEAccount getAccount(UUID userId) {
         return accountData.getAccount(userId);
     }
 
