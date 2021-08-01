@@ -86,12 +86,7 @@ public class TotalEconomy {
    
     @Listener
     public void onProvideService(ProvideServiceEvent<EconomyService> event) {
-        Supplier<EconomyService> economySupplier = new Supplier<EconomyService>() {
-            @Override
-            public EconomyService get() {
-                return economyService;
-            }
-        };
+        Supplier<EconomyService> economySupplier = () -> economyService;
         event.suggest(economySupplier);
     }
 
