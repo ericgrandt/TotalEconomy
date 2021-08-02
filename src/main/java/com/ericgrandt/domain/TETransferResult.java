@@ -1,8 +1,8 @@
 package com.ericgrandt.domain;
 
+import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.util.Set;
-import com.google.common.base.Objects;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;

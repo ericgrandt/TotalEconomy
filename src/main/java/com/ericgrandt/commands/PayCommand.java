@@ -8,10 +8,9 @@ import com.ericgrandt.domain.TECommandParameterKey;
 import com.ericgrandt.domain.TECommandResult;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
+import com.ericgrandt.services.TEEconomyService;
 import java.math.BigDecimal;
 import java.util.Optional;
-
-import com.ericgrandt.services.TEEconomyService;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.CommandExecutor;
 import org.spongepowered.api.command.CommandResult;

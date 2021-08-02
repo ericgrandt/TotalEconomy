@@ -1,9 +1,8 @@
 package com.ericgrandt.domain;
 
+import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.CommandResult;
-
-import java.util.Optional;
 
 public class TECommandResult implements CommandResult {
     private final boolean isSuccess;

@@ -1,8 +1,7 @@
 package com.ericgrandt.domain;
 
-import org.spongepowered.api.command.parameter.Parameter;
-
 import java.lang.reflect.Type;
+import org.spongepowered.api.command.parameter.Parameter;
 
 public class TECommandParameterKey<T> implements Parameter.Key<T> {
     private final String key;

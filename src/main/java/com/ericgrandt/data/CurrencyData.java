@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 

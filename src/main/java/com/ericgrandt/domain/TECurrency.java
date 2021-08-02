@@ -3,7 +3,6 @@ package com.ericgrandt.domain;
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.service.economy.Currency;
 

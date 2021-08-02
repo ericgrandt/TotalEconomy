@@ -1,6 +1,5 @@
 package com.ericgrandt;
 
-import com.ericgrandt.wrappers.CommandBuilder;
 import com.ericgrandt.commands.CommandRegister;
 import com.ericgrandt.config.DefaultConfiguration;
 import com.ericgrandt.data.AccountData;
@@ -9,10 +8,9 @@ import com.ericgrandt.data.Database;
 import com.ericgrandt.player.PlayerListener;
 import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
+import com.ericgrandt.wrappers.CommandBuilder;
 import com.google.inject.Inject;
-
 import java.util.function.Supplier;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;

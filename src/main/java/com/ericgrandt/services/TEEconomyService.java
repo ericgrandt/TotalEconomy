@@ -3,14 +3,12 @@ package com.ericgrandt.services;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.domain.TEAccount;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
-
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
