@@ -13,6 +13,6 @@
 
 > ## Note
 >
-> The following exception is expected when initializing Total Economy for the first time: `HikariPool-1 - Exception during pool initialization`. If you continue to recieve this exception after adding your database connection information to the configuration file, make sure to double check it and verify that it's correct.
+> The following exception is expected when initializing Total Economy for the first time: `HikariPool-1 - Exception during pool initialization`. If you continue to receive this exception after adding your database connection information to the configuration file, make sure to double-check it and verify that it's correct.
 >
 > A good way to check if the information is correct is to attempt to connect to your database from another tool, such as [DBeaver](https://dbeaver.io/).
