@@ -12,6 +12,7 @@ bin
 !gradle-wrapper.jar
 MANIFEST.MF
 .vs
+site
 
 # Mac Stuff
 .DS_STORE

@@ -3,6 +3,7 @@
 + [Source](https://github.com/Erigitic/TotalEconomy)
 + [Issues](https://github.com/Erigitic/TotalEconomy/issues)
 + [Downloads](https://ore.spongepowered.org/Erigitic/Total-Economy/versions)
++ [Docs](https://ericgrandt.github.io/TotalEconomy/)
 
 Total Economy is a Sponge plugin that aims to provide a full-fledged economy for your server. Each feature can be enabled/disabled and configured to your liking. This allows you to continue using your favorite plugins alongside Total Economy without any issue.
 
