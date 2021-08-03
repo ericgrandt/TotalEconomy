@@ -9,6 +9,7 @@ import com.ericgrandt.player.PlayerListener;
 import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import com.ericgrandt.wrappers.CommandBuilder;
+import com.ericgrandt.wrappers.ParameterWrapper;
 import com.google.inject.Inject;
 import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
@@ -94,7 +95,8 @@ public class TotalEconomy {
             pluginContainer,
             economyService,
             accountService,
-            new CommandBuilder()
+            new CommandBuilder(),
+            new ParameterWrapper()
         );
         commandRegister.registerCommands(event);
     }

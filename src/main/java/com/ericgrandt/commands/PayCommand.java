@@ -11,22 +11,28 @@ import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import java.math.BigDecimal;
 import java.util.Optional;
+
+import com.ericgrandt.wrappers.ParameterWrapper;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.CommandExecutor;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
+import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
 
 // TODO: Use requireOne
 public class PayCommand implements CommandExecutor {
     private final TEEconomyService economyService;
     private final AccountService accountService;
+    private final ParameterWrapper parameterWrapper;
 
-    public PayCommand(TEEconomyService economyService, AccountService accountService) {
+    public PayCommand(TEEconomyService economyService, AccountService accountService, ParameterWrapper parameterWrapper) {
         this.economyService = economyService;
         this.accountService = accountService;
+        this.parameterWrapper = parameterWrapper;
     }
 
     @Override
@@ -44,9 +50,9 @@ public class PayCommand implements CommandExecutor {
         return new TECommandResult(true);
     }
 
-    private BigDecimal getAmountArgument(CommandContext args) throws CommandException {
-        TECommandParameterKey<BigDecimal> key = new TECommandParameterKey<>("amount", BigDecimal.class);
-        Optional<BigDecimal> amountOpt = args.one(key);
+    private BigDecimal getAmountArgument(CommandContext context) throws CommandException {
+        Parameter.Key<BigDecimal> amountKey = parameterWrapper.key("amount", BigDecimal.class);
+        Optional<BigDecimal> amountOpt = context.one(amountKey);
         if (!amountOpt.isPresent()) {
             throw new CommandException(Component.text("Amount argument is missing"));
         } else if (!(amountOpt.get().compareTo(BigDecimal.ZERO) > 0)) {
@@ -77,9 +83,9 @@ public class PayCommand implements CommandExecutor {
         return new PayCommandPlayers(fromPlayer, toPlayer);
     }
 
-    private Player getPlayerArgument(CommandContext args) throws CommandException {
-        TECommandParameterKey<Player> key = new TECommandParameterKey<>("player", Player.class);
-        Optional<Player> toPlayerOpt = args.one(key);
+    private Player getPlayerArgument(CommandContext context) throws CommandException {
+        Parameter.Key<ServerPlayer> playerKey = parameterWrapper.key("player", ServerPlayer.class);
+        Optional<ServerPlayer> toPlayerOpt = context.one(playerKey);
         if (!toPlayerOpt.isPresent()) {
             throw new CommandException(Component.text("Player argument is missing"));
         }

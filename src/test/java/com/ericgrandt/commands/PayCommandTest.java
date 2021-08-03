@@ -25,6 +25,7 @@ import java.sql.Statement;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.ericgrandt.wrappers.ParameterWrapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +37,9 @@ import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
+import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.service.economy.EconomyService;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,7 +56,10 @@ public class PayCommandTest {
     private AccountService accountServiceMock;
 
     @Mock
-    private Player playerMock;
+    private ParameterWrapper parameterWrapperMock;
+
+    @Mock
+    private ServerPlayer playerMock;
 
     @Test
     @Tag("Unit")
@@ -61,7 +67,7 @@ public class PayCommandTest {
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(CommandBlock.class);
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -82,7 +88,7 @@ public class PayCommandTest {
         when(ctx.cause().root()).thenReturn(mock(Player.class));
         when(ctx.one(ArgumentMatchers.<TECommandParameterKey<BigDecimal>>any())).thenReturn(Optional.empty());
 
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -103,7 +109,7 @@ public class PayCommandTest {
         when(ctx.cause().root()).thenReturn(mock(Player.class));
         when(ctx.one(ArgumentMatchers.<TECommandParameterKey<BigDecimal>>any())).thenReturn(Optional.of(BigDecimal.ZERO));
 
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -124,7 +130,7 @@ public class PayCommandTest {
         when(ctx.cause().root()).thenReturn(mock(Player.class));
         when(ctx.one(ArgumentMatchers.<TECommandParameterKey<BigDecimal>>any())).thenReturn(Optional.of(BigDecimal.valueOf(-1)));
 
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -145,20 +151,14 @@ public class PayCommandTest {
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(playerMock);
 
-        when(ctx.one(ArgumentMatchers.<TECommandParameterKey<?>>any())).thenAnswer(invocationOnMock -> {
-            TECommandParameterKey<?> commandParameterKey = invocationOnMock.getArgument(0);
-            String argument = commandParameterKey.key();
+        Parameter.Key parameterKeyMock = mock(Parameter.Key.class);
+        when(parameterWrapperMock.key("amount", BigDecimal.class)).thenReturn(parameterKeyMock);
+        when(parameterWrapperMock.key("player", ServerPlayer.class)).thenReturn(parameterKeyMock);
+        when(ctx.one(parameterKeyMock))
+            .thenReturn(Optional.of(BigDecimal.TEN))
+            .thenReturn(Optional.of(toPlayerMock));
 
-            if (argument.equals("amount")) {
-                return Optional.of(BigDecimal.TEN);
-            } else if (argument.equals("player")) {
-                return Optional.of(toPlayerMock);
-            }
-
-            return Optional.empty();
-        });
-
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         when(playerMock.uniqueId()).thenReturn(UUID.randomUUID());
         when(toPlayerMock.uniqueId()).thenReturn(UUID.randomUUID());
@@ -185,20 +185,15 @@ public class PayCommandTest {
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(playerMock);
-        when(ctx.one(ArgumentMatchers.<TECommandParameterKey<?>>any())).thenAnswer(invocationOnMock -> {
-            TECommandParameterKey<?> commandParameterKey = invocationOnMock.getArgument(0);
-            String argument = commandParameterKey.key();
 
-            if (argument.equals("amount")) {
-                return Optional.of(BigDecimal.TEN);
-            } else if (argument.equals("player")) {
-                return Optional.empty();
-            }
+        Parameter.Key parameterKeyMock = mock(Parameter.Key.class);
+        when(parameterWrapperMock.key("amount", BigDecimal.class)).thenReturn(parameterKeyMock);
+        when(parameterWrapperMock.key("player", ServerPlayer.class)).thenReturn(parameterKeyMock);
+        when(ctx.one(parameterKeyMock))
+            .thenReturn(Optional.of(BigDecimal.valueOf(10)))
+            .thenReturn(Optional.empty());
 
-            return Optional.empty();
-        });
-
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -217,20 +212,15 @@ public class PayCommandTest {
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(playerMock);
-        when(ctx.one(ArgumentMatchers.<TECommandParameterKey<?>>any())).thenAnswer(invocationOnMock -> {
-            TECommandParameterKey<?> commandParameterKey = invocationOnMock.getArgument(0);
-            String argument = commandParameterKey.key();
 
-            if (argument.equals("amount")) {
-                return Optional.of(BigDecimal.valueOf(100));
-            } else if (argument.equals("player")) {
-                return Optional.of(playerMock);
-            }
+        Parameter.Key parameterKeyMock = mock(Parameter.Key.class);
+        when(parameterWrapperMock.key("amount", BigDecimal.class)).thenReturn(parameterKeyMock);
+        when(parameterWrapperMock.key("player", ServerPlayer.class)).thenReturn(parameterKeyMock);
+        when(ctx.one(parameterKeyMock))
+            .thenReturn(Optional.of(BigDecimal.valueOf(100)))
+            .thenReturn(Optional.of(playerMock));
 
-            return Optional.empty();
-        });
-
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         when(playerMock.uniqueId()).thenReturn(UUID.randomUUID());
         CommandException e = assertThrows(
@@ -250,20 +240,15 @@ public class PayCommandTest {
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(playerMock);
-        when(ctx.one(ArgumentMatchers.<TECommandParameterKey<?>>any())).thenAnswer(invocationOnMock -> {
-            TECommandParameterKey<?> commandParameterKey = invocationOnMock.getArgument(0);
-            String argument = commandParameterKey.key();
 
-            if (argument.equals("amount")) {
-                return Optional.of(BigDecimal.valueOf(100));
-            } else if (argument.equals("player")) {
-                return Optional.of(mock(Player.class));
-            }
+        Parameter.Key parameterKeyMock = mock(Parameter.Key.class);
+        when(parameterWrapperMock.key("amount", BigDecimal.class)).thenReturn(parameterKeyMock);
+        when(parameterWrapperMock.key("player", ServerPlayer.class)).thenReturn(parameterKeyMock);
+        when(ctx.one(parameterKeyMock))
+            .thenReturn(Optional.of(BigDecimal.valueOf(100)))
+            .thenReturn(Optional.of(mock(ServerPlayer.class)));
 
-            return Optional.empty();
-        });
-
-        sut = new PayCommand(economyServiceMock, accountServiceMock);
+        sut = new PayCommand(economyServiceMock, accountServiceMock, parameterWrapperMock);
 
         when(playerMock.uniqueId()).thenReturn(UUID.randomUUID());
         CommandException e = assertThrows(
@@ -297,7 +282,7 @@ public class PayCommandTest {
         TEEconomyService economyService = new TEEconomyService(accountData, currencyData);
         AccountService accountService = new AccountService(accountData);
         Player toPlayer = mock(Player.class);
-        sut = new PayCommand(economyService, accountService);
+        sut = new PayCommand(economyService, accountService, parameterWrapperMock);
 
         when(toPlayer.uniqueId()).thenReturn(UUID.fromString("551fe9be-f77f-4bcb-81db-548db6e77aea"));
 
@@ -305,18 +290,12 @@ public class PayCommandTest {
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(playerMock);
 
-        when(ctx.one(ArgumentMatchers.<TECommandParameterKey<?>>any())).thenAnswer(invocationOnMock -> {
-            TECommandParameterKey<?> commandParameterKey = invocationOnMock.getArgument(0);
-            String argument = commandParameterKey.key();
-
-            if (argument.equals("amount")) {
-                return Optional.of(BigDecimal.TEN);
-            } else if (argument.equals("player")) {
-                return Optional.of(toPlayer);
-            }
-
-            return Optional.empty();
-        });
+        Parameter.Key parameterKeyMock = mock(Parameter.Key.class);
+        when(parameterWrapperMock.key("amount", BigDecimal.class)).thenReturn(parameterKeyMock);
+        when(parameterWrapperMock.key("player", ServerPlayer.class)).thenReturn(parameterKeyMock);
+        when(ctx.one(parameterKeyMock))
+            .thenReturn(Optional.of(BigDecimal.TEN))
+            .thenReturn(Optional.of(toPlayer));
         when(playerMock.uniqueId()).thenReturn(UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"));
 
         // Act
