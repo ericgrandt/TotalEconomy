@@ -83,7 +83,7 @@ public class BalanceCommandTest {
         AccountData accountData = new AccountData(null, databaseMock);
         CurrencyData currencyData = new CurrencyData(null, databaseMock);
         AccountService accountService = new AccountService(accountData);
-        EconomyService economyService = new TEEconomyService(accountData, currencyData);
+        TEEconomyService economyService = new TEEconomyService(accountData, currencyData);
         sut = new BalanceCommand(economyService, accountService);
 
         CommandContext ctx = mock(CommandContext.class);
