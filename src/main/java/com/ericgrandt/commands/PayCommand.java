@@ -4,7 +4,6 @@ import com.ericgrandt.commands.models.PayCommandAccounts;
 import com.ericgrandt.commands.models.PayCommandPlayers;
 import com.ericgrandt.domain.Balance;
 import com.ericgrandt.domain.TEAccount;
-import com.ericgrandt.domain.TECommandParameterKey;
 import com.ericgrandt.domain.TECommandResult;
 import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
@@ -23,7 +22,6 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
 
-// TODO: Use requireOne
 public class PayCommand implements CommandExecutor {
     private final TEEconomyService economyService;
     private final AccountService accountService;
