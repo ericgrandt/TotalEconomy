@@ -5,7 +5,7 @@
 3. Start the server in order to initialize the configuration files
     - An exception will be shown in the console since the database connection information is not set yet
 4. Add your database connection information to the Total Economy config file:
-    - Replace `mysql` with your preferred database. Check the [Storage](https://totaleconomy.readthedocs.io/en/terewritten/storage/database/) page to view supported databases.
+    - Replace `mysql` with your preferred database. Check the [Storage](https://ericgrandt.github.io/TotalEconomy/storage/) page to view supported databases.
     - Replace `DATABASENAME` with the name of your database
     - Set username and password
 5. If the database name you specified in the connection string does not exist, you'll have to create it first
