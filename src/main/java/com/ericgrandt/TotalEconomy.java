@@ -26,6 +26,7 @@ import org.spongepowered.api.event.lifecycle.ProvideServiceEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
+import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
@@ -52,6 +53,7 @@ public class TotalEconomy {
     private Database database;
     private TEEconomyService economyService;
     private AccountService accountService;
+    private CurrencyData currencyData;
 
     @Inject
     public TotalEconomy(final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> reference) {
@@ -72,7 +74,7 @@ public class TotalEconomy {
         database.setup();
 
         AccountData accountData = new AccountData(logger, database);
-        CurrencyData currencyData = new CurrencyData(logger, database);
+        currencyData = new CurrencyData(logger, database);
 
         accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);
@@ -87,6 +89,12 @@ public class TotalEconomy {
     public void onProvideService(ProvideServiceEvent<EconomyService> event) {
         Supplier<EconomyService> economySupplier = () -> economyService;
         event.suggest(economySupplier);
+
+        Sponge.game().findRegistry(RegistryTypes.CURRENCY).ifPresent(registry -> {
+        	currencyData.getCurrencies().forEach(currency -> {
+        		registry.register(registry.type().location(), currency);
+        	});
+        });
     }
 
     @Listener
