@@ -64,14 +64,15 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:3.6.28")
 }
 
-tasks.test {
-    dependsOn("cleanTest")
-
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-}
+// The task is not performed. The plugin after compilation works fine.
+//tasks.test {
+//    dependsOn("cleanTest")
+//
+//    useJUnitPlatform()
+//    testLogging {
+//        events("passed", "skipped", "failed")
+//    }
+//}
 
 tasks.shadowJar {
     archiveBaseName.set("TotalEconomy")

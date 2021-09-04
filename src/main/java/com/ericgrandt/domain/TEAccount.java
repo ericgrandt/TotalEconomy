@@ -1,5 +1,6 @@
 package com.ericgrandt.domain;
 
+import com.ericgrandt.data.AccountData;
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -16,11 +17,13 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class TEAccount implements UniqueAccount {
+	private final AccountData accountData;
     private final UUID userId;
     private final String displayName;
     public final Map<Currency, BigDecimal> balances;
 
-    public TEAccount(UUID userId, String displayName, Map<Currency, BigDecimal> balances) {
+    public TEAccount(AccountData accountData, UUID userId, String displayName, Map<Currency, BigDecimal> balances) {
+        this.accountData = accountData;
         this.userId = userId;
         this.displayName = displayName;
         this.balances = balances;
@@ -100,7 +103,7 @@ public class TEAccount implements UniqueAccount {
                 null
             );
         }
-
+        accountData.setBalance(new Balance(userId, ((TECurrency) currency).getId(), amount));
         balances.replace(currency, amount);
 
         return new TETransactionResult(

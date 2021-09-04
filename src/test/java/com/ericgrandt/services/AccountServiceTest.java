@@ -44,7 +44,7 @@ public class AccountServiceTest {
 
     @Test
     public void addAccount_ShouldCallCreateAccountInAccountData() {
-        TEAccount account = new TEAccount(UUID.randomUUID(), "Display Name", null);
+        TEAccount account = new TEAccount(accountDataMock, UUID.randomUUID(), "Display Name", null);
 
         sut.addAccount(account);
 
@@ -60,6 +60,7 @@ public class AccountServiceTest {
         );
         UUID uuid = UUID.randomUUID();
         TEAccount account = new TEAccount(
+        	accountDataMock,
             uuid,
             "Display Name",
             balances

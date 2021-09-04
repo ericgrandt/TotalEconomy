@@ -3,8 +3,11 @@ package com.ericgrandt.services;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.domain.TEAccount;
+
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +24,7 @@ public class TEEconomyService implements EconomyService {
     private final CurrencyData currencyData;
 
     public TEEconomyService(AccountData accountData, CurrencyData currencyData) {
-        this.accountData = accountData;
+		this.accountData = accountData;
         this.currencyData = currencyData;
     }
 
@@ -48,10 +51,15 @@ public class TEEconomyService implements EconomyService {
 
         // TODO: It's currently super difficult to get the display name and then unit test it.
         // TODO: Figure out how to handle this when/if needed.
+        Map<Currency, BigDecimal> balances = new HashMap<>();
+        currencyData.getCurrencies().forEach(currency -> {
+        	balances.put(currency, BigDecimal.ZERO);
+        });
         TEAccount account = new TEAccount(
+        	accountData,
             uuid,
             "",
-            new HashMap<>()
+            balances
         );
         accountData.addAccount(account);
 

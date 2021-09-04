@@ -20,7 +20,7 @@ public class AccountData {
     private final Database database;
 
     public AccountData(Logger logger, Database database) {
-        this.logger = logger;
+		this.logger = logger;
         this.database = database;
     }
 
@@ -91,6 +91,7 @@ public class AccountData {
                 while (results.next()) {
                     if (account == null) {
                         account = new TEAccount(
+                        	this,
                             UUID.fromString(results.getString("id")),
                             results.getString("display_name"),
                             new HashMap<>()

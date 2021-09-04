@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +44,8 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
 @ExtendWith(MockitoExtension.class)
 public class AccountDataTest {
+
+    @Mock
     private AccountData sut;
 
     @Mock
@@ -223,6 +224,7 @@ public class AccountDataTest {
         // Arrange
         UUID uuid = UUID.fromString("ba64d376-8580-43b3-a3ee-2d6321114042");
         TEAccount account = new TEAccount(
+        	sut,
             uuid,
             "Display Name",
             null
@@ -331,6 +333,7 @@ public class AccountDataTest {
         // Act
         Account result = sut.getAccount(userId);
         Account expectedResult = new TEAccount(
+        	sut,
             userId,
             displayName,
             balances

@@ -50,7 +50,8 @@ public class CommandRegister {
         event.register(
             plugin,
             command,
-            "balance"
+            "balance",
+            "money"
         );
     }
 
