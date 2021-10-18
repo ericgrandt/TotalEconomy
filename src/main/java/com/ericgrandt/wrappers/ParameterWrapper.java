@@ -14,6 +14,10 @@ public class ParameterWrapper {
         return Parameter.bigDecimal();
     }
 
+    public Parameter.Value.Builder<String> currency() {
+        return Parameter.string();
+    }
+
     public <T> Parameter.Key<T> key(String key, Class<T> type) {
         return Parameter.key(key, type);
     }

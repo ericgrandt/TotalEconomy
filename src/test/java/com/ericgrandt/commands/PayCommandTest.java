@@ -40,7 +40,6 @@ import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
-import org.spongepowered.api.service.economy.EconomyService;
 
 @ExtendWith(MockitoExtension.class)
 public class PayCommandTest {

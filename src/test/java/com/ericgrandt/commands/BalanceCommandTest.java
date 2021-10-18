@@ -17,8 +17,10 @@ import com.ericgrandt.services.TEEconomyService;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
+import com.ericgrandt.wrappers.ParameterWrapper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.Tag;
@@ -31,9 +33,9 @@ import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
+import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.EconomyService;
 
 @ExtendWith(MockitoExtension.class)
 public class BalanceCommandTest {
@@ -48,13 +50,16 @@ public class BalanceCommandTest {
     @Mock
     private Player playerMock;
 
+    @Mock
+    private ParameterWrapper parameterWrapperMock;
+
     @Test
     @Tag("Unit")
     public void execute_WithNonPlayerCommandSource_ShouldThrowCommandException() {
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(mock(CommandBlock.class));
-        sut = new BalanceCommand(economyServiceMock, mock(AccountService.class));
+        sut = new BalanceCommand(economyServiceMock, mock(AccountService.class), parameterWrapperMock);
 
         CommandException e = assertThrows(
             CommandException.class,
@@ -84,7 +89,7 @@ public class BalanceCommandTest {
         CurrencyData currencyData = new CurrencyData(null, databaseMock);
         AccountService accountService = new AccountService(accountData);
         TEEconomyService economyService = new TEEconomyService(accountData, currencyData);
-        sut = new BalanceCommand(economyService, accountService);
+        sut = new BalanceCommand(economyService, accountService, parameterWrapperMock);
 
         CommandContext ctx = mock(CommandContext.class);
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
@@ -97,6 +102,45 @@ public class BalanceCommandTest {
         verify(playerMock).sendMessage(
             Component.text("Balance: ", NamedTextColor.GRAY)
                 .append(currency.format(BigDecimal.valueOf(123)).color(NamedTextColor.GOLD))
+        );
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    @Tag("Integration")
+    public void execute_WithValidDataAndSecondaryCurrency_ShouldReturnCommandResultSuccess() throws SQLException, CommandException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedUser();
+        when(databaseMock.getConnection())
+            .thenReturn(TestUtils.getConnection())
+            .thenReturn(TestUtils.getConnection())
+            .thenReturn(TestUtils.getConnection());
+        when(playerMock.uniqueId()).thenReturn(UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"));
+
+        Currency currency = new TECurrency(2, "Euro", "Euros", "E", 0, false);
+        AccountData accountData = new AccountData(null, databaseMock);
+        CurrencyData currencyData = new CurrencyData(null, databaseMock);
+        AccountService accountService = new AccountService(accountData);
+        TEEconomyService economyService = new TEEconomyService(accountData, currencyData);
+        sut = new BalanceCommand(economyService, accountService, parameterWrapperMock);
+
+        CommandContext ctx = mock(CommandContext.class);
+        when(ctx.cause()).thenReturn(mock(CommandCause.class));
+        when(ctx.cause().root()).thenReturn(playerMock);
+
+        Parameter.Key parameterKeyMock = mock(Parameter.Key.class);
+        when(parameterWrapperMock.key("currency", String.class)).thenReturn(parameterKeyMock);
+        when(ctx.one(parameterKeyMock)).thenReturn(Optional.of("Euro"));
+
+        // Act
+        CommandResult result = sut.execute(ctx);
+
+        // Assert
+        verify(playerMock).sendMessage(
+            Component.text("Balance: ", NamedTextColor.GRAY)
+                .append(currency.format(BigDecimal.valueOf(456)).color(NamedTextColor.GOLD))
         );
         assertTrue(result.isSuccess());
     }

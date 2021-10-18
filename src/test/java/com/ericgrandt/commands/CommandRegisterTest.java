@@ -55,6 +55,7 @@ public class CommandRegisterTest {
         when(registerCommandEventMock.register(any(), any(), any())).thenReturn(null);
         when(parameterWrapperMock.player()).thenReturn(parameterMock);
         when(parameterWrapperMock.bigDecimal()).thenReturn(parameterMock);
+        when(parameterWrapperMock.currency()).thenReturn(parameterMock);
 
         CommandRegister sut = spy(
             new CommandRegister(

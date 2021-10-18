@@ -5,6 +5,7 @@ import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import com.ericgrandt.wrappers.CommandBuilder;
 import com.ericgrandt.wrappers.ParameterWrapper;
+import org.apache.ibatis.annotations.Param;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
@@ -42,9 +43,12 @@ public class CommandRegister {
     }
 
     void registerBalanceCommand(final RegisterCommandEvent<Command.Parameterized> event) {
+        Parameter.Value<String> currencyParameter = parameterWrapper.currency().key("currency").optional().build();
+
         Command.Parameterized command = commandBuilder.getBuilder()
-            .executor(new BalanceCommand(economyService, accountService))
+            .executor(new BalanceCommand(economyService, accountService, parameterWrapper))
             .permission("totaleconomy.command.balance")
+            .addParameter(currencyParameter)
             .build();
 
         event.register(

@@ -324,7 +324,7 @@ public class AccountDataTest {
             BigDecimal.valueOf(123)
         );
         balances.put(
-            new TECurrency(2, "Euro", "Euros", "E", 1, false),
+            new TECurrency(2, "Euro", "Euros", "E", 0, false),
             BigDecimal.valueOf(456)
         );
 

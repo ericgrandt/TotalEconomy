@@ -73,9 +73,6 @@ public class CurrencyDataTest {
     @Test
     @Tag("Integration")
     public void getDefaultCurrency_ShouldReturnTheExpectedCurrency() {
-        // Arrange
-        TestUtils.seedCurrencies();
-
         // Act
         Currency result = sut.getDefaultCurrency();
         Currency expectedResult = new TECurrency(
@@ -94,9 +91,6 @@ public class CurrencyDataTest {
     @Test
     @Tag("Integration")
     public void getCurrencies_ShouldReturnTheExpectedCurrency() {
-        // Arrange
-        TestUtils.seedCurrencies();
-
         // Act
         Set<Currency> result = sut.getCurrencies();
         Set<Currency> expectedResult = new HashSet<>();
@@ -116,7 +110,7 @@ public class CurrencyDataTest {
                 "Euro",
                 "Euros",
                 "E",
-                1,
+                0,
                 false
             )
         );
