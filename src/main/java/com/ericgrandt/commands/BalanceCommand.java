@@ -15,9 +15,9 @@ import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 public class BalanceCommand implements CommandExecutor {
@@ -38,12 +38,22 @@ public class BalanceCommand implements CommandExecutor {
         }
 
         Parameter.Key<String> currencyKey = parameterWrapper.key("currency", String.class);
-        Optional<String> currencyOpt = context.one(currencyKey);
-        Player player = (Player) context.cause().root();
+        Optional<String> currencyParamOpt = context.one(currencyKey);
         TECurrency currency = (TECurrency) economyService.defaultCurrency();
-        if (currencyOpt.isPresent()) {
-            currency = (TECurrency) economyService.currencies().stream().filter(c -> PlainTextComponentSerializer.plainText().serialize(c.displayName()).equals(currencyOpt.get())).findFirst().get();
+        if (currencyParamOpt.isPresent()) {
+            Optional<Currency> currencyOpt = economyService.currencies().stream().filter(c ->
+                PlainTextComponentSerializer.plainText().serialize(c.displayName())
+                    .equals(currencyParamOpt.get())
+            ).findFirst();
+
+            if (currencyOpt.isPresent()) {
+                currency = (TECurrency) currencyOpt.get();
+            } else {
+                throw new CommandException(Component.text("That currency does not exist"));
+            }
         }
+
+        Player player = (Player) context.cause().root();
         Balance balance = accountService.getBalance(
             player.uniqueId(),
             currency.getId()

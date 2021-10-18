@@ -1,9 +1,9 @@
 import org.spongepowered.gradle.plugin.config.PluginLoaders
-import org.spongepowered.plugin.metadata.PluginDependency
+import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
     `java-library`
-    id("org.spongepowered.gradle.plugin") version "1.1.1"
+    id("org.spongepowered.gradle.plugin") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "4.0.4"
     checkstyle
 }
@@ -16,11 +16,15 @@ repositories {
 }
 
 sponge {
-    apiVersion("8.0.0")
+    apiVersion("8.0.0-SNAPSHOT")
+    license("MIT")
+    loader {
+        name(PluginLoaders.JAVA_PLAIN)
+        version("1.0")
+    }
     plugin("totaleconomy") {
-        loader(PluginLoaders.JAVA_PLAIN)
         displayName("Total Economy")
-        mainClass("com.ericgrandt.TotalEconomy")
+        entrypoint("com.ericgrandt.TotalEconomy")
         description("All in one economy plugin for Minecraft and Sponge")
         links {
             homepage("https://github.com/ericgrandt/TotalEconomy")
@@ -90,4 +94,9 @@ tasks.build {
 
 tasks.runServer {
     dependsOn(tasks.shadowJar)
+}
+
+tasks.withType(AbstractArchiveTask::class).configureEach {
+    isReproducibleFileOrder = true
+    isPreserveFileTimestamps = false
 }

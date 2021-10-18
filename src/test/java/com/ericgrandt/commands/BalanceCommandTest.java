@@ -3,6 +3,7 @@ package com.ericgrandt.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import com.ericgrandt.services.TEEconomyService;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,6 +70,28 @@ public class BalanceCommandTest {
 
         String result = e.getMessage();
         String expectedResult = "Only players can use this command";
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void execute_WithInvalidCurrency_ShouldThrowCommandException() {
+        CommandContext ctx = mock(CommandContext.class);
+        when(ctx.cause()).thenReturn(mock(CommandCause.class));
+        when(ctx.cause().root()).thenReturn(mock(Player.class));
+        when(ctx.one((Parameter.Key<Object>) any())).thenReturn(Optional.of("InvalidCurrency"));
+        when(economyServiceMock.defaultCurrency()).thenReturn(mock(TECurrency.class));
+        when(economyServiceMock.currencies()).thenReturn(new HashSet<>());
+        sut = new BalanceCommand(economyServiceMock, mock(AccountService.class), parameterWrapperMock);
+
+        CommandException e = assertThrows(
+            CommandException.class,
+            () -> sut.execute(ctx)
+        );
+
+        String result = e.getMessage();
+        String expectedResult = "That currency does not exist";
 
         assertEquals(expectedResult, result);
     }
