@@ -81,7 +81,6 @@ public class BalanceCommandTest {
         when(ctx.cause()).thenReturn(mock(CommandCause.class));
         when(ctx.cause().root()).thenReturn(mock(Player.class));
         when(ctx.one((Parameter.Key<Object>) any())).thenReturn(Optional.of("InvalidCurrency"));
-        when(economyServiceMock.defaultCurrency()).thenReturn(mock(TECurrency.class));
         when(economyServiceMock.currencies()).thenReturn(new HashSet<>());
         sut = new BalanceCommand(economyServiceMock, mock(AccountService.class), parameterWrapperMock);
 

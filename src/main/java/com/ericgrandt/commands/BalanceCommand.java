@@ -16,7 +16,6 @@ import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.EconomyService;
 
 import java.util.Optional;
 
@@ -37,23 +36,8 @@ public class BalanceCommand implements CommandExecutor {
             throw new CommandException(Component.text("Only players can use this command"));
         }
 
-        Parameter.Key<String> currencyKey = parameterWrapper.key("currency", String.class);
-        Optional<String> currencyParamOpt = context.one(currencyKey);
-        TECurrency currency = (TECurrency) economyService.defaultCurrency();
-        if (currencyParamOpt.isPresent()) {
-            Optional<Currency> currencyOpt = economyService.currencies().stream().filter(c ->
-                PlainTextComponentSerializer.plainText().serialize(c.displayName())
-                    .equals(currencyParamOpt.get())
-            ).findFirst();
-
-            if (currencyOpt.isPresent()) {
-                currency = (TECurrency) currencyOpt.get();
-            } else {
-                throw new CommandException(Component.text("That currency does not exist"));
-            }
-        }
-
         Player player = (Player) context.cause().root();
+        TECurrency currency = getCurrencyArgument(context);
         Balance balance = accountService.getBalance(
             player.uniqueId(),
             currency.getId()
@@ -67,5 +51,23 @@ public class BalanceCommand implements CommandExecutor {
         );
 
         return new TECommandResult(true);
+    }
+
+    private TECurrency getCurrencyArgument(CommandContext context) throws CommandException {
+        Parameter.Key<String> currencyKey = parameterWrapper.key("currency", String.class);
+        Optional<String> currencyParamOpt = context.one(currencyKey);
+        if (currencyParamOpt.isPresent()) {
+            Optional<Currency> currencyOpt = economyService.currencies().stream().filter(c ->
+                PlainTextComponentSerializer.plainText().serialize(c.displayName()).equals(currencyParamOpt.get())
+            ).findFirst();
+
+            if (currencyOpt.isPresent()) {
+                return (TECurrency) currencyOpt.get();
+            } else {
+                throw new CommandException(Component.text("That currency does not exist"));
+            }
+        }
+
+        return (TECurrency) economyService.defaultCurrency();
     }
 }
