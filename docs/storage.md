@@ -2,4 +2,4 @@ Total Economy relies on a database for storing user and plugin data. When first 
 
 ## Supported Database
 
-- MySQL (`jdbc:mysql`)
+- MySQL 8 (`jdbc:mysql`)
