@@ -16,7 +16,7 @@ repositories {
 }
 
 sponge {
-    apiVersion("8.0.0-SNAPSHOT")
+    apiVersion("8.0.0")
     license("MIT")
     loader {
         name(PluginLoaders.JAVA_PLAIN)
@@ -57,7 +57,7 @@ dependencies {
     implementation("org.mybatis:mybatis:3.5.6")
 
     testImplementation("org.mybatis:mybatis:3.5.6")
-    testImplementation("org.spongepowered:spongeapi:8.0.0-SNAPSHOT")
+    testImplementation("org.spongepowered:spongeapi:8.0.0")
     testImplementation("com.h2database:h2:1.3.148")
     testImplementation("com.zaxxer:HikariCP:2.6.3")
 

@@ -1,3 +1,4 @@
+-- Base
 CREATE TABLE IF NOT EXISTS te_user (
     id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
     display_name VARCHAR(100) NOT NULL,
@@ -13,8 +14,8 @@ CREATE TABLE IF NOT EXISTS te_currency (
     is_default BOOL NOT NULL
 );
 
-INSERT IGNORE INTO te_currency (id, name_singular, name_plural, symbol, is_default)
-VALUES(1, 'Dollar', 'Dollars', '$', 1);
+INSERT IGNORE INTO te_currency(id, name_singular, name_plural, symbol, is_default)
+VALUES (1, 'Dollar', 'Dollars', '$', 1);
 
 CREATE TABLE IF NOT EXISTS te_balance (
     id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
@@ -25,3 +26,21 @@ CREATE TABLE IF NOT EXISTS te_balance (
     FOREIGN KEY (currency_id) REFERENCES te_currency(id) ON DELETE CASCADE,
     CONSTRAINT uk_balance UNIQUE(user_id, currency_id)
 );
+
+-- Jobs
+CREATE TABLE IF NOT EXISTS te_job (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+    title VARCHAR(50) NOT NULL,
+    CONSTRAINT uk_job UNIQUE(title)
+);
+
+INSERT IGNORE INTO te_job(title) VALUES ('Miner');
+
+CREATE TABLE IF NOT EXISTS te_user_job (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+    user_id VARCHAR(36) NOT NULL,
+    job_id VARCHAR(36) NOT NULL,
+    exp INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES te_user(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES te_job(id) ON DELETE CASCADE
+)

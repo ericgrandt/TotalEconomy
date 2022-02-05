@@ -11,13 +11,10 @@ import com.ericgrandt.services.TEEconomyService;
 import com.ericgrandt.wrappers.CommandBuilder;
 import com.ericgrandt.wrappers.ParameterWrapper;
 import com.google.inject.Inject;
-import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.asset.Asset;
-import org.spongepowered.api.asset.AssetId;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
@@ -39,38 +36,35 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 public class TotalEconomy {
     private final Logger logger = LogManager.getLogger("TotalEconomy");
 
-    private final ConfigurationReference<CommentedConfigurationNode> reference;
+    private final ConfigurationReference<CommentedConfigurationNode> configurationReference;
     private ValueReference<DefaultConfiguration, CommentedConfigurationNode> config;
 
-    @Inject
-    private PluginContainer pluginContainer;
+    private final PluginContainer pluginContainer;
 
-    @Inject
-    @AssetId("schema/mysql.sql")
-    private Asset mysqlSchema;
-
-    private static TotalEconomy plugin;
     private Database database;
     private TEEconomyService economyService;
     private AccountService accountService;
     private CurrencyData currencyData;
 
     @Inject
-    public TotalEconomy(final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> reference) {
-        plugin = this;
-        this.reference = reference;
+    public TotalEconomy(
+        final PluginContainer pluginContainer,
+        final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> configurationReference
+    ) {
+        this.pluginContainer = pluginContainer;
+        this.configurationReference = configurationReference;
     }
 
     @Listener
     public void onConstructPlugin(ConstructPluginEvent event) {
         try {
-            config = reference.referenceTo(DefaultConfiguration.class);
-            this.reference.save();
+            config = configurationReference.referenceTo(DefaultConfiguration.class);
+            this.configurationReference.save();
         } catch (final ConfigurateException ex) {
             logger.error("Unable to load test configuration", ex);
         }
 
-        database = new Database(logger, plugin);
+        database = new Database(logger, pluginContainer);
         database.setup();
 
         AccountData accountData = new AccountData(logger, database);
@@ -84,11 +78,10 @@ public class TotalEconomy {
     public void onServerStarting(final StartingEngineEvent<Server> event) {
         Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener(economyService));
     }
-   
+
     @Listener
     public void onProvideService(ProvideServiceEvent<EconomyService> event) {
-        Supplier<EconomyService> economySupplier = () -> economyService;
-        event.suggest(economySupplier);
+        event.suggest(() -> economyService);
 
         Sponge.game().findRegistry(RegistryTypes.CURRENCY).ifPresent(registry -> {
         	currencyData.getCurrencies().forEach(currency -> {
@@ -120,9 +113,5 @@ public class TotalEconomy {
 
     public Database getDatabase() {
         return database;
-    }
-
-    public Asset getMysqlSchema() {
-        return mysqlSchema;
     }
 }

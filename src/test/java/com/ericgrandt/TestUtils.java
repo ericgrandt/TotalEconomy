@@ -95,14 +95,14 @@ public class TestUtils {
 
     public static void resetDb() {
         try (Connection conn = TestUtils.getConnection()) {
-            String truncateUsers = "DELETE FROM te_user";
-            String truncateBalances = "DELETE FROM te_balance";
-            String truncateCurrencies = "DELETE FROM te_currency";
+            String deleteUsers = "DELETE FROM te_user";
+            String deleteBalances = "DELETE FROM te_balance";
+            String deleteCurrencies = "DELETE FROM te_currency";
 
             Statement statement = conn.createStatement();
-            statement.execute(truncateUsers);
-            statement.execute(truncateBalances);
-            statement.execute(truncateCurrencies);
+            statement.execute(deleteUsers);
+            statement.execute(deleteBalances);
+            statement.execute(deleteCurrencies);
         } catch (SQLException e) {
             e.printStackTrace();
         }
