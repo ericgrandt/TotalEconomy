@@ -25,7 +25,7 @@ public class AccountData {
     }
 
     public void addAccount(TEAccount account) {
-        String createUserQuery = "INSERT INTO te_user VALUES (?, ?)";
+        String createUserQuery = "INSERT INTO te_user(id, display_name) VALUES (?, ?)";
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {

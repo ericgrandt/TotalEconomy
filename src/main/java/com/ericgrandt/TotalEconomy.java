@@ -34,12 +34,11 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 @Plugin("totaleconomy")
 public class TotalEconomy {
-    private final Logger logger = LogManager.getLogger("TotalEconomy");
-
     private final ConfigurationReference<CommentedConfigurationNode> configurationReference;
-    private ValueReference<DefaultConfiguration, CommentedConfigurationNode> config;
-
     private final PluginContainer pluginContainer;
+
+    private final Logger logger = LogManager.getLogger("TotalEconomy");
+    private ValueReference<DefaultConfiguration, CommentedConfigurationNode> config;
 
     private Database database;
     private TEEconomyService economyService;
