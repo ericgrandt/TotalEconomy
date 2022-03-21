@@ -351,4 +351,21 @@ public class TETransactionResultTest {
 
         assertFalse(result);
     }
+
+    @Test
+    public void hashCode_ShouldReturnExpectedHashCode() {
+        TETransactionResult sut = new TETransactionResult(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        int result = sut.hashCode();
+        int expectedResult = 887503681;
+
+        assertEquals(expectedResult, result);
+    }
 }

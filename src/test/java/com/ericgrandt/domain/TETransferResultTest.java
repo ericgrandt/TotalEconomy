@@ -420,4 +420,22 @@ public class TETransferResultTest {
 
         assertFalse(result);
     }
+
+    @Test
+    public void hashCode_ShouldReturnExpectedHashCode() {
+        TETransferResult sut = new TETransferResult(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        int result = sut.hashCode();
+        int expectedResult = 1742810335;
+
+        assertEquals(expectedResult, result);
+    }
 }
