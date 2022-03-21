@@ -83,9 +83,9 @@ public class TotalEconomy {
         event.suggest(() -> economyService);
 
         Sponge.game().findRegistry(RegistryTypes.CURRENCY).ifPresent(registry -> {
-        	currencyData.getCurrencies().forEach(currency -> {
-        		registry.register(registry.type().location(), currency);
-        	});
+            currencyData.getCurrencies().forEach(currency -> {
+                registry.register(registry.type().location(), currency);
+            });
         });
     }
 

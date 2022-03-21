@@ -1,7 +1,6 @@
 package com.ericgrandt.data;
 
 import com.ericgrandt.TotalEconomy;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +10,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Objects;
-
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.plugin.PluginContainer;

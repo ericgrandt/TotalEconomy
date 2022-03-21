@@ -1,20 +1,15 @@
 package com.ericgrandt.commands;
 
-import com.ericgrandt.domain.TECommandParameterKey;
 import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import com.ericgrandt.wrappers.CommandBuilder;
 import com.ericgrandt.wrappers.ParameterWrapper;
-import org.apache.ibatis.annotations.Param;
+import java.math.BigDecimal;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.parameter.Parameter;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
-import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.plugin.PluginContainer;
-
-import java.math.BigDecimal;
 
 public class CommandRegister {
     private final PluginContainer plugin;

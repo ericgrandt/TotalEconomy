@@ -6,6 +6,7 @@ import com.ericgrandt.domain.TECurrency;
 import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
 import com.ericgrandt.wrappers.ParameterWrapper;
+import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -16,8 +17,6 @@ import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.Currency;
-
-import java.util.Optional;
 
 public class BalanceCommand implements CommandExecutor {
     private final TEEconomyService economyService;

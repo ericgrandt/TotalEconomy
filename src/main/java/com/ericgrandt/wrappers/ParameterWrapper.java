@@ -1,9 +1,8 @@
 package com.ericgrandt.wrappers;
 
+import java.math.BigDecimal;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
-
-import java.math.BigDecimal;
 
 public class ParameterWrapper {
     public Parameter.Value.Builder<ServerPlayer> player() {
