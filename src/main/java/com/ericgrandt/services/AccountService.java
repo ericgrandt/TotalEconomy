@@ -18,10 +18,6 @@ public class AccountService {
         accountData.addAccount(account);
     }
 
-    public TEAccount getAccount(UUID userId) {
-        return accountData.getAccount(userId);
-    }
-
     public Balance getBalance(UUID userId, int currencyId) {
         return accountData.getBalance(userId, currencyId);
     }

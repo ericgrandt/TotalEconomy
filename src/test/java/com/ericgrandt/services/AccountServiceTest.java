@@ -52,26 +52,6 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void getAccount_ShouldReturnTheCorrectAccount() {
-        HashMap<Currency, BigDecimal> balances = new HashMap<>();
-        balances.put(
-            currencyMock,
-            BigDecimal.valueOf(123)
-        );
-        UUID uuid = UUID.randomUUID();
-        TEAccount account = new TEAccount(
-            uuid,
-            "Display Name",
-            balances
-        );
-        when(accountDataMock.getAccount(uuid)).thenReturn(account);
-
-        Account result = sut.getAccount(uuid);
-
-        assertEquals(account, result);
-    }
-
-    @Test
     public void getBalance_ShouldReturnTheCorrectBalance() {
         UUID uuid = UUID.randomUUID();
         Balance balance = new Balance(uuid, 1, BigDecimal.valueOf(123));
