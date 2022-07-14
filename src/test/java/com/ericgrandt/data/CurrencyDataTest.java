@@ -71,6 +71,20 @@ public class CurrencyDataTest {
     }
 
     @Test
+    @Tag("Unit")
+    public void getCurrency_WithSQLException_ShouldReturnNull() throws SQLException {
+        // Arrange
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        // Act
+        Currency actual = sut.getCurrency("invalidCurrency");
+
+        // Assert
+        verify(loggerMock, times(1)).error(any(String.class));
+        assertNull(actual);
+    }
+
+    @Test
     @Tag("Integration")
     public void getDefaultCurrency_ShouldReturnTheExpectedCurrency() {
         // Act
@@ -117,5 +131,29 @@ public class CurrencyDataTest {
 
         // Assert
         assertEquals(expectedResult, result);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getCurrency_WithValidCurrencyName_ShouldReturnTheExpectedCurrency() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+
+        when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
+
+        // Act
+        Currency actual = sut.getCurrency("Dollar");
+        Currency expected = new TECurrency(
+            1,
+            "Dollar",
+            "Dollars",
+            "$",
+            0,
+            true
+        );
+
+        // Assert
+        assertEquals(expected, actual);
     }
 }

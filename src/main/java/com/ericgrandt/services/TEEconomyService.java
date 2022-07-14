@@ -96,4 +96,8 @@ public class TEEconomyService implements EconomyService {
     public Set<Currency> currencies() {
         return currencyData.getCurrencies();
     }
+
+    public Currency getCurrency(String currencyName) {
+        return currencyData.getCurrency(currencyName);
+    }
 }

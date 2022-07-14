@@ -72,4 +72,30 @@ public class CurrencyData {
 
         return new HashSet<>();
     }
+
+    public Currency getCurrency(String currencyName) {
+        try (Connection conn = database.getConnection()) {
+            String query = "SELECT * FROM te_currency WHERE name_singular = ?";
+
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, currencyName);
+
+                ResultSet results = stmt.executeQuery();
+                if (results.next()) {
+                    return new TECurrency(
+                        results.getInt("id"),
+                        results.getString("name_singular"),
+                        results.getString("name_plural"),
+                        results.getString("symbol"),
+                        results.getInt("num_fraction_digits"),
+                        results.getBoolean("is_default")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error getting currency from database");
+        }
+
+        return null;
+    }
 }
