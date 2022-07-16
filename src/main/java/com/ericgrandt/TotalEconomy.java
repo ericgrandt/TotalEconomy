@@ -1,15 +1,11 @@
 package com.ericgrandt;
 
-import com.ericgrandt.commands.CommandRegister;
 import com.ericgrandt.config.DefaultConfiguration;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.Database;
 import com.ericgrandt.player.PlayerListener;
-import com.ericgrandt.services.AccountService;
 import com.ericgrandt.services.TEEconomyService;
-import com.ericgrandt.wrappers.CommandBuilder;
-import com.ericgrandt.wrappers.ParameterWrapper;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +38,6 @@ public class TotalEconomy {
 
     private Database database;
     private TEEconomyService economyService;
-    private AccountService accountService;
     private CurrencyData currencyData;
 
     @Inject
@@ -69,7 +64,6 @@ public class TotalEconomy {
         AccountData accountData = new AccountData(logger, database);
         currencyData = new CurrencyData(logger, database);
 
-        accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);
     }
 
@@ -91,14 +85,7 @@ public class TotalEconomy {
 
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
-        CommandRegister commandRegister = new CommandRegister(
-            pluginContainer,
-            economyService,
-            accountService,
-            new CommandBuilder(),
-            new ParameterWrapper()
-        );
-        commandRegister.registerCommands(event);
+
     }
 
     @Listener
