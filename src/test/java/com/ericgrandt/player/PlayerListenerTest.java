@@ -1,8 +1,6 @@
 package com.ericgrandt.player;
 
 import com.ericgrandt.TestUtils;
-import com.ericgrandt.data.AccountData;
-import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.Database;
 import com.ericgrandt.services.TEEconomyService;
 import org.junit.jupiter.api.Tag;

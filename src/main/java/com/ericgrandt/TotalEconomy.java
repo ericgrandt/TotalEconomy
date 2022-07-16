@@ -1,8 +1,6 @@
 package com.ericgrandt;
 
 import com.ericgrandt.config.DefaultConfiguration;
-import com.ericgrandt.data.AccountData;
-import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.Database;
 import com.ericgrandt.player.PlayerListener;
 import com.ericgrandt.services.TEEconomyService;

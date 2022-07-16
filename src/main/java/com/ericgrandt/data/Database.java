@@ -38,7 +38,7 @@ public class Database {
     private void runSqlScript() {
         try (
             Connection conn = getConnection();
-             InputStreamReader reader = new InputStreamReader(getSchemaSqlInputStream())
+            InputStreamReader reader = new InputStreamReader(getSchemaSqlInputStream())
         ) {
             logger.info("Successfully connected");
 

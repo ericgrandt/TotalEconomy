@@ -1,5 +1,6 @@
-package com.ericgrandt.services;
+package com.ericgrandt.impl;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
@@ -13,23 +14,29 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 public class EconomyServiceImpl implements EconomyService {
-    public EconomyServiceImpl() {
-        
+    private final CurrencyData currencyData;
+    private final AccountData accountData;
+
+    public EconomyServiceImpl(CurrencyData currencyData, AccountData accountData) {
+        this.currencyData = currencyData;
+        this.accountData = accountData;
     }
 
     @Override
     public Currency defaultCurrency() {
+        // return currencyData.getDefaultCurrency();
         return null;
     }
 
     @Override
-    public boolean hasAccount(UUID uuid) {
+    public boolean hasAccount(UUID playerUUID) {
+        // return accountData.hasAccount(playerUUID);
         return false;
     }
 
     @Override
     public boolean hasAccount(String identifier) {
-        return false;
+        throw new NotImplementedException("");
     }
 
     @Override
