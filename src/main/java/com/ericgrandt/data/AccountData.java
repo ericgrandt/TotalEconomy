@@ -25,7 +25,7 @@ public class AccountData {
     }
 
     public void addAccount(TEAccount account) {
-        String createUserQuery = "INSERT INTO te_user(id, display_name) VALUES (?, ?)";
+        String createUserQuery = "INSERT INTO te_account(id, display_name) VALUES (?, ?)";
         String createBalancesQuery = "INSERT INTO te_balance(user_id, currency_id, balance) SELECT ?, id, 0 FROM te_currency";
 
         try (Connection conn = database.getConnection()) {
@@ -55,7 +55,7 @@ public class AccountData {
     }
 
     public boolean hasAccount(UUID uuid) {
-        String query = "SELECT COUNT(1) AS user_count FROM te_user WHERE id = ?";
+        String query = "SELECT COUNT(1) AS user_count FROM te_account WHERE id = ?";
 
         try (Connection conn = database.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -75,7 +75,7 @@ public class AccountData {
 
     public TEAccount getAccount(UUID uuid) {
         String query = "SELECT tu.id, display_name, currency_id, balance, name_singular, name_plural, symbol, num_fraction_digits, is_default\n"
-            + "FROM te_user tu\n"
+            + "FROM te_account tu\n"
             + "INNER JOIN te_balance tb ON\n"
             + "tu.id = tb.user_id\n"
             + "INNER JOIN te_currency tc ON\n"
