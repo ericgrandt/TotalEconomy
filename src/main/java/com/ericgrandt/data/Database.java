@@ -65,7 +65,7 @@ public class Database {
     }
 
     private InputStream getSchemaSqlInputStream() throws FileNotFoundException {
-        URI schemaSqlURI = URI.create("schema/mysql.sql");
+        URI schemaSqlURI = URI.create("schema/schema.sql");
         return pluginContainer.openResource(schemaSqlURI).orElseThrow(FileNotFoundException::new);
     }
 }

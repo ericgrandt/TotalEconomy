@@ -3,7 +3,6 @@ package com.ericgrandt;
 import com.ericgrandt.config.DefaultConfiguration;
 import com.ericgrandt.data.Database;
 import com.ericgrandt.player.PlayerListener;
-import com.ericgrandt.services.TEEconomyService;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,8 +34,8 @@ public class TotalEconomy {
     private ValueReference<DefaultConfiguration, CommentedConfigurationNode> config;
 
     private Database database;
-    private TEEconomyService economyService;
-    private CurrencyData currencyData;
+    // private TEEconomyService economyService;
+    // private CurrencyData currencyData;
 
     @Inject
     public TotalEconomy(
@@ -59,26 +58,26 @@ public class TotalEconomy {
         database = new Database(logger, pluginContainer);
         database.setup();
 
-        AccountData accountData = new AccountData(logger, database);
-        currencyData = new CurrencyData(logger, database);
-
-        economyService = new TEEconomyService(accountData, currencyData);
+        // AccountData accountData = new AccountData(logger, database);
+        // currencyData = new CurrencyData(logger, database);
+        //
+        // economyService = new TEEconomyService(accountData, currencyData);
     }
 
     @Listener
     public void onServerStarting(final StartingEngineEvent<Server> event) {
-        Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener(economyService));
+        // Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener(economyService));
     }
 
     @Listener
     public void onProvideService(ProvideServiceEvent<EconomyService> event) {
-        event.suggest(() -> economyService);
-
-        Sponge.game().findRegistry(RegistryTypes.CURRENCY).ifPresent(registry -> {
-            currencyData.getCurrencies().forEach(currency -> {
-                registry.register(registry.type().location(), currency);
-            });
-        });
+        // event.suggest(() -> economyService);
+        //
+        // Sponge.game().findRegistry(RegistryTypes.CURRENCY).ifPresent(registry -> {
+        //     currencyData.getCurrencies().forEach(currency -> {
+        //         registry.register(registry.type().location(), currency);
+        //     });
+        // });
     }
 
     @Listener

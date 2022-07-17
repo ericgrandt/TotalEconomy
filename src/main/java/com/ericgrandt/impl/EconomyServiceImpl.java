@@ -14,13 +14,13 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 public class EconomyServiceImpl implements EconomyService {
-    private final CurrencyData currencyData;
-    private final AccountData accountData;
-
-    public EconomyServiceImpl(CurrencyData currencyData, AccountData accountData) {
-        this.currencyData = currencyData;
-        this.accountData = accountData;
-    }
+    // private final CurrencyData currencyData;
+    // private final AccountData accountData;
+    //
+    // public EconomyServiceImpl(CurrencyData currencyData, AccountData accountData) {
+    //     this.currencyData = currencyData;
+    //     this.accountData = accountData;
+    // }
 
     @Override
     public Currency defaultCurrency() {
