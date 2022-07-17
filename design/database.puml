@@ -1,0 +1,40 @@
+@startuml Database Design
+
+skinparam linetype ortho
+
+entity te_account {
+    * id : varchar(36) <<uuid>>
+    --
+    * created : timestamp
+}
+
+entity te_currency {
+    * id : int <<auto_increment>>
+    --
+    * name_singular : varchar(50) <<unique>>
+    * name_plural : varchar(50) <<unique>>
+    * symbol : varchar(2) <<unique>>
+    * num_fraction_digits : tinyint <<default(0)>>
+    * is_default : bool
+}
+
+entity te_default_balance {
+    * id : varchar(36)
+    --
+    * currency_id : int <<FK>>
+    * default_balance: numeric
+}
+
+entity te_balance {
+    * id : varchar(36)
+    --
+    * account_id : varchar(36) <<FK>>
+    * currency_id : int <<FK>>
+    * balance : numeric
+}
+
+te_account ||--|{ te_balance
+te_virtual_account ||--|{ te_balance
+te_currency ||--|{ te_balance
+te_currency ||--|| te_default_balance
+@enduml

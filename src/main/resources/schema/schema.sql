@@ -1,7 +1,6 @@
 -- Base
 CREATE TABLE IF NOT EXISTS te_account (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
-    display_name VARCHAR(100) NOT NULL,
+    id VARCHAR(36) PRIMARY KEY,
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -17,12 +16,19 @@ CREATE TABLE IF NOT EXISTS te_currency (
 INSERT IGNORE INTO te_currency(id, name_singular, name_plural, symbol, is_default)
 VALUES (1, 'Dollar', 'Dollars', '$', 1);
 
+CREATE TABLE IF NOT EXISTS te_default_balance (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+    currency_id INT NOT NULL UNIQUE,
+    default_balance NUMERIC DEFAULT 0 NOT NULL,
+    FOREIGN KEY (currency_id) REFERENCES te_currency(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS te_balance (
     id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
-    user_id VARCHAR(36) NOT NULL,
+    account_id VARCHAR(36) NOT NULL,
     currency_id INT NOT NULL,
     balance NUMERIC DEFAULT 0 NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES te_account(id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES te_account(id) ON DELETE CASCADE,
     FOREIGN KEY (currency_id) REFERENCES te_currency(id) ON DELETE CASCADE,
-    CONSTRAINT uk_balance UNIQUE(user_id, currency_id)
+    CONSTRAINT uk_balance UNIQUE(account_id, currency_id)
 );
