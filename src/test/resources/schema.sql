@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS te_default_balance (
     FOREIGN KEY (currency_id) REFERENCES te_currency(id) ON DELETE CASCADE
 );
 
+INSERT IGNORE INTO te_default_balance(currency_id, default_balance)
+VALUES (1, 100);
+
 CREATE TABLE IF NOT EXISTS te_balance (
     id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
     account_id VARCHAR(36) NOT NULL,
