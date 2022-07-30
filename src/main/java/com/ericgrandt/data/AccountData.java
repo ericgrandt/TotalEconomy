@@ -25,10 +25,10 @@ public class AccountData {
             Connection conn = database.getConnection();
             PreparedStatement stmt = conn.prepareStatement(createAccountQuery)
         ) {
-                stmt.setString(1, accountId.toString());
-                stmt.execute();
+            stmt.setString(1, accountId.toString());
+            stmt.execute();
 
-                return true;
+            return true;
         } catch (SQLException e) {
             logger.error(
                 String.format(
