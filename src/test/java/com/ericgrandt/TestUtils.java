@@ -56,8 +56,8 @@ public class TestUtils {
 
     public static void seedUser() {
         try (Connection conn = TestUtils.getConnection()) {
-            String insertAccount = "INSERT INTO te_user\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 'Display Name');";
+            String insertAccount = "INSERT INTO te_account\n"
+                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0');";
             String insertBalance = "INSERT INTO te_balance\n"
                 + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 123)";
             String insertBalance2 = "INSERT INTO te_balance\n"
@@ -74,11 +74,11 @@ public class TestUtils {
 
     public static void seedUsers() {
         try (Connection conn = TestUtils.getConnection()) {
-            String insertAccount = "INSERT INTO te_user\n"
+            String insertAccount = "INSERT INTO te_account\n"
                 + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 'Display Name');";
             String insertBalance = "INSERT INTO te_balance\n"
                 + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 50)";
-            String insertAccount2 = "INSERT INTO te_user\n"
+            String insertAccount2 = "INSERT INTO te_account\n"
                 + "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', 'Display Name 2');";
             String insertBalance2 = "INSERT INTO te_balance\n"
                 + "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', 1, 100)";
@@ -95,7 +95,7 @@ public class TestUtils {
 
     public static void resetDb() {
         try (Connection conn = TestUtils.getConnection()) {
-            String deleteUsers = "DELETE FROM te_user";
+            String deleteUsers = "DELETE FROM te_account";
             String deleteBalances = "DELETE FROM te_balance";
             String deleteCurrencies = "DELETE FROM te_currency";
 

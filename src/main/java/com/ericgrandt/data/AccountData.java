@@ -1,10 +1,11 @@
 package com.ericgrandt.data;
 
 import org.apache.logging.log4j.Logger;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class AccountData {
     private final Logger logger;
@@ -15,31 +16,20 @@ public class AccountData {
         this.database = database;
     }
 
-    public void createAccount(UniqueAccount account) {
+    public void createAccount(UUID accountId) {
         String createAccountQuery = "INSERT INTO te_account(id) VALUES (?)";
-        String createBalancesQuery = "INSERT INTO te_balance(" +
-            "   user_id," +
-            "   currency_id, " +
-            "   balance " +
-            ") SELECT " +
-            "    ?, " +
-            "    c.id, " +
-            "    db.default_balance " +
-            "FROM " +
-            "    te_currency c " +
-            "INNER JOIN te_default_balance db ON " +
-            "    c.id = db.currency_id";
-        
-        try (Connection conn = database.getConnection()) {
 
+        try (Connection conn = database.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(createAccountQuery)) {
+                stmt.setString(1, accountId.toString());
+                stmt.execute();
+            }
         } catch (SQLException e) {
             logger.error(
                 String.format(
-                    "Error creating account (Query: %s, Parameters: %s) (Query: %s, Parameters: %s)",
+                    "Error creating account (Query: %s, Parameters: %s)",
                     createAccountQuery,
-                    account.uniqueId(),
-                    createBalancesQuery,
-                    account.uniqueId()
+                    accountId
                 )
             );
         }
