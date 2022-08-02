@@ -87,7 +87,7 @@ public class BalanceAddCommand implements CommandExecutor {
             if (currencyOpt.isPresent()) {
                 return (TECurrency) currencyOpt.get();
             } else {
-                throw new CommandException(Component.text("That currency does not exist"));
+                throw new CommandException(plugin.getLocales().getText("That currency does not exist", ((LocaleSource) context.cause().root()).locale(), LocalePaths.CURRENCY_NOT_EXIST));
             }
         }
 
@@ -98,29 +98,23 @@ public class BalanceAddCommand implements CommandExecutor {
         Parameter.Key<BigDecimal> amountKey = parameterWrapper.key("amount", BigDecimal.class);
         Optional<BigDecimal> amountOpt = context.one(amountKey);
         if (!amountOpt.isPresent()) {
-            throw new CommandException(Component.text("Amount argument is missing"));
+            throw new CommandException(plugin.getLocales().getText("Amount argument is missing.", ((LocaleSource) context.cause().root()).locale(), LocalePaths.PAY_MISSING_AMOUNT));
         } else if (!(amountOpt.get().compareTo(BigDecimal.ZERO) > 0)) {
-            throw new CommandException(Component.text("Amount must be greater than 0"));
+            throw new CommandException(plugin.getLocales().getText("Amount must be greater than 0.", ((LocaleSource) context.cause().root()).locale(), LocalePaths.PAY_ZERO_OR_BELOW));
         }
 
         return amountOpt.get();
     }
 
     private Optional<User> getUserArgument(CommandContext context) throws CommandException, ExecutionException, InterruptedException {
-        Parameter.Key<String> playerKey = parameterWrapper.key("player", String.class);
-        Optional<String> toUserOpt = context.one(playerKey);
-        if (!toUserOpt.isPresent()) {
-            throw new CommandException(Component.text("Player argument is missing"));
-        }
-
-        return Sponge.server().userManager().load(toUserOpt.get()).get();
+        return Sponge.server().userManager().load(getUnknownUserArgument(context)).get();
     }
 
     private String getUnknownUserArgument(CommandContext context) throws CommandException {
         Parameter.Key<String> playerKey = parameterWrapper.key("player", String.class);
         Optional<String> toUserOpt = context.one(playerKey);
         if (!toUserOpt.isPresent()) {
-            throw new CommandException(Component.text("Player argument is missing"));
+            throw new CommandException(plugin.getLocales().getText("Player argument is missing.", ((LocaleSource) context.cause().root()).locale(), LocalePaths.PLAYER_MISSING));
         }
         return toUserOpt.get();
     }
