@@ -14,6 +14,9 @@ public class AccountService {
         this.accountData = accountData;
     }
 
+    public AccountData getAccountData() {
+        return accountData;
+    }
     public void addAccount(TEAccount account) {
         accountData.addAccount(account);
     }

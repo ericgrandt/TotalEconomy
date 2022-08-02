@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS te_currency (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name_singular VARCHAR(50) NOT NULL UNIQUE,
     name_plural VARCHAR(50) NOT NULL UNIQUE,
-    symbol VARCHAR(2) CHARACTER SET UTF8MB4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+    symbol VARCHAR(2) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci NOT NULL,
     num_fraction_digits INT DEFAULT 0 NOT NULL,
     is_default BOOL NOT NULL
 );

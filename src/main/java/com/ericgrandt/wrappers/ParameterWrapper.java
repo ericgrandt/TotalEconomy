@@ -2,11 +2,15 @@ package com.ericgrandt.wrappers;
 
 import java.math.BigDecimal;
 import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 public class ParameterWrapper {
     public Parameter.Value.Builder<ServerPlayer> player() {
         return Parameter.player();
+    }
+    public Parameter.Value.Builder<String> user() {
+        return Parameter.string();
     }
 
     public Parameter.Value.Builder<BigDecimal> bigDecimal() {

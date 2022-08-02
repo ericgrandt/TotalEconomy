@@ -2,6 +2,8 @@ package com.ericgrandt;
 
 import com.ericgrandt.commands.CommandRegister;
 import com.ericgrandt.config.DefaultConfiguration;
+import com.ericgrandt.config.LocaleService;
+import com.ericgrandt.config.Locales;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.Database;
@@ -24,6 +26,7 @@ import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
 import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
@@ -31,6 +34,8 @@ import org.spongepowered.configurate.reference.ConfigurationReference;
 import org.spongepowered.configurate.reference.ValueReference;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
+
+import java.util.concurrent.TimeUnit;
 
 @Plugin("totaleconomy")
 public class TotalEconomy {
@@ -44,12 +49,15 @@ public class TotalEconomy {
     private TEEconomyService economyService;
     private AccountService accountService;
     private CurrencyData currencyData;
+    private static TotalEconomy instance;
+    private Locales locales;
 
     @Inject
     public TotalEconomy(
         final PluginContainer pluginContainer,
         final @DefaultConfig(sharedRoot = false) ConfigurationReference<CommentedConfigurationNode> configurationReference
     ) {
+        instance = this;
         this.pluginContainer = pluginContainer;
         this.configurationReference = configurationReference;
     }
@@ -71,11 +79,19 @@ public class TotalEconomy {
 
         accountService = new AccountService(accountData);
         economyService = new TEEconomyService(accountData, currencyData);
+        if(Sponge.pluginManager().plugin("localeapi").isPresent()) {
+            LocaleService localeService = new LocaleService();
+            Sponge.eventManager().registerListeners(pluginContainer, localeService);
+            locales = new Locales(localeService);
+        } else locales = new Locales();
     }
 
     @Listener
     public void onServerStarting(final StartingEngineEvent<Server> event) {
         Sponge.eventManager().registerListeners(pluginContainer, new PlayerListener(economyService));
+        Sponge.asyncScheduler().submit(Task.builder().plugin(pluginContainer).interval(15, TimeUnit.MINUTES).execute(() -> {
+            config.get().checkExpires();
+        }).build());
     }
 
     @Listener
@@ -103,6 +119,7 @@ public class TotalEconomy {
 
     @Listener
     public void onServerStarted(StartedEngineEvent<Server> event) {
+        if(!Sponge.pluginManager().plugin("localeapi").isPresent()) logger.warn("The LocaleAPI plugin is missing. Configuring the plugin messages is not available.");
         logger.info("TotalEconomy started successfully");
     }
 
@@ -112,5 +129,17 @@ public class TotalEconomy {
 
     public Database getDatabase() {
         return database;
+    }
+
+    public static TotalEconomy getInstance() {
+        return instance;
+    }
+
+    public AccountService getAccountService(){
+        return accountService;
+    }
+
+    public Locales getLocales() {
+    	return locales;
     }
 }

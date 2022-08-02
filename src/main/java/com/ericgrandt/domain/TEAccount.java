@@ -1,5 +1,6 @@
 package com.ericgrandt.domain;
 
+import com.ericgrandt.TotalEconomy;
 import com.google.common.base.Objects;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -101,6 +102,10 @@ public class TEAccount implements UniqueAccount {
             );
         }
 
+        TotalEconomy.getInstance().getAccountService().getBalances(this.userId).stream().filter(balance -> (balance.getCurrencyId() == ((TECurrency) (currency)).getId())).findFirst().ifPresent(balance -> {
+            balance.setBalance(amount);
+            TotalEconomy.getInstance().getAccountService().getAccountData().setBalance(balance);
+        });
         balances.replace(currency, amount);
 
         return new TETransactionResult(
