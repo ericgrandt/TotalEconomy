@@ -94,8 +94,8 @@ tasks.test {
 tasks.shadowJar {
     archiveBaseName.set("TotalEconomy")
     dependencies {
-	exclude(dependency("com.github.SawFowl:LocaleAPI:2.1.0"))
-	include(dependency("mysql:mysql-connector-java:8.0.29"))
+        exclude(dependency("com.github.SawFowl:LocaleAPI:2.1.0"))
+        include(dependency("mysql:mysql-connector-java:8.0.29"))
         include(dependency("org.mybatis:mybatis"))
     }
 }
