@@ -5,7 +5,7 @@ plugins {
     `java-library`
     id("org.spongepowered.gradle.plugin") version "2.0.1"
     id("com.github.johnrengelman.shadow") version "4.0.4"
-	id("eclipse")
+    id("eclipse")
     checkstyle
 }
 
@@ -47,7 +47,7 @@ sponge {
         }
         dependency("localeapi") {
             loadOrder(PluginDependency.LoadOrder.AFTER)
-			version("2.1.0")
+            version("2.1.0")
             optional(true)
         }
     }
@@ -67,8 +67,8 @@ tasks.withType(AbstractArchiveTask::class).configureEach {
 
 dependencies {
     implementation("org.mybatis:mybatis:3.5.6")
-	implementation("com.github.SawFowl:LocaleAPI:2.1.0")
-	implementation("mysql:mysql-connector-java:8.0.29")
+    implementation("com.github.SawFowl:LocaleAPI:2.1.0")
+    implementation("mysql:mysql-connector-java:8.0.29")
 
     testImplementation("org.mybatis:mybatis:3.5.6")
     testImplementation("org.spongepowered:spongeapi:8.0.0")
@@ -82,11 +82,20 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:3.6.28")
 }
 
+tasks.test {
+    dependsOn("cleanTest")
+
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+}
+
 tasks.shadowJar {
     archiveBaseName.set("TotalEconomy")
     dependencies {
-		exclude(dependency("com.github.SawFowl:LocaleAPI:2.1.0"))
-		include(dependency("mysql:mysql-connector-java:8.0.29"))
+	exclude(dependency("com.github.SawFowl:LocaleAPI:2.1.0"))
+	include(dependency("mysql:mysql-connector-java:8.0.29"))
         include(dependency("org.mybatis:mybatis"))
     }
 }
