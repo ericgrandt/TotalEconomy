@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -42,11 +43,37 @@ public class AccountData {
         return false;
     }
 
-    public AccountDto getAccount(UUID uuid) {
+    public AccountDto getAccount(UUID accountId) {
+        String createAccountQuery = "SELECT * FROM te_account WHERE id = ?";
+
+        try (
+            Connection conn = database.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(createAccountQuery)
+        ) {
+            stmt.setString(1, accountId.toString());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new AccountDto(
+                        rs.getString("id"),
+                        rs.getTimestamp("created")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "Error creating account (Query: %s, Parameters: %s)",
+                    createAccountQuery,
+                    accountId
+                )
+            );
+        }
+
         return null;
     }
 
-    public boolean deleteAccount(UUID uuid) {
+    public boolean deleteAccount(UUID accountId) {
         return true;
     }
 

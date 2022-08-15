@@ -14,11 +14,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -66,6 +68,79 @@ public class AccountDataTest {
         // Assert
         verify(loggerMock, times(1)).error(any(String.class));
         assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccount_WithSuccess_ShouldReturnAccountDto() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        Timestamp timestamp = Timestamp.valueOf("2022-01-01 00:00:00");
+
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(true).thenReturn(false);
+        when(resultSetMock.getString("id")).thenReturn(accountId.toString());
+        when(resultSetMock.getTimestamp("created")).thenReturn(timestamp);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        AccountDto actual = sut.getAccount(accountId);
+        AccountDto expected = new AccountDto(
+            accountId.toString(),
+            timestamp
+        );
+
+        // Arrange
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccount_WithNoAccountFound_ShouldReturnNull() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        Timestamp timestamp = Timestamp.valueOf("2022-01-01 00:00:00");
+
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(false);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        AccountDto actual = sut.getAccount(accountId);
+
+        // Arrange
+        assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
+        // Arrange
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        AccountDto actual = sut.getAccount(UUID.randomUUID());
+
+        // Assert
+        verify(loggerMock, times(1)).error(any(String.class));
+        assertNull(actual);
     }
 
     @Test
@@ -131,6 +206,32 @@ public class AccountDataTest {
         assertNotNull(actual);
         assertEquals(expected.getId(), actual.getId());
         assertNotNull(actual.getCreated());
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getAccount_ShouldReturnAnAccount() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+
+        UUID uuid = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
+
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        AccountDto actual = sut.getAccount(uuid);
+        AccountDto expected = new AccountDto(
+            uuid.toString(),
+            Timestamp.valueOf("2022-01-01 00:00:00")
+        );
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     @Test
