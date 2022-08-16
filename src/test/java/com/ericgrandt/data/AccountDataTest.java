@@ -106,7 +106,6 @@ public class AccountDataTest {
     public void getAccount_WithNoAccountFound_ShouldReturnNull() throws SQLException {
         // Arrange
         UUID accountId = UUID.randomUUID();
-        Timestamp timestamp = Timestamp.valueOf("2022-01-01 00:00:00");
 
         Database databaseMock = mock(Database.class);
         Connection connectionMock = mock(Connection.class);
@@ -177,6 +176,81 @@ public class AccountDataTest {
         // Assert
         verify(loggerMock, times(1)).error(any(String.class));
         assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getVirtualAccount_WithSuccess_ShouldReturnVirtualAccountDto() throws SQLException {
+        // Arrange
+        UUID id = UUID.randomUUID();
+        String identifier = "virtualAccount";
+        Timestamp timestamp = Timestamp.valueOf("2022-01-01 00:00:00");
+
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(true).thenReturn(false);
+        when(resultSetMock.getString("id")).thenReturn(id.toString());
+        when(resultSetMock.getString("identifier")).thenReturn(identifier);
+        when(resultSetMock.getTimestamp("created")).thenReturn(timestamp);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        VirtualAccountDto actual = sut.getVirtualAccount(identifier);
+        VirtualAccountDto expected = new VirtualAccountDto(
+            id.toString(),
+            identifier,
+            timestamp
+        );
+
+        // Arrange
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getVirtualAccount_WithNoVirtualAccountFound_ShouldReturnNull() throws SQLException {
+        // Arrange
+        String identifier = "invalidIdentifier";
+
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(false);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        VirtualAccountDto actual = sut.getVirtualAccount(identifier);
+
+        // Arrange
+        assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getVirtualAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
+        // Arrange
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        VirtualAccountDto actual = sut.getVirtualAccount("virtualAccount");
+
+        // Assert
+        verify(loggerMock, times(1)).error(any(String.class));
+        assertNull(actual);
     }
 
     @Test
@@ -263,6 +337,32 @@ public class AccountDataTest {
         assertNotNull(actual.getId());
         assertEquals(expected.getIdentifier(), actual.getIdentifier());
         assertNotNull(actual.getCreated());
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getVirtualAccount_ShouldReturnAVirtualAccount() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedVirtualAccounts();
+
+        String identifier = "virtualAccount2";
+
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        VirtualAccountDto actual = sut.getVirtualAccount(identifier);
+        VirtualAccountDto expected = new VirtualAccountDto(
+            "7cf27525-6491-4b3e-9208-ce232adf7c87",
+            identifier,
+            Timestamp.valueOf("2022-01-02 00:00:00")
+        );
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     private AccountDto getAccountForId(UUID uuid) throws SQLException {

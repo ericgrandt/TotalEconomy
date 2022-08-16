@@ -93,6 +93,21 @@ public class TestUtils {
         }
     }
 
+    public static void seedVirtualAccounts() {
+        try (Connection conn = TestUtils.getConnection()) {
+            String insertVirtualAccount1 = "INSERT INTO te_virtual_account\n"
+                + "VALUES('af65cab9-7ef9-4108-87f9-4ee66a289bfa', 'virtualAccount1', '2022-01-01 00:00:00');";
+            String insertVirtualAccount2 = "INSERT INTO te_virtual_account\n"
+                + "VALUES('7cf27525-6491-4b3e-9208-ce232adf7c87', 'virtualAccount2', '2022-01-02 00:00:00');";
+
+            Statement statement = conn.createStatement();
+            statement.execute(insertVirtualAccount1);
+            statement.execute(insertVirtualAccount2);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void resetDb() {
         try (Connection conn = TestUtils.getConnection()) {
             String deleteUsers = "DELETE FROM te_account";

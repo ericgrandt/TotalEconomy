@@ -1,5 +1,7 @@
 package com.ericgrandt.data.dto;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+
 import java.sql.Timestamp;
 
 public class VirtualAccountDto {
@@ -23,5 +25,24 @@ public class VirtualAccountDto {
 
     public Timestamp getCreated() {
         return created;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        VirtualAccountDto that = (VirtualAccountDto) o;
+
+        return new EqualsBuilder()
+            .append(id, that.id)
+            .append(identifier, that.identifier)
+            .append(created, that.created)
+            .isEquals();
     }
 }

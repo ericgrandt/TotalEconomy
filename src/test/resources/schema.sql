@@ -20,14 +20,14 @@ CREATE TABLE IF NOT EXISTS te_currency (
 );
 
 CREATE TABLE IF NOT EXISTS te_default_balance (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) DEFAULT random_uuid() PRIMARY KEY,
     currency_id INT NOT NULL UNIQUE,
     default_balance NUMERIC DEFAULT 0 NOT NULL,
     FOREIGN KEY (currency_id) REFERENCES te_currency(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS te_balance (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) DEFAULT random_uuid() PRIMARY KEY,
     account_id VARCHAR(36) NOT NULL,
     currency_id INT NOT NULL,
     balance NUMERIC DEFAULT 0 NOT NULL,

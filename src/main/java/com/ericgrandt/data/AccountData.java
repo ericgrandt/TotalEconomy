@@ -102,6 +102,33 @@ public class AccountData {
     }
 
     public VirtualAccountDto getVirtualAccount(String identifier) {
+        String createVirtualAccountQuery = "SELECT * FROM te_virtual_account WHERE identifier = ?";
+
+        try (
+            Connection conn = database.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(createVirtualAccountQuery)
+        ) {
+            stmt.setString(1, identifier);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new VirtualAccountDto(
+                        rs.getString("id"),
+                        rs.getString("identifier"),
+                        rs.getTimestamp("created")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "Error creating virtual account (Query: %s, Parameters: %s)",
+                    createVirtualAccountQuery,
+                    identifier
+                )
+            );
+        }
+
         return null;
     }
 
