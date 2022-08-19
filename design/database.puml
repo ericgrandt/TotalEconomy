@@ -8,6 +8,13 @@ entity te_account {
     * created : timestamp
 }
 
+entity te_virtual_account {
+    * id : varchar(36) <<uuid>>
+    --
+    * identifier: varchar(50) <<not null>> <<unique>>
+    * created : timestamp
+}
+
 entity te_currency {
     * id : int <<auto_increment>>
     --
