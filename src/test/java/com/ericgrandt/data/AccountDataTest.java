@@ -66,7 +66,7 @@ public class AccountDataTest {
         boolean actual = sut.createAccount(UUID.randomUUID());
 
         // Assert
-        verify(loggerMock, times(1)).error(any(String.class));
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
         assertFalse(actual);
     }
 
@@ -138,8 +138,65 @@ public class AccountDataTest {
         AccountDto actual = sut.getAccount(UUID.randomUUID());
 
         // Assert
-        verify(loggerMock, times(1)).error(any(String.class));
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
         assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
+        // Arrange
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(1);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        boolean actual = sut.deleteAccount(UUID.randomUUID());
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithNoRowsDeleted_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(0);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        boolean actual = sut.deleteAccount(UUID.randomUUID());
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
+        // Arrange
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenThrow(SQLException.class);
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        boolean actual = sut.deleteAccount(UUID.randomUUID());
+
+        // Assert
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+        assertFalse(actual);
     }
 
     @Test
@@ -174,7 +231,7 @@ public class AccountDataTest {
         boolean actual = sut.createVirtualAccount("identifier");
 
         // Assert
-        verify(loggerMock, times(1)).error(any(String.class));
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
         assertFalse(actual);
     }
 
@@ -249,7 +306,7 @@ public class AccountDataTest {
         VirtualAccountDto actual = sut.getVirtualAccount("virtualAccount");
 
         // Assert
-        verify(loggerMock, times(1)).error(any(String.class));
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
         assertNull(actual);
     }
 
@@ -306,6 +363,30 @@ public class AccountDataTest {
 
         // Assert
         assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void deleteAccount_ShouldDeleteTheAccountAndReturnTrue() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+
+        UUID uuid = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
+
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
+
+        AccountData sut = new AccountData(loggerMock, databaseMock);
+
+        // Act
+        boolean actual = sut.deleteAccount(uuid);
+        AccountDto deletedAccount = getAccountForId(uuid);
+
+        // Assert
+        assertTrue(actual);
+        assertNull(deletedAccount);
     }
 
     @Test

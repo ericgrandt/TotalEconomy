@@ -11,7 +11,7 @@ entity te_account {
 entity te_virtual_account {
     * id : varchar(36) <<uuid>>
     --
-    * identifier: varchar(50) <<not null>> <<unique>>
+    * identifier: varchar(50) <<unique>>
     * created : timestamp
 }
 
@@ -29,7 +29,7 @@ entity te_default_balance {
     * id : varchar(36)
     --
     * currency_id : int <<FK>>
-    * default_balance: numeric
+    * default_balance: numeric <<default(0)>>
 }
 
 entity te_balance {

@@ -36,7 +36,8 @@ public class AccountData {
                     "Error creating account (Query: %s, Parameters: %s)",
                     createAccountQuery,
                     accountId
-                )
+                ),
+                e
             );
         }
 
@@ -66,7 +67,8 @@ public class AccountData {
                     "Error creating account (Query: %s, Parameters: %s)",
                     createAccountQuery,
                     accountId
-                )
+                ),
+                e
             );
         }
 
@@ -74,7 +76,28 @@ public class AccountData {
     }
 
     public boolean deleteAccount(UUID accountId) {
-        return true;
+        String deleteAccountQuery = "DELETE FROM te_account WHERE id = ?";
+
+        try (
+            Connection conn = database.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(deleteAccountQuery)
+        ) {
+            stmt.setString(1, accountId.toString());
+            int rowsDeleted = stmt.executeUpdate();
+
+            return rowsDeleted != 0;
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "Error deleting account (Query: %s, Parameters: %s)",
+                    deleteAccountQuery,
+                    accountId
+                ),
+                e
+            );
+        }
+
+        return false;
     }
 
     public boolean createVirtualAccount(String identifier) {
@@ -94,7 +117,8 @@ public class AccountData {
                     "Error creating account (Query: %s, Parameters: %s)",
                     createVirtualAccountQuery,
                     identifier
-                )
+                ),
+                e
             );
         }
 
@@ -125,7 +149,8 @@ public class AccountData {
                     "Error creating virtual account (Query: %s, Parameters: %s)",
                     createVirtualAccountQuery,
                     identifier
-                )
+                ),
+                e
             );
         }
 
