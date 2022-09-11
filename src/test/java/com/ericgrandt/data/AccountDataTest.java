@@ -50,7 +50,7 @@ public class AccountDataTest {
         boolean actual = sut.createAccount(UUID.randomUUID());
 
         // Assert
-        assertTrue(actual);
+        assertFalse(actual);
     }
 
     @Test
