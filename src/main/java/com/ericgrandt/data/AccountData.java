@@ -1,13 +1,12 @@
 package com.ericgrandt.data;
 
 import com.ericgrandt.data.dto.AccountDto;
-import org.apache.logging.log4j.Logger;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
+import org.apache.logging.log4j.Logger;
 
 public class AccountData {
     private final Logger logger;

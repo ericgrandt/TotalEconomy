@@ -2,12 +2,12 @@ package com.ericgrandt;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.ibatis.jdbc.ScriptRunner;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.apache.ibatis.jdbc.ScriptRunner;
 
 public class TestUtils {
     private static final HikariConfig config = new HikariConfig();

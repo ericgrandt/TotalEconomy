@@ -1,5 +1,9 @@
 package com.ericgrandt.impl;
 
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.context.Context;
@@ -8,11 +12,6 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
-
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 public class UniqueAccountImpl implements UniqueAccount {
     private final UUID playerUUID;

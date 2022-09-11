@@ -1,8 +1,7 @@
 package com.ericgrandt.data.dto;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-
 import java.sql.Timestamp;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 public class AccountDto {
     private final String id;

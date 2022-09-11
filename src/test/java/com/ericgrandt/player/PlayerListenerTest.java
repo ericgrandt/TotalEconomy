@@ -1,20 +1,8 @@
 package com.ericgrandt.player;
 
-import com.ericgrandt.TestUtils;
-import com.ericgrandt.data.Database;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.spongepowered.api.entity.living.player.server.ServerPlayer;
-import org.spongepowered.api.event.network.ServerSideConnectionEvent;
-
-import java.sql.SQLException;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 @Tag("Integration")
 @ExtendWith(MockitoExtension.class)

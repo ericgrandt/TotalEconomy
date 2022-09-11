@@ -1,5 +1,9 @@
 package com.ericgrandt.impl;
 
+import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.NotImplementedException;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -7,11 +11,6 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
-
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Stream;
 
 public class EconomyServiceImpl implements EconomyService {
     // private final CurrencyData currencyData;

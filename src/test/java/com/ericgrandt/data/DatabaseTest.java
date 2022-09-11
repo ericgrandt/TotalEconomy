@@ -1,7 +1,19 @@
 package com.ericgrandt.data;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.ericgrandt.TotalEconomy;
 import com.ericgrandt.config.DefaultConfiguration;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Objects;
+import java.util.Optional;
+import org.apache.logging.log4j.Logger;
 import org.h2.util.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -9,21 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.apache.logging.log4j.Logger;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.reference.ValueReference;
 import org.spongepowered.plugin.PluginContainer;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Objects;
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DatabaseTest {
@@ -39,11 +39,10 @@ public class DatabaseTest {
     private Logger loggerMock;
 
     @Mock
-    InputStream mysqlSchemaMock;
+    private ValueReference<DefaultConfiguration, CommentedConfigurationNode> valueReference;
 
     @BeforeEach
     public void init() {
-        ValueReference valueReference = mock(ValueReference.class);
         DefaultConfiguration config = mock(DefaultConfiguration.class);
         when(pluginMock.getDefaultConfiguration()).thenReturn(valueReference);
         when(pluginMock.getDefaultConfiguration().get()).thenReturn(config);

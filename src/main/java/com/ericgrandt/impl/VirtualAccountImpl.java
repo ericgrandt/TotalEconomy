@@ -1,5 +1,8 @@
 package com.ericgrandt.impl;
 
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.context.Context;
@@ -8,10 +11,6 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
-
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.Set;
 
 public class VirtualAccountImpl implements VirtualAccount {
     @Override

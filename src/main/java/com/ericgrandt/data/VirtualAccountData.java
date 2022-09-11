@@ -1,12 +1,11 @@
 package com.ericgrandt.data;
 
 import com.ericgrandt.data.dto.VirtualAccountDto;
-import org.apache.logging.log4j.Logger;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.apache.logging.log4j.Logger;
 
 public class VirtualAccountData {
     private final Logger logger;
