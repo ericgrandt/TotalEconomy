@@ -38,7 +38,7 @@ public class Database {
     private void runSqlScript() {
         try (
             Connection conn = getConnection();
-             InputStreamReader reader = new InputStreamReader(getSchemaSqlInputStream())
+            InputStreamReader reader = new InputStreamReader(getSchemaSqlInputStream())
         ) {
             logger.info("Successfully connected");
 
@@ -65,7 +65,7 @@ public class Database {
     }
 
     private InputStream getSchemaSqlInputStream() throws FileNotFoundException {
-        URI schemaSqlURI = URI.create("schema/mysql.sql");
+        URI schemaSqlURI = URI.create("schema/schema.sql");
         return pluginContainer.openResource(schemaSqlURI).orElseThrow(FileNotFoundException::new);
     }
 }

@@ -54,10 +54,10 @@ public class TestUtils {
         }
     }
 
-    public static void seedUser() {
+    public static void seedAccount() {
         try (Connection conn = TestUtils.getConnection()) {
-            String insertAccount = "INSERT INTO te_user\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 'Display Name');";
+            String insertAccount = "INSERT INTO te_account\n"
+                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0');";
             String insertBalance = "INSERT INTO te_balance\n"
                 + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 123)";
             String insertBalance2 = "INSERT INTO te_balance\n"
@@ -72,16 +72,16 @@ public class TestUtils {
         }
     }
 
-    public static void seedUsers() {
+    public static void seedAccounts() {
         try (Connection conn = TestUtils.getConnection()) {
-            String insertAccount = "INSERT INTO te_user\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 'Display Name');";
+            String insertAccount = "INSERT INTO te_account\n"
+                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', '2022-01-01 00:00:00');";
             String insertBalance = "INSERT INTO te_balance\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 50)";
-            String insertAccount2 = "INSERT INTO te_user\n"
-                + "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', 'Display Name 2');";
+                + "VALUES('ab661384-11f5-41e1-a5e6-6fa93305d4d1', '62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 50)";
+            String insertAccount2 = "INSERT INTO te_account\n"
+                + "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', '2022-01-02 00:00:00');";
             String insertBalance2 = "INSERT INTO te_balance\n"
-                + "VALUES('551fe9be-f77f-4bcb-81db-548db6e77aea', 1, 100)";
+                + "VALUES('a766cedf-f53e-450d-804a-4f292357938f', '551fe9be-f77f-4bcb-81db-548db6e77aea', 1, 100)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertAccount);
@@ -93,9 +93,24 @@ public class TestUtils {
         }
     }
 
+    public static void seedVirtualAccounts() {
+        try (Connection conn = TestUtils.getConnection()) {
+            String insertVirtualAccount1 = "INSERT INTO te_virtual_account\n"
+                + "VALUES('af65cab9-7ef9-4108-87f9-4ee66a289bfa', 'virtualAccount1', '2022-01-01 00:00:00');";
+            String insertVirtualAccount2 = "INSERT INTO te_virtual_account\n"
+                + "VALUES('7cf27525-6491-4b3e-9208-ce232adf7c87', 'virtualAccount2', '2022-01-02 00:00:00');";
+
+            Statement statement = conn.createStatement();
+            statement.execute(insertVirtualAccount1);
+            statement.execute(insertVirtualAccount2);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void resetDb() {
         try (Connection conn = TestUtils.getConnection()) {
-            String deleteUsers = "DELETE FROM te_user";
+            String deleteUsers = "DELETE FROM te_account";
             String deleteBalances = "DELETE FROM te_balance";
             String deleteCurrencies = "DELETE FROM te_currency";
 
