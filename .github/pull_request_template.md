@@ -1,0 +1,1 @@
+NOTE: At this time, PRs to Total Economy are not being accepted due to a rewrite of the codebase.
