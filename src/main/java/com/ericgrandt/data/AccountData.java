@@ -1,7 +1,6 @@
 package com.ericgrandt.data;
 
 import com.ericgrandt.data.dto.AccountDto;
-import com.ericgrandt.data.dto.VirtualAccountDto;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
