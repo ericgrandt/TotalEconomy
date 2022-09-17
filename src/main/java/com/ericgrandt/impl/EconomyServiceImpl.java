@@ -1,10 +1,11 @@
 package com.ericgrandt.impl;
 
+import com.ericgrandt.data.AccountData;
+import com.ericgrandt.data.VirtualAccountData;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.NotImplementedException;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
@@ -13,13 +14,13 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
 
 public class EconomyServiceImpl implements EconomyService {
-    // private final CurrencyData currencyData;
-    // private final AccountData accountData;
-    //
-    // public EconomyServiceImpl(CurrencyData currencyData, AccountData accountData) {
-    //     this.currencyData = currencyData;
-    //     this.accountData = accountData;
-    // }
+    private final AccountData accountData;
+    private final VirtualAccountData virtualAccountData;
+
+    public EconomyServiceImpl(AccountData accountData, VirtualAccountData virtualAccountData) {
+        this.accountData = accountData;
+        this.virtualAccountData = virtualAccountData;
+    }
 
     @Override
     public Currency defaultCurrency() {
@@ -29,13 +30,12 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID playerUUID) {
-        // return accountData.hasAccount(playerUUID);
-        return false;
+        return accountData.getAccount(playerUUID) != null;
     }
 
     @Override
     public boolean hasAccount(String identifier) {
-        throw new NotImplementedException("");
+        return virtualAccountData.getVirtualAccount(identifier) != null;
     }
 
     @Override

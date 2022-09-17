@@ -1,10 +1,89 @@
 package com.ericgrandt.impl;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.ericgrandt.data.AccountData;
+import com.ericgrandt.data.VirtualAccountData;
+import com.ericgrandt.data.dto.AccountDto;
+import com.ericgrandt.data.dto.VirtualAccountDto;
+import java.util.UUID;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class EconomyServiceImplTest {
+    @Test
+    @Tag("Unit")
+    public void hasAccount_WithAccount_ShouldReturnTrue() {
+        // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        AccountDto account = mock(AccountDto.class);
+        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(account);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(accountDataMock, null);
+
+        // Act
+        boolean actual = sut.hasAccount(UUID.randomUUID());
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasAccount_WithNoAccount_ShouldReturnFalse() {
+        // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(null);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(accountDataMock, null);
+
+        // Act
+        boolean actual = sut.hasAccount(UUID.randomUUID());
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasAccount_WithVirtualAccount_ShouldReturnTrue() {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        VirtualAccountDto virtualAccount = mock(VirtualAccountDto.class);
+        when(virtualAccountDataMock.getVirtualAccount(any(String.class))).thenReturn(virtualAccount);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(null, virtualAccountDataMock);
+
+        // Act
+        boolean actual = sut.hasAccount("random");
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasAccount_WithNoVirtualAccount_ShouldReturnFalse() {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccount(any(String.class))).thenReturn(null);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(null, virtualAccountDataMock);
+
+        // Act
+        boolean actual = sut.hasAccount("random");
+
+        // Assert
+        assertFalse(actual);
+    }
+
     // @Test
     // @Tag("Unit")
     // public void defaultCurrency_ShouldReturnCurrency() {
