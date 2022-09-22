@@ -5,18 +5,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.apache.logging.log4j.Logger;
 
 public class VirtualAccountData {
-    private final Logger logger;
     private final Database database;
 
-    public VirtualAccountData(Logger logger, Database database) {
-        this.logger = logger;
+    public VirtualAccountData(Database database) {
         this.database = database;
     }
 
-    public boolean createVirtualAccount(String identifier) {
+    public boolean createVirtualAccount(String identifier) throws SQLException {
         String createVirtualAccountQuery = "INSERT INTO te_virtual_account(identifier) VALUES (?)";
 
         try (
@@ -27,21 +24,10 @@ public class VirtualAccountData {
             stmt.execute();
 
             return true;
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "Error creating virtual account (Query: %s, Parameters: %s)",
-                    createVirtualAccountQuery,
-                    identifier
-                ),
-                e
-            );
         }
-
-        return false;
     }
 
-    public VirtualAccountDto getVirtualAccount(String identifier) {
+    public VirtualAccountDto getVirtualAccount(String identifier) throws SQLException {
         String getVirtualAccountQuery = "SELECT * FROM te_virtual_account WHERE identifier = ?";
 
         try (
@@ -59,21 +45,12 @@ public class VirtualAccountData {
                     );
                 }
             }
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "Error getting virtual account (Query: %s, Parameters: %s)",
-                    getVirtualAccountQuery,
-                    identifier
-                ),
-                e
-            );
         }
 
         return null;
     }
 
-    public boolean deleteVirtualAccount(String identifier) {
+    public boolean deleteVirtualAccount(String identifier) throws SQLException {
         String deleteVirtualAccountQuery = "DELETE FROM te_virtual_account WHERE identifier = ?";
 
         try (
@@ -84,17 +61,6 @@ public class VirtualAccountData {
             int rowsDeleted = stmt.executeUpdate();
 
             return rowsDeleted != 0;
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "Error deleting virtual account (Query: %s, Parameters: %s)",
-                    deleteVirtualAccountQuery,
-                    identifier
-                ),
-                e
-            );
         }
-
-        return false;
     }
 }

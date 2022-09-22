@@ -6,18 +6,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
-import org.apache.logging.log4j.Logger;
 
 public class AccountData {
-    private final Logger logger;
     private final Database database;
 
-    public AccountData(Logger logger, Database database) {
-        this.logger = logger;
+    public AccountData(Database database) {
         this.database = database;
     }
 
-    public boolean createAccount(UUID accountId) {
+    public boolean createAccount(UUID accountId) throws SQLException {
         String createAccountQuery = "INSERT INTO te_account(id) VALUES (?)";
 
         try (
@@ -28,21 +25,10 @@ public class AccountData {
             stmt.execute();
 
             return true;
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "Error creating account (Query: %s, Parameters: %s)",
-                    createAccountQuery,
-                    accountId
-                ),
-                e
-            );
         }
-
-        return false;
     }
 
-    public AccountDto getAccount(UUID accountId) {
+    public AccountDto getAccount(UUID accountId) throws SQLException {
         String getAccountQuery = "SELECT * FROM te_account WHERE id = ?";
 
         try (
@@ -59,21 +45,12 @@ public class AccountData {
                     );
                 }
             }
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "Error getting account (Query: %s, Parameters: %s)",
-                    getAccountQuery,
-                    accountId
-                ),
-                e
-            );
         }
 
         return null;
     }
 
-    public boolean deleteAccount(UUID accountId) {
+    public boolean deleteAccount(UUID accountId) throws SQLException {
         String deleteAccountQuery = "DELETE FROM te_account WHERE id = ?";
 
         try (
@@ -84,17 +61,6 @@ public class AccountData {
             int rowsDeleted = stmt.executeUpdate();
 
             return rowsDeleted != 0;
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "Error deleting account (Query: %s, Parameters: %s)",
-                    deleteAccountQuery,
-                    accountId
-                ),
-                e
-            );
         }
-
-        return false;
     }
 }
