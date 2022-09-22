@@ -5,11 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.TestUtils;
@@ -20,18 +17,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.UUID;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountDataTest {
-    @Mock
-    private Logger loggerMock;
-
     @Test
     @Tag("Unit")
     public void createAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
@@ -42,30 +34,13 @@ public class AccountDataTest {
         when(databaseMock.getConnection()).thenReturn(connectionMock);
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         boolean actual = sut.createAccount(UUID.randomUUID());
 
         // Assert
         assertTrue(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void createAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
-        // Arrange
-        Database databaseMock = mock(Database.class);
-        when(databaseMock.getConnection()).thenThrow(SQLException.class);
-
-        AccountData sut = new AccountData(loggerMock, databaseMock);
-
-        // Act
-        boolean actual = sut.createAccount(UUID.randomUUID());
-
-        // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
-        assertFalse(actual);
     }
 
     @Test
@@ -86,7 +61,7 @@ public class AccountDataTest {
         when(resultSetMock.getString("id")).thenReturn(accountId.toString());
         when(resultSetMock.getTimestamp("created")).thenReturn(timestamp);
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         AccountDto actual = sut.getAccount(accountId);
@@ -114,7 +89,7 @@ public class AccountDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         AccountDto actual = sut.getAccount(accountId);
@@ -125,24 +100,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Unit")
-    public void getAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
-        // Arrange
-        Database databaseMock = mock(Database.class);
-        when(databaseMock.getConnection()).thenThrow(SQLException.class);
-
-        AccountData sut = new AccountData(loggerMock, databaseMock);
-
-        // Act
-        AccountDto actual = sut.getAccount(UUID.randomUUID());
-
-        // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
-        assertNull(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void deleteAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
+    public void deleteAccount_WithRowDeleted_ShouldReturnTrue() throws SQLException {
         // Arrange
         Database databaseMock = mock(Database.class);
         Connection connectionMock = mock(Connection.class);
@@ -151,7 +109,7 @@ public class AccountDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         boolean actual = sut.deleteAccount(UUID.randomUUID());
@@ -171,29 +129,12 @@ public class AccountDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(0);
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         boolean actual = sut.deleteAccount(UUID.randomUUID());
 
         // Assert
-        assertFalse(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void deleteAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
-        // Arrange
-        Database databaseMock = mock(Database.class);
-        when(databaseMock.getConnection()).thenThrow(SQLException.class);
-
-        AccountData sut = new AccountData(loggerMock, databaseMock);
-
-        // Act
-        boolean actual = sut.deleteAccount(UUID.randomUUID());
-
-        // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
         assertFalse(actual);
     }
 
@@ -209,7 +150,7 @@ public class AccountDataTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         sut.createAccount(uuid);
@@ -239,7 +180,7 @@ public class AccountDataTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         AccountDto actual = sut.getAccount(uuid);
@@ -265,7 +206,7 @@ public class AccountDataTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
 
-        AccountData sut = new AccountData(loggerMock, databaseMock);
+        AccountData sut = new AccountData(databaseMock);
 
         // Act
         boolean actual = sut.deleteAccount(uuid);

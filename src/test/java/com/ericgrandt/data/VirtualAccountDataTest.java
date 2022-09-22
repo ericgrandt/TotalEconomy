@@ -5,11 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.TestUtils;
@@ -20,18 +17,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.UUID;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class VirtualAccountDataTest {
-    @Mock
-    private Logger loggerMock;
-
     @Test
     @Tag("Unit")
     public void createVirtualAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
@@ -42,30 +34,13 @@ public class VirtualAccountDataTest {
         when(databaseMock.getConnection()).thenReturn(connectionMock);
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         boolean actual = sut.createVirtualAccount("identifier");
 
         // Assert
         assertTrue(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void createVirtualAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
-        // Arrange
-        Database databaseMock = mock(Database.class);
-        when(databaseMock.getConnection()).thenThrow(SQLException.class);
-
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
-
-        // Act
-        boolean actual = sut.createVirtualAccount("identifier");
-
-        // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
-        assertFalse(actual);
     }
 
     @Test
@@ -88,7 +63,7 @@ public class VirtualAccountDataTest {
         when(resultSetMock.getString("identifier")).thenReturn(identifier);
         when(resultSetMock.getTimestamp("created")).thenReturn(timestamp);
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         VirtualAccountDto actual = sut.getVirtualAccount(identifier);
@@ -117,7 +92,7 @@ public class VirtualAccountDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         VirtualAccountDto actual = sut.getVirtualAccount(identifier);
@@ -128,24 +103,7 @@ public class VirtualAccountDataTest {
 
     @Test
     @Tag("Unit")
-    public void getVirtualAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
-        // Arrange
-        Database databaseMock = mock(Database.class);
-        when(databaseMock.getConnection()).thenThrow(SQLException.class);
-
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
-
-        // Act
-        VirtualAccountDto actual = sut.getVirtualAccount("virtualAccount");
-
-        // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
-        assertNull(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void deleteVirtualAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
+    public void deleteVirtualAccount_WithRowDeleted_ShouldReturnTrue() throws SQLException {
         // Arrange
         Database databaseMock = mock(Database.class);
         Connection connectionMock = mock(Connection.class);
@@ -154,7 +112,7 @@ public class VirtualAccountDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         boolean actual = sut.deleteVirtualAccount("identifier");
@@ -174,29 +132,12 @@ public class VirtualAccountDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(0);
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         boolean actual = sut.deleteVirtualAccount("identifier");
 
         // Assert
-        assertFalse(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void deleteVirtualAccount_WithSqlException_ShouldLogExceptionAndReturnFalse() throws SQLException {
-        // Arrange
-        Database databaseMock = mock(Database.class);
-        when(databaseMock.getConnection()).thenThrow(SQLException.class);
-
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
-
-        // Act
-        boolean actual = sut.deleteVirtualAccount("identifier");
-
-        // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
         assertFalse(actual);
     }
 
@@ -212,7 +153,7 @@ public class VirtualAccountDataTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         sut.createVirtualAccount(identifier);
@@ -243,7 +184,7 @@ public class VirtualAccountDataTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         VirtualAccountDto actual = sut.getVirtualAccount(identifier);
@@ -269,7 +210,7 @@ public class VirtualAccountDataTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
 
-        VirtualAccountData sut = new VirtualAccountData(loggerMock, databaseMock);
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
         boolean actual = sut.deleteVirtualAccount(identifier);
