@@ -1,5 +1,6 @@
 package com.ericgrandt.data.dto;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -121,5 +122,22 @@ public class AccountDtoTest {
 
         // Assert
         assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hashCode_ShouldReturnCorrectHashCode() {
+        // Arrange
+        AccountDto sut = new AccountDto(
+            UUID.fromString("e158f2a0-e860-4ba4-a6ce-ada5deffa2c4").toString(),
+            Timestamp.valueOf("2022-01-01 00:00:00")
+        );
+
+        // Act
+        int actual = sut.hashCode();
+        int expected = 1267439741;
+
+        // Assert
+        assertEquals(expected, actual);
     }
 }

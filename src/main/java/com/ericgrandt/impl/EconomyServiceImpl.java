@@ -3,10 +3,15 @@ package com.ericgrandt.impl;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.VirtualAccountData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import com.ericgrandt.data.dto.AccountDto;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -62,7 +67,35 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
-        return Optional.empty();
+        AccountDto accountDto;
+
+        try {
+            accountDto = accountData.getAccount(uuid);
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling findOrCreateAccount (uuid: %s)", uuid),
+                e
+            );
+            return Optional.empty();
+        }
+
+        if (accountDto == null) {
+            try {
+                accountData.createAccount(uuid);
+                accountDto = new AccountDto(
+                    uuid.toString(),
+                    new Timestamp(new Date().getTime())
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        UniqueAccount account = new UniqueAccountImpl(
+            UUID.fromString(accountDto.getId()),
+            new HashMap<>()
+        );
+        return Optional.of(account);
     }
 
     @Override
