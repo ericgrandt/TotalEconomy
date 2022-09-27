@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class AccountData {
@@ -46,6 +48,29 @@ public class AccountData {
         }
 
         return null;
+    }
+
+    public List<AccountDto> getAccounts() throws SQLException {
+        String getAccountQuery = "SELECT * FROM te_account";
+
+        try (
+            Connection conn = database.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(getAccountQuery)
+        ) {
+            List<AccountDto> accounts = new ArrayList<>();
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    accounts.add(
+                        new AccountDto(
+                            rs.getString("id"),
+                            rs.getTimestamp("created")
+                        )
+                    );
+                }
+            }
+
+            return accounts;
+        }
     }
 
     public boolean deleteAccount(UUID accountId) throws SQLException {
