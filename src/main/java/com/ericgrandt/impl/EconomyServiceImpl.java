@@ -6,6 +6,7 @@ import com.ericgrandt.data.dto.AccountDto;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -92,7 +93,19 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Stream<UniqueAccount> streamUniqueAccounts() {
-        return null;
+        try {
+            List<AccountDto> accountDtos = accountData.getAccounts();
+            return accountDtos.stream().map(account -> new UniqueAccountImpl(
+                UUID.fromString(account.getId()),
+                new HashMap<>()
+            ));
+        } catch (SQLException e) {
+            logger.error(
+                "Error calling streamUniqueAccounts",
+                e
+            );
+            return Stream.empty();
+        }
     }
 
     @Override

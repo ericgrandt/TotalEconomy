@@ -15,9 +15,13 @@ import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
 import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -290,12 +294,78 @@ public class EconomyServiceImplTest {
         EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
 
         // Act
-        Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
-        Optional<UniqueAccount> expected = Optional.empty();
+        sut.findOrCreateAccount(uuid);
 
         // Assert
         verify(loggerMock, times(1)).error(
             eq(String.format("Error calling createAndGetAccount (uuid: %s)", uuid.toString())),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void streamUniqueAccounts_WithSuccess_ShouldReturnListOfAccounts() throws SQLException {
+        // Arrange
+        UUID accountId1 = UUID.randomUUID();
+        UUID accountId2 = UUID.randomUUID();
+        List<AccountDto> accounts = Arrays.asList(
+            new AccountDto(accountId1.toString(), null),
+            new AccountDto(accountId2.toString(), null)
+        );
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccounts()).thenReturn(accounts);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        Stream<UniqueAccount> actual = sut.streamUniqueAccounts();
+
+        List<UniqueAccount> expectedAccounts = Arrays.asList(
+            new UniqueAccountImpl(accountId1, new HashMap<>()),
+            new UniqueAccountImpl(accountId2, new HashMap<>())
+        );
+        Stream<UniqueAccount> expected = expectedAccounts.stream();
+
+        // Assert
+        Iterator actualIter = actual.iterator();
+        Iterator expectedIter = expected.iterator();
+        while (actualIter.hasNext() && expectedIter.hasNext()) {
+            assertEquals(actualIter.next(), expectedIter.next());
+        }
+    }
+
+    @Test
+    @Tag("Unit")
+    public void streamUniqueAccounts_WithSqlException_ShouldReturnEmptyStream() throws SQLException {
+        // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        Stream<UniqueAccount> actual = sut.streamUniqueAccounts();
+
+        // Assert
+        assertFalse(actual.findAny().isPresent());
+    }
+
+    @Test
+    @Tag("Unit")
+    public void streamUniqueAccounts_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        sut.streamUniqueAccounts();
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq("Error calling streamUniqueAccounts"),
             any(SQLException.class)
         );
     }
