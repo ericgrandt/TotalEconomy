@@ -14,7 +14,7 @@ public class AccountData {
         this.database = database;
     }
 
-    public boolean createAccount(UUID accountId) throws SQLException {
+    public int createAccount(UUID accountId) throws SQLException {
         String createAccountQuery = "INSERT INTO te_account(id) VALUES (?)";
 
         try (
@@ -22,9 +22,7 @@ public class AccountData {
             PreparedStatement stmt = conn.prepareStatement(createAccountQuery)
         ) {
             stmt.setString(1, accountId.toString());
-            stmt.execute();
-
-            return true;
+            return stmt.executeUpdate();
         }
     }
 

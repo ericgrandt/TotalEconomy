@@ -229,7 +229,7 @@ public class EconomyServiceImplTest {
 
         // Assert
         verify(loggerMock, times(1)).error(
-            eq(String.format("Error calling findOrCreateAccount (uuid: %s)", uuid.toString())),
+            eq(String.format("Error calling getAccount (uuid: %s)", uuid.toString())),
             any(SQLException.class)
         );
     }
@@ -240,8 +240,9 @@ public class EconomyServiceImplTest {
         // Arrange
         AccountData accountDataMock = mock(AccountData.class);
         UUID uuid = UUID.randomUUID();
-        when(accountDataMock.getAccount(uuid)).thenReturn(null);
-        when(accountDataMock.createAccount(uuid)).thenReturn(true);
+        AccountDto createdAccountDto = new AccountDto(uuid.toString(), null);
+        when(accountDataMock.getAccount(uuid)).thenReturn(null).thenReturn(createdAccountDto);
+        when(accountDataMock.createAccount(uuid)).thenReturn(1);
 
         EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
 
@@ -260,21 +261,42 @@ public class EconomyServiceImplTest {
 
     @Test
     @Tag("Unit")
-    public void findOrCreateAccount_WithSqlExceptionFromCreatingAccount_ShouldReturnEmptyOptional() {
+    public void findOrCreateAccount_WithSqlExceptionFromCreatingAccount_ShouldReturnEmptyOptional() throws SQLException {
         // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        UUID uuid = UUID.randomUUID();
+        when(accountDataMock.getAccount(uuid)).thenReturn(null);
+        when(accountDataMock.createAccount(uuid)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
 
         // Act
+        Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
+        Optional<UniqueAccount> expected = Optional.empty();
 
         // Assert
+        assertEquals(expected, actual);
     }
 
     @Test
     @Tag("Unit")
-    public void findOrCreateAccount_WithSqlExceptionFromCreatingAccount_ShouldLogError() {
+    public void findOrCreateAccount_WithSqlExceptionFromCreatingAccount_ShouldLogError() throws SQLException {
         // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        UUID uuid = UUID.randomUUID();
+        when(accountDataMock.getAccount(uuid)).thenReturn(null);
+        when(accountDataMock.createAccount(uuid)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
 
         // Act
+        Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
+        Optional<UniqueAccount> expected = Optional.empty();
 
         // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling createAndGetAccount (uuid: %s)", uuid.toString())),
+            any(SQLException.class)
+        );
     }
 }

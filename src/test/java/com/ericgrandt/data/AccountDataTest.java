@@ -33,14 +33,16 @@ public class AccountDataTest {
         PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
         when(databaseMock.getConnection()).thenReturn(connectionMock);
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        boolean actual = sut.createAccount(UUID.randomUUID());
+        int actual = sut.createAccount(UUID.randomUUID());
+        int expected = 1;
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
     }
 
     @Test

@@ -2,16 +2,13 @@ package com.ericgrandt.impl;
 
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.VirtualAccountData;
+import com.ericgrandt.data.dto.AccountDto;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-
-import com.ericgrandt.data.dto.AccountDto;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -67,35 +64,25 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
-        AccountDto accountDto;
-
-        try {
-            accountDto = accountData.getAccount(uuid);
-        } catch (SQLException e) {
-            logger.error(
-                String.format("Error calling findOrCreateAccount (uuid: %s)", uuid),
-                e
+        Optional<AccountDto> existingAccountDto = getAccount(uuid);
+        if (existingAccountDto.isPresent()) {
+            UniqueAccount account = new UniqueAccountImpl(
+                UUID.fromString(existingAccountDto.get().getId()),
+                new HashMap<>()
             );
-            return Optional.empty();
+            return Optional.of(account);
         }
 
-        if (accountDto == null) {
-            try {
-                accountData.createAccount(uuid);
-                accountDto = new AccountDto(
-                    uuid.toString(),
-                    new Timestamp(new Date().getTime())
-                );
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+        Optional<AccountDto> createdAccountDto = createAndGetAccount(uuid);
+        if (createdAccountDto.isPresent()) {
+            UniqueAccount account = new UniqueAccountImpl(
+                UUID.fromString(createdAccountDto.get().getId()),
+                new HashMap<>()
+            );
+            return Optional.of(account);
         }
 
-        UniqueAccount account = new UniqueAccountImpl(
-            UUID.fromString(accountDto.getId()),
-            new HashMap<>()
-        );
-        return Optional.of(account);
+        return Optional.empty();
     }
 
     @Override
@@ -131,5 +118,30 @@ public class EconomyServiceImpl implements EconomyService {
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
         return null;
+    }
+
+    private Optional<AccountDto> getAccount(UUID uuid) {
+        try {
+            return Optional.ofNullable(accountData.getAccount(uuid));
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling getAccount (uuid: %s)", uuid),
+                e
+            );
+            return Optional.empty();
+        }
+    }
+
+    private Optional<AccountDto> createAndGetAccount(UUID uuid) {
+        try {
+            accountData.createAccount(uuid);
+            return Optional.ofNullable(accountData.getAccount(uuid));
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling createAndGetAccount (uuid: %s)", uuid),
+                e
+            );
+            return Optional.empty();
+        }
     }
 }
