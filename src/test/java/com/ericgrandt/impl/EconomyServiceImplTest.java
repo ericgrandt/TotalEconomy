@@ -16,6 +16,7 @@ import com.ericgrandt.data.dto.AccountDto;
 import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -305,7 +306,7 @@ public class EconomyServiceImplTest {
 
     @Test
     @Tag("Unit")
-    public void streamUniqueAccounts_WithSuccess_ShouldReturnListOfAccounts() throws SQLException {
+    public void streamUniqueAccounts_WithSuccess_ShouldReturnStreamOfAccounts() throws SQLException {
         // Arrange
         UUID accountId1 = UUID.randomUUID();
         UUID accountId2 = UUID.randomUUID();
@@ -362,6 +363,67 @@ public class EconomyServiceImplTest {
 
         // Act
         sut.streamUniqueAccounts();
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq("Error calling streamUniqueAccounts"),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void uniqueAccounts_WithSuccess_ShouldReturnListOfAccounts() throws SQLException {
+        // Arrange
+        UUID accountId1 = UUID.randomUUID();
+        UUID accountId2 = UUID.randomUUID();
+        List<AccountDto> accounts = Arrays.asList(
+            new AccountDto(accountId1.toString(), null),
+            new AccountDto(accountId2.toString(), null)
+        );
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccounts()).thenReturn(accounts);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        Collection<UniqueAccount> actual = sut.uniqueAccounts();
+        Collection<UniqueAccount> expected = Arrays.asList(
+            new UniqueAccountImpl(accountId1, new HashMap<>()),
+            new UniqueAccountImpl(accountId2, new HashMap<>())
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void uniqueAccounts_WithSqlException_ShouldReturnEmptyCollection() throws SQLException {
+        // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        Collection<UniqueAccount> actual = sut.uniqueAccounts();
+
+        // Assert
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    @Tag("Unit")
+    public void uniqueAccounts_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        sut.uniqueAccounts();
 
         // Assert
         verify(loggerMock, times(1)).error(

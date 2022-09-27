@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
@@ -94,11 +95,12 @@ public class EconomyServiceImpl implements EconomyService {
     @Override
     public Stream<UniqueAccount> streamUniqueAccounts() {
         try {
-            List<AccountDto> accountDtos = accountData.getAccounts();
-            return accountDtos.stream().map(account -> new UniqueAccountImpl(
-                UUID.fromString(account.getId()),
-                new HashMap<>()
-            ));
+            return accountData.getAccounts()
+                .stream()
+                .map(account -> new UniqueAccountImpl(
+                    UUID.fromString(account.getId()),
+                    new HashMap<>()
+                ));
         } catch (SQLException e) {
             logger.error(
                 "Error calling streamUniqueAccounts",
@@ -110,7 +112,7 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Collection<UniqueAccount> uniqueAccounts() {
-        return null;
+        return streamUniqueAccounts().collect(Collectors.toList());
     }
 
     @Override
