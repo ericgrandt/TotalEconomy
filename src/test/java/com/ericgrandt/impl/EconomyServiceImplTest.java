@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 @ExtendWith(MockitoExtension.class)
@@ -428,6 +429,80 @@ public class EconomyServiceImplTest {
         // Assert
         verify(loggerMock, times(1)).error(
             eq("Error calling streamUniqueAccounts"),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithTrueResponse_ShouldReturnSuccessfulAccountDeletionResultType() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.deleteAccount(accountId)).thenReturn(true);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        AccountDeletionResultType actual = sut.deleteAccount(accountId);
+        AccountDeletionResultType expected = new AccountDeletionResultTypeImpl(true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithFalseResponse_ShouldReturnSuccessfulAccountDeletionResultType() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.deleteAccount(accountId)).thenReturn(false);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        AccountDeletionResultType actual = sut.deleteAccount(accountId);
+        AccountDeletionResultType expected = new AccountDeletionResultTypeImpl(true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithSqlException_ShouldReturnUnsuccessfulAccountDeletionResultType() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.deleteAccount(accountId)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        AccountDeletionResultType actual = sut.deleteAccount(accountId);
+        AccountDeletionResultType expected = new AccountDeletionResultTypeImpl(false);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        AccountData accountDataMock = mock(AccountData.class);
+        when(accountDataMock.deleteAccount(accountId)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null);
+
+        // Act
+        sut.deleteAccount(accountId);
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling deleteAccount (uuid: %s)", accountId)),
             any(SQLException.class)
         );
     }

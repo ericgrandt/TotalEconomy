@@ -6,7 +6,6 @@ import com.ericgrandt.data.dto.AccountDto;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -127,7 +126,16 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public AccountDeletionResultType deleteAccount(UUID uuid) {
-        return null;
+        try {
+            accountData.deleteAccount(uuid);
+            return new AccountDeletionResultTypeImpl(true);
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling deleteAccount (uuid: %s)", uuid),
+                e
+            );
+            return new AccountDeletionResultTypeImpl(false);
+        }
     }
 
     @Override
