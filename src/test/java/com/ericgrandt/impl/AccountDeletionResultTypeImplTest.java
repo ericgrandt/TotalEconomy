@@ -7,10 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-
-import java.util.HashMap;
-import java.util.UUID;
 
 public class AccountDeletionResultTypeImplTest {
     @Test
