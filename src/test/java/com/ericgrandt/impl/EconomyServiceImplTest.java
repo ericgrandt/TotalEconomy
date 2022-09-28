@@ -103,7 +103,10 @@ public class EconomyServiceImplTest {
         sut.hasAccount(uuid);
 
         // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling hasAccount (playerUUID: %s)", uuid)),
+            any(SQLException.class)
+        );
     }
 
     @Test
@@ -172,7 +175,10 @@ public class EconomyServiceImplTest {
         sut.hasAccount(identifier);
 
         // Assert
-        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling hasAccount (identifier: %s)", identifier)),
+            any(SQLException.class)
+        );
     }
 
     @Test
