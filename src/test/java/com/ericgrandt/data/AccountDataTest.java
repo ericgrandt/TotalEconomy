@@ -16,6 +16,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,14 +35,16 @@ public class AccountDataTest {
         PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
         when(databaseMock.getConnection()).thenReturn(connectionMock);
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        boolean actual = sut.createAccount(UUID.randomUUID());
+        int actual = sut.createAccount(UUID.randomUUID());
+        int expected = 1;
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -96,6 +100,37 @@ public class AccountDataTest {
 
         // Arrange
         assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccounts_WithSuccess_ShouldReturnListOfAccounts() throws SQLException {
+        // Arrange
+        UUID accountId1 = UUID.randomUUID();
+        UUID accountId2 = UUID.randomUUID();
+
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSetMock.getString("id")).thenReturn(accountId1.toString()).thenReturn(accountId2.toString());
+        when(resultSetMock.getTimestamp("created")).thenReturn(null).thenReturn(null);
+
+        AccountData sut = new AccountData(databaseMock);
+
+        // Act
+        List<AccountDto> actual = sut.getAccounts();
+        List<AccountDto> expected = Arrays.asList(
+            new AccountDto(accountId1.toString(), null),
+            new AccountDto(accountId2.toString(), null)
+        );
+
+        // Arrange
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -187,6 +222,30 @@ public class AccountDataTest {
         AccountDto expected = new AccountDto(
             uuid.toString(),
             Timestamp.valueOf("2022-01-01 00:00:00")
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getAccounts_ShouldReturnListOfAccounts() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
+
+        AccountData sut = new AccountData(databaseMock);
+
+        // Act
+        List<AccountDto> actual = sut.getAccounts();
+        List<AccountDto> expected = Arrays.asList(
+            new AccountDto("62694fb0-07cc-4396-8d63-4f70646d75f0", Timestamp.valueOf("2022-01-01 00:00:00")),
+            new AccountDto("551fe9be-f77f-4bcb-81db-548db6e77aea", Timestamp.valueOf("2022-01-02 00:00:00"))
         );
 
         // Assert

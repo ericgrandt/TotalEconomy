@@ -37,4 +37,11 @@ public class AccountDto {
             .append(created, that.created)
             .isEquals();
     }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + created.hashCode();
+        return result;
+    }
 }

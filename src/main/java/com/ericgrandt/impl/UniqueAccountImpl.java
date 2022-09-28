@@ -132,4 +132,28 @@ public class UniqueAccountImpl implements UniqueAccount {
     public UUID uniqueId() {
         return null;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UniqueAccountImpl that = (UniqueAccountImpl) o;
+
+        if (!playerUUID.equals(that.playerUUID)) {
+            return false;
+        }
+        return balances.equals(that.balances);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = playerUUID.hashCode();
+        result = 31 * result + balances.hashCode();
+        return result;
+    }
 }
