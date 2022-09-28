@@ -94,13 +94,14 @@ public class AccountDeletionResultTypeImplTest {
     @Tag("Unit")
     public void hashCode_ShouldReturnCorrectHashCode() {
         // Arrange
-        AccountDeletionResultType sut = new AccountDeletionResultTypeImpl(true);
+        AccountDeletionResultType sut1 = new AccountDeletionResultTypeImpl(true);
+        AccountDeletionResultType sut2 = new AccountDeletionResultTypeImpl(true);
 
         // Act
-        int actual = sut.hashCode();
-        int expected = 1;
+        int actual1 = sut1.hashCode();
+        int actual2 = sut2.hashCode();
 
         // Assert
-        assertEquals(expected, actual);
+        assertEquals(actual1, actual2);
     }
 }

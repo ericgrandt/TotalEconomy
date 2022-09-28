@@ -150,16 +150,20 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void hashCode_ShouldReturnCorrectHashCode() {
         // Arrange
-        UniqueAccount sut = new UniqueAccountImpl(
+        UniqueAccount sut1 = new UniqueAccountImpl(
+            UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"),
+            new HashMap<>()
+        );
+        UniqueAccount sut2 = new UniqueAccountImpl(
             UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"),
             new HashMap<>()
         );
 
         // Act
-        int actual = sut.hashCode();
-        int expected = 1294759320;
+        int actual1 = sut1.hashCode();
+        int actual2 = sut2.hashCode();
 
         // Assert
-        assertEquals(expected, actual);
+        assertEquals(actual1, actual2);
     }
 }

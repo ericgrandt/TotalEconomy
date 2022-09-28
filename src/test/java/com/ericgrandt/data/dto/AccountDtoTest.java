@@ -128,16 +128,20 @@ public class AccountDtoTest {
     @Tag("Unit")
     public void hashCode_ShouldReturnCorrectHashCode() {
         // Arrange
-        AccountDto sut = new AccountDto(
+        AccountDto sut1 = new AccountDto(
+            UUID.fromString("e158f2a0-e860-4ba4-a6ce-ada5deffa2c4").toString(),
+            Timestamp.valueOf("2022-01-01 00:00:00")
+        );
+        AccountDto sut2 = new AccountDto(
             UUID.fromString("e158f2a0-e860-4ba4-a6ce-ada5deffa2c4").toString(),
             Timestamp.valueOf("2022-01-01 00:00:00")
         );
 
         // Act
-        int actual = sut.hashCode();
-        int expected = 1267439741;
+        int actual1 = sut1.hashCode();
+        int actual2 = sut2.hashCode();
 
         // Assert
-        assertEquals(expected, actual);
+        assertEquals(actual1, actual2);
     }
 }
