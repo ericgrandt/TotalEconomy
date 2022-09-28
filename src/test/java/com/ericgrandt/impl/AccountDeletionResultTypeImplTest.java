@@ -11,7 +11,7 @@ import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 public class AccountDeletionResultTypeImplTest {
     @Test
     @Tag("Unit")
-    public void isSuccess_WhenTrue_ShouldReturnFalse() {
+    public void isSuccess_WhenIsSuccessIsTrue_ShouldReturnTrue() {
         // Arrange
         AccountDeletionResultType sut = new AccountDeletionResultTypeImpl(true);
 
@@ -24,7 +24,7 @@ public class AccountDeletionResultTypeImplTest {
 
     @Test
     @Tag("Unit")
-    public void isSuccess_WhenFalse_ShouldReturnFalse() {
+    public void isSuccess_WhenIsSuccessIsFalse_ShouldReturnFalse() {
         // Arrange
         AccountDeletionResultType sut = new AccountDeletionResultTypeImpl(false);
 
