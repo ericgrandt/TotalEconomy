@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
@@ -310,6 +311,40 @@ public class EconomyServiceImplTest {
             any(SQLException.class)
         );
     }
+
+    //
+    //
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithFoundVirtualAccount_ShouldReturnAccount() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        VirtualAccountDto account = new VirtualAccountDto(
+            UUID.randomUUID().toString(),
+            identifier,
+            null
+        );
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(account);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Optional<Account> actual = sut.findOrCreateAccount(identifier);
+        Optional<Account> expected = Optional.of(
+            new VirtualAccountImpl(
+                identifier,
+                new HashMap<>()
+            )
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    //
+    //
 
     @Test
     @Tag("Unit")

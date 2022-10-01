@@ -3,6 +3,7 @@ package com.ericgrandt.impl;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
+import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -88,7 +89,12 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Optional<Account> findOrCreateAccount(String identifier) {
-        return Optional.empty();
+        Optional<VirtualAccountDto> virtualAccountDto = getVirtualAccount(identifier);
+        Account account = new VirtualAccountImpl(
+            virtualAccountDto.get().getIdentifier(),
+            new HashMap<>()
+        );
+        return Optional.of(account);
     }
 
     @Override
@@ -152,6 +158,14 @@ public class EconomyServiceImpl implements EconomyService {
                 e
             );
             return Optional.empty();
+        }
+    }
+
+    private Optional<VirtualAccountDto> getVirtualAccount(String identifier) {
+        try {
+            return Optional.of(virtualAccountData.getVirtualAccount(identifier));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

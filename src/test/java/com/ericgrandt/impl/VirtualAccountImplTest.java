@@ -9,28 +9,27 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.account.Account;
 
 @ExtendWith(MockitoExtension.class)
-public class UniqueAccountImplTest {
+public class VirtualAccountImplTest {
     @Test
     @Tag("Unit")
     public void displayName_ShouldReturnDisplayName() {
         // Arrange
-        UUID playerUUID = UUID.randomUUID();
+        String identifier = "identifier";
         Map<Currency, BigDecimal> balances = new HashMap<>();
-        UniqueAccount sut = new UniqueAccountImpl(playerUUID, balances);
+        Account sut = new VirtualAccountImpl(identifier, balances);
 
         // Act
         Component actual = sut.displayName();
-        Component expected = Component.text(playerUUID.toString());
+        Component expected = Component.text(identifier);
 
         // Assert
         assertEquals(expected, actual);
@@ -40,18 +39,18 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithEqualObjects_ShouldReturnTrue() {
         // Arrange
-        UUID uuid = UUID.randomUUID();
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(
-            uuid,
+        String identifier = "identifier";
+        Account account1 = new VirtualAccountImpl(
+            identifier,
             new HashMap<>()
         );
-        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(
-            uuid,
+        Account account2 = new VirtualAccountImpl(
+            identifier,
             new HashMap<>()
         );
 
         // Act
-        boolean actual = uniqueAccount1.equals(uniqueAccount2);
+        boolean actual = account1.equals(account2);
 
         // Assert
         assertTrue(actual);
@@ -61,13 +60,13 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithSameObject_ShouldReturnTrue() {
         // Arrange
-        UniqueAccount uniqueAccount = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account = new VirtualAccountImpl(
+            "identifier",
             new HashMap<>()
         );
 
         // Act
-        boolean actual = uniqueAccount.equals(uniqueAccount);
+        boolean actual = account.equals(account);
 
         // Assert
         assertTrue(actual);
@@ -77,13 +76,13 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithNullObject_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account = new VirtualAccountImpl(
+            "identifier",
             new HashMap<>()
         );
 
         // Act
-        boolean actual = uniqueAccount.equals(null);
+        boolean actual = account.equals(null);
 
         // Assert
         assertFalse(actual);
@@ -93,14 +92,14 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithWrongClass_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account1 = new VirtualAccountImpl(
+            "identifier",
             new HashMap<>()
         );
-        Object uniqueAccount2 = new Object();
+        Object account2 = new Object();
 
         // Act
-        boolean actual = uniqueAccount1.equals(uniqueAccount2);
+        boolean actual = account1.equals(account2);
 
         // Assert
         assertFalse(actual);
@@ -110,17 +109,17 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithDifferentPlayerUuid_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account1 = new VirtualAccountImpl(
+            "identifier",
             new HashMap<>()
         );
-        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account2 = new VirtualAccountImpl(
+            "identifier2",
             new HashMap<>()
         );
 
         // Act
-        boolean actual = uniqueAccount1.equals(uniqueAccount2);
+        boolean actual = account1.equals(account2);
 
         // Assert
         assertFalse(actual);
@@ -130,17 +129,18 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithDifferentBalances_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account1 = new VirtualAccountImpl(
+            "identifier",
             Collections.singletonMap(mock(Currency.class), BigDecimal.ZERO)
+
         );
-        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(
-            UUID.randomUUID(),
+        Account account2 = new VirtualAccountImpl(
+            "identifier2",
             Collections.singletonMap(mock(Currency.class), BigDecimal.TEN)
         );
 
         // Act
-        boolean actual = uniqueAccount1.equals(uniqueAccount2);
+        boolean actual = account1.equals(account2);
 
         // Assert
         assertFalse(actual);
@@ -150,18 +150,18 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void hashCode_ShouldReturnCorrectHashCode() {
         // Arrange
-        UniqueAccount sut1 = new UniqueAccountImpl(
-            UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"),
+        Account account1 = new VirtualAccountImpl(
+            "identifier",
             new HashMap<>()
         );
-        UniqueAccount sut2 = new UniqueAccountImpl(
-            UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"),
+        Account account2 = new VirtualAccountImpl(
+            "identifier",
             new HashMap<>()
         );
 
         // Act
-        int actual1 = sut1.hashCode();
-        int actual2 = sut2.hashCode();
+        int actual1 = account1.hashCode();
+        int actual2 = account2.hashCode();
 
         // Assert
         assertEquals(actual1, actual2);
