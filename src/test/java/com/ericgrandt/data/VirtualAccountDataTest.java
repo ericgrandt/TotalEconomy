@@ -16,6 +16,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -101,6 +103,40 @@ public class VirtualAccountDataTest {
 
         // Arrange
         assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getVirtualAccounts_WithSuccess_ShouldReturnListOfVirtualAccounts() throws SQLException {
+        // Arrange
+        UUID accountId1 = UUID.randomUUID();
+        UUID accountId2 = UUID.randomUUID();
+        String identifier1 = "identifier1";
+        String identifier2 = "identifier2";
+
+        Database databaseMock = mock(Database.class);
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSetMock.getString("id")).thenReturn(accountId1.toString()).thenReturn(accountId2.toString());
+        when(resultSetMock.getString("identifier")).thenReturn(identifier1).thenReturn(identifier2);
+        when(resultSetMock.getTimestamp("created")).thenReturn(null).thenReturn(null);
+
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
+
+        // Act
+        List<VirtualAccountDto> actual = sut.getVirtualAccounts();
+        List<VirtualAccountDto> expected = Arrays.asList(
+            new VirtualAccountDto(accountId1.toString(), identifier1, null),
+            new VirtualAccountDto(accountId2.toString(), identifier2, null)
+        );
+
+        // Arrange
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -194,6 +230,29 @@ public class VirtualAccountDataTest {
             "7cf27525-6491-4b3e-9208-ce232adf7c87",
             identifier,
             Timestamp.valueOf("2022-01-02 00:00:00")
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getVirtualAccounts_ShouldReturnListOfVirtualAccounts() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedVirtualAccounts();
+
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getConnection()).thenReturn(TestUtils.getConnection());
+
+        VirtualAccountData sut = new VirtualAccountData(databaseMock);
+
+        // Act
+        List<VirtualAccountDto> actual = sut.getVirtualAccounts();
+        List<VirtualAccountDto> expected = Arrays.asList(
+            new VirtualAccountDto("af65cab9-7ef9-4108-87f9-4ee66a289bfa", "virtualAccount1", Timestamp.valueOf("2022-01-01 00:00:00")),
+            new VirtualAccountDto("7cf27525-6491-4b3e-9208-ce232adf7c87", "virtualAccount2", Timestamp.valueOf("2022-01-02 00:00:00"))
         );
 
         // Assert
