@@ -13,7 +13,7 @@ public class VirtualAccountData {
         this.database = database;
     }
 
-    public boolean createVirtualAccount(String identifier) throws SQLException {
+    public int createVirtualAccount(String identifier) throws SQLException {
         String createVirtualAccountQuery = "INSERT INTO te_virtual_account(identifier) VALUES (?)";
 
         try (
@@ -21,9 +21,7 @@ public class VirtualAccountData {
             PreparedStatement stmt = conn.prepareStatement(createVirtualAccountQuery)
         ) {
             stmt.setString(1, identifier);
-            stmt.execute();
-
-            return true;
+            return stmt.executeUpdate();
         }
     }
 

@@ -26,21 +26,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class VirtualAccountDataTest {
     @Test
     @Tag("Unit")
-    public void createVirtualAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
+    public void createVirtualAccount_WithSuccess_ShouldReturnOne() throws SQLException {
         // Arrange
         Database databaseMock = mock(Database.class);
         Connection connectionMock = mock(Connection.class);
         PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
         when(databaseMock.getConnection()).thenReturn(connectionMock);
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
         VirtualAccountData sut = new VirtualAccountData(databaseMock);
 
         // Act
-        boolean actual = sut.createVirtualAccount("identifier");
+        int actual = sut.createVirtualAccount("identifier");
+        int expected = 1;
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
