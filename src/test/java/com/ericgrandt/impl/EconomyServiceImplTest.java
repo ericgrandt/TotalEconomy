@@ -29,8 +29,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.account.VirtualAccount;
 
 @ExtendWith(MockitoExtension.class)
 public class EconomyServiceImplTest {
@@ -313,6 +315,136 @@ public class EconomyServiceImplTest {
 
     @Test
     @Tag("Unit")
+    public void findOrCreateAccount_WithFoundVirtualAccount_ShouldReturnAccount() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        VirtualAccountDto account = new VirtualAccountDto(
+            UUID.randomUUID().toString(),
+            identifier,
+            null
+        );
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(account);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Optional<Account> actual = sut.findOrCreateAccount(identifier);
+        Optional<Account> expected = Optional.of(
+            new VirtualAccountImpl(
+                identifier,
+                new HashMap<>()
+            )
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithSqlExceptionFromFindingVirtualAccount_ShouldReturnEmptyOptional() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Optional<Account> actual = sut.findOrCreateAccount(identifier);
+        Optional<Account> expected = Optional.empty();
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithSqlExceptionFromFindingVirtualAccount_ShouldLogError() throws SQLException {
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        sut.findOrCreateAccount(identifier);
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling getVirtualAccount (identifier: %s)", identifier)),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithNullResponseFromFindingVirtualAccount_ShouldCreateAndReturnAnAccount() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        VirtualAccountDto createdVirtualAccountDto = new VirtualAccountDto(UUID.randomUUID().toString(), identifier, null);
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null).thenReturn(createdVirtualAccountDto);
+        when(virtualAccountDataMock.createVirtualAccount(identifier)).thenReturn(1);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Optional<Account> actual = sut.findOrCreateAccount(identifier);
+        Optional<Account> expected = Optional.of(
+            new VirtualAccountImpl(
+                identifier,
+                new HashMap<>()
+            )
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithSqlExceptionFromCreatingVirtualAccount_ShouldReturnEmptyOptional() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null);
+        when(virtualAccountDataMock.createVirtualAccount(identifier)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Optional<Account> actual = sut.findOrCreateAccount(identifier);
+        Optional<Account> expected = Optional.empty();
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithSqlExceptionFromCreatingVirtualAccount_ShouldLogError() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        String identifier = "identifier";
+        when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null);
+        when(virtualAccountDataMock.createVirtualAccount(identifier)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        sut.findOrCreateAccount(identifier);
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling createAndGetVirtualAccount (identifier: %s)", identifier)),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
     public void streamUniqueAccounts_WithSuccess_ShouldReturnStreamOfAccounts() throws SQLException {
         // Arrange
         UUID accountId1 = UUID.randomUUID();
@@ -441,6 +573,134 @@ public class EconomyServiceImplTest {
 
     @Test
     @Tag("Unit")
+    public void streamVirtualAccounts_WithSuccess_ShouldReturnStreamOfAccounts() throws SQLException {
+        // Arrange
+        String identifier1 = "identifier1";
+        String identifier2 = "identifier2";
+        List<VirtualAccountDto> virtualAccounts = Arrays.asList(
+            new VirtualAccountDto(UUID.randomUUID().toString(), identifier1, null),
+            new VirtualAccountDto(UUID.randomUUID().toString(), identifier2, null)
+        );
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccounts()).thenReturn(virtualAccounts);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Stream<VirtualAccount> actual = sut.streamVirtualAccounts();
+
+        List<VirtualAccount> expectedAccounts = Arrays.asList(
+            new VirtualAccountImpl(identifier1, new HashMap<>()),
+            new VirtualAccountImpl(identifier2, new HashMap<>())
+        );
+        Stream<VirtualAccount> expected = expectedAccounts.stream();
+
+        // Assert
+        Iterator actualIter = actual.iterator();
+        Iterator expectedIter = expected.iterator();
+        while (actualIter.hasNext() && expectedIter.hasNext()) {
+            assertEquals(actualIter.next(), expectedIter.next());
+        }
+    }
+
+    @Test
+    @Tag("Unit")
+    public void streamVirtualAccounts_WithSqlException_ShouldReturnEmptyStream() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Stream<VirtualAccount> actual = sut.streamVirtualAccounts();
+
+        // Assert
+        assertFalse(actual.findAny().isPresent());
+    }
+
+    @Test
+    @Tag("Unit")
+    public void streamVirtualAccounts_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        sut.streamVirtualAccounts();
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq("Error calling streamVirtualAccounts"),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void virtualAccounts_WithSuccess_ShouldReturnListOfAccounts() throws SQLException {
+        // Arrange
+        String identifier1 = "identifier1";
+        String identifier2 = "identifier2";
+        List<VirtualAccountDto> virtualAccounts = Arrays.asList(
+            new VirtualAccountDto(UUID.randomUUID().toString(), identifier1, null),
+            new VirtualAccountDto(UUID.randomUUID().toString(), identifier2, null)
+        );
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccounts()).thenReturn(virtualAccounts);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Collection<VirtualAccount> actual = sut.virtualAccounts();
+        Collection<VirtualAccount> expected = Arrays.asList(
+            new VirtualAccountImpl(identifier1, new HashMap<>()),
+            new VirtualAccountImpl(identifier2, new HashMap<>())
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void virtualAccounts_WithSqlException_ShouldReturnEmptyCollection() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        Collection<VirtualAccount> actual = sut.virtualAccounts();
+
+        // Assert
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    @Tag("Unit")
+    public void virtualAccounts_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        sut.virtualAccounts();
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq("Error calling streamVirtualAccounts"),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
     public void deleteAccount_WithTrueResponse_ShouldReturnSuccessfulAccountDeletionResultType() throws SQLException {
         // Arrange
         UUID accountId = UUID.randomUUID();
@@ -509,6 +769,83 @@ public class EconomyServiceImplTest {
         // Assert
         verify(loggerMock, times(1)).error(
             eq(String.format("Error calling deleteAccount (uuid: %s)", accountId)),
+            any(SQLException.class)
+        );
+    }
+
+    ///
+    ///
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithIdentifierAndTrueResponse_ShouldReturnSuccessfulAccountDeletionResultType() throws SQLException {
+        // Arrange
+        String identifier = "identifier";
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenReturn(true);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        AccountDeletionResultType actual = sut.deleteAccount(identifier);
+        AccountDeletionResultType expected = new AccountDeletionResultTypeImpl(true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithIdentifierAndFalseResponse_ShouldReturnSuccessfulAccountDeletionResultType() throws SQLException {
+        // Arrange
+        String identifier = "identifier";
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenReturn(false);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        AccountDeletionResultType actual = sut.deleteAccount(identifier);
+        AccountDeletionResultType expected = new AccountDeletionResultTypeImpl(true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithIdentifierAndSqlException_ShouldReturnUnsuccessfulAccountDeletionResultType() throws SQLException {
+        // Arrange
+        String identifier = "identifier";
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        AccountDeletionResultType actual = sut.deleteAccount(identifier);
+        AccountDeletionResultType expected = new AccountDeletionResultTypeImpl(false);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deleteAccount_WithIdentifierAndSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        String identifier = "identifier";
+        VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
+        when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock);
+
+        // Act
+        sut.deleteAccount(identifier);
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling deleteAccount (identifier: %s)", identifier)),
             any(SQLException.class)
         );
     }

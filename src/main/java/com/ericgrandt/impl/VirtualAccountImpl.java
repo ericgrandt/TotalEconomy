@@ -13,9 +13,17 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class VirtualAccountImpl implements VirtualAccount {
+    private final String identifier;
+    private final Map<Currency, BigDecimal> balances;
+
+    public VirtualAccountImpl(String identifier, Map<Currency, BigDecimal> balances) {
+        this.identifier = identifier;
+        this.balances = balances;
+    }
+
     @Override
     public Component displayName() {
-        return null;
+        return Component.text(identifier);
     }
 
     @Override
@@ -116,5 +124,30 @@ public class VirtualAccountImpl implements VirtualAccount {
     @Override
     public String identifier() {
         return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        VirtualAccountImpl that = (VirtualAccountImpl) o;
+
+        if (!identifier.equals(that.identifier)) {
+            return false;
+        }
+        return balances.equals(that.balances);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = identifier.hashCode();
+        result = 31 * result + balances.hashCode();
+        return result;
     }
 }

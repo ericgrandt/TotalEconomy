@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class AccountDataTest {
     @Test
     @Tag("Unit")
-    public void createAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
+    public void createAccount_WithSuccess_ShouldReturnOne() throws SQLException {
         // Arrange
         Database databaseMock = mock(Database.class);
         Connection connectionMock = mock(Connection.class);

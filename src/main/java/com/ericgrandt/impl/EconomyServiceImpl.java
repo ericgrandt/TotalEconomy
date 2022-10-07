@@ -3,6 +3,7 @@ package com.ericgrandt.impl;
 import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
+import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -88,6 +89,24 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Optional<Account> findOrCreateAccount(String identifier) {
+        Optional<VirtualAccountDto> existingVirtualAccountDto = getVirtualAccount(identifier);
+        if (existingVirtualAccountDto.isPresent()) {
+            Account virtualAccount = new VirtualAccountImpl(
+                existingVirtualAccountDto.get().getIdentifier(),
+                new HashMap<>()
+            );
+            return Optional.of(virtualAccount);
+        }
+
+        Optional<VirtualAccountDto> createdVirtualAccountDto = createAndGetVirtualAccount(identifier);
+        if (createdVirtualAccountDto.isPresent()) {
+            Account virtualAccount = new VirtualAccountImpl(
+                createdVirtualAccountDto.get().getIdentifier(),
+                new HashMap<>()
+            );
+            return Optional.of(virtualAccount);
+        }
+
         return Optional.empty();
     }
 
@@ -116,18 +135,34 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Stream<VirtualAccount> streamVirtualAccounts() {
-        return null;
+        try {
+            return virtualAccountData.getVirtualAccounts()
+                .stream()
+                .map(virtualAccount -> new VirtualAccountImpl(
+                    virtualAccount.getIdentifier(),
+                    new HashMap<>()
+                ));
+        } catch (SQLException e) {
+            logger.error(
+                "Error calling streamVirtualAccounts",
+                e
+            );
+            return Stream.empty();
+        }
     }
 
     @Override
     public Collection<VirtualAccount> virtualAccounts() {
-        return null;
+        return streamVirtualAccounts().collect(Collectors.toList());
     }
 
     @Override
     public AccountDeletionResultType deleteAccount(UUID uuid) {
         try {
             accountData.deleteAccount(uuid);
+
+            // NOTE: Regardless of if an account is deleted or not, as long as it doesn't error out we will return true.
+            //  This may change in the future if a use case is found.
             return new AccountDeletionResultTypeImpl(true);
         } catch (SQLException e) {
             logger.error(
@@ -140,7 +175,19 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
-        return null;
+        try {
+            virtualAccountData.deleteVirtualAccount(identifier);
+
+            // NOTE: Regardless of if a virtual account is deleted or not, as long as it doesn't error out we will
+            //  return true. This may change in the future if a use case is found.
+            return new AccountDeletionResultTypeImpl(true);
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling deleteAccount (identifier: %s)", identifier),
+                e
+            );
+            return new AccountDeletionResultTypeImpl(false);
+        }
     }
 
     private Optional<AccountDto> getAccount(UUID uuid) {
@@ -162,6 +209,31 @@ public class EconomyServiceImpl implements EconomyService {
         } catch (SQLException e) {
             logger.error(
                 String.format("Error calling createAndGetAccount (uuid: %s)", uuid),
+                e
+            );
+            return Optional.empty();
+        }
+    }
+
+    private Optional<VirtualAccountDto> getVirtualAccount(String identifier) {
+        try {
+            return Optional.ofNullable(virtualAccountData.getVirtualAccount(identifier));
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling getVirtualAccount (identifier: %s)", identifier),
+                e
+            );
+            return Optional.empty();
+        }
+    }
+
+    private Optional<VirtualAccountDto> createAndGetVirtualAccount(String identifier) {
+        try {
+            virtualAccountData.createVirtualAccount(identifier);
+            return Optional.ofNullable(virtualAccountData.getVirtualAccount(identifier));
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling createAndGetVirtualAccount (identifier: %s)", identifier),
                 e
             );
             return Optional.empty();
