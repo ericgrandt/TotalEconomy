@@ -135,18 +135,34 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Stream<VirtualAccount> streamVirtualAccounts() {
-        return null;
+        try {
+            return virtualAccountData.getVirtualAccounts()
+                .stream()
+                .map(virtualAccount -> new VirtualAccountImpl(
+                    virtualAccount.getIdentifier(),
+                    new HashMap<>()
+                ));
+        } catch (SQLException e) {
+            logger.error(
+                "Error calling streamVirtualAccounts",
+                e
+            );
+            return Stream.empty();
+        }
     }
 
     @Override
     public Collection<VirtualAccount> virtualAccounts() {
-        return null;
+        return streamVirtualAccounts().collect(Collectors.toList());
     }
 
     @Override
     public AccountDeletionResultType deleteAccount(UUID uuid) {
         try {
             accountData.deleteAccount(uuid);
+
+            // NOTE: Regardless of if an account is deleted or not, as long as it doesn't error out we will return true.
+            //  This may change in the future if a use case is found.
             return new AccountDeletionResultTypeImpl(true);
         } catch (SQLException e) {
             logger.error(
@@ -159,7 +175,19 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
-        return null;
+        try {
+            virtualAccountData.deleteVirtualAccount(identifier);
+
+            // NOTE: Regardless of if a virtual account is deleted or not, as long as it doesn't error out we will
+            //  return true. This may change in the future if a use case is found.
+            return new AccountDeletionResultTypeImpl(true);
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error calling deleteAccount (identifier: %s)", identifier),
+                e
+            );
+            return new AccountDeletionResultTypeImpl(false);
+        }
     }
 
     private Optional<AccountDto> getAccount(UUID uuid) {
