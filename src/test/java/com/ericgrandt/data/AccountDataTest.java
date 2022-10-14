@@ -61,7 +61,7 @@ public class AccountDataTest {
         when(databaseMock.getConnection()).thenReturn(connectionMock);
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
-        when(resultSetMock.next()).thenReturn(true).thenReturn(false);
+        when(resultSetMock.next()).thenReturn(true);
         when(resultSetMock.getString("id")).thenReturn(accountId.toString());
         when(resultSetMock.getTimestamp("created")).thenReturn(timestamp);
 

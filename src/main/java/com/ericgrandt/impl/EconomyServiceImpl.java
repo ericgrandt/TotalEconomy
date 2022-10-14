@@ -32,7 +32,7 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Currency defaultCurrency() {
-        // return currencyData.getDefaultCurrency();
+        // Currency defaultCurrency = new CurrencyImpl();
         return null;
     }
 
@@ -68,6 +68,7 @@ public class EconomyServiceImpl implements EconomyService {
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
         Optional<AccountDto> existingAccountDto = getAccount(uuid);
         if (existingAccountDto.isPresent()) {
+            // TODO: Get all currencies and users current balances for those currencies (getBalances() returns HashMap)
             UniqueAccount account = new UniqueAccountImpl(
                 UUID.fromString(existingAccountDto.get().getId()),
                 new HashMap<>()
@@ -77,6 +78,7 @@ public class EconomyServiceImpl implements EconomyService {
 
         Optional<AccountDto> createdAccountDto = createAndGetAccount(uuid);
         if (createdAccountDto.isPresent()) {
+            // TODO: Get all currencies and default balances for those currencies (getDefaultBalances() returns HashMap)
             UniqueAccount account = new UniqueAccountImpl(
                 UUID.fromString(createdAccountDto.get().getId()),
                 new HashMap<>()
