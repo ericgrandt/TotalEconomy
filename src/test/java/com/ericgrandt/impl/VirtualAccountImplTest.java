@@ -24,8 +24,7 @@ public class VirtualAccountImplTest {
     public void displayName_ShouldReturnDisplayName() {
         // Arrange
         String identifier = "identifier";
-        Map<Currency, BigDecimal> balances = new HashMap<>();
-        Account sut = new VirtualAccountImpl(identifier, balances);
+        Account sut = new VirtualAccountImpl(identifier);
 
         // Act
         Component actual = sut.displayName();
@@ -40,14 +39,8 @@ public class VirtualAccountImplTest {
     public void equals_WithEqualObjects_ShouldReturnTrue() {
         // Arrange
         String identifier = "identifier";
-        Account account1 = new VirtualAccountImpl(
-            identifier,
-            new HashMap<>()
-        );
-        Account account2 = new VirtualAccountImpl(
-            identifier,
-            new HashMap<>()
-        );
+        Account account1 = new VirtualAccountImpl(identifier);
+        Account account2 = new VirtualAccountImpl(identifier);
 
         // Act
         boolean actual = account1.equals(account2);
@@ -60,10 +53,7 @@ public class VirtualAccountImplTest {
     @Tag("Unit")
     public void equals_WithSameObject_ShouldReturnTrue() {
         // Arrange
-        Account account = new VirtualAccountImpl(
-            "identifier",
-            new HashMap<>()
-        );
+        Account account = new VirtualAccountImpl("identifier");
 
         // Act
         boolean actual = account.equals(account);
@@ -76,10 +66,7 @@ public class VirtualAccountImplTest {
     @Tag("Unit")
     public void equals_WithNullObject_ShouldReturnFalse() {
         // Arrange
-        Account account = new VirtualAccountImpl(
-            "identifier",
-            new HashMap<>()
-        );
+        Account account = new VirtualAccountImpl("identifier");
 
         // Act
         boolean actual = account.equals(null);
@@ -92,10 +79,7 @@ public class VirtualAccountImplTest {
     @Tag("Unit")
     public void equals_WithWrongClass_ShouldReturnFalse() {
         // Arrange
-        Account account1 = new VirtualAccountImpl(
-            "identifier",
-            new HashMap<>()
-        );
+        Account account1 = new VirtualAccountImpl("identifier");
         Object account2 = new Object();
 
         // Act
@@ -109,35 +93,8 @@ public class VirtualAccountImplTest {
     @Tag("Unit")
     public void equals_WithDifferentPlayerUuid_ShouldReturnFalse() {
         // Arrange
-        Account account1 = new VirtualAccountImpl(
-            "identifier",
-            new HashMap<>()
-        );
-        Account account2 = new VirtualAccountImpl(
-            "identifier2",
-            new HashMap<>()
-        );
-
-        // Act
-        boolean actual = account1.equals(account2);
-
-        // Assert
-        assertFalse(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void equals_WithDifferentBalances_ShouldReturnFalse() {
-        // Arrange
-        Account account1 = new VirtualAccountImpl(
-            "identifier",
-            Collections.singletonMap(mock(Currency.class), BigDecimal.ZERO)
-
-        );
-        Account account2 = new VirtualAccountImpl(
-            "identifier2",
-            Collections.singletonMap(mock(Currency.class), BigDecimal.TEN)
-        );
+        Account account1 = new VirtualAccountImpl("identifier");
+        Account account2 = new VirtualAccountImpl("identifier2");
 
         // Act
         boolean actual = account1.equals(account2);
@@ -150,14 +107,8 @@ public class VirtualAccountImplTest {
     @Tag("Unit")
     public void hashCode_ShouldReturnCorrectHashCode() {
         // Arrange
-        Account account1 = new VirtualAccountImpl(
-            "identifier",
-            new HashMap<>()
-        );
-        Account account2 = new VirtualAccountImpl(
-            "identifier",
-            new HashMap<>()
-        );
+        Account account1 = new VirtualAccountImpl("identifier");
+        Account account2 = new VirtualAccountImpl("identifier");
 
         // Act
         int actual1 = account1.hashCode();

@@ -15,11 +15,9 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
     private final UUID playerUUID;
-    private final Map<Currency, BigDecimal> balances;
 
-    public UniqueAccountImpl(UUID playerUUID, Map<Currency, BigDecimal> balances) {
+    public UniqueAccountImpl(UUID playerUUID) {
         this.playerUUID = playerUUID;
-        this.balances = balances;
     }
 
     @Override
@@ -138,22 +136,18 @@ public class UniqueAccountImpl implements UniqueAccount {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
         UniqueAccountImpl that = (UniqueAccountImpl) o;
 
-        if (!playerUUID.equals(that.playerUUID)) {
-            return false;
-        }
-        return balances.equals(that.balances);
+        return playerUUID.equals(that.playerUUID);
     }
 
     @Override
     public int hashCode() {
-        int result = playerUUID.hashCode();
-        result = 31 * result + balances.hashCode();
-        return result;
+        return playerUUID.hashCode();
     }
 }
