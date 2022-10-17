@@ -1,12 +1,13 @@
 package com.ericgrandt.impl;
 
 import com.ericgrandt.data.AccountData;
+import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
+import com.ericgrandt.data.dto.CurrencyDto;
 import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,17 +24,43 @@ public class EconomyServiceImpl implements EconomyService {
     private final Logger logger;
     private final AccountData accountData;
     private final VirtualAccountData virtualAccountData;
+    private final CurrencyData currencyData;
 
-    public EconomyServiceImpl(Logger logger, AccountData accountData, VirtualAccountData virtualAccountData) {
+    public EconomyServiceImpl(
+        Logger logger,
+        AccountData accountData,
+        VirtualAccountData virtualAccountData,
+        CurrencyData currencyData
+    ) {
         this.logger = logger;
         this.accountData = accountData;
         this.virtualAccountData = virtualAccountData;
+        this.currencyData = currencyData;
     }
 
     @Override
     public Currency defaultCurrency() {
-        // return currencyData.getDefaultCurrency();
-        return null;
+        try {
+            CurrencyDto currencyDto = currencyData.getDefaultCurrency();
+            if (currencyDto == null) {
+                return null;
+            }
+
+            return new CurrencyImpl(
+                currencyDto.getId(),
+                currencyDto.getNameSingular(),
+                currencyDto.getNamePlural(),
+                currencyDto.getSymbol(),
+                currencyDto.getNumFractionDigits(),
+                currencyDto.isDefault()
+            );
+        } catch (SQLException e) {
+            logger.error(
+                "Error calling getDefaultCurrency",
+                e
+            );
+            return null;
+        }
     }
 
     @Override
@@ -68,19 +95,13 @@ public class EconomyServiceImpl implements EconomyService {
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
         Optional<AccountDto> existingAccountDto = getAccount(uuid);
         if (existingAccountDto.isPresent()) {
-            UniqueAccount account = new UniqueAccountImpl(
-                UUID.fromString(existingAccountDto.get().getId()),
-                new HashMap<>()
-            );
+            UniqueAccount account = new UniqueAccountImpl(UUID.fromString(existingAccountDto.get().getId()));
             return Optional.of(account);
         }
 
         Optional<AccountDto> createdAccountDto = createAndGetAccount(uuid);
         if (createdAccountDto.isPresent()) {
-            UniqueAccount account = new UniqueAccountImpl(
-                UUID.fromString(createdAccountDto.get().getId()),
-                new HashMap<>()
-            );
+            UniqueAccount account = new UniqueAccountImpl(UUID.fromString(createdAccountDto.get().getId()));
             return Optional.of(account);
         }
 
@@ -91,19 +112,13 @@ public class EconomyServiceImpl implements EconomyService {
     public Optional<Account> findOrCreateAccount(String identifier) {
         Optional<VirtualAccountDto> existingVirtualAccountDto = getVirtualAccount(identifier);
         if (existingVirtualAccountDto.isPresent()) {
-            Account virtualAccount = new VirtualAccountImpl(
-                existingVirtualAccountDto.get().getIdentifier(),
-                new HashMap<>()
-            );
+            Account virtualAccount = new VirtualAccountImpl(existingVirtualAccountDto.get().getIdentifier());
             return Optional.of(virtualAccount);
         }
 
         Optional<VirtualAccountDto> createdVirtualAccountDto = createAndGetVirtualAccount(identifier);
         if (createdVirtualAccountDto.isPresent()) {
-            Account virtualAccount = new VirtualAccountImpl(
-                createdVirtualAccountDto.get().getIdentifier(),
-                new HashMap<>()
-            );
+            Account virtualAccount = new VirtualAccountImpl(createdVirtualAccountDto.get().getIdentifier());
             return Optional.of(virtualAccount);
         }
 
@@ -115,10 +130,7 @@ public class EconomyServiceImpl implements EconomyService {
         try {
             return accountData.getAccounts()
                 .stream()
-                .map(account -> new UniqueAccountImpl(
-                    UUID.fromString(account.getId()),
-                    new HashMap<>()
-                ));
+                .map(account -> new UniqueAccountImpl(UUID.fromString(account.getId())));
         } catch (SQLException e) {
             logger.error(
                 "Error calling streamUniqueAccounts",
@@ -138,10 +150,7 @@ public class EconomyServiceImpl implements EconomyService {
         try {
             return virtualAccountData.getVirtualAccounts()
                 .stream()
-                .map(virtualAccount -> new VirtualAccountImpl(
-                    virtualAccount.getIdentifier(),
-                    new HashMap<>()
-                ));
+                .map(virtualAccount -> new VirtualAccountImpl(virtualAccount.getIdentifier()));
         } catch (SQLException e) {
             logger.error(
                 "Error calling streamVirtualAccounts",

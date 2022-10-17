@@ -14,11 +14,9 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class VirtualAccountImpl implements VirtualAccount {
     private final String identifier;
-    private final Map<Currency, BigDecimal> balances;
 
-    public VirtualAccountImpl(String identifier, Map<Currency, BigDecimal> balances) {
+    public VirtualAccountImpl(String identifier) {
         this.identifier = identifier;
-        this.balances = balances;
     }
 
     @Override
@@ -138,16 +136,11 @@ public class VirtualAccountImpl implements VirtualAccount {
 
         VirtualAccountImpl that = (VirtualAccountImpl) o;
 
-        if (!identifier.equals(that.identifier)) {
-            return false;
-        }
-        return balances.equals(that.balances);
+        return identifier.equals(that.identifier);
     }
 
     @Override
     public int hashCode() {
-        int result = identifier.hashCode();
-        result = 31 * result + balances.hashCode();
-        return result;
+        return identifier.hashCode();
     }
 }
