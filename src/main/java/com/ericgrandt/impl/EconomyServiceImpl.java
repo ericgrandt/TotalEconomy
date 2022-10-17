@@ -47,6 +47,7 @@ public class EconomyServiceImpl implements EconomyService {
             }
 
             return new CurrencyImpl(
+                currencyDto.getId(),
                 currencyDto.getNameSingular(),
                 currencyDto.getNamePlural(),
                 currencyDto.getSymbol(),

@@ -62,6 +62,7 @@ public class EconomyServiceImplTest {
         // Act
         Currency actual = sut.defaultCurrency();
         Currency expected = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",

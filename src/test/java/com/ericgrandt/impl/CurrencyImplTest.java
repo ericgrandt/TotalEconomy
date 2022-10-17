@@ -13,9 +13,31 @@ import org.spongepowered.api.service.economy.Currency;
 public class CurrencyImplTest {
     @Test
     @Tag("Unit")
+    public void getId_ShouldReturnId() {
+        // Arrange
+        CurrencyImpl sut = new CurrencyImpl(
+            1,
+            "singular",
+            "plural",
+            "$",
+            2,
+            true
+        );
+
+        // Act
+        int actual = sut.getId();
+        int expected = 1;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void displayName_ShouldReturnCorrectComponent() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -36,6 +58,7 @@ public class CurrencyImplTest {
     public void pluralDisplayName_ShouldReturnCorrectComponent() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -56,6 +79,7 @@ public class CurrencyImplTest {
     public void symbol_ShouldReturnCorrectComponent() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -76,6 +100,7 @@ public class CurrencyImplTest {
     public void format_WithTwoFractionDigits_ShouldReturnCorrectComponent() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -97,6 +122,7 @@ public class CurrencyImplTest {
     public void format_WithThreeFractionDigits_ShouldReturnCorrectComponent() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -118,6 +144,7 @@ public class CurrencyImplTest {
     public void format_WithOverriddenFractionDigits_ShouldReturnCorrectComponent() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -139,6 +166,7 @@ public class CurrencyImplTest {
     public void defaultFractionDigits_ShouldReturnNumFractionDigits() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -159,6 +187,7 @@ public class CurrencyImplTest {
     public void isDefault_WithValueOfTrue_ShouldReturnTrue() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -178,6 +207,7 @@ public class CurrencyImplTest {
     public void isDefault_WithValueOfFalse_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -197,6 +227,7 @@ public class CurrencyImplTest {
     public void equals_WithSameObject_ShouldReturnTrue() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -216,6 +247,7 @@ public class CurrencyImplTest {
     public void equals_WithNullObject_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -235,6 +267,7 @@ public class CurrencyImplTest {
     public void equals_WithDifferentClass_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -252,9 +285,10 @@ public class CurrencyImplTest {
 
     @Test
     @Tag("Unit")
-    public void equals_WithDifferentNumFractionDigits_ShouldReturnFalse() {
+    public void equals_WithDifferentId_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -262,6 +296,35 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            2,
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentNumFractionDigits_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            1,
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -281,6 +344,7 @@ public class CurrencyImplTest {
     public void equals_WithDifferentIsDefault_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -288,6 +352,7 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -307,6 +372,7 @@ public class CurrencyImplTest {
     public void equals_WithDifferentNameSingular_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -314,6 +380,7 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            1,
             "different",
             "plural",
             "$",
@@ -333,6 +400,7 @@ public class CurrencyImplTest {
     public void equals_WithDifferentNamePlural_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -340,6 +408,7 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            1,
             "singular",
             "different",
             "$",
@@ -359,6 +428,7 @@ public class CurrencyImplTest {
     public void equals_WithDifferentSymbol_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -366,6 +436,7 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "@",
@@ -385,6 +456,7 @@ public class CurrencyImplTest {
     public void equals_WithEqualObjects_ShouldReturnFalse() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -392,6 +464,7 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -411,6 +484,7 @@ public class CurrencyImplTest {
     public void hashCode_WithEqualObjects_ShouldReturnSameHashCode() {
         // Arrange
         Currency sut = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",
@@ -418,6 +492,7 @@ public class CurrencyImplTest {
             false
         );
         Currency o = new CurrencyImpl(
+            1,
             "singular",
             "plural",
             "$",

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.spongepowered.api.service.economy.Currency;
 
 public class CurrencyImpl implements Currency {
+    private final int id;
     private final String nameSingular;
     private final String namePlural;
     private final String symbol;
@@ -13,17 +14,23 @@ public class CurrencyImpl implements Currency {
     private final boolean isDefault;
 
     public CurrencyImpl(
+        int id,
         String nameSingular,
         String namePlural,
         String symbol,
         int numFractionDigits,
         boolean isDefault
     ) {
+        this.id = id;
         this.nameSingular = nameSingular;
         this.namePlural = namePlural;
         this.symbol = symbol;
         this.numFractionDigits = numFractionDigits;
         this.isDefault = isDefault;
+    }
+
+    public int getId() {
+        return id;
     }
 
     @Override
@@ -69,6 +76,10 @@ public class CurrencyImpl implements Currency {
 
         CurrencyImpl currency = (CurrencyImpl) o;
 
+        if (id != currency.id) {
+            return false;
+        }
+
         if (numFractionDigits != currency.numFractionDigits) {
             return false;
         }
@@ -90,7 +101,8 @@ public class CurrencyImpl implements Currency {
 
     @Override
     public int hashCode() {
-        int result = nameSingular.hashCode();
+        int result = id;
+        result = 31 * result + nameSingular.hashCode();
         result = 31 * result + namePlural.hashCode();
         result = 31 * result + symbol.hashCode();
         result = 31 * result + numFractionDigits;
