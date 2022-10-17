@@ -39,7 +39,13 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Currency defaultCurrency() {
-        return null;
+        return new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
     }
 
     @Override

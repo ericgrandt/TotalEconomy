@@ -11,8 +11,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.data.AccountData;
+import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
+import com.ericgrandt.data.dto.CurrencyDto;
 import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -38,6 +41,38 @@ import org.spongepowered.api.service.economy.account.VirtualAccount;
 public class EconomyServiceImplTest {
     @Mock
     private Logger loggerMock;
+
+    @Test
+    @Tag("Unit")
+    public void defaultCurrency_WithDefaultCurrency_ShouldReturnCurrency() throws SQLException {
+        // Arrange
+        CurrencyData currencyDataMock = mock(CurrencyData.class);
+        CurrencyDto defaultCurrency = new CurrencyDto(
+            1,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+        when(currencyDataMock.getDefaultCurrency()).thenReturn(defaultCurrency);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+
+
+        // Act
+        Currency actual = sut.defaultCurrency();
+        Currency expected = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
 
     @Test
     @Tag("Unit")

@@ -20,8 +20,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
 
         // Act
@@ -41,8 +40,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
 
         // Act
@@ -62,8 +60,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
 
         // Act
@@ -83,8 +80,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
         BigDecimal value = BigDecimal.valueOf(10.1252);
 
@@ -105,8 +101,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             3,
-            true,
-            BigDecimal.TEN
+            true
         );
         BigDecimal value = BigDecimal.valueOf(10.1252);
 
@@ -127,8 +122,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
         BigDecimal value = BigDecimal.valueOf(10.1252);
 
@@ -149,8 +143,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
 
         // Act
@@ -170,8 +163,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            true
         );
 
         // Act
@@ -190,8 +182,7 @@ public class CurrencyImplTest {
             "plural",
             "$",
             2,
-            false,
-            BigDecimal.TEN
+            false
         );
 
         // Act
@@ -203,41 +194,240 @@ public class CurrencyImplTest {
 
     @Test
     @Tag("Unit")
-    public void defaultBalance_WithValueOfTen_ShouldReturnTen() {
+    public void equals_WithSameObject_ShouldReturnTrue() {
         // Arrange
-        CurrencyImpl sut = new CurrencyImpl(
+        Currency sut = new CurrencyImpl(
             "singular",
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.TEN
+            false
         );
 
         // Act
-        BigDecimal actual = sut.defaultBalance();
-        BigDecimal expected = BigDecimal.TEN;
+        boolean actual = sut.equals(sut);
 
         // Assert
-        assertEquals(expected, actual);
+        assertTrue(actual);
     }
 
     @Test
     @Tag("Unit")
-    public void defaultBalance_WithValueOfOne_ShouldReturnOne() {
+    public void equals_WithNullObject_ShouldReturnFalse() {
         // Arrange
-        CurrencyImpl sut = new CurrencyImpl(
+        Currency sut = new CurrencyImpl(
             "singular",
             "plural",
             "$",
             2,
-            true,
-            BigDecimal.ONE
+            false
         );
 
         // Act
-        BigDecimal actual = sut.defaultBalance();
-        BigDecimal expected = BigDecimal.ONE;
+        boolean actual = sut.equals(null);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentClass_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Object obj = new Object();
+
+        // Act
+        boolean actual = sut.equals(obj);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentNumFractionDigits_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            1,
+            false
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentIsDefault_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            true
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentNameSingular_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "different",
+            "plural",
+            "$",
+            2,
+            false
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentNamePlural_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "singular",
+            "different",
+            "$",
+            2,
+            false
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentSymbol_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "singular",
+            "plural",
+            "@",
+            2,
+            false
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithEqualObjects_ShouldReturnFalse() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+
+        // Act
+        boolean actual = sut.equals(o);
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hashCode_WithEqualObjects_ShouldReturnSameHashCode() {
+        // Arrange
+        Currency sut = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+        Currency o = new CurrencyImpl(
+            "singular",
+            "plural",
+            "$",
+            2,
+            false
+        );
+
+        // Act
+        int actual = sut.hashCode();
+        int expected = o.hashCode();
 
         // Assert
         assertEquals(expected, actual);

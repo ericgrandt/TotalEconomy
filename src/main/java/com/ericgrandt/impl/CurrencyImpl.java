@@ -11,15 +11,19 @@ public class CurrencyImpl implements Currency {
     private final String symbol;
     private final int numFractionDigits;
     private final boolean isDefault;
-    private final BigDecimal defaultBalance;
 
-    public CurrencyImpl(String nameSingular, String namePlural, String symbol, int numFractionDigits, boolean isDefault, BigDecimal defaultBalance) {
+    public CurrencyImpl(
+        String nameSingular,
+        String namePlural,
+        String symbol,
+        int numFractionDigits,
+        boolean isDefault
+    ) {
         this.nameSingular = nameSingular;
         this.namePlural = namePlural;
         this.symbol = symbol;
         this.numFractionDigits = numFractionDigits;
         this.isDefault = isDefault;
-        this.defaultBalance = defaultBalance;
     }
 
     @Override
@@ -53,7 +57,44 @@ public class CurrencyImpl implements Currency {
         return isDefault;
     }
 
-    public BigDecimal defaultBalance() {
-        return defaultBalance;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CurrencyImpl currency = (CurrencyImpl) o;
+
+        if (numFractionDigits != currency.numFractionDigits) {
+            return false;
+        }
+
+        if (isDefault != currency.isDefault) {
+            return false;
+        }
+
+        if (!nameSingular.equals(currency.nameSingular)) {
+            return false;
+        }
+
+        if (!namePlural.equals(currency.namePlural)) {
+            return false;
+        }
+
+        return symbol.equals(currency.symbol);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = nameSingular.hashCode();
+        result = 31 * result + namePlural.hashCode();
+        result = 31 * result + symbol.hashCode();
+        result = 31 * result + numFractionDigits;
+        result = 31 * result + (isDefault ? 1 : 0);
+        return result;
     }
 }
