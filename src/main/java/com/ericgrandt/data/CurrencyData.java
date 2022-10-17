@@ -1,8 +1,6 @@
 package com.ericgrandt.data;
 
-import com.ericgrandt.data.dto.AccountDto;
 import com.ericgrandt.data.dto.CurrencyDto;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

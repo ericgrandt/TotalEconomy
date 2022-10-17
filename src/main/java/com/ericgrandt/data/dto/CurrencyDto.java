@@ -8,7 +8,14 @@ public class CurrencyDto {
     private final int numFractionDigits;
     private final boolean isDefault;
 
-    public CurrencyDto(int id, String nameSingular, String namePlural, String symbol, int numFractionDigits, boolean isDefault) {
+    public CurrencyDto(
+        int id,
+        String nameSingular,
+        String namePlural,
+        String symbol,
+        int numFractionDigits,
+        boolean isDefault
+    ) {
         this.id = id;
         this.nameSingular = nameSingular;
         this.namePlural = namePlural;

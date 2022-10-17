@@ -3,18 +3,12 @@ package com.ericgrandt.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.Account;
 
 @ExtendWith(MockitoExtension.class)
