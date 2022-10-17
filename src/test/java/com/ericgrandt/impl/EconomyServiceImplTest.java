@@ -2,6 +2,7 @@ package com.ericgrandt.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -19,7 +20,6 @@ import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +59,6 @@ public class EconomyServiceImplTest {
 
         EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
 
-
         // Act
         Currency actual = sut.defaultCurrency();
         Currency expected = new CurrencyImpl(
@@ -72,6 +71,57 @@ public class EconomyServiceImplTest {
 
         // Assert
         assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void defaultCurrency_WithNullDefaultCurrency_ShouldReturnNull() throws SQLException {
+        // Arrange
+        CurrencyData currencyDataMock = mock(CurrencyData.class);
+        when(currencyDataMock.getDefaultCurrency()).thenReturn(null);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+
+        // Act
+        Currency actual = sut.defaultCurrency();
+
+        // Assert
+        assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void defaultCurrency_WithCaughtSqlException_ShouldReturnNull() throws SQLException {
+        // Arrange
+        CurrencyData currencyDataMock = mock(CurrencyData.class);
+        when(currencyDataMock.getDefaultCurrency()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+
+        // Act
+        Currency actual = sut.defaultCurrency();
+
+        // Assert
+        assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void defaultCurrency_WithCaughtSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        CurrencyData currencyDataMock = mock(CurrencyData.class);
+        when(currencyDataMock.getDefaultCurrency()).thenThrow(SQLException.class);
+
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+
+        // Act
+        sut.defaultCurrency();
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq("Error calling getDefaultCurrency"),
+            any(SQLException.class)
+        );
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.ericgrandt.data.AccountData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
+import com.ericgrandt.data.dto.CurrencyDto;
 import com.ericgrandt.data.dto.VirtualAccountDto;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -39,13 +40,26 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public Currency defaultCurrency() {
-        return new CurrencyImpl(
-            "singular",
-            "plural",
-            "$",
-            1,
-            true
-        );
+        try {
+            CurrencyDto currencyDto = currencyData.getDefaultCurrency();
+            if (currencyDto == null) {
+                return null;
+            }
+
+            return new CurrencyImpl(
+                currencyDto.getNameSingular(),
+                currencyDto.getNamePlural(),
+                currencyDto.getSymbol(),
+                currencyDto.getNumFractionDigits(),
+                currencyDto.isDefault()
+            );
+        } catch (SQLException e) {
+            logger.error(
+                "Error calling getDefaultCurrency",
+                e
+            );
+            return null;
+        }
     }
 
     @Override
