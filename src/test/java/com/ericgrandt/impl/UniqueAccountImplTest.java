@@ -31,6 +31,35 @@ public class UniqueAccountImplTest {
 
     @Test
     @Tag("Unit")
+    public void identifier_ShouldReturnUuidAsString() {
+        // Arrange
+        UUID playerUUID = UUID.randomUUID();
+        UniqueAccount sut = new UniqueAccountImpl(playerUUID);
+
+        // Act
+        String actual = sut.identifier();
+        String expected = playerUUID.toString();
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void uniqueId_ShouldReturnUniqueAccountId() {
+        // Arrange
+        UUID playerUUID = UUID.randomUUID();
+        UniqueAccount sut = new UniqueAccountImpl(playerUUID);
+
+        // Act
+        UUID actual = sut.uniqueId();
+
+        // Assert
+        assertEquals(playerUUID, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void equals_WithEqualObjects_ShouldReturnTrue() {
         // Arrange
         UUID uuid = UUID.randomUUID();

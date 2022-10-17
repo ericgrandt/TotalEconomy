@@ -14,15 +14,15 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
-    private final UUID playerUUID;
+    private final UUID id;
 
-    public UniqueAccountImpl(UUID playerUUID) {
-        this.playerUUID = playerUUID;
+    public UniqueAccountImpl(UUID id) {
+        this.id = id;
     }
 
     @Override
     public Component displayName() {
-        return Component.text(playerUUID.toString());
+        return Component.text(id.toString());
     }
 
     @Override
@@ -122,13 +122,12 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public String identifier() {
-        // UUID as a string
-        return null;
+        return id.toString();
     }
 
     @Override
     public UUID uniqueId() {
-        return null;
+        return id;
     }
 
     @Override
@@ -143,11 +142,11 @@ public class UniqueAccountImpl implements UniqueAccount {
 
         UniqueAccountImpl that = (UniqueAccountImpl) o;
 
-        return playerUUID.equals(that.playerUUID);
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return playerUUID.hashCode();
+        return id.hashCode();
     }
 }
