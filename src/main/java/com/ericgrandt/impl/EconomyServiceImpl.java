@@ -1,6 +1,7 @@
 package com.ericgrandt.impl;
 
 import com.ericgrandt.data.AccountData;
+import com.ericgrandt.data.BalanceData;
 import com.ericgrandt.data.CurrencyData;
 import com.ericgrandt.data.VirtualAccountData;
 import com.ericgrandt.data.dto.AccountDto;
@@ -25,17 +26,20 @@ public class EconomyServiceImpl implements EconomyService {
     private final AccountData accountData;
     private final VirtualAccountData virtualAccountData;
     private final CurrencyData currencyData;
+    private final BalanceData balanceData;
 
     public EconomyServiceImpl(
         Logger logger,
         AccountData accountData,
         VirtualAccountData virtualAccountData,
-        CurrencyData currencyData
+        CurrencyData currencyData,
+        BalanceData balanceData
     ) {
         this.logger = logger;
         this.accountData = accountData;
         this.virtualAccountData = virtualAccountData;
         this.currencyData = currencyData;
+        this.balanceData = balanceData;
     }
 
     @Override
@@ -95,13 +99,19 @@ public class EconomyServiceImpl implements EconomyService {
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
         Optional<AccountDto> existingAccountDto = getAccount(uuid);
         if (existingAccountDto.isPresent()) {
-            UniqueAccount account = new UniqueAccountImpl(UUID.fromString(existingAccountDto.get().getId()));
+            UniqueAccount account = new UniqueAccountImpl(
+                UUID.fromString(existingAccountDto.get().getId()),
+                balanceData
+            );
             return Optional.of(account);
         }
 
         Optional<AccountDto> createdAccountDto = createAndGetAccount(uuid);
         if (createdAccountDto.isPresent()) {
-            UniqueAccount account = new UniqueAccountImpl(UUID.fromString(createdAccountDto.get().getId()));
+            UniqueAccount account = new UniqueAccountImpl(
+                UUID.fromString(createdAccountDto.get().getId()),
+                balanceData
+            );
             return Optional.of(account);
         }
 
@@ -130,7 +140,10 @@ public class EconomyServiceImpl implements EconomyService {
         try {
             return accountData.getAccounts()
                 .stream()
-                .map(account -> new UniqueAccountImpl(UUID.fromString(account.getId())));
+                .map(account -> new UniqueAccountImpl(
+                    UUID.fromString(account.getId()),
+                    balanceData
+                ));
         } catch (SQLException e) {
             logger.error(
                 "Error calling streamUniqueAccounts",

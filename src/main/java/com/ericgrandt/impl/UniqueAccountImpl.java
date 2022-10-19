@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import com.ericgrandt.data.BalanceData;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.context.Context;
@@ -15,9 +17,11 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
     private final UUID id;
+    private final BalanceData balanceData;
 
-    public UniqueAccountImpl(UUID id) {
+    public UniqueAccountImpl(UUID id, BalanceData balanceData) {
         this.id = id;
+        this.balanceData = balanceData;
     }
 
     @Override

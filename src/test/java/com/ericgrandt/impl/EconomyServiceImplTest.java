@@ -57,7 +57,7 @@ public class EconomyServiceImplTest {
         );
         when(currencyDataMock.getDefaultCurrency()).thenReturn(defaultCurrency);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock, null);
 
         // Act
         Currency actual = sut.defaultCurrency();
@@ -81,7 +81,7 @@ public class EconomyServiceImplTest {
         CurrencyData currencyDataMock = mock(CurrencyData.class);
         when(currencyDataMock.getDefaultCurrency()).thenReturn(null);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock, null);
 
         // Act
         Currency actual = sut.defaultCurrency();
@@ -97,7 +97,7 @@ public class EconomyServiceImplTest {
         CurrencyData currencyDataMock = mock(CurrencyData.class);
         when(currencyDataMock.getDefaultCurrency()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock, null);
 
         // Act
         Currency actual = sut.defaultCurrency();
@@ -113,7 +113,7 @@ public class EconomyServiceImplTest {
         CurrencyData currencyDataMock = mock(CurrencyData.class);
         when(currencyDataMock.getDefaultCurrency()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, null, currencyDataMock, null);
 
         // Act
         sut.defaultCurrency();
@@ -134,7 +134,7 @@ public class EconomyServiceImplTest {
         UUID uuid = UUID.randomUUID();
         when(accountDataMock.getAccount(uuid)).thenReturn(account);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         boolean actual = sut.hasAccount(uuid);
@@ -151,7 +151,7 @@ public class EconomyServiceImplTest {
         UUID uuid = UUID.randomUUID();
         when(accountDataMock.getAccount(uuid)).thenReturn(null);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         boolean actual = sut.hasAccount(uuid);
@@ -168,7 +168,7 @@ public class EconomyServiceImplTest {
         UUID uuid = UUID.randomUUID();
         when(accountDataMock.getAccount(uuid)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         boolean actual = sut.hasAccount(uuid);
@@ -185,7 +185,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccount(uuid)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         sut.hasAccount(uuid);
@@ -206,7 +206,7 @@ public class EconomyServiceImplTest {
         String identifier = "random";
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(virtualAccount);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         boolean actual = sut.hasAccount(identifier);
@@ -223,7 +223,7 @@ public class EconomyServiceImplTest {
         String identifier = "random";
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         boolean actual = sut.hasAccount(identifier);
@@ -240,7 +240,7 @@ public class EconomyServiceImplTest {
         String identifier = "random";
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         boolean actual = sut.hasAccount(identifier);
@@ -257,7 +257,7 @@ public class EconomyServiceImplTest {
         String identifier = "random";
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         sut.hasAccount(identifier);
@@ -281,12 +281,12 @@ public class EconomyServiceImplTest {
         );
         when(accountDataMock.getAccount(uuid)).thenReturn(account);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.of(
-            new UniqueAccountImpl(uuid)
+            new UniqueAccountImpl(uuid, null)
         );
 
         // Assert
@@ -301,7 +301,7 @@ public class EconomyServiceImplTest {
         UUID uuid = UUID.randomUUID();
         when(accountDataMock.getAccount(uuid)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
@@ -319,7 +319,7 @@ public class EconomyServiceImplTest {
         UUID uuid = UUID.randomUUID();
         when(accountDataMock.getAccount(uuid)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         sut.findOrCreateAccount(uuid);
@@ -341,12 +341,12 @@ public class EconomyServiceImplTest {
         when(accountDataMock.getAccount(uuid)).thenReturn(null).thenReturn(createdAccountDto);
         when(accountDataMock.createAccount(uuid)).thenReturn(1);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.of(
-            new UniqueAccountImpl(uuid)
+            new UniqueAccountImpl(uuid, null)
         );
 
         // Assert
@@ -362,7 +362,7 @@ public class EconomyServiceImplTest {
         when(accountDataMock.getAccount(uuid)).thenReturn(null);
         when(accountDataMock.createAccount(uuid)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
@@ -381,7 +381,7 @@ public class EconomyServiceImplTest {
         when(accountDataMock.getAccount(uuid)).thenReturn(null);
         when(accountDataMock.createAccount(uuid)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         sut.findOrCreateAccount(uuid);
@@ -406,7 +406,7 @@ public class EconomyServiceImplTest {
         );
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(account);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Optional<Account> actual = sut.findOrCreateAccount(identifier);
@@ -426,7 +426,7 @@ public class EconomyServiceImplTest {
         String identifier = "identifier";
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Optional<Account> actual = sut.findOrCreateAccount(identifier);
@@ -443,7 +443,7 @@ public class EconomyServiceImplTest {
         String identifier = "identifier";
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         sut.findOrCreateAccount(identifier);
@@ -465,7 +465,7 @@ public class EconomyServiceImplTest {
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null).thenReturn(createdVirtualAccountDto);
         when(virtualAccountDataMock.createVirtualAccount(identifier)).thenReturn(1);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Optional<Account> actual = sut.findOrCreateAccount(identifier);
@@ -486,7 +486,7 @@ public class EconomyServiceImplTest {
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null);
         when(virtualAccountDataMock.createVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Optional<Account> actual = sut.findOrCreateAccount(identifier);
@@ -505,7 +505,7 @@ public class EconomyServiceImplTest {
         when(virtualAccountDataMock.getVirtualAccount(identifier)).thenReturn(null);
         when(virtualAccountDataMock.createVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         sut.findOrCreateAccount(identifier);
@@ -530,14 +530,14 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccounts()).thenReturn(accounts);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Stream<UniqueAccount> actual = sut.streamUniqueAccounts();
 
         List<UniqueAccount> expectedAccounts = Arrays.asList(
-            new UniqueAccountImpl(accountId1),
-            new UniqueAccountImpl(accountId2)
+            new UniqueAccountImpl(accountId1, null),
+            new UniqueAccountImpl(accountId2, null)
         );
         Stream<UniqueAccount> expected = expectedAccounts.stream();
 
@@ -556,7 +556,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Stream<UniqueAccount> actual = sut.streamUniqueAccounts();
@@ -572,7 +572,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         sut.streamUniqueAccounts();
@@ -597,13 +597,13 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccounts()).thenReturn(accounts);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Collection<UniqueAccount> actual = sut.uniqueAccounts();
         Collection<UniqueAccount> expected = Arrays.asList(
-            new UniqueAccountImpl(accountId1),
-            new UniqueAccountImpl(accountId2)
+            new UniqueAccountImpl(accountId1, null),
+            new UniqueAccountImpl(accountId2, null)
         );
 
         // Assert
@@ -617,7 +617,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         Collection<UniqueAccount> actual = sut.uniqueAccounts();
@@ -633,7 +633,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.getAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         sut.uniqueAccounts();
@@ -658,7 +658,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.getVirtualAccounts()).thenReturn(virtualAccounts);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Stream<VirtualAccount> actual = sut.streamVirtualAccounts();
@@ -684,7 +684,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Stream<VirtualAccount> actual = sut.streamVirtualAccounts();
@@ -700,7 +700,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         sut.streamVirtualAccounts();
@@ -725,7 +725,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.getVirtualAccounts()).thenReturn(virtualAccounts);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Collection<VirtualAccount> actual = sut.virtualAccounts();
@@ -745,7 +745,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         Collection<VirtualAccount> actual = sut.virtualAccounts();
@@ -761,7 +761,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.getVirtualAccounts()).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         sut.virtualAccounts();
@@ -781,7 +781,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.deleteAccount(accountId)).thenReturn(true);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         AccountDeletionResultType actual = sut.deleteAccount(accountId);
@@ -799,7 +799,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.deleteAccount(accountId)).thenReturn(false);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         AccountDeletionResultType actual = sut.deleteAccount(accountId);
@@ -817,7 +817,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.deleteAccount(accountId)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         AccountDeletionResultType actual = sut.deleteAccount(accountId);
@@ -835,7 +835,7 @@ public class EconomyServiceImplTest {
         AccountData accountDataMock = mock(AccountData.class);
         when(accountDataMock.deleteAccount(accountId)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, accountDataMock, null, null, null);
 
         // Act
         sut.deleteAccount(accountId);
@@ -858,7 +858,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenReturn(true);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         AccountDeletionResultType actual = sut.deleteAccount(identifier);
@@ -876,7 +876,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenReturn(false);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         AccountDeletionResultType actual = sut.deleteAccount(identifier);
@@ -894,7 +894,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         AccountDeletionResultType actual = sut.deleteAccount(identifier);
@@ -912,7 +912,7 @@ public class EconomyServiceImplTest {
         VirtualAccountData virtualAccountDataMock = mock(VirtualAccountData.class);
         when(virtualAccountDataMock.deleteVirtualAccount(identifier)).thenThrow(SQLException.class);
 
-        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null);
+        EconomyServiceImpl sut = new EconomyServiceImpl(loggerMock, null, virtualAccountDataMock, null, null);
 
         // Act
         sut.deleteAccount(identifier);

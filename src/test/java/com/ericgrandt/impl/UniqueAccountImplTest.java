@@ -19,7 +19,7 @@ public class UniqueAccountImplTest {
     public void displayName_ShouldReturnDisplayName() {
         // Arrange
         UUID playerUUID = UUID.randomUUID();
-        UniqueAccount sut = new UniqueAccountImpl(playerUUID);
+        UniqueAccount sut = new UniqueAccountImpl(playerUUID, null);
 
         // Act
         Component actual = sut.displayName();
@@ -34,7 +34,7 @@ public class UniqueAccountImplTest {
     public void identifier_ShouldReturnUuidAsString() {
         // Arrange
         UUID playerUUID = UUID.randomUUID();
-        UniqueAccount sut = new UniqueAccountImpl(playerUUID);
+        UniqueAccount sut = new UniqueAccountImpl(playerUUID, null);
 
         // Act
         String actual = sut.identifier();
@@ -49,7 +49,7 @@ public class UniqueAccountImplTest {
     public void uniqueId_ShouldReturnUniqueAccountId() {
         // Arrange
         UUID playerUUID = UUID.randomUUID();
-        UniqueAccount sut = new UniqueAccountImpl(playerUUID);
+        UniqueAccount sut = new UniqueAccountImpl(playerUUID, null);
 
         // Act
         UUID actual = sut.uniqueId();
@@ -63,8 +63,8 @@ public class UniqueAccountImplTest {
     public void equals_WithEqualObjects_ShouldReturnTrue() {
         // Arrange
         UUID uuid = UUID.randomUUID();
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(uuid);
-        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(uuid);
+        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(uuid, null);
+        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(uuid, null);
 
         // Act
         boolean actual = uniqueAccount1.equals(uniqueAccount2);
@@ -77,7 +77,7 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithSameObject_ShouldReturnTrue() {
         // Arrange
-        UniqueAccount uniqueAccount = new UniqueAccountImpl(UUID.randomUUID());
+        UniqueAccount uniqueAccount = new UniqueAccountImpl(UUID.randomUUID(), null);
 
         // Act
         boolean actual = uniqueAccount.equals(uniqueAccount);
@@ -90,7 +90,7 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithNullObject_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount = new UniqueAccountImpl(UUID.randomUUID());
+        UniqueAccount uniqueAccount = new UniqueAccountImpl(UUID.randomUUID(), null);
 
         // Act
         boolean actual = uniqueAccount.equals(null);
@@ -103,7 +103,7 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithWrongClass_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(UUID.randomUUID());
+        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(UUID.randomUUID(), null);
         Object uniqueAccount2 = new Object();
 
         // Act
@@ -117,8 +117,8 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void equals_WithDifferentPlayerUuid_ShouldReturnFalse() {
         // Arrange
-        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(UUID.randomUUID());
-        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(UUID.randomUUID());
+        UniqueAccount uniqueAccount1 = new UniqueAccountImpl(UUID.randomUUID(), null);
+        UniqueAccount uniqueAccount2 = new UniqueAccountImpl(UUID.randomUUID(), null);
 
         // Act
         boolean actual = uniqueAccount1.equals(uniqueAccount2);
@@ -131,8 +131,8 @@ public class UniqueAccountImplTest {
     @Tag("Unit")
     public void hashCode_ShouldReturnCorrectHashCode() {
         // Arrange
-        UniqueAccount sut1 = new UniqueAccountImpl(UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"));
-        UniqueAccount sut2 = new UniqueAccountImpl(UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"));
+        UniqueAccount sut1 = new UniqueAccountImpl(UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"), null);
+        UniqueAccount sut2 = new UniqueAccountImpl(UUID.fromString("051cfed0-9046-4e50-a7b4-6dcba5ccaa23"), null);
 
         // Act
         int actual1 = sut1.hashCode();
