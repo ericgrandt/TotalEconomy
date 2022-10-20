@@ -49,7 +49,7 @@ public class TotalEconomy {
             config = configurationReference.referenceTo(DefaultConfiguration.class);
             this.configurationReference.save();
         } catch (final ConfigurateException ex) {
-            logger.error("Unable to load test configuration", ex);
+            logger.error("Unable to load configuration", ex);
         }
 
         database = new Database(logger, pluginContainer);

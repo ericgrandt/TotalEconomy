@@ -108,6 +108,21 @@ public class TestUtils {
         }
     }
 
+    public static void seedDefaultBalances() {
+        try (Connection conn = TestUtils.getConnection()) {
+            String insertDefaultBalance1 = "INSERT INTO te_default_balance\n"
+                + "VALUES('05231a59-b6fa-4d57-8450-5bd07f148a98', 1, 100.50);";
+            String insertDefaultBalance2 = "INSERT INTO te_default_balance\n"
+                + "VALUES('ce369d91-b70e-47a4-84d1-6f47eec3b0a8', 2, 50);";
+
+            Statement statement = conn.createStatement();
+            statement.execute(insertDefaultBalance1);
+            statement.execute(insertDefaultBalance2);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void resetDb() {
         try (Connection conn = TestUtils.getConnection()) {
             String deleteUsers = "DELETE FROM te_account";
