@@ -15,6 +15,40 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class AccountDtoTest {
     @Test
     @Tag("Unit")
+    public void getId_ShouldReturnId() {
+        // Arrange
+        AccountDto sut = new AccountDto(
+            "id",
+            null
+        );
+
+        // Act
+        String actual = sut.getId();
+        String expected = "id";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getCreated_ShouldReturnCreated() {
+        // Arrange
+        AccountDto sut = new AccountDto(
+            null,
+            Timestamp.valueOf("2022-01-01 00:00:00")
+        );
+
+        // Act
+        Timestamp actual = sut.getCreated();
+        Timestamp expected = Timestamp.valueOf("2022-01-01 00:00:00");
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void equals_WithEqualObjects_ShouldReturnTrue() {
         // Arrange
         UUID uuid = UUID.randomUUID();
