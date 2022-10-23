@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.data.BalanceData;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
@@ -116,7 +118,229 @@ public class UniqueAccountImplTest {
 
         // Assert
         verify(loggerMock, times(1)).error(
-            eq("Error retrieving default balance (currencyId: 1)"),
+            eq("Error calling getDefaultBalance (currencyId: 1)"),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Contexts_WithBalance_ShouldReturnTrue() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenReturn(BigDecimal.TEN);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        boolean actual = sut.hasBalance(currency, new HashSet<>());
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Contexts_WithNoBalance_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenReturn(null);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        boolean actual = sut.hasBalance(currency, new HashSet<>());
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Contexts_WithSqlException_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenThrow(SQLException.class);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        boolean actual = sut.hasBalance(currency, new HashSet<>());
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Contexts_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenThrow(SQLException.class);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        sut.hasBalance(currency, new HashSet<>());
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling getBalance (accountId: %s, currencyId: %s)", accountId, currencyId)),
+            any(SQLException.class)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Cause_WithBalance_ShouldReturnTrue() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenReturn(BigDecimal.TEN);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        boolean actual = sut.hasBalance(currency, mock(Cause.class));
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Cause_WithNoBalance_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenReturn(null);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        boolean actual = sut.hasBalance(currency, mock(Cause.class));
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Cause_WithSqlException_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenThrow(SQLException.class);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        boolean actual = sut.hasBalance(currency, mock(Cause.class));
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void hasBalance_Cause_WithSqlException_ShouldLogError() throws SQLException {
+        // Arrange
+        UUID accountId = UUID.randomUUID();
+        int currencyId = 1;
+        Currency currency = new CurrencyImpl(
+            currencyId,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        BalanceData balanceDataMock = mock(BalanceData.class);
+        when(balanceDataMock.getBalance(accountId, currencyId)).thenThrow(SQLException.class);
+
+        UniqueAccount sut = new UniqueAccountImpl(accountId, loggerMock, balanceDataMock);
+
+        // Act
+        sut.hasBalance(currency, mock(Cause.class));
+
+        // Assert
+        verify(loggerMock, times(1)).error(
+            eq(String.format("Error calling getBalance (accountId: %s, currencyId: %s)", accountId, currencyId)),
             any(SQLException.class)
         );
     }

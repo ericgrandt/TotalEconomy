@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class BalanceData {
     private final Database database;
@@ -32,14 +33,14 @@ public class BalanceData {
         return BigDecimal.ZERO;
     }
 
-    public BigDecimal getBalance(String accountId, int currencyId) throws SQLException {
+    public BigDecimal getBalance(UUID accountId, int currencyId) throws SQLException {
         String getDefaultBalanceQuery = "SELECT balance FROM te_balance WHERE account_id = ? AND currency_id = ?";
 
         try (
             Connection conn = database.getConnection();
             PreparedStatement stmt = conn.prepareStatement(getDefaultBalanceQuery)
         ) {
-            stmt.setString(1, accountId);
+            stmt.setString(1, accountId.toString());
             stmt.setInt(2, currencyId);
 
             try (ResultSet rs = stmt.executeQuery()) {

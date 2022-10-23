@@ -3,6 +3,7 @@ package com.ericgrandt.impl;
 import com.ericgrandt.data.BalanceData;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -40,7 +41,7 @@ public class UniqueAccountImpl implements UniqueAccount {
             return balanceData.getDefaultBalance(currencyImpl.getId());
         } catch (SQLException e) {
             logger.error(
-                String.format("Error retrieving default balance (currencyId: %s)", currencyImpl.getId()),
+                String.format("Error calling getDefaultBalance (currencyId: %s)", currencyImpl.getId()),
                 e
             );
             return BigDecimal.ZERO;
@@ -49,12 +50,26 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
-        return false;
+        CurrencyImpl currencyImpl = (CurrencyImpl) currency;
+
+        try {
+            return balanceData.getBalance(id, currencyImpl.getId()) != null;
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "Error calling getBalance (accountId: %s, currencyId: %s)",
+                    id,
+                    currencyImpl.getId()
+                ),
+                e
+            );
+            return false;
+        }
     }
 
     @Override
     public boolean hasBalance(Currency currency, Cause cause) {
-        return false;
+        return hasBalance(currency, new HashSet<>());
     }
 
     @Override

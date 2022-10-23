@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,7 +85,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        BigDecimal actual = sut.getBalance("account-id", 1);
+        BigDecimal actual = sut.getBalance(UUID.randomUUID(), 1);
         BigDecimal expected = BigDecimal.TEN;
 
         // Assert
@@ -107,7 +108,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        BigDecimal actual = sut.getBalance("account-id", 1);
+        BigDecimal actual = sut.getBalance(UUID.randomUUID(), 1);
 
         // Assert
         assertNull(actual);
@@ -142,7 +143,7 @@ public class BalanceDataTest {
         TestUtils.seedCurrencies();
         TestUtils.seedAccounts();
 
-        String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        UUID accountId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
         int currencyId = 1;
 
         Database databaseMock = mock(Database.class);
