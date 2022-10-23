@@ -54,24 +54,6 @@ public class TestUtils {
         }
     }
 
-    public static void seedAccount() {
-        try (Connection conn = TestUtils.getConnection()) {
-            String insertAccount = "INSERT INTO te_account\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0');";
-            String insertBalance = "INSERT INTO te_balance\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 1, 123)";
-            String insertBalance2 = "INSERT INTO te_balance\n"
-                + "VALUES('62694fb0-07cc-4396-8d63-4f70646d75f0', 2, 456)";
-
-            Statement statement = conn.createStatement();
-            statement.execute(insertAccount);
-            statement.execute(insertBalance);
-            statement.execute(insertBalance2);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void seedAccounts() {
         try (Connection conn = TestUtils.getConnection()) {
             String insertAccount = "INSERT INTO te_account\n"
