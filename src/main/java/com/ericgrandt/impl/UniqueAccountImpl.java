@@ -18,19 +18,19 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
-    private final UUID id;
+    private final UUID accountId;
     private final Logger logger;
     private final BalanceData balanceData;
 
-    public UniqueAccountImpl(UUID id, Logger logger, BalanceData balanceData) {
-        this.id = id;
+    public UniqueAccountImpl(UUID accountId, Logger logger, BalanceData balanceData) {
+        this.accountId = accountId;
         this.logger = logger;
         this.balanceData = balanceData;
     }
 
     @Override
     public Component displayName() {
-        return Component.text(id.toString());
+        return Component.text(accountId.toString());
     }
 
     @Override
@@ -53,12 +53,12 @@ public class UniqueAccountImpl implements UniqueAccount {
         CurrencyImpl currencyImpl = (CurrencyImpl) currency;
 
         try {
-            return balanceData.getBalance(id, currencyImpl.getId()) != null;
+            return balanceData.getBalance(accountId, currencyImpl.getId()) != null;
         } catch (SQLException e) {
             logger.error(
                 String.format(
                     "Error calling getBalance (accountId: %s, currencyId: %s)",
-                    id,
+                    accountId,
                     currencyImpl.getId()
                 ),
                 e
@@ -74,12 +74,26 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public BigDecimal balance(Currency currency, Set<Context> contexts) {
-        return null;
+        CurrencyImpl currencyImpl = (CurrencyImpl) currency;
+
+        try {
+            return balanceData.getBalance(accountId, currencyImpl.getId());
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "Error calling getBalance (accountId: %s, currencyId: %s)",
+                    accountId,
+                    currencyImpl.getId()
+                ),
+                e
+            );
+            return null;
+        }
     }
 
     @Override
     public BigDecimal balance(Currency currency, Cause cause) {
-        return null;
+        return balance(currency, new HashSet<>());
     }
 
     @Override
@@ -154,12 +168,12 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public String identifier() {
-        return id.toString();
+        return accountId.toString();
     }
 
     @Override
     public UUID uniqueId() {
-        return id;
+        return accountId;
     }
 
     @Override
@@ -174,11 +188,11 @@ public class UniqueAccountImpl implements UniqueAccount {
 
         UniqueAccountImpl that = (UniqueAccountImpl) o;
 
-        return id.equals(that.id);
+        return accountId.equals(that.accountId);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return accountId.hashCode();
     }
 }
