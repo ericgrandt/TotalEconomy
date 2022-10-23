@@ -101,6 +101,7 @@ public class EconomyServiceImpl implements EconomyService {
         if (existingAccountDto.isPresent()) {
             UniqueAccount account = new UniqueAccountImpl(
                 UUID.fromString(existingAccountDto.get().getId()),
+                logger,
                 balanceData
             );
             return Optional.of(account);
@@ -110,6 +111,7 @@ public class EconomyServiceImpl implements EconomyService {
         if (createdAccountDto.isPresent()) {
             UniqueAccount account = new UniqueAccountImpl(
                 UUID.fromString(createdAccountDto.get().getId()),
+                logger,
                 balanceData
             );
             return Optional.of(account);
@@ -142,6 +144,7 @@ public class EconomyServiceImpl implements EconomyService {
                 .stream()
                 .map(account -> new UniqueAccountImpl(
                     UUID.fromString(account.getId()),
+                    logger,
                     balanceData
                 ));
         } catch (SQLException e) {

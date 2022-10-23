@@ -286,7 +286,7 @@ public class EconomyServiceImplTest {
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.of(
-            new UniqueAccountImpl(uuid, null)
+            new UniqueAccountImpl(uuid, loggerMock, null)
         );
 
         // Assert
@@ -346,7 +346,7 @@ public class EconomyServiceImplTest {
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.of(
-            new UniqueAccountImpl(uuid, null)
+            new UniqueAccountImpl(uuid, loggerMock, null)
         );
 
         // Assert
@@ -536,8 +536,8 @@ public class EconomyServiceImplTest {
         Stream<UniqueAccount> actual = sut.streamUniqueAccounts();
 
         List<UniqueAccount> expectedAccounts = Arrays.asList(
-            new UniqueAccountImpl(accountId1, null),
-            new UniqueAccountImpl(accountId2, null)
+            new UniqueAccountImpl(accountId1, loggerMock, null),
+            new UniqueAccountImpl(accountId2, loggerMock, null)
         );
         Stream<UniqueAccount> expected = expectedAccounts.stream();
 
@@ -602,8 +602,8 @@ public class EconomyServiceImplTest {
         // Act
         Collection<UniqueAccount> actual = sut.uniqueAccounts();
         Collection<UniqueAccount> expected = Arrays.asList(
-            new UniqueAccountImpl(accountId1, null),
-            new UniqueAccountImpl(accountId2, null)
+            new UniqueAccountImpl(accountId1, loggerMock, null),
+            new UniqueAccountImpl(accountId2, loggerMock, null)
         );
 
         // Assert

@@ -1,12 +1,13 @@
 package com.ericgrandt.impl;
 
+import com.ericgrandt.data.BalanceData;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import com.ericgrandt.data.BalanceData;
 import net.kyori.adventure.text.Component;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.economy.Currency;
@@ -17,10 +18,12 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
     private final UUID id;
+    private final Logger logger;
     private final BalanceData balanceData;
 
-    public UniqueAccountImpl(UUID id, BalanceData balanceData) {
+    public UniqueAccountImpl(UUID id, Logger logger, BalanceData balanceData) {
         this.id = id;
+        this.logger = logger;
         this.balanceData = balanceData;
     }
 
@@ -31,7 +34,17 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public BigDecimal defaultBalance(Currency currency) {
-        return null;
+        CurrencyImpl currencyImpl = (CurrencyImpl) currency;
+
+        try {
+            return balanceData.getDefaultBalance(currencyImpl.getId());
+        } catch (SQLException e) {
+            logger.error(
+                String.format("Error retrieving default balance (currencyId: %s)", currencyImpl.getId()),
+                e
+            );
+            return BigDecimal.ZERO;
+        }
     }
 
     @Override
