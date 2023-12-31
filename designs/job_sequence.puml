@@ -1,0 +1,20 @@
+@startuml job flow
+
+skinparam sequenceMessageAlign center
+
+Player -> Listener : Perform action on object
+
+activate Listener
+
+Listener -> Database : Get reward
+
+activate Database
+return reward
+
+alt reward found
+    Listener -> Database : Add money
+    Listener -> Database : Add job experience
+    return Send message with rewards
+end
+
+@enduml

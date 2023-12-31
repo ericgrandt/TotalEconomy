@@ -1,0 +1,78 @@
+@startuml database
+
+skinparam linetype ortho
+
+entity te_account {
+    * id : varchar(36) <<uuid>>
+    --
+    * created : timestamp
+}
+
+entity te_currency {
+    * id : int <<auto_increment>>
+    --
+    * name_singular : varchar(50) <<unique>>
+    * name_plural : varchar(50) <<unique>>
+    * symbol : varchar(2) <<unique>>
+    * num_fraction_digits : tinyint <<default(0)>>
+    * is_default : bool
+}
+
+entity te_default_balance {
+    * id : varchar(36)
+    --
+    * currency_id : int <<FK>>
+    * default_balance: numeric <<default(0)>>
+}
+
+entity te_balance {
+    * id : varchar(36)
+    --
+    * account_id : varchar(36) <<FK>>
+    * currency_id : int <<FK>>
+    * balance : numeric
+}
+
+' Jobs
+entity te_job {
+    * id : varchar(36)
+    --
+    * job_name : varchar(36)
+}
+
+entity te_job_action {
+    * id : varchar(36)
+    --
+    * action_name : varchar(50)
+}
+
+entity te_job_reward {
+    * id : varchar(36)
+    --
+    * job_id : varchar(36) <<FK>>
+    * job_action_id : varchar(36) <<FK>>
+    * currency_id : int <<FK>>
+    * material : varchar(100)
+    * money : decimal(38, 2)
+    * experience : int unsigned
+}
+
+entity te_job_experience {
+    * id : varchar(36)
+    --
+    * account_id : varchar(36) <<FK>>
+    * job_id : varchar(36) <<FK>>
+    * experience : int unsigned
+}
+
+te_account ||--|{ te_balance
+te_currency ||--|{ te_balance
+te_currency ||--|| te_default_balance
+
+' Job relationships
+te_job ||--|{ te_job_reward
+te_job ||--|{ te_job_experience
+te_account ||--|{ te_job_experience
+te_job_action ||--|{ te_job_reward
+te_currency ||--|{ te_job_reward
+@enduml

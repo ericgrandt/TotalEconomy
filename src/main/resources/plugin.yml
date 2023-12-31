@@ -1,0 +1,21 @@
+name: TotalEconomy
+version: 0.10.0
+main: com.ericgrandt.totaleconomy.TotalEconomy
+description: All in one economy plugin for Minecraft
+author: Eric
+api-version: 1.20
+depend:
+- Vault
+commands:
+    balance:
+        description: Retrieve the player's balance
+        usage: /<command>
+        permission: totaleconomy.balance
+    pay:
+        description: Pay another player
+        usage: /<command> <player> <amount>
+        permission: totaleconomy.pay
+    job:
+        description: Display experience and level for each job
+        usage: /<command>
+        permission: totaleconomy.job
