@@ -30,4 +30,4 @@ INSERT INTO te_job_reward (job_id, job_action_id, currency_id, material, money, 
 VALUES (YOUR_JOB_ID, TE_JOB_ACTION_ID, 1, 'stone', 0.10, 1);
 ```
 
-For a list of supported job actions, either consult the rows in the database (especially if you need the `id`) or the [documentation](https://ericgrandt.github.io/TotalEconomyPaper/jobs/#job-action).
+For a list of supported job actions, either consult the rows in the database (especially if you need the `id`) or the [documentation](https://ericgrandt.github.io/TotalEconomy/jobs/#job-action).
