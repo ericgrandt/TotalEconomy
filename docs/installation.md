@@ -20,5 +20,5 @@ nav_order: 2
    - Optionally, create the configuration beforehand using [config.yml](https://github.com/ericgrandt/TotalEconomy/blob/master/src/main/resources/config.yml) as a reference
 3. Update the configuration file with your database information
    - For the database url, follow this structure: `jdbc:mysql://[host]:[port]/[database_name]`
-4. Execute all the SQL in [resources/schema.sql](https://github.com/ericgrandt/TotalEconomy/blob/master/src/main/resources/schema.sql) against the database you plan on using for Total Economy
+4. Execute all the SQL in [schema.sql](https://github.com/ericgrandt/TotalEconomy/blob/master/src/main/resources/schema.sql) against the database you plan on using for Total Economy
 5. Restart the server
