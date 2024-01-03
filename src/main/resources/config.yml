@@ -1,5 +1,5 @@
 database:
-    url: jdbc:mysql://localhost:3306/totaleconomypaper
+    url: jdbc:mysql://localhost:3306/totaleconomy
     user: root
     password: password
 features:
