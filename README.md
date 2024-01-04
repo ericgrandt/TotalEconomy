@@ -6,7 +6,7 @@ Total Economy is a Bukkit/Spigot/Paper plugin that aims to provide a full-fledge
 
 Total Economy is available to download from the following sources: 
 
-- [Modrinth](https://modrinth.com/plugin/total-economy) (preferred + quicker updates)
+- [Modrinth](https://modrinth.com/plugin/total-economy) (preferred)
 - [CurseForge](https://www.curseforge.com/minecraft/bukkit-plugins/total-economy)
 
 ## Features
