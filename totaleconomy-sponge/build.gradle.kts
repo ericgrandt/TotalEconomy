@@ -2,11 +2,8 @@ import org.spongepowered.gradle.plugin.config.PluginLoaders
 import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
-    id("org.spongepowered.gradle.plugin") version "2.1.1"
+    id("org.spongepowered.gradle.plugin") version "2.2.0"
 }
-
-group = "com.ericgrandt"
-version = "2.0"
 
 sponge {
     apiVersion("8.1.0")
@@ -17,8 +14,8 @@ sponge {
     }
     plugin("totaleconomy") {
         displayName("Total Economy")
-        entrypoint("com.ericgrandt.totaleconomy.TotalEconomy")
-        description("All in one economy plugin for Minecraft and Sponge")
+        entrypoint("${project.group}.TotalEconomy")
+        description("All in one economy plugin for Minecraft")
         links {
             homepage("https://github.com/ericgrandt/TotalEconomy")
             source("https://github.com/ericgrandt/TotalEconomy")

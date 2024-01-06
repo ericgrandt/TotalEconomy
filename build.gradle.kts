@@ -7,15 +7,10 @@ plugins {
 subprojects {
     plugins.apply("java-library")
     plugins.apply("com.github.johnrengelman.shadow")
+    plugins.apply("checkstyle")
 
     repositories {
         mavenCentral()
-    }
-
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-        }
     }
 
     tasks {
@@ -31,27 +26,3 @@ subprojects {
         }
     }
 }
-//
-//tasks.getByName<Test>("test") {
-//    useJUnitPlatform()
-//}
-//
-//tasks.shadowJar {
-//    archiveFileName.set("TotalEconomy-${version}.jar")
-//    dependencies {
-//        include(dependency("com.zaxxer:HikariCP"))
-//    }
-//}
-//
-//tasks.jar {
-//    enabled = false
-//}
-//
-//tasks.build {
-//    dependsOn(tasks.shadowJar)
-//}
-//
-//tasks.runServer {
-//    dependsOn(tasks.shadowJar)
-//    minecraftVersion("1.20.4")
-//}
