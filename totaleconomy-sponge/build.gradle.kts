@@ -2,17 +2,11 @@ import org.spongepowered.gradle.plugin.config.PluginLoaders
 import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
-    `java-library`
     id("org.spongepowered.gradle.plugin") version "2.1.1"
-    checkstyle
 }
 
 group = "com.ericgrandt"
 version = "2.0"
-
-repositories {
-    mavenCentral()
-}
 
 sponge {
     apiVersion("8.1.0")
