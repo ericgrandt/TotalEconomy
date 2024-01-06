@@ -1,11 +1,4 @@
-package com.ericgrandt.totaleconomy;
-
-import com.ericgrandt.totaleconomy.data.dto.AccountDto;
-import com.ericgrandt.totaleconomy.data.dto.BalanceDto;
-import com.ericgrandt.totaleconomy.data.dto.JobExperienceDto;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.apache.ibatis.jdbc.ScriptRunner;
+package com.ericgrandt.totaleconomy.common;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,9 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
+import org.apache.ibatis.jdbc.ScriptRunner;
 
 public class TestUtils {
     private static final HikariConfig config = new HikariConfig();
@@ -40,11 +32,9 @@ public class TestUtils {
 
     public static void setupDb() {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-
-        try (
-            InputStream is = classloader.getResourceAsStream("schema.sql");
-            Connection conn = TestUtils.getConnection();
-            InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(is))
+        InputStream is = classloader.getResourceAsStream("schema.sql");
+        try (Connection conn = TestUtils.getConnection();
+             InputStreamReader reader = new InputStreamReader(is)
         ) {
             ScriptRunner runner = new ScriptRunner(conn);
             runner.runScript(reader);
