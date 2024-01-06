@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy;
 
-import com.ericgrandt.totaleconomy.data.dto.AccountDto;
+import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.data.dto.JobExperienceDto;
 import com.zaxxer.hikari.HikariConfig;

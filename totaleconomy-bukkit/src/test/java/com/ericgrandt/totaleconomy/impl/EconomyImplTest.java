@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.BalanceData;
-import com.ericgrandt.totaleconomy.data.dto.AccountDto;
+import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
 import java.math.BigDecimal;
 import java.sql.SQLException;

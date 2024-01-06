@@ -17,12 +17,25 @@ subprojects {
         shadowJar {
             archiveClassifier.set("")
             archiveFileName.set("TotalEconomy-${project.version}.jar")
+
+            minimize {
+                exclude(project(":totaleconomy-common"))
+            }
         }
         jar {
-            enabled = false // No need for a non-shadow jar, so just disable it
+            enabled = false
+        //            archiveClassifier.set("noshade")
+//
+//            // Only build the no shade jar for the common project
+//            if (this.project != project(":totaleconomy-common")) {
+//                enabled = false
+//            }
         }
         build {
             dependsOn(shadowJar)
+        }
+        test {
+            useJUnitPlatform()
         }
     }
 }

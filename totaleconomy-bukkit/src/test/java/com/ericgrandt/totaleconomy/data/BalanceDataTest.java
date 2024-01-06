@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.TestUtils;
+import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.data.dto.BalanceDto;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
