@@ -1,10 +1,10 @@
-package com.ericgrandt.totaleconomy.data;
+package com.ericgrandt.totaleconomy.common.data;
 
-import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.data.dto.JobActionDto;
-import com.ericgrandt.totaleconomy.data.dto.JobDto;
-import com.ericgrandt.totaleconomy.data.dto.JobExperienceDto;
-import com.ericgrandt.totaleconomy.data.dto.JobRewardDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobActionDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

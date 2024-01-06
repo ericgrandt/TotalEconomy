@@ -1,10 +1,10 @@
 package com.ericgrandt.totaleconomy.services;
 
-import com.ericgrandt.totaleconomy.data.JobData;
-import com.ericgrandt.totaleconomy.data.dto.JobActionDto;
-import com.ericgrandt.totaleconomy.data.dto.JobDto;
-import com.ericgrandt.totaleconomy.data.dto.JobExperienceDto;
-import com.ericgrandt.totaleconomy.data.dto.JobRewardDto;
+import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.dto.JobActionDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
 import com.ericgrandt.totaleconomy.impl.JobExperienceBar;
 import com.ericgrandt.totaleconomy.models.AddExperienceResult;
 import com.ericgrandt.totaleconomy.models.JobExperience;

@@ -1,6 +1,7 @@
-package com.ericgrandt.totaleconomy.data;
+package com.ericgrandt.totaleconomy.common.data;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -11,9 +12,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ericgrandt.totaleconomy.common.data.Database;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DatabaseTest {
     @Test

@@ -1,8 +1,8 @@
 package com.ericgrandt.totaleconomy.impl;
 
-import com.ericgrandt.totaleconomy.data.AccountData;
-import com.ericgrandt.totaleconomy.data.BalanceData;
-import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.data.AccountData;
+import com.ericgrandt.totaleconomy.common.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;

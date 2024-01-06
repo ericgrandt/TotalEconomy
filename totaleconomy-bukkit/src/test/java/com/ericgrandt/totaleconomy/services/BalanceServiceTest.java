@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.ericgrandt.totaleconomy.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.models.TransferResult;
 import com.ericgrandt.totaleconomy.models.TransferResult.ResultType;
 import java.math.BigDecimal;

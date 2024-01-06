@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.commands;
 
-import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.models.TransferResult;
 import com.ericgrandt.totaleconomy.models.TransferResult.ResultType;
