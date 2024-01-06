@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
+import org.apache.ibatis.jdbc.ScriptRunner;
 
 public class Database {
     private final String url;
@@ -43,6 +44,7 @@ public class Database {
             Connection conn = getDataSource().getConnection();
         ) {
             ScriptRunner runner = new ScriptRunner(conn);
+            runner.setLogWriter(null);
             runner.runScript(reader);
         }
     }
