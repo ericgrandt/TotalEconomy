@@ -12,7 +12,6 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
 
     implementation(project(":totaleconomy-common", configuration = "shadow"))
-    testImplementation(project(":totaleconomy-common", configuration = "shadow"))
 
     testImplementation("com.github.MilkBowl:VaultAPI:1.7")
     testImplementation("com.h2database:h2:2.2.222")
