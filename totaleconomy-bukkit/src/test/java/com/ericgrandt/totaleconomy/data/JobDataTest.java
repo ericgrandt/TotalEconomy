@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.TestUtils;
+import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.data.dto.JobActionDto;
 import com.ericgrandt.totaleconomy.data.dto.JobDto;
 import com.ericgrandt.totaleconomy.data.dto.JobExperienceDto;

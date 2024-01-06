@@ -6,7 +6,7 @@ import com.ericgrandt.totaleconomy.commands.PayCommand;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.BalanceData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
-import com.ericgrandt.totaleconomy.data.Database;
+import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.data.JobData;
 import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;

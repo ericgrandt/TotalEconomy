@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.totaleconomy.TestUtils;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.BalanceData;
-import com.ericgrandt.totaleconomy.data.Database;
+import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.models.TransferResult;
