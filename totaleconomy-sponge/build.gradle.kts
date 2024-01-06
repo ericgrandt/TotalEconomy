@@ -23,11 +23,11 @@ sponge {
     plugin("totaleconomy") {
         displayName("Total Economy")
         entrypoint("com.ericgrandt.totaleconomy.TotalEconomy")
-        description("My plugin description")
+        description("All in one economy plugin for Minecraft and Sponge")
         links {
-            // homepage("https://spongepowered.org")
-            // source("https://spongepowered.org/source")
-            // issues("https://spongepowered.org/issues")
+            homepage("https://github.com/ericgrandt/TotalEconomy")
+            source("https://github.com/ericgrandt/TotalEconomy")
+            issues("https://github.com/ericgrandt/TotalEconomy/issues")
         }
         dependency("spongeapi") {
             loadOrder(PluginDependency.LoadOrder.AFTER)
