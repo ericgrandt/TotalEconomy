@@ -24,12 +24,6 @@ subprojects {
         }
         jar {
             enabled = false
-        //            archiveClassifier.set("noshade")
-//
-//            // Only build the no shade jar for the common project
-//            if (this.project != project(":totaleconomy-common")) {
-//                enabled = false
-//            }
         }
         build {
             dependsOn(shadowJar)

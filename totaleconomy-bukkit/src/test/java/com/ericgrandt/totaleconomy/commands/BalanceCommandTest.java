@@ -6,11 +6,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.ericgrandt.totaleconomy.TestUtils;
-import com.ericgrandt.totaleconomy.data.AccountData;
-import com.ericgrandt.totaleconomy.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.TestUtils;
+import com.ericgrandt.totaleconomy.common.data.AccountData;
+import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;

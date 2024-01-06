@@ -1,4 +1,4 @@
-package com.ericgrandt.totaleconomy.data.dto;
+package com.ericgrandt.totaleconomy.common.data.dto;
 
 public record CurrencyDto(
     int id,

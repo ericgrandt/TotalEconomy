@@ -12,10 +12,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.ericgrandt.totaleconomy.data.AccountData;
-import com.ericgrandt.totaleconomy.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.data.AccountData;
+import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
-import com.ericgrandt.totaleconomy.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;

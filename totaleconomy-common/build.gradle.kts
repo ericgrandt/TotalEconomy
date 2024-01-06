@@ -8,4 +8,6 @@ dependencies {
     testImplementation("com.zaxxer:HikariCP:5.0.1")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.mockito:mockito-core:4.8.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
 }

@@ -1,8 +1,8 @@
-package com.ericgrandt.totaleconomy;
+package com.ericgrandt.totaleconomy.common;
 
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
-import com.ericgrandt.totaleconomy.data.dto.BalanceDto;
-import com.ericgrandt.totaleconomy.data.dto.JobExperienceDto;
+import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
+import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.jdbc.ScriptRunner;

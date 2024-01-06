@@ -1,6 +1,4 @@
-package com.ericgrandt.totaleconomy.data;
-
-import com.ericgrandt.totaleconomy.common.data.Database;
+package com.ericgrandt.totaleconomy.common.data;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
