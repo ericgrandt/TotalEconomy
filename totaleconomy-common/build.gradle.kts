@@ -2,9 +2,6 @@ plugins {
     id("java")
 }
 
-group = "com.ericgrandt"
-version = "1.0.0"
-
 repositories {
     mavenCentral()
 }

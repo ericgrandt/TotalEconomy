@@ -7,7 +7,7 @@ enabled/disabled and configured to your liking.
 
 Total Economy is available to download from the following sources:
 
-- [Modrinth](https://modrinth.com/plugin/total-economy) (preferred) (Bukkit and Sponge)
+- [Modrinth](https://modrinth.com/plugin/total-economy) (Bukkit and Sponge) **(recommended)**
 - [CurseForge](https://www.curseforge.com/minecraft/bukkit-plugins/total-economy) (Bukkit)
 - [Ore](https://ore.spongepowered.org/Erigitic/Total-Economy) (Sponge)
 

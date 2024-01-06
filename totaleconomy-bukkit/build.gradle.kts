@@ -2,9 +2,6 @@ plugins {
     id("xyz.jpenilla.run-paper") version "1.0.6"
 }
 
-group = "com.ericgrandt"
-version = "0.10.0"
-
 repositories {
     maven("https://jitpack.io")
     maven("https://repo.papermc.io/repository/maven-public/")
@@ -33,19 +30,23 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-}
-
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 tasks {
+    // TODO: This can probably be in the shared build.gradle.kts
+    test {
+        useJUnitPlatform()
+    }
+
     shadowJar {
         minimize {
             exclude(project(":totaleconomy-common"))
         }
     }
+
     runServer {
         dependsOn(shadowJar)
         minecraftVersion("1.20.4")
