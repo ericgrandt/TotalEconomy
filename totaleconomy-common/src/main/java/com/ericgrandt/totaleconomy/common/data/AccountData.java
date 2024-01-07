@@ -1,7 +1,6 @@
 package com.ericgrandt.totaleconomy.common.data;
 
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
