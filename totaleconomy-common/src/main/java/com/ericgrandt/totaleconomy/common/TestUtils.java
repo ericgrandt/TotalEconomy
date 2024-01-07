@@ -5,8 +5,6 @@ import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.ibatis.jdbc.ScriptRunner;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
@@ -20,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import org.apache.ibatis.jdbc.ScriptRunner;
 
 public class TestUtils {
     private static final HikariConfig config = new HikariConfig();

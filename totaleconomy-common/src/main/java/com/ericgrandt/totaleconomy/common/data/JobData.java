@@ -4,7 +4,6 @@ import com.ericgrandt.totaleconomy.common.data.dto.JobActionDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
