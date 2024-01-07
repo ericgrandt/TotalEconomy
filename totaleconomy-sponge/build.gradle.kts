@@ -28,6 +28,10 @@ sponge {
     }
 }
 
+dependencies {
+    implementation(project(":totaleconomy-common", configuration = "shadow"))
+}
+
 val javaTarget = 8 // Sponge targets a minimum of Java 8
 java {
     sourceCompatibility = JavaVersion.toVersion(javaTarget)
