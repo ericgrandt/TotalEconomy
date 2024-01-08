@@ -41,7 +41,7 @@ public class TestUtils {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
         try (
-            InputStream is = classloader.getResourceAsStream("schema.sql");
+            InputStream is = classloader.getResourceAsStream("testSchema.sql");
             Connection conn = TestUtils.getConnection();
             InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(is))
         ) {
