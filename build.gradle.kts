@@ -23,6 +23,12 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
     }
 
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
     tasks {
         shadowJar {
             archiveClassifier.set("")

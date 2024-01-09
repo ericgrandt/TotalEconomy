@@ -7,12 +7,6 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
-
 dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")

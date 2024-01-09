@@ -1,9 +1,3 @@
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
-
 dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1") {
         exclude("org.slf4j", "slf4j-api")
