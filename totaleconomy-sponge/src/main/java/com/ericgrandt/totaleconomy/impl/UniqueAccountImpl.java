@@ -1,7 +1,5 @@
 package com.ericgrandt.totaleconomy.impl;
 
-import com.ericgrandt.totaleconomy.common.data.AccountData;
-import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
