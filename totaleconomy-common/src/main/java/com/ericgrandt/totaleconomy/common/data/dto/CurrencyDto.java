@@ -7,5 +7,4 @@ public record CurrencyDto(
     String symbol,
     int numFractionDigits,
     boolean isDefault
-) {
-}
+) { }
