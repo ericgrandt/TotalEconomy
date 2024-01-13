@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
+import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.event.Cause;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UniqueAccountImplTest {
     @Mock
     private BalanceData balanceDataMock;
+
+    @Mock
+    private CurrencyData currencyDataMock;
 
     private final CurrencyDto currencyDto = new CurrencyDto(
         1,
@@ -40,7 +46,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -59,7 +66,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             Map.of(currency, BigDecimal.valueOf(100)),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -77,7 +85,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -95,7 +104,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             Map.of(currency, BigDecimal.valueOf(100)),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -113,7 +123,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -131,7 +142,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             Map.of(currency, BigDecimal.valueOf(100)),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -150,7 +162,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -169,7 +182,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             Map.of(currency, BigDecimal.valueOf(100)),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -188,7 +202,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -201,12 +216,79 @@ public class UniqueAccountImplTest {
 
     @Test
     @Tag("Unit")
+    public void balance_Contexts_ShouldReturnHashMapOfBalances() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            Map.of(currency, BigDecimal.valueOf(100)),
+            balanceDataMock,
+            currencyDataMock
+        );
+
+        // Act
+        Map<Currency, BigDecimal> actual = sut.balances(new HashSet<>());
+        Map<Currency, BigDecimal> expected = Map.of(currency, BigDecimal.valueOf(100));
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void balance_Cause_ShouldReturnHashMapOfBalances() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            Map.of(currency, BigDecimal.valueOf(100)),
+            balanceDataMock,
+            currencyDataMock
+        );
+
+        // Act
+        Map<Currency, BigDecimal> actual = sut.balances((Cause) null);
+        Map<Currency, BigDecimal> expected = Map.of(currency, BigDecimal.valueOf(100));
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_Contexts_WithBalance_ShouldSetBalance() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            Map.of(currency, BigDecimal.valueOf(100)),
+            balanceDataMock,
+            currencyDataMock
+        );
+
+        // Act
+        TransactionResult actual = sut.setBalance(currency, BigDecimal.TEN, new HashSet<>());
+        TransactionResult expected = null;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_Contexts_WithNoBalance_ShouldSetBalance() {
+
+    }
+
+    @Test
+    @Tag("Unit")
     public void identifier_ShouldReturnStringIdentifier() {
         // Arrange
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
@@ -224,7 +306,8 @@ public class UniqueAccountImplTest {
         UniqueAccountImpl sut = new UniqueAccountImpl(
             UUID.fromString("00000000-0000-0000-0000-000000000000"),
             new HashMap<>(),
-            balanceDataMock
+            balanceDataMock,
+            currencyDataMock
         );
 
         // Act
