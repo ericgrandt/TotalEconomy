@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.context.Context;
@@ -18,11 +20,18 @@ public class UniqueAccountImpl implements UniqueAccount {
     private final UUID accountId;
     private final Map<Currency, BigDecimal> balances;
     private final BalanceData balanceData;
+    private final CurrencyData currencyData;
 
-    public UniqueAccountImpl(UUID accountId, Map<Currency, BigDecimal> balances, BalanceData balanceData) {
+    public UniqueAccountImpl(
+        UUID accountId,
+        Map<Currency, BigDecimal> balances,
+        BalanceData balanceData,
+        CurrencyData currencyData
+    ) {
         this.accountId = accountId;
         this.balances = balances;
         this.balanceData = balanceData;
+        this.currencyData = currencyData;
     }
 
     @Override
@@ -67,16 +76,17 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public Map<Currency, BigDecimal> balances(Set<Context> contexts) {
-        return null;
+        return balances;
     }
 
     @Override
     public Map<Currency, BigDecimal> balances(Cause cause) {
-        return null;
+        return balances;
     }
 
     @Override
     public TransactionResult setBalance(Currency currency, BigDecimal amount, Set<Context> contexts) {
+        // update map, get currencyId, call balanceData.updateBalance()
         return null;
     }
 
