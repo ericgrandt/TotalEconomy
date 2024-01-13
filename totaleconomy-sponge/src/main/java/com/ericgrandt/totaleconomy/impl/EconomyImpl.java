@@ -45,6 +45,9 @@ public class EconomyImpl implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
+        // if account exists for uuid
+        // create map of balances (we don't support multi-currency but for future proofing purposes)
+        // new HashMap() {currency, balance}
         return Optional.empty();
     }
 
