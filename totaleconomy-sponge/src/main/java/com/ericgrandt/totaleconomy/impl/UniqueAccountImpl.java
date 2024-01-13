@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.impl;
 
+import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
@@ -14,34 +15,54 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
+    private final UUID accountId;
+    private final Map<Currency, BigDecimal> balances;
+    private final BalanceData balanceData;
+
+    public UniqueAccountImpl(UUID accountId, Map<Currency, BigDecimal> balances, BalanceData balanceData) {
+        this.accountId = accountId;
+        this.balances = balances;
+        this.balanceData = balanceData;
+    }
+
     @Override
     public Component displayName() {
-        return null;
+        return Component.text(accountId.toString());
     }
 
     @Override
     public BigDecimal defaultBalance(Currency currency) {
+        // TODO: Just return the default balance from the config and ignore the passed in currency as we don't support
+        //  multiple currencies
         return null;
     }
 
     @Override
     public boolean hasBalance(Currency currency, Set<Context> contexts) {
-        return false;
+        return balances.containsKey(currency);
     }
 
     @Override
     public boolean hasBalance(Currency currency, Cause cause) {
-        return false;
+        return balances.containsKey(currency);
     }
 
     @Override
     public BigDecimal balance(Currency currency, Set<Context> contexts) {
-        return null;
+        if (!hasBalance(currency, contexts)) {
+            return BigDecimal.ZERO;
+        }
+
+        return balances.get(currency);
     }
 
     @Override
     public BigDecimal balance(Currency currency, Cause cause) {
-        return null;
+        if (!hasBalance(currency, cause)) {
+            return BigDecimal.ZERO;
+        }
+
+        return balances.get(currency);
     }
 
     @Override
@@ -116,11 +137,11 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public String identifier() {
-        return null;
+        return accountId.toString();
     }
 
     @Override
     public UUID uniqueId() {
-        return null;
+        return accountId;
     }
 }
