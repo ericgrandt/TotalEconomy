@@ -144,12 +144,39 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Set<Context> contexts) {
-        return null;
+        if (!hasBalance(currency, contexts)) {
+            return new TransactionResultImpl(this, currency, amount, ResultType.FAILED, null);
+        }
+
+        BigDecimal currentBalance = balances.get(currency);
+        BigDecimal newBalance = currentBalance.add(amount);
+        balances.put(currency, newBalance);
+
+        try {
+            balanceData.updateBalance(
+                accountId,
+                currencyDto.id(),
+                newBalance.doubleValue()
+            );
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling updateBalance (accountId: %s, currencyId: %s, amount: %s)",
+                    accountId,
+                    currencyDto.id(),
+                    newBalance
+                ),
+                e
+            );
+            return new TransactionResultImpl(this, currency, amount, ResultType.FAILED, null);
+        }
+
+        return new TransactionResultImpl(this, currency, amount, ResultType.SUCCESS, null);
     }
 
     @Override
     public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause) {
-        return null;
+        return deposit(currency, amount, new HashSet<>());
     }
 
     @Override
