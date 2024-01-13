@@ -493,6 +493,228 @@ public class UniqueAccountImplTest {
 
     @Test
     @Tag("Unit")
+    public void deposit_Contexts_WithBalance_ShouldDepositAmountIntoBalance() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        Map<Currency, BigDecimal> balances = new HashMap<>(Map.of(currency, BigDecimal.valueOf(100)));
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            balances,
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        sut.deposit(currency, BigDecimal.TEN, new HashSet<>());
+
+        BigDecimal actual = balances.get(currency);
+        BigDecimal expected = BigDecimal.valueOf(110);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Contexts_WithBalance_ShouldReturnSuccessfulTransactionResult() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        Map<Currency, BigDecimal> balances = new HashMap<>(Map.of(currency, BigDecimal.valueOf(100)));
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            balances,
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        TransactionResult actual = sut.deposit(currency, BigDecimal.TEN, new HashSet<>());
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.SUCCESS,
+            null
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Contexts_WithNoBalance_ShouldReturnFailedTransactionResult() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            new HashMap<>(),
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        TransactionResult actual = sut.deposit(currency, BigDecimal.TEN, new HashSet<>());
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.FAILED,
+            null
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Contexts_WithSqlException_ShouldReturnFailedTransactionResult() throws SQLException {
+        // Arrange
+        when(balanceDataMock.updateBalance(any(UUID.class), any(Integer.class), any(Double.class))).thenThrow(
+            SQLException.class
+        );
+
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        Map<Currency, BigDecimal> balances = new HashMap<>(Map.of(currency, BigDecimal.valueOf(100)));
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            balances,
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        TransactionResult actual = sut.deposit(currency, BigDecimal.TEN, new HashSet<>());
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.FAILED,
+            null
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Cause_WithBalance_ShouldDepositAmountIntoBalance() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        Map<Currency, BigDecimal> balances = new HashMap<>(Map.of(currency, BigDecimal.valueOf(100)));
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            balances,
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        sut.deposit(currency, BigDecimal.TEN, (Cause) null);
+
+        BigDecimal actual = balances.get(currency);
+        BigDecimal expected = BigDecimal.valueOf(110);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Cause_WithBalance_ShouldReturnSuccessfulTransactionResult() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        Map<Currency, BigDecimal> balances = new HashMap<>(Map.of(currency, BigDecimal.valueOf(100)));
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            balances,
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        TransactionResult actual = sut.deposit(currency, BigDecimal.TEN, (Cause) null);
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.SUCCESS,
+            null
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Cause_WithNoBalance_ShouldReturnFailedTransactionResult() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            new HashMap<>(),
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        TransactionResult actual = sut.deposit(currency, BigDecimal.TEN, (Cause) null);
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.FAILED,
+            null
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_Cause_WithSqlException_ShouldReturnFailedTransactionResult() throws SQLException {
+        // Arrange
+        when(balanceDataMock.updateBalance(any(UUID.class), any(Integer.class), any(Double.class))).thenThrow(
+            SQLException.class
+        );
+
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        Map<Currency, BigDecimal> balances = new HashMap<>(Map.of(currency, BigDecimal.valueOf(100)));
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            loggerMock,
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            balances,
+            balanceDataMock,
+            currencyDto
+        );
+
+        // Act
+        TransactionResult actual = sut.deposit(currency, BigDecimal.TEN, (Cause) null);
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.FAILED,
+            null
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void identifier_ShouldReturnStringIdentifier() {
         // Arrange
         UniqueAccountImpl sut = new UniqueAccountImpl(
