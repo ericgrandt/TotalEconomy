@@ -1,12 +1,11 @@
 package com.ericgrandt.totaleconomy.impl;
 
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.service.context.Context;
