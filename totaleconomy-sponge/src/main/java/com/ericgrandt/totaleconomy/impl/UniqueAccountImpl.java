@@ -181,22 +181,87 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Set<Context> contexts) {
-        return null;
+        if (!hasBalance(currency, contexts)) {
+            return new TransactionResultImpl(this, currency, amount, ResultType.FAILED, null);
+        }
+
+        BigDecimal currentBalance = balances.get(currency);
+        BigDecimal newBalance = currentBalance.subtract(amount);
+        balances.put(currency, newBalance);
+
+        try {
+            balanceData.updateBalance(
+                accountId,
+                currencyDto.id(),
+                newBalance.doubleValue()
+            );
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling updateBalance (accountId: %s, currencyId: %s, amount: %s)",
+                    accountId,
+                    currencyDto.id(),
+                    newBalance
+                ),
+                e
+            );
+            return new TransactionResultImpl(this, currency, amount, ResultType.FAILED, null);
+        }
+
+        return new TransactionResultImpl(this, currency, amount, ResultType.SUCCESS, null);
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause) {
-        return null;
+        return withdraw(currency, amount, new HashSet<>());
     }
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Set<Context> contexts) {
-        return null;
+        if (amount.compareTo(BigDecimal.ZERO) <= 0
+            || !hasBalance(currency, contexts)
+            || !to.hasBalance(currency, contexts)
+        ) {
+            return new TransferResultImpl(this, to, currency, amount, ResultType.FAILED, null);
+        }
+
+        BigDecimal currentFromBalance = balances.get(currency);
+        if (currentFromBalance.compareTo(amount) < 0) {
+            return new TransferResultImpl(this, to, currency, amount, ResultType.ACCOUNT_NO_FUNDS, null);
+        }
+
+        balances.put(currency, currentFromBalance.subtract(amount));
+
+        BigDecimal currentToBalance = to.balance(currency, contexts);
+        to.balances(contexts).put(currency, currentToBalance.add(amount));
+
+        try {
+            balanceData.transfer(
+                accountId,
+                UUID.fromString(to.identifier()),
+                currencyDto.id(),
+                amount.doubleValue()
+            );
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling transfer (fromAccountId: %s, toAccountId: %s, currencyId: %s, amount: %s)",
+                    accountId,
+                    to.identifier(),
+                    currencyDto.id(),
+                    amount
+                ),
+                e
+            );
+            return new TransferResultImpl(this, to, currency, amount, ResultType.FAILED, null);
+        }
+
+        return new TransferResultImpl(this, to, currency, amount, ResultType.SUCCESS, null);
     }
 
     @Override
     public TransferResult transfer(Account to, Currency currency, BigDecimal amount, Cause cause) {
-        return null;
+        return transfer(to, currency, amount, new HashSet<>());
     }
 
     @Override
