@@ -33,5 +33,15 @@ sponge {
 dependencies {
     implementation(project(":totaleconomy-common", configuration = "shadow"))
 
+    runtimeOnly("com.mysql:mysql-connector-j:8.2.0")
+
     testImplementation("org.spongepowered:spongeapi:${spongeApiVersion}")
+}
+
+tasks {
+    shadowJar {
+        minimize {
+            exclude(dependency("com.mysql:mysql-connector-j:.*"))
+        }
+    }
 }
