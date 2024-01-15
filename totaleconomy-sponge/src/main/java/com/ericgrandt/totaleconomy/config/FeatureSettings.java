@@ -8,11 +8,11 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 @ConfigSerializable
 public class FeatureSettings {
     @Setting
-    private final boolean isJobsFeatureEnabled = true;
+    private final boolean jobs = true;
 
     public Map<String, Boolean> getFeatures() {
         Map<String, Boolean> features = new HashMap<>();
-        features.put("jobs", isJobsFeatureEnabled);
+        features.put("jobs", jobs);
         return features;
     }
 }
