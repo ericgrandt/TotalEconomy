@@ -8,10 +8,12 @@ import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
+import com.ericgrandt.totaleconomy.listeners.PlayerListener;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
@@ -95,6 +97,8 @@ public class TotalEconomy {
         BalanceData balanceData = new BalanceData(database);
 
         economy = new EconomyImpl(logger, defaultCurrency, accountData, balanceData);
+
+        registerListeners();
     }
 
     @Listener
@@ -112,5 +116,9 @@ public class TotalEconomy {
     @Listener
     public void registerEconomyService(ProvideServiceEvent.EngineScoped<EconomyImpl> event) {
         event.suggest(() -> economy);
+    }
+
+    private void registerListeners() {
+        Sponge.eventManager().registerListeners(container, new PlayerListener(economy));
     }
 }
