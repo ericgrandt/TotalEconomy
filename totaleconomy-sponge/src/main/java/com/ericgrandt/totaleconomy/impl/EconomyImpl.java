@@ -3,8 +3,10 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -18,9 +20,11 @@ import org.spongepowered.api.service.economy.account.VirtualAccount;
 
 public class EconomyImpl implements EconomyService {
     private final Logger logger;
-    private final Currency currency;
+    private final CurrencyDto currencyDto;
     private final AccountData accountData;
     private final BalanceData balanceData;
+
+    private final Currency currency;
 
     public EconomyImpl(
         Logger logger,
@@ -29,9 +33,11 @@ public class EconomyImpl implements EconomyService {
         BalanceData balanceData
     ) {
         this.logger = logger;
-        this.currency = new CurrencyImpl(currencyDto);
+        this.currencyDto = currencyDto;
         this.accountData = accountData;
         this.balanceData = balanceData;
+
+        this.currency = new CurrencyImpl(currencyDto);
     }
 
     @Override
@@ -54,10 +60,30 @@ public class EconomyImpl implements EconomyService {
 
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
-        // if account exists for uuid
-        // create map of balances (we don't support multi-currency but for future proofing purposes)
-        // new HashMap() {currency, balance}
-        return Optional.empty();
+        try {
+            if (!hasAccount(uuid)) {
+                accountData.createAccount(uuid, currencyDto.id());
+            }
+
+            BigDecimal balance = balanceData.getBalance(uuid, currencyDto.id());
+            UniqueAccount account = new UniqueAccountImpl(
+                logger,
+                uuid,
+                Map.of(currency, balance),
+                balanceData,
+                currencyDto
+            );
+            return Optional.of(account);
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling findOrCreateAccount (accountId: %s)",
+                    uuid
+                ),
+                e
+            );
+            return Optional.empty();
+        }
     }
 
     @Override

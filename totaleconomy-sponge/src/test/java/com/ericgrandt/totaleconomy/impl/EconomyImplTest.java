@@ -10,9 +10,12 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 @ExtendWith(MockitoExtension.class)
 public class EconomyImplTest {
@@ -96,5 +100,83 @@ public class EconomyImplTest {
 
         // Assert
         assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithAccount_ShouldReturnAccount() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        AccountDto accountDto = new AccountDto(
+            uuid.toString(),
+            Timestamp.from(Instant.now())
+        );
+        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(accountDto);
+        when(balanceDataMock.getBalance(any(UUID.class), any(Integer.class))).thenReturn(
+            BigDecimal.TEN
+        );
+
+        EconomyImpl sut = new EconomyImpl(loggerMock, currency, accountDataMock, balanceDataMock);
+
+        // Act
+        Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
+        Optional<UniqueAccount> expected = Optional.of(
+            new UniqueAccountImpl(
+                loggerMock,
+                uuid,
+                Map.of(new CurrencyImpl(currency), BigDecimal.TEN),
+                balanceDataMock,
+                currency
+            )
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithNoAccount_ShouldCreateAndReturnAccount() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(null);
+        when(accountDataMock.createAccount(any(UUID.class), any(Integer.class))).thenReturn(true);
+        when(balanceDataMock.getBalance(any(UUID.class), any(Integer.class))).thenReturn(
+            BigDecimal.TEN
+        );
+
+        EconomyImpl sut = new EconomyImpl(loggerMock, currency, accountDataMock, balanceDataMock);
+
+        // Act
+        Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
+        Optional<UniqueAccount> expected = Optional.of(
+            new UniqueAccountImpl(
+                loggerMock,
+                uuid,
+                Map.of(new CurrencyImpl(currency), BigDecimal.TEN),
+                balanceDataMock,
+                currency
+            )
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void findOrCreateAccount_WithException_ShouldReturnEmptyOptional() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        when(balanceDataMock.getBalance(any(UUID.class), any(Integer.class))).thenThrow(SQLException.class);
+
+        EconomyImpl sut = new EconomyImpl(loggerMock, currency, accountDataMock, balanceDataMock);
+
+        // Act
+        Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
+        Optional<UniqueAccount> expected = Optional.empty();
+
+        // Assert
+        assertEquals(expected, actual);
     }
 }
