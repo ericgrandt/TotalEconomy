@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
@@ -113,6 +114,59 @@ public class CurrencyImplTest {
 
         // Act
         boolean actual = sut.isDefault();
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithSameObject_ShouldReturnTrue() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+
+        // Act
+        boolean actual = currency.equals(currency);
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithNullObject_ShouldReturnFalse() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+
+        // Act
+        boolean actual = currency.equals(null);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithDifferentClass_ShouldReturnFalse() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+
+        // Act
+        boolean actual = currency.equals(new Object());
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void equals_WithEqualObjects_ShouldReturnTrue() {
+        // Arrange
+        CurrencyImpl currency = new CurrencyImpl(currencyDto);
+        CurrencyImpl other = new CurrencyImpl(currencyDto);
+
+        // Act
+        boolean actual = currency.equals(other);
 
         // Assert
         assertTrue(actual);
