@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
@@ -44,13 +45,6 @@ public class UniqueAccountImpl implements UniqueAccount {
     @Override
     public Component displayName() {
         return Component.text(accountId.toString());
-    }
-
-    @Override
-    public BigDecimal defaultBalance(Currency currency) {
-        // TODO: Just return the default balance from the config and ignore the passed in currency as we don't support
-        //  multiple currencies
-        return null;
     }
 
     @Override
@@ -272,5 +266,36 @@ public class UniqueAccountImpl implements UniqueAccount {
     @Override
     public UUID uniqueId() {
         return accountId;
+    }
+
+    @Override
+    public BigDecimal defaultBalance(Currency currency) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UniqueAccountImpl that = (UniqueAccountImpl) o;
+
+        if (!Objects.equals(logger, that.logger)) {
+            return false;
+        }
+        if (!Objects.equals(accountId, that.accountId)) {
+            return false;
+        }
+        if (!Objects.equals(balances, that.balances)) {
+            return false;
+        }
+        if (!Objects.equals(balanceData, that.balanceData)) {
+            return false;
+        }
+        return Objects.equals(currencyDto, that.currencyDto);
     }
 }
