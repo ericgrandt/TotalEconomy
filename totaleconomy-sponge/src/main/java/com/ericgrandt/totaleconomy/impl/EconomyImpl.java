@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import org.spongepowered.api.service.economy.account.VirtualAccount;
 
 public class EconomyImpl implements EconomyService {
     private final Logger logger;
-    private final CurrencyImpl currency;
+    private final Currency currency;
     private final AccountData accountData;
     private final BalanceData balanceData;
 
@@ -40,7 +41,15 @@ public class EconomyImpl implements EconomyService {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        return false;
+        try {
+            return accountData.getAccount(uuid) != null;
+        } catch (SQLException e) {
+            logger.error(
+                String.format("[Total Economy] Error calling getAccount (accountId: %s)", uuid),
+                e
+            );
+            return false;
+        }
     }
 
     @Override
