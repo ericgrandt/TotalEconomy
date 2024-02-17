@@ -21,8 +21,12 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -438,6 +442,27 @@ public class EconomyImplTest {
             )),
             any(SQLException.class)
         );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getBalance_CommonPlayer_WithBalanceFound_ShouldReturnBalance() throws SQLException {
+        // Arrange
+        UUID playerUUID = UUID.randomUUID();
+        Player mockPlayer = mock(Player.class);
+        CommonPlayer bukkitPlayer = new BukkitPlayer(mockPlayer);
+        when(mockPlayer.getUniqueId()).thenReturn(playerUUID);
+
+        when(balanceDataMock.getBalance(playerUUID, 1)).thenReturn(BigDecimal.TEN);
+
+        EconomyImpl sut = new EconomyImpl(loggerMock, true, null, accountDataMock, balanceDataMock);
+
+        // Act
+        double actual = sut.getBalance(bukkitPlayer);
+        double expected = 10;
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     @Test

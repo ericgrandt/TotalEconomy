@@ -10,12 +10,16 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.OfflinePlayer;
 
-public class EconomyImpl implements Economy {
+public class EconomyImpl implements Economy, CommonEconomy {
     private final Logger logger;
     private final boolean isEnabled;
     private final CurrencyDto defaultCurrency;
@@ -137,6 +141,11 @@ public class EconomyImpl implements Economy {
     @Override
     public double getBalance(OfflinePlayer player, String world) {
         throw new NotImplementedException("World specific accounts are not yet supported");
+    }
+
+    @Override
+    public double getBalance(CommonPlayer player) {
+        return getBalance(((BukkitPlayer) player).player());
     }
 
     @Override
