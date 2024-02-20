@@ -16,14 +16,13 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
-import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;

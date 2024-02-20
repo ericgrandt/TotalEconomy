@@ -8,6 +8,7 @@ import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -133,7 +134,7 @@ public class EconomyImpl implements EconomyService, CommonEconomy {
     @Override
     public double getBalance(CommonPlayer player) {
         UniqueAccount account = findOrCreateAccount(player.getUniqueId()).orElseThrow();
-        return account.balance(currency).doubleValue();
+        return account.balance(currency, new HashSet<>()).doubleValue();
     }
 
     // TODO: Test
