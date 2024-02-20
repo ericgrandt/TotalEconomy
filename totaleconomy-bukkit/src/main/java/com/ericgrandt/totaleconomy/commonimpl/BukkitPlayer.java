@@ -5,7 +5,6 @@ import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
-// TODO: Test
 public record BukkitPlayer(Player player) implements CommonPlayer {
     @Override
     public boolean isPlayer() {
