@@ -66,6 +66,6 @@ public class BalanceCommandExecutorTest {
         }).get();
 
         // Assert
-        verify(playerMock).sendMessage(Component.text("Balance: $50.00"));
+        verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$50.00")));
     }
 }

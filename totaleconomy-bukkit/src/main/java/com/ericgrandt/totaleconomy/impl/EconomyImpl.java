@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
+import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.NotImplementedException;
@@ -66,6 +67,11 @@ public class EconomyImpl implements Economy, CommonEconomy {
             .setScale(defaultCurrency.numFractionDigits(), RoundingMode.DOWN);
 
         return String.format("%s%s", defaultCurrency.symbol(), bigDecimalAmount);
+    }
+
+    @Override
+    public Component formatBalance(double amount) {
+        return Component.text(format(amount));
     }
 
     @Override

@@ -1,9 +1,10 @@
 package com.ericgrandt.totaleconomy.common.econ;
 
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import net.kyori.adventure.text.Component;
 
 public interface CommonEconomy {
     double getBalance(CommonPlayer player);
 
-    String format(double balance);
+    Component formatBalance(double balance);
 }

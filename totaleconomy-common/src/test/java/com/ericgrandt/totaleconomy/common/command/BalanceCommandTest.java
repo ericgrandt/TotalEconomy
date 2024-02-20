@@ -44,7 +44,9 @@ public class BalanceCommandTest {
         CommonEconomy economyMock = mock(CommonEconomy.class);
 
         when(economyMock.getBalance(commonPlayerMock)).thenReturn(balance.doubleValue());
-        when(economyMock.format(any(Double.class))).thenReturn("$" + balance);
+        when(economyMock.formatBalance(any(Double.class))).thenReturn(
+            Component.text("$" + balance)
+        );
 
         BalanceCommand sut = new BalanceCommand(economyMock);
 
@@ -52,6 +54,6 @@ public class BalanceCommandTest {
         sut.onCommandHandler(commonPlayerMock);
 
         // Assert
-        verify(commonPlayerMock).sendMessage(Component.text("Balance: $100.00"));
+        verify(commonPlayerMock).sendMessage(Component.text("Balance: ").append(Component.text("$100.00")));
     }
 }

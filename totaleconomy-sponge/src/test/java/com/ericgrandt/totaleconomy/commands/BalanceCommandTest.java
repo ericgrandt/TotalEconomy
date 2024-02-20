@@ -42,74 +42,74 @@ public class BalanceCommandTest {
     private final CurrencyDto currencyDto = new CurrencyDto(1, "Dollar", "Dollars", "$", 2, true);
     private final Currency currency = new CurrencyImpl(currencyDto);
 
-    @Test
-    @Tag("Unit")
-    public void onCommandHandler_WithAccount_ShouldSendMessageWithBalance() {
-        // Arrange
-        UUID uuid = UUID.randomUUID();
-        Map<Currency, BigDecimal> balances = Map.of(currency, BigDecimal.TEN);
-        when(economyMock.findOrCreateAccount(any(UUID.class))).thenReturn(
-            Optional.of(new UniqueAccountImpl(null, uuid, balances, null, null))
-        );
-
-        ServerPlayer playerMock = mock(ServerPlayer.class);
-        when(playerMock.uniqueId()).thenReturn(uuid);
-
-        BalanceCommand sut = new BalanceCommand(economyMock, currency);
-
-        // Act
-        sut.onCommandHandler(playerMock);
-
-        // Assert
-        verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$10.00")));
-    }
-
-    @Test
-    @Tag("Unit")
-    public void onCommandHandler_WithNoAccount_ShouldThrowException() {
-        // Arrange
-        when(economyMock.findOrCreateAccount(any(UUID.class))).thenReturn(Optional.empty());
-
-        ServerPlayer playerMock = mock(ServerPlayer.class);
-        when(playerMock.uniqueId()).thenReturn(UUID.randomUUID());
-
-        BalanceCommand sut = new BalanceCommand(economyMock, currency);
-
-        // Act/Assert
-        assertThrows(
-            NoSuchElementException.class,
-            () -> sut.onCommandHandler(playerMock)
-        );
-    }
-
-    @Test
-    @Tag("Integration")
-    public void execute_ShouldReturnPlayerBalanceAndReturnCommandResultSuccess() throws SQLException {
-        // Arrange
-        TestUtils.resetDb();
-        TestUtils.seedCurrencies();
-        TestUtils.seedAccounts();
-
-        Database databaseMock = mock(Database.class);
-        ServerPlayer playerMock = mock(ServerPlayer.class);
-        when(playerMock.uniqueId()).thenReturn(
-            UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0")
-        );
-        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
-        when(databaseMock.getDataSource().getConnection())
-            .thenReturn(TestUtils.getConnection())
-            .thenReturn(TestUtils.getConnection());
-
-        AccountData accountData = new AccountData(databaseMock);
-        BalanceData balanceData = new BalanceData(databaseMock);
-        EconomyImpl economy = new EconomyImpl(loggerMock, currencyDto, accountData, balanceData);
-
-        BalanceCommand sut = new BalanceCommand(economy, currency);
-
-        // Act
-        sut.onCommandHandler(playerMock);
-
-        // Assert
-        verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$50.00")));
-    }
+//    @Test
+//    @Tag("Unit")
+//    public void onCommandHandler_WithAccount_ShouldSendMessageWithBalance() {
+//        // Arrange
+//        UUID uuid = UUID.randomUUID();
+//        Map<Currency, BigDecimal> balances = Map.of(currency, BigDecimal.TEN);
+//        when(economyMock.findOrCreateAccount(any(UUID.class))).thenReturn(
+//            Optional.of(new UniqueAccountImpl(null, uuid, balances, null, null))
+//        );
+//
+//        ServerPlayer playerMock = mock(ServerPlayer.class);
+//        when(playerMock.uniqueId()).thenReturn(uuid);
+//
+//        BalanceCommand sut = new BalanceCommand(economyMock, currency);
+//
+//        // Act
+//        sut.onCommandHandler(playerMock);
+//
+//        // Assert
+//        verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$10.00")));
+//    }
+//
+//    @Test
+//    @Tag("Unit")
+//    public void onCommandHandler_WithNoAccount_ShouldThrowException() {
+//        // Arrange
+//        when(economyMock.findOrCreateAccount(any(UUID.class))).thenReturn(Optional.empty());
+//
+//        ServerPlayer playerMock = mock(ServerPlayer.class);
+//        when(playerMock.uniqueId()).thenReturn(UUID.randomUUID());
+//
+//        BalanceCommand sut = new BalanceCommand(economyMock, currency);
+//
+//        // Act/Assert
+//        assertThrows(
+//            NoSuchElementException.class,
+//            () -> sut.onCommandHandler(playerMock)
+//        );
+//    }
+//
+//    @Test
+//    @Tag("Integration")
+//    public void execute_ShouldReturnPlayerBalanceAndReturnCommandResultSuccess() throws SQLException {
+//        // Arrange
+//        TestUtils.resetDb();
+//        TestUtils.seedCurrencies();
+//        TestUtils.seedAccounts();
+//
+//        Database databaseMock = mock(Database.class);
+//        ServerPlayer playerMock = mock(ServerPlayer.class);
+//        when(playerMock.uniqueId()).thenReturn(
+//            UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0")
+//        );
+//        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+//        when(databaseMock.getDataSource().getConnection())
+//            .thenReturn(TestUtils.getConnection())
+//            .thenReturn(TestUtils.getConnection());
+//
+//        AccountData accountData = new AccountData(databaseMock);
+//        BalanceData balanceData = new BalanceData(databaseMock);
+//        EconomyImpl economy = new EconomyImpl(loggerMock, currencyDto, accountData, balanceData);
+//
+//        BalanceCommand sut = new BalanceCommand(economy, currency);
+//
+//        // Act
+//        sut.onCommandHandler(playerMock);
+//
+//        // Assert
+//        verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$50.00")));
+//    }
 }

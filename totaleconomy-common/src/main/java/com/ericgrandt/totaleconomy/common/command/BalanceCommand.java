@@ -26,6 +26,6 @@ public class BalanceCommand implements CommonCommand {
 
     public void onCommandHandler(CommonSender sender) {
         double balance = economy.getBalance((CommonPlayer) sender);
-        sender.sendMessage(Component.text("Balance: " + economy.format(balance)));
+        sender.sendMessage(Component.text("Balance: ").append(economy.formatBalance(balance)));
     }
 }

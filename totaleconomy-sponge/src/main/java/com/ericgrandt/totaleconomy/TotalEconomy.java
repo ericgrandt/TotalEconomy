@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy;
 
-import com.ericgrandt.totaleconomy.commands.BalanceCommand;
+import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -104,7 +104,7 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommand(economy, economy.defaultCurrency()))
+            .executor(new BalanceCommandExecutor(economy))
             .build();
         event.register(
             container,

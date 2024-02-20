@@ -3,6 +3,8 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -10,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -18,7 +21,7 @@ import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
 
-public class EconomyImpl implements EconomyService {
+public class EconomyImpl implements EconomyService, CommonEconomy {
     private final Logger logger;
     private final CurrencyDto currencyDto;
     private final AccountData accountData;
@@ -124,5 +127,18 @@ public class EconomyImpl implements EconomyService {
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
         throw new UnsupportedOperationException();
+    }
+
+    // TODO: Test
+    @Override
+    public double getBalance(CommonPlayer player) {
+        UniqueAccount account = findOrCreateAccount(player.getUniqueId()).orElseThrow();
+        return account.balance(currency).doubleValue();
+    }
+
+    // TODO: Test
+    @Override
+    public Component formatBalance(double balance) {
+        return currency.format(BigDecimal.valueOf(balance));
     }
 }
