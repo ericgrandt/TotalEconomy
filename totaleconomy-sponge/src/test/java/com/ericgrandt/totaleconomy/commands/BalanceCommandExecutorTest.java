@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.commands;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -16,7 +17,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
@@ -68,11 +70,10 @@ public class BalanceCommandExecutorTest {
         BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, mock(CommandResultWrapper.class));
 
         // Act
-        Executors.newFixedThreadPool(1).submit(() -> {
-            sut.execute(commandContextMock);
-        }).get();
+        sut.execute(commandContextMock);
 
         // Assert
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
         verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$50.00")));
     }
 }
