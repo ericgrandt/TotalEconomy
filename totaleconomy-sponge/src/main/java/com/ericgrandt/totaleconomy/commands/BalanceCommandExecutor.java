@@ -22,7 +22,7 @@ public class BalanceCommandExecutor implements CommandExecutor {
     @Override
     public CommandResult execute(CommandContext context) {
         if (!(context.cause().root() instanceof ServerPlayer player)) {
-            return CommandResult.error(Component.text("This command can only be used by a player"));
+            return commandResultWrapper.error(Component.text("This command can only be used by a player"));
         }
 
         new BalanceCommand(economy).execute(new SpongePlayer(player), null);

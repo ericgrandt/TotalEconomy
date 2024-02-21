@@ -5,7 +5,6 @@ import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
-// TODO: Test
 public record SpongePlayer(ServerPlayer player) implements CommonPlayer {
     @Override
     public boolean isPlayer() {
