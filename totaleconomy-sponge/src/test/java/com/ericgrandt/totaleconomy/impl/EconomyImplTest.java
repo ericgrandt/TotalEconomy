@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -17,6 +19,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -175,6 +178,46 @@ public class EconomyImplTest {
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.empty();
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getBalance_ShouldReturnBalance() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        AccountDto accountDto = new AccountDto(
+            uuid.toString(),
+            Timestamp.from(Instant.now())
+        );
+        CommonPlayer player = mock(CommonPlayer.class);
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(accountDataMock.getAccount(any(UUID.class))).thenReturn(accountDto);
+        when(balanceDataMock.getBalance(any(UUID.class), any(Integer.class))).thenReturn(
+            BigDecimal.TEN
+        );
+
+        EconomyImpl sut = new EconomyImpl(loggerMock, currency, accountDataMock, balanceDataMock);
+
+        // Act
+        double actual = sut.getBalance(player);
+        double expected = 10;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void formatBalance_ShouldReturnFormattedBalance() {
+        // Arrange
+        EconomyImpl sut = new EconomyImpl(null, currency, null, null);
+
+        // Act
+        Component actual = sut.formatBalance(10);
+        Component expected = Component.text("$10.00");
 
         // Assert
         assertEquals(expected, actual);

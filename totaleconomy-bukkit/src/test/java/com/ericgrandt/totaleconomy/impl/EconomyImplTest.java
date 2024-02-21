@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -160,6 +161,29 @@ public class EconomyImplTest {
         // Act
         String actual = sut.format(123.45);
         String expected = "$123.4";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void formatBalance_ShouldReturnFormattedAmountAsComponent() {
+        // Arrange
+        CurrencyDto defaultCurrency = new CurrencyDto(
+            1,
+            "singular",
+            "plural",
+            "$",
+            1,
+            true
+        );
+
+        EconomyImpl sut = new EconomyImpl(loggerMock, true, defaultCurrency, accountDataMock, balanceDataMock);
+
+        // Act
+        Component actual = sut.formatBalance(123.45);
+        Component expected = Component.text("$123.4");
 
         // Assert
         assertEquals(expected, actual);

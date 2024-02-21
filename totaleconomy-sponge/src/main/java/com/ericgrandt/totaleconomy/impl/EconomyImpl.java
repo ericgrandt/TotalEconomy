@@ -130,14 +130,12 @@ public class EconomyImpl implements EconomyService, CommonEconomy {
         throw new UnsupportedOperationException();
     }
 
-    // TODO: Test
     @Override
     public double getBalance(CommonPlayer player) {
         UniqueAccount account = findOrCreateAccount(player.getUniqueId()).orElseThrow();
         return account.balance(currency, new HashSet<>()).doubleValue();
     }
 
-    // TODO: Test
     @Override
     public Component formatBalance(double balance) {
         return currency.format(BigDecimal.valueOf(balance));
