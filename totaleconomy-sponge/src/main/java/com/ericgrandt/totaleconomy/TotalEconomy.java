@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy;
 
-import com.ericgrandt.totaleconomy.commands.BalanceCommand;
+import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -9,6 +9,7 @@ import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.listeners.PlayerListener;
+import com.ericgrandt.totaleconomy.wrappers.CommandResultWrapper;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -104,7 +105,7 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommand(economy, economy.defaultCurrency()))
+            .executor(new BalanceCommandExecutor(economy, new CommandResultWrapper()))
             .build();
         event.register(
             container,

@@ -1,7 +1,6 @@
 package com.ericgrandt.totaleconomy.commands;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,13 +12,14 @@ import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.zaxxer.hikari.HikariDataSource;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,47 +28,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class BalanceCommandTest {
+public class BalanceCommandExecutorTest {
     @Mock
     private Logger loggerMock;
 
     @Test
-    @Tag("Unit")
-    public void onCommand_WithNonPlayerSender_ShouldReturnFalse() {
-        // Arrange
-        EconomyImpl economyMock = mock(EconomyImpl.class);
-        BalanceCommand sut = new BalanceCommand(economyMock);
-
-        // Act
-        boolean actual = sut.onCommand(mock(ConsoleCommandSender.class), mock(Command.class), "", null);
-
-        // Assert
-        assertFalse(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void onCommandHandler_ShouldSendPlayerTheirBalance() {
-        // Arrange
-        BigDecimal balance = BigDecimal.valueOf(100).setScale(2, RoundingMode.DOWN);
-
-        Player playerMock = mock(Player.class);
-        EconomyImpl economyMock = mock(EconomyImpl.class);
-        when(economyMock.getBalance(playerMock)).thenReturn(balance.doubleValue());
-        when(economyMock.format(any(Double.class))).thenReturn("$" + balance);
-
-        BalanceCommand sut = new BalanceCommand(economyMock);
-
-        // Act
-        sut.onCommandHandler(playerMock);
-
-        // Assert
-        verify(playerMock).sendMessage("Balance: $100.00");
-    }
-
-    @Test
     @Tag("Integration")
-    public void onCommandHandler_ShouldSendMessageWithBalanceToPlayer() throws SQLException {
+    public void onCommand_ShouldSendMessageWithBalanceToPlayer() throws SQLException, ExecutionException, InterruptedException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -78,7 +44,7 @@ public class BalanceCommandTest {
         Player playerMock = mock(Player.class);
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
-        when((playerMock).getUniqueId()).thenReturn(
+        when(playerMock.getUniqueId()).thenReturn(
             UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0")
         );
 
@@ -94,12 +60,13 @@ public class BalanceCommandTest {
         BalanceData balanceData = new BalanceData(databaseMock);
         EconomyImpl economy = new EconomyImpl(loggerMock, true, defaultCurrency, accountData, balanceData);
 
-        BalanceCommand sut = new BalanceCommand(economy);
+        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy);
 
         // Act
-        sut.onCommandHandler(playerMock);
+        sut.onCommand(playerMock, mock(Command.class), "", new String[0]);
 
         // Assert
-        verify(playerMock).sendMessage("Balance: $50.00");
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
+        verify(playerMock).sendMessage(Component.text("Balance: ").append(Component.text("$50.00")));
     }
 }
