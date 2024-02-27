@@ -51,7 +51,6 @@ public class CommonEconomy {
         }
     }
 
-    // TODO: Test
     public boolean createAccount(UUID uuid, int currencyId) {
         try {
             return accountData.createAccount(uuid, currencyId);
@@ -61,6 +60,30 @@ public class CommonEconomy {
                     "[Total Economy] Error calling createAccount (accountId: %s, currencyId: %s)",
                     uuid,
                     currencyId
+                ),
+                e
+            );
+            return false;
+        }
+    }
+
+    public boolean withdraw(UUID uuid, int currencyId, BigDecimal amount) {
+        BigDecimal currentBalance = getBalance(uuid, currencyId);
+        if (currentBalance == null) {
+            return false;
+        }
+
+        BigDecimal newBalance = currentBalance.subtract(amount);
+
+        try {
+            return balanceData.updateBalance(uuid, currencyId, newBalance) > 0;
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling updateBalance (accountId: %s, currencyId: %s, newBalance: %s)",
+                    uuid,
+                    currencyId,
+                    newBalance
                 ),
                 e
             );

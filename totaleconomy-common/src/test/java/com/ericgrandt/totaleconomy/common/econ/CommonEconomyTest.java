@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
-import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
@@ -145,6 +144,86 @@ public class CommonEconomyTest {
 
         // Act
         boolean actual = sut.hasAccount(uuid);
+
+        // Assert
+        assertFalse(actual);
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithSuccess_ShouldReturnTrue() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.ZERO)).thenReturn(1);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.withdraw(uuid, currencyId, amount);
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithNullCurrentBalance_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(null);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.withdraw(uuid, currencyId, amount);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithBalanceNotUpdated_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.ZERO)).thenReturn(0);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.withdraw(uuid, currencyId, amount);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithSqlException_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.ZERO)).thenThrow(SQLException.class);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.withdraw(uuid, currencyId, amount);
 
         // Assert
         assertFalse(actual);

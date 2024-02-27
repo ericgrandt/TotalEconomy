@@ -34,6 +34,7 @@ public class BalanceData {
         return null;
     }
 
+    // TODO: Remove in favor of the BigDecimal updateBalance below
     public int updateBalance(UUID accountId, int currencyId, double balance) throws SQLException {
         String updateBalanceQuery = "UPDATE te_balance SET balance = ? WHERE account_id = ? AND currency_id = ?";
 
@@ -42,6 +43,21 @@ public class BalanceData {
             PreparedStatement stmt = conn.prepareStatement(updateBalanceQuery)
         ) {
             stmt.setBigDecimal(1, BigDecimal.valueOf(balance));
+            stmt.setString(2, accountId.toString());
+            stmt.setInt(3, currencyId);
+
+            return stmt.executeUpdate();
+        }
+    }
+
+    public int updateBalance(UUID accountId, int currencyId, BigDecimal balance) throws SQLException {
+        String updateBalanceQuery = "UPDATE te_balance SET balance = ? WHERE account_id = ? AND currency_id = ?";
+
+        try (
+            Connection conn = database.getDataSource().getConnection();
+            PreparedStatement stmt = conn.prepareStatement(updateBalanceQuery)
+        ) {
+            stmt.setBigDecimal(1, balance);
             stmt.setString(2, accountId.toString());
             stmt.setInt(3, currencyId);
 
