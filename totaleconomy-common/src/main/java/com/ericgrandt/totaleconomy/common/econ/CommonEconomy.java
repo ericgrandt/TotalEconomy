@@ -51,6 +51,23 @@ public class CommonEconomy {
         }
     }
 
+    // TODO: Test
+    public boolean createAccount(UUID uuid, int currencyId) {
+        try {
+            return accountData.createAccount(uuid, currencyId);
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling createAccount (accountId: %s, currencyId: %s)",
+                    uuid,
+                    currencyId
+                ),
+                e
+            );
+            return false;
+        }
+    }
+
     public BigDecimal getBalance(UUID uuid, int currencyId) {
         try {
             return balanceData.getBalance(uuid, currencyId);

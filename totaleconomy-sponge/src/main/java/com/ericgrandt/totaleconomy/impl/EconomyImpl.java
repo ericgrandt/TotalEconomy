@@ -3,7 +3,7 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.econ.ICommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -22,7 +22,7 @@ import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
 
-public class EconomyImpl implements EconomyService, CommonEconomy {
+public class EconomyImpl implements EconomyService, ICommonEconomy {
     private final Logger logger;
     private final CurrencyDto currencyDto;
     private final AccountData accountData;

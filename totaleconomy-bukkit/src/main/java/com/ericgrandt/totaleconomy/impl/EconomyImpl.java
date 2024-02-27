@@ -3,7 +3,7 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.econ.ICommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import java.math.BigDecimal;
@@ -19,7 +19,7 @@ import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.OfflinePlayer;
 
-public class EconomyImpl implements Economy, CommonEconomy {
+public class EconomyImpl implements Economy, ICommonEconomy {
     private final Logger logger;
     private final boolean isEnabled;
     private final CurrencyDto defaultCurrency;

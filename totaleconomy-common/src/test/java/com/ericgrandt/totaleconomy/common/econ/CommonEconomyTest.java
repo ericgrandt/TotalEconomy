@@ -81,20 +81,39 @@ public class CommonEconomyTest {
 
     @Test
     @Tag("Unit")
-    public void hasAccount_WithAccount_ShouldReturnTrue() throws SQLException {
+    public void createAccount_WithSuccess_ShouldReturnTrue() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
-        AccountDto account = new AccountDto(uuid.toString(), null);
+        int currencyId = 1;
 
-        when(accountDataMock.getAccount(uuid)).thenReturn(account);
+        when(accountDataMock.createAccount(uuid, currencyId)).thenReturn(true);
 
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.hasAccount(uuid);
+        boolean actual = sut.createAccount(uuid, currencyId);
 
         // Assert
         assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void createAccount_WithSqlException_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+
+        when(accountDataMock.createAccount(uuid, currencyId)).thenThrow(SQLException.class);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.createAccount(uuid, currencyId);
+
+        // Assert
+        assertFalse(actual);
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
     }
 
     @Test
