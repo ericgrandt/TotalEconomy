@@ -1,15 +1,15 @@
 package com.ericgrandt.totaleconomy.common.command;
 
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.econ.ICommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.game.CommonSender;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.text.Component;
 
 public class BalanceCommand implements CommonCommand {
-    private final CommonEconomy economy;
+    private final ICommonEconomy economy;
 
-    public BalanceCommand(final CommonEconomy economy) {
+    public BalanceCommand(final ICommonEconomy economy) {
         this.economy = economy;
     }
 

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.econ.ICommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.game.CommonSender;
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ public class BalanceCommandTest {
     public void execute_WithNonPlayerSender_ShouldReturnFalse() {
         // Arrange
         CommonSender commonSenderMock = mock(CommonSender.class);
-        CommonEconomy economyMock = mock(CommonEconomy.class);
+        ICommonEconomy economyMock = mock(ICommonEconomy.class);
 
         when(commonSenderMock.isPlayer()).thenReturn(false);
 
@@ -41,7 +41,7 @@ public class BalanceCommandTest {
         BigDecimal balance = BigDecimal.valueOf(100).setScale(2, RoundingMode.DOWN);
 
         CommonPlayer commonPlayerMock = mock(CommonPlayer.class);
-        CommonEconomy economyMock = mock(CommonEconomy.class);
+        ICommonEconomy economyMock = mock(ICommonEconomy.class);
 
         when(economyMock.getBalance(commonPlayerMock)).thenReturn(balance.doubleValue());
         when(economyMock.formatBalance(any(Double.class))).thenReturn(
