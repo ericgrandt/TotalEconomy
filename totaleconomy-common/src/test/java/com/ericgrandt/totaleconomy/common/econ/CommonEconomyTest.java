@@ -152,7 +152,7 @@ public class CommonEconomyTest {
 
     @Test
     @Tag("Unit")
-    public void withdraw_WithSuccess_ShouldReturnTrue() throws SQLException {
+    public void withdraw_WithSuccess_ShouldReturnSuccessfulTransactionResult() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
         int currencyId = 1;
@@ -164,15 +164,19 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.SUCCESS,
+            ""
+        );
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
     @Tag("Unit")
-    public void withdraw_WithNullCurrentBalance_ShouldReturnFalse() throws SQLException {
+    public void withdraw_WithNullCurrentBalance_ShouldReturnFailedTransactionResult() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
         int currencyId = 1;
@@ -183,35 +187,42 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "No balance found"
+        );
 
         // Assert
-        assertFalse(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
     @Tag("Unit")
-    public void withdraw_WithBalanceNotUpdated_ShouldReturnFalse() throws SQLException {
+    public void withdraw_WithInsufficientFunds_ShouldReturnFailedTransactionResult() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
         int currencyId = 1;
         BigDecimal amount = BigDecimal.TEN;
 
-        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
-        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.ZERO)).thenReturn(0);
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.ONE);
 
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "Insufficient funds"
+        );
 
         // Assert
-        assertFalse(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
     @Tag("Unit")
-    public void withdraw_WithSqlException_ShouldReturnFalse() throws SQLException {
+    public void withdraw_WithSqlException_ShouldReturnFailedTransactionResult() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
         int currencyId = 1;
@@ -223,7 +234,91 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "An error occurred. Please contact an administrator."
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+        verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_WithSuccess_ShouldReturnTrue() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.valueOf(20))).thenReturn(1);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.deposit(uuid, currencyId, amount);
+
+        // Assert
+        assertTrue(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_WithNullCurrentBalance_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(null);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.deposit(uuid, currencyId, amount);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_WithBalanceNotUpdated_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.valueOf(20))).thenReturn(0);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.deposit(uuid, currencyId, amount);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_WithSqlException_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.valueOf(20))).thenThrow(SQLException.class);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        boolean actual = sut.deposit(uuid, currencyId, amount);
 
         // Assert
         assertFalse(actual);

@@ -8,6 +8,7 @@ import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
+import net.kyori.adventure.text.Component;
 
 public class CommonEconomy {
     private final CommonLogger logger;
@@ -67,13 +68,55 @@ public class CommonEconomy {
         }
     }
 
-    public boolean withdraw(UUID uuid, int currencyId, BigDecimal amount) {
+    public TransactionResult withdraw(UUID uuid, int currencyId, BigDecimal amount) {
+        BigDecimal currentBalance = getBalance(uuid, currencyId);
+        // TODO: Do we want to allow negative balances after withdraw?
+        //  No we don't
+        if (currentBalance == null) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "No balance found"
+            );
+        }
+
+        if (currentBalance.compareTo(amount) < 0) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "Insufficient funds"
+            );
+        }
+
+        BigDecimal newBalance = currentBalance.subtract(amount);
+        try {
+            balanceData.updateBalance(uuid, currencyId, newBalance);
+            return new TransactionResult(
+                TransactionResult.ResultType.SUCCESS,
+                ""
+            );
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling updateBalance (accountId: %s, currencyId: %s, newBalance: %s)",
+                    uuid,
+                    currencyId,
+                    newBalance
+                ),
+                e
+            );
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "An error occurred. Please contact an administrator."
+            );
+        }
+    }
+
+    public boolean deposit(UUID uuid, int currencyId, BigDecimal amount) {
         BigDecimal currentBalance = getBalance(uuid, currencyId);
         if (currentBalance == null) {
             return false;
         }
 
-        BigDecimal newBalance = currentBalance.subtract(amount);
+        BigDecimal newBalance = currentBalance.add(amount);
 
         try {
             return balanceData.updateBalance(uuid, currencyId, newBalance) > 0;
@@ -91,6 +134,10 @@ public class CommonEconomy {
         }
     }
 
+    public boolean transfer(UUID uuid, UUID toUuid, int currencyId, double amount) {
+        return true;
+    }
+
     public BigDecimal getBalance(UUID uuid, int currencyId) {
         try {
             return balanceData.getBalance(uuid, currencyId);
@@ -105,5 +152,9 @@ public class CommonEconomy {
             );
             return null;
         }
+    }
+
+    public Component format(CurrencyDto currencyDto, double amount) {
+        return Component.empty();
     }
 }
