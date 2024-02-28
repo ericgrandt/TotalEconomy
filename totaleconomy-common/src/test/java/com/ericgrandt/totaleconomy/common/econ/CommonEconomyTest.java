@@ -259,10 +259,14 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.SUCCESS,
+            ""
+        );
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -278,30 +282,14 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "No balance found"
+        );
 
         // Assert
-        assertFalse(actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void deposit_WithBalanceNotUpdated_ShouldReturnFalse() throws SQLException {
-        // Arrange
-        UUID uuid = UUID.randomUUID();
-        int currencyId = 1;
-        BigDecimal amount = BigDecimal.TEN;
-
-        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
-        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.valueOf(20))).thenReturn(0);
-
-        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
-
-        // Act
-        boolean actual = sut.deposit(uuid, currencyId, amount);
-
-        // Assert
-        assertFalse(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -318,10 +306,14 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        boolean actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "An error occurred. Please contact an administrator."
+        );
 
         // Assert
-        assertFalse(actual);
+        assertEquals(expected, actual);
         verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
     }
 

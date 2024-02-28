@@ -70,8 +70,6 @@ public class CommonEconomy {
 
     public TransactionResult withdraw(UUID uuid, int currencyId, BigDecimal amount) {
         BigDecimal currentBalance = getBalance(uuid, currencyId);
-        // TODO: Do we want to allow negative balances after withdraw?
-        //  No we don't
         if (currentBalance == null) {
             return new TransactionResult(
                 TransactionResult.ResultType.FAILURE,
@@ -110,16 +108,22 @@ public class CommonEconomy {
         }
     }
 
-    public boolean deposit(UUID uuid, int currencyId, BigDecimal amount) {
+    public TransactionResult deposit(UUID uuid, int currencyId, BigDecimal amount) {
         BigDecimal currentBalance = getBalance(uuid, currencyId);
         if (currentBalance == null) {
-            return false;
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "No balance found"
+            );
         }
 
         BigDecimal newBalance = currentBalance.add(amount);
-
         try {
-            return balanceData.updateBalance(uuid, currencyId, newBalance) > 0;
+            balanceData.updateBalance(uuid, currencyId, newBalance);
+            return new TransactionResult(
+                TransactionResult.ResultType.SUCCESS,
+                ""
+            );
         } catch (SQLException e) {
             logger.error(
                 String.format(
@@ -130,7 +134,10 @@ public class CommonEconomy {
                 ),
                 e
             );
-            return false;
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "An error occurred. Please contact an administrator."
+            );
         }
     }
 
