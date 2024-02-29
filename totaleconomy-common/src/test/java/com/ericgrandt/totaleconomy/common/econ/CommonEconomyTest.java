@@ -19,7 +19,6 @@ import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
-
 import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

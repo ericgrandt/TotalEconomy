@@ -234,7 +234,7 @@ public class UniqueAccountImpl implements UniqueAccount {
                 accountId,
                 UUID.fromString(to.identifier()),
                 currencyDto.id(),
-                amount.doubleValue()
+                amount
             );
         } catch (SQLException e) {
             logger.error(

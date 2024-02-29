@@ -1164,7 +1164,7 @@ public class UniqueAccountImplTest {
             any(UUID.class),
             any(UUID.class),
             any(Integer.class),
-            any(Double.class)
+            any(BigDecimal.class)
         );
 
         CurrencyImpl currency = new CurrencyImpl(currencyDto);
@@ -1427,7 +1427,7 @@ public class UniqueAccountImplTest {
             any(UUID.class),
             any(UUID.class),
             any(Integer.class),
-            any(Double.class)
+            any(BigDecimal.class)
         );
 
         CurrencyImpl currency = new CurrencyImpl(currencyDto);
