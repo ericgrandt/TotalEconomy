@@ -3,9 +3,6 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.econ.ICommonEconomy;
-import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
-import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
@@ -13,19 +10,19 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.OfflinePlayer;
 
-public class EconomyImpl implements Economy, ICommonEconomy {
+public class EconomyImpl implements Economy {
     private final Logger logger;
     private final boolean isEnabled;
     private final CurrencyDto defaultCurrency;
     private final AccountData accountData;
     private final BalanceData balanceData;
 
+    // TODO: Replace data params with CommonEconomy
     public EconomyImpl(
         Logger logger,
         boolean isEnabled,
@@ -66,11 +63,6 @@ public class EconomyImpl implements Economy, ICommonEconomy {
             .setScale(defaultCurrency.numFractionDigits(), RoundingMode.DOWN);
 
         return String.format("%s%s", defaultCurrency.symbol(), bigDecimalAmount);
-    }
-
-    @Override
-    public Component formatBalance(double amount) {
-        return Component.text(format(amount));
     }
 
     @Override
@@ -146,11 +138,6 @@ public class EconomyImpl implements Economy, ICommonEconomy {
     @Override
     public double getBalance(OfflinePlayer player, String world) {
         throw new NotImplementedException("World specific accounts are not yet supported");
-    }
-
-    @Override
-    public double getBalance(CommonPlayer player) {
-        return getBalance(((BukkitPlayer) player).player());
     }
 
     @Override

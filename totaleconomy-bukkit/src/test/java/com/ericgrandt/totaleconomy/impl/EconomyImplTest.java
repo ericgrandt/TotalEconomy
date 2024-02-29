@@ -16,17 +16,13 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
-import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -161,29 +157,6 @@ public class EconomyImplTest {
         // Act
         String actual = sut.format(123.45);
         String expected = "$123.4";
-
-        // Assert
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void formatBalance_ShouldReturnFormattedAmountAsComponent() {
-        // Arrange
-        CurrencyDto defaultCurrency = new CurrencyDto(
-            1,
-            "singular",
-            "plural",
-            "$",
-            1,
-            true
-        );
-
-        EconomyImpl sut = new EconomyImpl(loggerMock, true, defaultCurrency, accountDataMock, balanceDataMock);
-
-        // Act
-        Component actual = sut.formatBalance(123.45);
-        Component expected = Component.text("$123.4");
 
         // Assert
         assertEquals(expected, actual);
@@ -465,27 +438,6 @@ public class EconomyImplTest {
             )),
             any(SQLException.class)
         );
-    }
-
-    @Test
-    @Tag("Unit")
-    public void getBalance_CommonPlayer_WithBalanceFound_ShouldReturnBalance() throws SQLException {
-        // Arrange
-        UUID playerUUID = UUID.randomUUID();
-        Player mockPlayer = mock(Player.class);
-        CommonPlayer bukkitPlayer = new BukkitPlayer(mockPlayer);
-        when(mockPlayer.getUniqueId()).thenReturn(playerUUID);
-
-        when(balanceDataMock.getBalance(playerUUID, 1)).thenReturn(BigDecimal.TEN);
-
-        EconomyImpl sut = new EconomyImpl(loggerMock, true, null, accountDataMock, balanceDataMock);
-
-        // Act
-        double actual = sut.getBalance(bukkitPlayer);
-        double expected = 10;
-
-        // Assert
-        assertEquals(expected, actual);
     }
 
     @Test
