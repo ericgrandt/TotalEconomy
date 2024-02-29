@@ -6,6 +6,8 @@ import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.listeners.PlayerListener;
@@ -36,7 +38,8 @@ public class TotalEconomy {
 
     private PluginConfig config;
     private CurrencyDto defaultCurrency;
-    private EconomyImpl economy;
+    private EconomyImpl economyImpl;
+    private CommonEconomy economy;
 
     @Inject
     private TotalEconomy(
@@ -97,7 +100,8 @@ public class TotalEconomy {
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
 
-        economy = new EconomyImpl(logger, defaultCurrency, accountData, balanceData);
+        economyImpl = new EconomyImpl(logger, defaultCurrency, accountData, balanceData);
+        economy = new CommonEconomy(new SpongeLogger(logger), accountData, balanceData, currencyData);
 
         registerListeners();
     }
@@ -105,7 +109,7 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommandExecutor(economy, new CommandResultWrapper()))
+            .executor(new BalanceCommandExecutor(economy, defaultCurrency, new CommandResultWrapper()))
             .build();
         event.register(
             container,
@@ -116,10 +120,10 @@ public class TotalEconomy {
 
     @Listener
     public void registerEconomyService(ProvideServiceEvent.EngineScoped<EconomyImpl> event) {
-        event.suggest(() -> economy);
+        event.suggest(() -> economyImpl);
     }
 
     private void registerListeners() {
-        Sponge.eventManager().registerListeners(container, new PlayerListener(economy));
+        Sponge.eventManager().registerListeners(container, new PlayerListener(economyImpl));
     }
 }
