@@ -188,7 +188,7 @@ public class BalanceDataTest {
         UUID toAccountId = UUID.fromString("551fe9be-f77f-4bcb-81db-548db6e77aea");
 
         // Act
-        sut.transfer(fromAccountId, toAccountId, 1, 10);
+        sut.transfer(fromAccountId, toAccountId, 1, BigDecimal.TEN);
 
         BalanceDto actualFromBalanceDto = TestUtils.getBalanceForAccountId(fromAccountId, 1);
         BalanceDto actualToBalanceDto = TestUtils.getBalanceForAccountId(toAccountId, 1);

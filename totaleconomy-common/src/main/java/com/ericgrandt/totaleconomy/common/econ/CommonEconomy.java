@@ -6,6 +6,7 @@ import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
@@ -69,6 +70,13 @@ public class CommonEconomy {
     }
 
     public TransactionResult withdraw(UUID uuid, int currencyId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "Amount must be greater than zero"
+            );
+        }
+
         BigDecimal currentBalance = getBalance(uuid, currencyId);
         if (currentBalance == null) {
             return new TransactionResult(
@@ -109,6 +117,13 @@ public class CommonEconomy {
     }
 
     public TransactionResult deposit(UUID uuid, int currencyId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "Amount must be greater than zero"
+            );
+        }
+
         BigDecimal currentBalance = getBalance(uuid, currencyId);
         if (currentBalance == null) {
             return new TransactionResult(
@@ -141,8 +156,51 @@ public class CommonEconomy {
         }
     }
 
-    public boolean transfer(UUID uuid, UUID toUuid, int currencyId, double amount) {
-        return true;
+    public TransactionResult transfer(UUID uuid, UUID toUuid, int currencyId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "Amount must be greater than zero"
+            );
+        }
+
+        BigDecimal currentBalance = getBalance(uuid, currencyId);
+        if (currentBalance == null) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "No balance found"
+            );
+        }
+
+        if (currentBalance.compareTo(amount) < 0) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "Insufficient funds"
+            );
+        }
+
+        try {
+            balanceData.transfer(uuid, toUuid, currencyId, amount);
+            return new TransactionResult(
+                TransactionResult.ResultType.SUCCESS,
+                ""
+            );
+        } catch (SQLException e) {
+            logger.error(
+                String.format(
+                    "[Total Economy] Error calling transfer (accountId: %s, toAccountId: %s, currencyId: %s, newBalance: %s)",
+                    uuid,
+                    toUuid,
+                    currencyId,
+                    amount
+                ),
+                e
+            );
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "An error occurred. Please contact an administrator."
+            );
+        }
     }
 
     public BigDecimal getBalance(UUID uuid, int currencyId) {
@@ -161,7 +219,8 @@ public class CommonEconomy {
         }
     }
 
-    public Component format(CurrencyDto currencyDto, double amount) {
-        return Component.empty();
+    public Component format(CurrencyDto currencyDto, BigDecimal amount) {
+        BigDecimal scaledAmount = amount.setScale(currencyDto.numFractionDigits(), RoundingMode.DOWN);
+        return Component.text(currencyDto.symbol() + scaledAmount);
     }
 }
