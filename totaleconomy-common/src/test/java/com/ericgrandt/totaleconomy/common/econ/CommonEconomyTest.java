@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
+import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
@@ -413,8 +414,10 @@ public class CommonEconomyTest {
         int currencyId = 1;
         BigDecimal amount = BigDecimal.TEN;
 
-        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
+        AccountDto toAccount = new AccountDto(toUuid.toString(), null);
 
+        when(accountDataMock.getAccount(toUuid)).thenReturn(toAccount);
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
         doNothing().when(balanceDataMock).transfer(uuid, toUuid, currencyId, amount);
 
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
@@ -432,7 +435,7 @@ public class CommonEconomyTest {
 
     @Test
     @Tag("Unit")
-    public void transfer_WithAmountEqualToZero_ShouldReturnFailedTransactionResult() {
+    public void transfer_WithAmountEqualToZero_ShouldReturnFailedTransactionResult() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
         UUID toUuid = UUID.randomUUID();
@@ -483,6 +486,9 @@ public class CommonEconomyTest {
         int currencyId = 1;
         BigDecimal amount = BigDecimal.TEN;
 
+        AccountDto toAccount = new AccountDto(toUuid.toString(), null);
+
+        when(accountDataMock.getAccount(toUuid)).thenReturn(toAccount);
         when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(null);
 
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
@@ -500,6 +506,30 @@ public class CommonEconomyTest {
 
     @Test
     @Tag("Unit")
+    public void transfer_WithNoAccountForToUuid_ShouldReturnFailedTransactionResult() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        UUID toUuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.TEN;
+
+        when(accountDataMock.getAccount(toUuid)).thenReturn(null);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        TransactionResult actual = sut.transfer(uuid, toUuid, currencyId, amount);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "User not found"
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void transfer_WithInsufficientFunds_ShouldReturnTrue() throws SQLException {
         // Arrange
         UUID uuid = UUID.randomUUID();
@@ -507,6 +537,9 @@ public class CommonEconomyTest {
         int currencyId = 1;
         BigDecimal amount = BigDecimal.TEN;
 
+        AccountDto toAccount = new AccountDto(toUuid.toString(), null);
+
+        when(accountDataMock.getAccount(toUuid)).thenReturn(toAccount);
         when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.ONE);
 
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
@@ -531,6 +564,9 @@ public class CommonEconomyTest {
         int currencyId = 1;
         BigDecimal amount = BigDecimal.TEN;
 
+        AccountDto toAccount = new AccountDto(toUuid.toString(), null);
+
+        when(accountDataMock.getAccount(toUuid)).thenReturn(toAccount);
         when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.TEN);
         doThrow(SQLException.class).when(balanceDataMock).transfer(uuid, toUuid, currencyId, amount);
 

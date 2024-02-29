@@ -164,6 +164,13 @@ public class CommonEconomy {
             );
         }
 
+        if (!hasAccount(toUuid)) {
+            return new TransactionResult(
+                TransactionResult.ResultType.FAILURE,
+                "User not found"
+            );
+        }
+
         BigDecimal currentBalance = getBalance(uuid, currencyId);
         if (currentBalance == null) {
             return new TransactionResult(
