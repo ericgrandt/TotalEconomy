@@ -78,13 +78,6 @@ public class CommonEconomy {
         }
 
         BigDecimal currentBalance = getBalance(uuid, currencyId);
-        if (currentBalance == null) {
-            return new TransactionResult(
-                TransactionResult.ResultType.FAILURE,
-                "No balance found"
-            );
-        }
-
         if (currentBalance.compareTo(amount) < 0) {
             return new TransactionResult(
                 TransactionResult.ResultType.FAILURE,
@@ -125,13 +118,6 @@ public class CommonEconomy {
         }
 
         BigDecimal currentBalance = getBalance(uuid, currencyId);
-        if (currentBalance == null) {
-            return new TransactionResult(
-                TransactionResult.ResultType.FAILURE,
-                "No balance found"
-            );
-        }
-
         BigDecimal newBalance = currentBalance.add(amount);
         try {
             balanceData.updateBalance(uuid, currencyId, newBalance);
@@ -172,13 +158,6 @@ public class CommonEconomy {
         }
 
         BigDecimal currentBalance = getBalance(uuid, currencyId);
-        if (currentBalance == null) {
-            return new TransactionResult(
-                TransactionResult.ResultType.FAILURE,
-                "No balance found"
-            );
-        }
-
         if (currentBalance.compareTo(amount) < 0) {
             return new TransactionResult(
                 TransactionResult.ResultType.FAILURE,
@@ -222,7 +201,7 @@ public class CommonEconomy {
                 ),
                 e
             );
-            return null;
+            return BigDecimal.ZERO;
         }
     }
 

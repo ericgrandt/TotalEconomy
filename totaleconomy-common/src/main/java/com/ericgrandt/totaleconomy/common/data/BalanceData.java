@@ -31,7 +31,7 @@ public class BalanceData {
             }
         }
 
-        return null;
+        return BigDecimal.ZERO;
     }
 
     // TODO: Remove in favor of the BigDecimal updateBalance below

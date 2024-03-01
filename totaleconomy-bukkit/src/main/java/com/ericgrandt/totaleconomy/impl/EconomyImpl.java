@@ -3,38 +3,32 @@ package com.ericgrandt.totaleconomy.impl;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.econ.TransactionResult;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.OfflinePlayer;
 
 public class EconomyImpl implements Economy {
-    private final Logger logger;
     private final boolean isEnabled;
     private final CurrencyDto defaultCurrency;
-    private final AccountData accountData;
-    private final BalanceData balanceData;
+    private final CommonEconomy economy;
 
     // TODO: Replace data params with CommonEconomy
     public EconomyImpl(
-        Logger logger,
         boolean isEnabled,
         CurrencyDto defaultCurrency,
-        AccountData accountData,
-        BalanceData balanceData
+        CommonEconomy economy
     ) {
-        this.logger = logger;
         this.isEnabled = isEnabled;
         this.defaultCurrency = defaultCurrency;
-        this.accountData = accountData;
-        this.balanceData = balanceData;
+        this.economy = economy;
     }
 
     @Override
@@ -58,14 +52,6 @@ public class EconomyImpl implements Economy {
     }
 
     @Override
-    public String format(double amount) {
-        BigDecimal bigDecimalAmount = BigDecimal.valueOf(amount)
-            .setScale(defaultCurrency.numFractionDigits(), RoundingMode.DOWN);
-
-        return String.format("%s%s", defaultCurrency.symbol(), bigDecimalAmount);
-    }
-
-    @Override
     public String currencyNamePlural() {
         return defaultCurrency.namePlural();
     }
@@ -76,19 +62,14 @@ public class EconomyImpl implements Economy {
     }
 
     @Override
-    public boolean hasAccount(OfflinePlayer player) {
-        UUID playerUUID = player.getUniqueId();
+    public String format(double amount) {
+        Component component = economy.format(defaultCurrency, BigDecimal.valueOf(amount));
+        return PlainTextComponentSerializer.plainText().serialize(component);
+    }
 
-        try {
-            return accountData.getAccount(playerUUID) != null;
-        } catch (SQLException e) {
-            logger.log(
-                Level.SEVERE,
-                String.format("[Total Economy] Error calling getAccount (accountId: %s)", playerUUID),
-                e
-            );
-            return false;
-        }
+    @Override
+    public boolean hasAccount(OfflinePlayer player) {
+        return economy.hasAccount(player.getUniqueId());
     }
 
     @Override
@@ -98,23 +79,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer player) {
-        UUID playerUUID = player.getUniqueId();
-        int currencyId = 1;
-
-        try {
-            return accountData.createAccount(playerUUID, currencyId);
-        } catch (SQLException e) {
-            logger.log(
-                Level.SEVERE,
-                String.format(
-                    "[Total Economy] Error calling createAccount (accountId: %s, currencyId: %s)",
-                    playerUUID,
-                    currencyId
-                ),
-                e
-            );
-            return false;
-        }
+        return economy.createAccount(player.getUniqueId(), defaultCurrency.id());
     }
 
     @Override
@@ -124,15 +89,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public double getBalance(OfflinePlayer player) {
-        UUID playerUUID = player.getUniqueId();
-        int currencyId = 1;
-
-        BigDecimal balance = getBigDecimalBalance(playerUUID, currencyId);
-        if (balance == null) {
-            return 0;
-        }
-
-        return balance.doubleValue();
+        return economy.getBalance(player.getUniqueId(), defaultCurrency.id()).doubleValue();
     }
 
     @Override
@@ -152,34 +109,20 @@ public class EconomyImpl implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-        UUID playerUUID = player.getUniqueId();
-        int currencyId = 1;
-
-        BigDecimal currentBalance = getBigDecimalBalance(playerUUID, currencyId);
-        if (currentBalance == null) {
-            return new EconomyResponse(
-                amount,
-                0,
-                EconomyResponse.ResponseType.FAILURE,
-                "No balance found for user"
-            );
-        }
-
-        double newBalance = currentBalance.doubleValue() - amount;
-        if (!updateBalance(playerUUID, currencyId, newBalance)) {
-            return new EconomyResponse(
-                amount,
-                currentBalance.doubleValue(),
-                EconomyResponse.ResponseType.FAILURE,
-                "Error updating balance"
-            );
-        }
+        TransactionResult result = economy.withdraw(
+            player.getUniqueId(),
+            defaultCurrency.id(),
+            BigDecimal.valueOf(amount)
+        );
+        EconomyResponse.ResponseType responseType = result.resultType() == TransactionResult.ResultType.SUCCESS
+            ? EconomyResponse.ResponseType.SUCCESS
+            : EconomyResponse.ResponseType.FAILURE;
 
         return new EconomyResponse(
             amount,
-            newBalance,
-            EconomyResponse.ResponseType.SUCCESS,
-            null
+            0,
+            responseType,
+            result.message()
         );
     }
 
@@ -190,34 +133,20 @@ public class EconomyImpl implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-        UUID playerUUID = player.getUniqueId();
-        int currencyId = 1;
-
-        BigDecimal currentBalance = getBigDecimalBalance(playerUUID, currencyId);
-        if (currentBalance == null) {
-            return new EconomyResponse(
-                amount,
-                0,
-                EconomyResponse.ResponseType.FAILURE,
-                "No balance found for user"
-            );
-        }
-
-        double newBalance = currentBalance.doubleValue() + amount;
-        if (!updateBalance(playerUUID, currencyId, newBalance)) {
-            return new EconomyResponse(
-                amount,
-                currentBalance.doubleValue(),
-                EconomyResponse.ResponseType.FAILURE,
-                "Error updating balance"
-            );
-        }
+        TransactionResult result = economy.deposit(
+            player.getUniqueId(),
+            defaultCurrency.id(),
+            BigDecimal.valueOf(amount)
+        );
+        EconomyResponse.ResponseType responseType = result.resultType() == TransactionResult.ResultType.SUCCESS
+            ? EconomyResponse.ResponseType.SUCCESS
+            : EconomyResponse.ResponseType.FAILURE;
 
         return new EconomyResponse(
             amount,
-            newBalance,
-            EconomyResponse.ResponseType.SUCCESS,
-            null
+            0,
+            responseType,
+            result.message()
         );
     }
 
@@ -348,41 +277,5 @@ public class EconomyImpl implements Economy {
 
     public CurrencyDto getDefaultCurrency() {
         return defaultCurrency;
-    }
-
-    private BigDecimal getBigDecimalBalance(UUID playerUUID, int currencyId) {
-        try {
-            return balanceData.getBalance(playerUUID, currencyId);
-        } catch (SQLException e) {
-            logger.log(
-                Level.SEVERE,
-                String.format(
-                    "[Total Economy] Error calling getBalance (accountId: %s, currencyId: %s)",
-                    playerUUID,
-                    currencyId
-                ),
-                e
-            );
-            return null;
-        }
-    }
-
-    private boolean updateBalance(UUID playerUUID, int currencyId, double newBalance) {
-        try {
-            balanceData.updateBalance(playerUUID, currencyId, newBalance);
-            return true;
-        } catch (SQLException e) {
-            logger.log(
-                Level.SEVERE,
-                String.format(
-                    "[Total Economy] Error calling updateBalance (accountId: %s, currencyId: %s, balance: %s)",
-                    playerUUID,
-                    currencyId,
-                    newBalance
-                ),
-                e
-            );
-            return false;
-        }
     }
 }

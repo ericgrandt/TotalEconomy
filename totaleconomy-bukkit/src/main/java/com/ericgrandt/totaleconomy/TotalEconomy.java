@@ -79,8 +79,8 @@ public class TotalEconomy extends JavaPlugin implements Listener {
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
         JobData jobData = new JobData(database);
-        economyImpl = new EconomyImpl(logger, true, defaultCurrency, accountData, balanceData);
         economy = new CommonEconomy(new BukkitLogger(logger), accountData, balanceData, currencyData);
+        economyImpl = new EconomyImpl(true, defaultCurrency, economy);
         jobService = new JobService(logger, jobData);
         balanceService = new BalanceService(balanceData);
 

@@ -67,9 +67,10 @@ public class BalanceDataTest {
 
         // Act
         BigDecimal actual = sut.getBalance(UUID.randomUUID(), 1);
+        BigDecimal expected = BigDecimal.ZERO;
 
         // Assert
-        assertNull(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
