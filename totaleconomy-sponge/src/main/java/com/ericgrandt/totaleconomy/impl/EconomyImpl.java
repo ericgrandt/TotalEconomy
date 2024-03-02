@@ -1,17 +1,14 @@
 package com.ericgrandt.totaleconomy.impl;
 
-import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-
-import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
@@ -58,12 +55,13 @@ public class EconomyImpl implements EconomyService {
             }
         }
 
+        BigDecimal balance = economy.getBalance(uuid, currencyDto.id());
         UniqueAccount account = new UniqueAccountImpl(
             spongeWrapper,
             uuid,
             economy,
             currencyDto.id(),
-            Map.of(currency, BigDecimal.TEN) // TODO: Update this with the balance
+            Map.of(currency, balance)
         );
         return Optional.of(account);
     }

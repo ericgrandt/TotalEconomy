@@ -21,4 +21,8 @@ public class SpongeWrapper {
     public TransactionType withdraw() {
         return TransactionTypes.WITHDRAW.get();
     }
+
+    public TransactionType transfer() {
+        return TransactionTypes.TRANSFER.get();
+    }
 }
