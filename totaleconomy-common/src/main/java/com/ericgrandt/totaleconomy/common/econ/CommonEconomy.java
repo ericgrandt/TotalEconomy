@@ -205,6 +205,11 @@ public class CommonEconomy {
         }
     }
 
+    // TODO: Implement setBalance function
+    public BigDecimal setBalance(UUID uuid, int currencyId, BigDecimal amount) {
+        return null;
+    }
+
     public Component format(CurrencyDto currencyDto, BigDecimal amount) {
         BigDecimal scaledAmount = amount.setScale(currencyDto.numFractionDigits(), RoundingMode.DOWN);
         return Component.text(currencyDto.symbol() + scaledAmount);

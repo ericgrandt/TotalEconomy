@@ -100,8 +100,8 @@ public class TotalEconomy {
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
 
-        economyImpl = new EconomyImpl(logger, defaultCurrency, accountData, balanceData);
         economy = new CommonEconomy(new SpongeLogger(logger), accountData, balanceData, currencyData);
+        economyImpl = new EconomyImpl(logger, defaultCurrency, economy, balanceData);
 
         registerListeners();
     }

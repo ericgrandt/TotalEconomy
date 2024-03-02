@@ -17,11 +17,10 @@ public class EconomyImpl implements Economy {
     private final CurrencyDto defaultCurrency;
     private final CommonEconomy economy;
 
-    // TODO: Replace data params with CommonEconomy
     public EconomyImpl(
-        boolean isEnabled,
-        CurrencyDto defaultCurrency,
-        CommonEconomy economy
+        final boolean isEnabled,
+        final CurrencyDto defaultCurrency,
+        final CommonEconomy economy
     ) {
         this.isEnabled = isEnabled;
         this.defaultCurrency = defaultCurrency;
