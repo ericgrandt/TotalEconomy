@@ -15,7 +15,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionType;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionResultImplTest {
-    private final UniqueAccountImpl account = new UniqueAccountImpl(null, null, null, null, null, null);
+    private final UniqueAccountImpl account = new UniqueAccountImpl(null, null, null, 1, null);
     private final CurrencyImpl currency = new CurrencyImpl(null);
     private final TransactionType type = new TransactionTypeMock();
 

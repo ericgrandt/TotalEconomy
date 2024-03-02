@@ -14,7 +14,7 @@ import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
-import com.ericgrandt.totaleconomy.wrappers.CommandResultWrapper;
+import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -70,7 +70,7 @@ public class BalanceCommandExecutorTest {
         CurrencyData currencyData = new CurrencyData(databaseMock);
         CommonEconomy economy = new CommonEconomy(new SpongeLogger(loggerMock), accountData, balanceData, currencyData);
 
-        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, defaultCurrency, mock(CommandResultWrapper.class));
+        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, defaultCurrency, mock(SpongeWrapper.class));
 
         // Act
         sut.execute(commandContextMock);

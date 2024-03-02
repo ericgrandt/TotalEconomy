@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -18,24 +20,21 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
 
 public class EconomyImpl implements EconomyService {
-    private final Logger logger;
+    private final SpongeWrapper spongeWrapper;
     private final CurrencyDto currencyDto;
     private final CommonEconomy economy;
-    private final BalanceData balanceData;
 
     private final Currency currency;
 
     // TODO: Replace data params with CommonEconomy
     public EconomyImpl(
-        final Logger logger,
+        final SpongeWrapper spongeWrapper,
         final CurrencyDto currencyDto,
-        final CommonEconomy economy,
-        final BalanceData balanceData
+        final CommonEconomy economy
     ) {
-        this.logger = logger;
+        this.spongeWrapper = spongeWrapper;
         this.currencyDto = currencyDto;
         this.economy = economy;
-        this.balanceData = balanceData;
 
         this.currency = new CurrencyImpl(currencyDto);
     }
@@ -59,14 +58,12 @@ public class EconomyImpl implements EconomyService {
             }
         }
 
-        BigDecimal balance = economy.getBalance(uuid, currencyDto.id());
         UniqueAccount account = new UniqueAccountImpl(
-            logger,
+            spongeWrapper,
             uuid,
-            Map.of(currency, balance),
-            balanceData,
-            currencyDto,
-            economy
+            economy,
+            currencyDto.id(),
+            Map.of(currency, BigDecimal.TEN) // TODO: Update this with the balance
         );
         return Optional.of(account);
     }

@@ -11,7 +11,7 @@ import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.listeners.PlayerListener;
-import com.ericgrandt.totaleconomy.wrappers.CommandResultWrapper;
+import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -101,7 +101,7 @@ public class TotalEconomy {
         BalanceData balanceData = new BalanceData(database);
 
         economy = new CommonEconomy(new SpongeLogger(logger), accountData, balanceData, currencyData);
-        economyImpl = new EconomyImpl(logger, defaultCurrency, economy, balanceData);
+        economyImpl = new EconomyImpl(new SpongeWrapper(), defaultCurrency, economy);
 
         registerListeners();
     }
@@ -109,7 +109,7 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommandExecutor(economy, defaultCurrency, new CommandResultWrapper()))
+            .executor(new BalanceCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
             .build();
         event.register(
             container,

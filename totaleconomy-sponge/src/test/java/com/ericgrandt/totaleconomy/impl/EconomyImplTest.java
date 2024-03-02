@@ -4,15 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,13 +23,10 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 @ExtendWith(MockitoExtension.class)
 public class EconomyImplTest {
     @Mock
-    private Logger loggerMock;
+    private SpongeWrapper spongeWrapperMock;
 
     @Mock
     private CommonEconomy economyMock;
-
-    @Mock
-    private BalanceData balanceDataMock;
 
     private final CurrencyDto currency = new CurrencyDto(
         1,
@@ -45,7 +41,7 @@ public class EconomyImplTest {
     @Tag("Unit")
     public void defaultCurrency_ShouldReturnDefaultCurrency() {
         // Arrange
-        EconomyImpl sut = new EconomyImpl(loggerMock, currency, economyMock, balanceDataMock);
+        EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
 
         // Act
         Currency actual = sut.defaultCurrency();
@@ -62,7 +58,7 @@ public class EconomyImplTest {
         UUID uuid = UUID.randomUUID();
         when(economyMock.hasAccount(uuid)).thenReturn(true);
 
-        EconomyImpl sut = new EconomyImpl(loggerMock, currency, economyMock, balanceDataMock);
+        EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
 
         // Act
         boolean actual = sut.hasAccount(uuid);
@@ -79,18 +75,17 @@ public class EconomyImplTest {
         when(economyMock.hasAccount(uuid)).thenReturn(true);
         when(economyMock.getBalance(uuid, 1)).thenReturn(BigDecimal.TEN);
 
-        EconomyImpl sut = new EconomyImpl(loggerMock, currency, economyMock, balanceDataMock);
+        EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.of(
             new UniqueAccountImpl(
-                loggerMock,
+                spongeWrapperMock,
                 uuid,
-                Map.of(new CurrencyImpl(currency), BigDecimal.TEN),
-                balanceDataMock,
-                currency,
-                economyMock
+                economyMock,
+                currency.id(),
+                Map.of(new CurrencyImpl(currency), BigDecimal.TEN)
             )
         );
 
@@ -107,18 +102,17 @@ public class EconomyImplTest {
         when(economyMock.createAccount(uuid, 1)).thenReturn(true);
         when(economyMock.getBalance(uuid, 1)).thenReturn(BigDecimal.TEN);
 
-        EconomyImpl sut = new EconomyImpl(loggerMock, currency, economyMock, balanceDataMock);
+        EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
         Optional<UniqueAccount> expected = Optional.of(
             new UniqueAccountImpl(
-                loggerMock,
+                spongeWrapperMock,
                 uuid,
-                Map.of(new CurrencyImpl(currency), BigDecimal.TEN),
-                balanceDataMock,
-                currency,
-                economyMock
+                economyMock,
+                currency.id(),
+                Map.of(new CurrencyImpl(currency), BigDecimal.TEN)
             )
         );
 
@@ -134,7 +128,7 @@ public class EconomyImplTest {
         when(economyMock.hasAccount(uuid)).thenReturn(false);
         when(economyMock.createAccount(uuid, 1)).thenReturn(false);
 
-        EconomyImpl sut = new EconomyImpl(loggerMock, currency, economyMock, balanceDataMock);
+        EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
 
         // Act
         Optional<UniqueAccount> actual = sut.findOrCreateAccount(uuid);
