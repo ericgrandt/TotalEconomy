@@ -19,7 +19,6 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 
 public class UniqueAccountImpl implements UniqueAccount {
@@ -154,12 +153,27 @@ public class UniqueAccountImpl implements UniqueAccount {
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Set<Context> contexts) {
-        return null;
+        com.ericgrandt.totaleconomy.common.econ.TransactionResult result = economy.withdraw(
+            accountId,
+            defaultCurrencyId,
+            amount
+        );
+        ResultType resultType = result.resultType() == com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS
+            ? ResultType.SUCCESS
+            : ResultType.FAILED;
+
+        return new TransactionResultImpl(
+            this,
+            currency,
+            amount,
+            resultType,
+            spongeWrapper.withdraw()
+        );
     }
 
     @Override
     public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause) {
-        return null;
+        return withdraw(currency, amount, new HashSet<>());
     }
 
     @Override

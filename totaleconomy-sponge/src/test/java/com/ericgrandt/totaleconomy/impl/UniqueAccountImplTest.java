@@ -400,6 +400,114 @@ public class UniqueAccountImplTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithSuccess_ShouldReturnTransactionResult() {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        Currency currency = new CurrencyImpl(currencyDto);
+
+        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN)).thenReturn(
+            new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
+                com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS,
+                ""
+            )
+        );
+
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            spongeWrapperMock,
+            uuid,
+            economyMock,
+            currencyDto.id(),
+            Map.of(currency, BigDecimal.TEN)
+        );
+
+        // Act
+        TransactionResult actual = sut.withdraw(currency, BigDecimal.TEN, new HashSet<>());
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.SUCCESS,
+            spongeWrapperMock.withdraw()
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithFailure_ShouldReturnTransactionResult() {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        Currency currency = new CurrencyImpl(currencyDto);
+
+        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN)).thenReturn(
+            new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
+                com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.FAILURE,
+                ""
+            )
+        );
+
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            spongeWrapperMock,
+            uuid,
+            economyMock,
+            currencyDto.id(),
+            Map.of(currency, BigDecimal.TEN)
+        );
+
+        // Act
+        TransactionResult actual = sut.withdraw(currency, BigDecimal.TEN, new HashSet<>());
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.FAILED,
+            spongeWrapperMock.withdraw()
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_Cause_WithSuccess_ShouldReturnTransactionResult() {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        Currency currency = new CurrencyImpl(currencyDto);
+
+        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN)).thenReturn(
+            new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
+                com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS,
+                ""
+            )
+        );
+
+        UniqueAccountImpl sut = new UniqueAccountImpl(
+            spongeWrapperMock,
+            uuid,
+            economyMock,
+            currencyDto.id(),
+            Map.of(currency, BigDecimal.TEN)
+        );
+
+        // Act
+        TransactionResult actual = sut.withdraw(currency, BigDecimal.TEN, (Cause) null);
+        TransactionResult expected = new TransactionResultImpl(
+            sut,
+            currency,
+            BigDecimal.TEN,
+            ResultType.SUCCESS,
+            spongeWrapperMock.withdraw()
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
 //    @Test
 //    @Tag("Unit")
 //    public void setBalance_Contexts_WithBalance_ShouldSetBalance() {

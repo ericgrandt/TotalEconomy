@@ -17,4 +17,8 @@ public class SpongeWrapper {
     public TransactionType deposit() {
         return TransactionTypes.DEPOSIT.get();
     }
+
+    public TransactionType withdraw() {
+        return TransactionTypes.WITHDRAW.get();
+    }
 }
