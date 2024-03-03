@@ -87,7 +87,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        int actual = sut.updateBalance(UUID.randomUUID(), 1, 100);
+        int actual = sut.updateBalance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         int expected = 1;
 
         // Assert
@@ -109,7 +109,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        int actual = sut.updateBalance(UUID.randomUUID(), 1, 100);
+        int actual = sut.updateBalance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         int expected = 0;
 
         // Assert
@@ -159,7 +159,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        int actual = sut.updateBalance(accountId, currencyId, 100);
+        int actual = sut.updateBalance(accountId, currencyId, BigDecimal.valueOf(100));
         int expected = 1;
 
         BalanceDto actualBalanceDto = TestUtils.getBalanceForAccountId(accountId, currencyId);

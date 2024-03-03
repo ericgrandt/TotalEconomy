@@ -23,7 +23,6 @@ public class EconomyImpl implements EconomyService {
 
     private final Currency currency;
 
-    // TODO: Replace data params with CommonEconomy
     public EconomyImpl(
         final SpongeWrapper spongeWrapper,
         final CurrencyDto currencyDto,
