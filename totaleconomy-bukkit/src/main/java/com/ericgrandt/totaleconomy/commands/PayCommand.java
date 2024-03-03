@@ -25,6 +25,7 @@ public class PayCommand implements CommandExecutor {
     private final EconomyImpl economy;
     private final BalanceService balanceService;
 
+    // TODO: Use CommonEconomy; will do this at the same time as the common PayCommand
     public PayCommand(Logger logger, BukkitWrapper bukkitWrapper, EconomyImpl economy, BalanceService balanceService) {
         this.logger = logger;
         this.bukkitWrapper = bukkitWrapper;

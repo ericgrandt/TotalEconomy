@@ -15,6 +15,7 @@ public class PlayerListener implements Listener {
     private final JobService jobService;
     private final TotalEconomy plugin;
 
+    // TODO: Replace with CommonEconomy
     public PlayerListener(EconomyImpl economy, JobService jobService, TotalEconomy plugin) {
         this.economy = economy;
         this.jobService = jobService;
