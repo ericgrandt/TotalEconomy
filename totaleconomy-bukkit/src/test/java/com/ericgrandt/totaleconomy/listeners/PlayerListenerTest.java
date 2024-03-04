@@ -10,12 +10,15 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.totaleconomy.common.TestUtils;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
@@ -82,8 +85,7 @@ public class PlayerListenerTest {
         TestUtils.seedDefaultBalances();
         TestUtils.seedJobs();
 
-        CurrencyDto currencyDto = new CurrencyDto(0, "", "", "", 0, true);
-        BalanceData balanceDataMock = mock(BalanceData.class);
+        CurrencyDto currencyDto = new CurrencyDto(1, "", "", "", 0, true);
         Database databaseMock = mock(Database.class);
         Player playerMock = mock(Player.class);
         UUID playerId = UUID.randomUUID();
@@ -91,9 +93,22 @@ public class PlayerListenerTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
 
-        AccountData accountData = new AccountData(databaseMock);
         JobData jobData = new JobData(databaseMock);
-        EconomyImpl economy = new EconomyImpl(loggerMock, true, currencyDto, accountData, balanceDataMock);
+        AccountData accountData = new AccountData(databaseMock);
+        BalanceData balanceData = new BalanceData(databaseMock);
+        CurrencyData currencyData = new CurrencyData(databaseMock);
+
+        CommonEconomy commonEconomy = new CommonEconomy(
+            new BukkitLogger(loggerMock),
+            accountData,
+            balanceData,
+            currencyData
+        );
+        EconomyImpl economy = new EconomyImpl(
+            true,
+            currencyDto,
+            commonEconomy
+        );
         JobService jobServiceMock = new JobService(loggerMock, jobData);
         PlayerListener sut = new PlayerListener(economy, jobServiceMock, null);
 

@@ -9,6 +9,8 @@ import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.listeners.JobListener;
@@ -33,9 +35,11 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     private final Logger logger = Logger.getLogger("Minecraft");
     private final BukkitWrapper bukkitWrapper = new BukkitWrapper();
 
-    private EconomyImpl economy;
+    private EconomyImpl economyImpl;
+    private CommonEconomy economy;
     private JobService jobService;
     private BalanceService balanceService;
+    private CurrencyDto defaultCurrency;
 
     @Override
     public void onEnable() {
@@ -60,8 +64,6 @@ public class TotalEconomy extends JavaPlugin implements Listener {
         }
 
         CurrencyData currencyData = new CurrencyData(database);
-        CurrencyDto defaultCurrency;
-
         try {
             defaultCurrency = currencyData.getDefaultCurrency();
         } catch (SQLException e) {
@@ -77,13 +79,14 @@ public class TotalEconomy extends JavaPlugin implements Listener {
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
         JobData jobData = new JobData(database);
-        economy = new EconomyImpl(logger, this.isEnabled(), defaultCurrency, accountData, balanceData);
+        economy = new CommonEconomy(new BukkitLogger(logger), accountData, balanceData, currencyData);
+        economyImpl = new EconomyImpl(true, defaultCurrency, economy);
         jobService = new JobService(logger, jobData);
         balanceService = new BalanceService(balanceData);
 
         getServer().getServicesManager().register(
             Economy.class,
-            economy,
+            economyImpl,
             this,
             ServicePriority.Normal
         );
@@ -93,9 +96,9 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerCommands() {
-        Objects.requireNonNull(this.getCommand("balance")).setExecutor(new BalanceCommandExecutor(economy));
+        Objects.requireNonNull(this.getCommand("balance")).setExecutor(new BalanceCommandExecutor(economy, defaultCurrency));
         Objects.requireNonNull(this.getCommand("pay")).setExecutor(
-            new PayCommand(logger, bukkitWrapper, economy, balanceService)
+            new PayCommand(logger, bukkitWrapper, economyImpl, balanceService)
         );
 
         if (config.getFeatures().get("jobs")) {
@@ -106,10 +109,10 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new PlayerListener(economy, jobService, this), this);
+        getServer().getPluginManager().registerEvents(new PlayerListener(economyImpl, jobService, this), this);
 
         if (config.getFeatures().get("jobs")) {
-            getServer().getPluginManager().registerEvents(new JobListener(economy, jobService), this);
+            getServer().getPluginManager().registerEvents(new JobListener(economyImpl, jobService), this);
         }
     }
 }

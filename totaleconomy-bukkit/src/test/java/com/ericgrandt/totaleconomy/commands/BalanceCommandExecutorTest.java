@@ -8,9 +8,11 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.totaleconomy.common.TestUtils;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
+import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.impl.EconomyImpl;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -58,9 +60,10 @@ public class BalanceCommandExecutorTest {
         );
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
-        EconomyImpl economy = new EconomyImpl(loggerMock, true, defaultCurrency, accountData, balanceData);
+        CurrencyData currencyData = new CurrencyData(databaseMock);
+        CommonEconomy economy = new CommonEconomy(new BukkitLogger(loggerMock), accountData, balanceData, currencyData);
 
-        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy);
+        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, defaultCurrency);
 
         // Act
         sut.onCommand(playerMock, mock(Command.class), "", new String[0]);

@@ -24,7 +24,7 @@ public class BalanceService {
             return new TransferResult(ResultType.FAILURE, "Insufficient funds");
         }
 
-        balanceData.transfer(fromPlayer, toPlayer, 1, amount);
+        balanceData.transfer(fromPlayer, toPlayer, 1, BigDecimal.valueOf(amount));
 
         return new TransferResult(ResultType.SUCCESS, "");
     }

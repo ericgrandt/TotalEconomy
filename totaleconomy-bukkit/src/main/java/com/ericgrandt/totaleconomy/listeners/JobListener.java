@@ -27,6 +27,7 @@ public class JobListener implements Listener {
     private final EconomyImpl economy;
     private final JobService jobService;
 
+    // TODO: Replace with CommonEconomy
     public JobListener(EconomyImpl economy, JobService jobService) {
         this.economy = economy;
         this.jobService = jobService;
