@@ -9,6 +9,7 @@ import org.spongepowered.api.event.network.ServerSideConnectionEvent;
 public class PlayerListener {
     private final EconomyImpl economy;
 
+    // TODO: Replace with CommonEconomy
     public PlayerListener(EconomyImpl economy) {
         this.economy = economy;
     }

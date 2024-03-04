@@ -1,20 +1,14 @@
 package com.ericgrandt.totaleconomy.impl;
 
-import com.ericgrandt.totaleconomy.common.data.AccountData;
-import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
-import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-import net.kyori.adventure.text.Component;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
@@ -22,24 +16,21 @@ import org.spongepowered.api.service.economy.account.AccountDeletionResultType;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.account.VirtualAccount;
 
-public class EconomyImpl implements EconomyService, CommonEconomy {
-    private final Logger logger;
+public class EconomyImpl implements EconomyService {
+    private final SpongeWrapper spongeWrapper;
     private final CurrencyDto currencyDto;
-    private final AccountData accountData;
-    private final BalanceData balanceData;
+    private final CommonEconomy economy;
 
     private final Currency currency;
 
     public EconomyImpl(
-        Logger logger,
-        CurrencyDto currencyDto,
-        AccountData accountData,
-        BalanceData balanceData
+        final SpongeWrapper spongeWrapper,
+        final CurrencyDto currencyDto,
+        final CommonEconomy economy
     ) {
-        this.logger = logger;
+        this.spongeWrapper = spongeWrapper;
         this.currencyDto = currencyDto;
-        this.accountData = accountData;
-        this.balanceData = balanceData;
+        this.economy = economy;
 
         this.currency = new CurrencyImpl(currencyDto);
     }
@@ -51,43 +42,27 @@ public class EconomyImpl implements EconomyService, CommonEconomy {
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        try {
-            return accountData.getAccount(uuid) != null;
-        } catch (SQLException e) {
-            logger.error(
-                String.format("[Total Economy] Error calling getAccount (accountId: %s)", uuid),
-                e
-            );
-            return false;
-        }
+        return economy.hasAccount(uuid);
     }
 
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
-        try {
-            if (!hasAccount(uuid)) {
-                accountData.createAccount(uuid, currencyDto.id());
+        if (!hasAccount(uuid)) {
+            boolean accountCreated = economy.createAccount(uuid, currencyDto.id());
+            if (!accountCreated) {
+                return Optional.empty();
             }
-
-            BigDecimal balance = balanceData.getBalance(uuid, currencyDto.id());
-            UniqueAccount account = new UniqueAccountImpl(
-                logger,
-                uuid,
-                Map.of(currency, balance),
-                balanceData,
-                currencyDto
-            );
-            return Optional.of(account);
-        } catch (SQLException e) {
-            logger.error(
-                String.format(
-                    "[Total Economy] Error calling findOrCreateAccount (accountId: %s)",
-                    uuid
-                ),
-                e
-            );
-            return Optional.empty();
         }
+
+        BigDecimal balance = economy.getBalance(uuid, currencyDto.id());
+        UniqueAccount account = new UniqueAccountImpl(
+            spongeWrapper,
+            uuid,
+            economy,
+            currencyDto.id(),
+            Map.of(currency, balance)
+        );
+        return Optional.of(account);
     }
 
     @Override
@@ -128,16 +103,5 @@ public class EconomyImpl implements EconomyService, CommonEconomy {
     @Override
     public AccountDeletionResultType deleteAccount(String identifier) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public double getBalance(CommonPlayer player) {
-        UniqueAccount account = findOrCreateAccount(player.getUniqueId()).orElseThrow();
-        return account.balance(currency, new HashSet<>()).doubleValue();
-    }
-
-    @Override
-    public Component formatBalance(double balance) {
-        return currency.format(BigDecimal.valueOf(balance));
     }
 }

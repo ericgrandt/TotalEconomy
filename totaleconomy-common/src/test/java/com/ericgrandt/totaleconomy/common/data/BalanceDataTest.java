@@ -2,7 +2,6 @@ package com.ericgrandt.totaleconomy.common.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -67,9 +66,10 @@ public class BalanceDataTest {
 
         // Act
         BigDecimal actual = sut.getBalance(UUID.randomUUID(), 1);
+        BigDecimal expected = BigDecimal.ZERO;
 
         // Assert
-        assertNull(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        int actual = sut.updateBalance(UUID.randomUUID(), 1, 100);
+        int actual = sut.updateBalance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         int expected = 1;
 
         // Assert
@@ -109,7 +109,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        int actual = sut.updateBalance(UUID.randomUUID(), 1, 100);
+        int actual = sut.updateBalance(UUID.randomUUID(), 1, BigDecimal.valueOf(100));
         int expected = 0;
 
         // Assert
@@ -159,7 +159,7 @@ public class BalanceDataTest {
         BalanceData sut = new BalanceData(databaseMock);
 
         // Act
-        int actual = sut.updateBalance(accountId, currencyId, 100);
+        int actual = sut.updateBalance(accountId, currencyId, BigDecimal.valueOf(100));
         int expected = 1;
 
         BalanceDto actualBalanceDto = TestUtils.getBalanceForAccountId(accountId, currencyId);
@@ -188,7 +188,7 @@ public class BalanceDataTest {
         UUID toAccountId = UUID.fromString("551fe9be-f77f-4bcb-81db-548db6e77aea");
 
         // Act
-        sut.transfer(fromAccountId, toAccountId, 1, 10);
+        sut.transfer(fromAccountId, toAccountId, 1, BigDecimal.TEN);
 
         BalanceDto actualFromBalanceDto = TestUtils.getBalanceForAccountId(fromAccountId, 1);
         BalanceDto actualToBalanceDto = TestUtils.getBalanceForAccountId(toAccountId, 1);

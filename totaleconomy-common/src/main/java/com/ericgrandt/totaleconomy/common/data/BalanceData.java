@@ -31,17 +31,17 @@ public class BalanceData {
             }
         }
 
-        return null;
+        return BigDecimal.ZERO;
     }
 
-    public int updateBalance(UUID accountId, int currencyId, double balance) throws SQLException {
+    public int updateBalance(UUID accountId, int currencyId, BigDecimal balance) throws SQLException {
         String updateBalanceQuery = "UPDATE te_balance SET balance = ? WHERE account_id = ? AND currency_id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(updateBalanceQuery)
         ) {
-            stmt.setBigDecimal(1, BigDecimal.valueOf(balance));
+            stmt.setBigDecimal(1, balance);
             stmt.setString(2, accountId.toString());
             stmt.setInt(3, currencyId);
 
@@ -49,7 +49,7 @@ public class BalanceData {
         }
     }
 
-    public void transfer(UUID fromAccountId, UUID toAccountId, int currencyId, double amount) throws SQLException {
+    public void transfer(UUID fromAccountId, UUID toAccountId, int currencyId, BigDecimal amount) throws SQLException {
         String withdrawQuery = "UPDATE te_balance SET balance = balance - ? WHERE account_id = ? AND currency_id = ?";
         String depositQuery = "UPDATE te_balance SET balance = balance + ? WHERE account_id = ? AND currency_id = ?";
 
@@ -62,12 +62,12 @@ public class BalanceData {
                 PreparedStatement withdrawStmt = conn.prepareStatement(withdrawQuery);
                 PreparedStatement updateStmt = conn.prepareStatement(depositQuery)
             ) {
-                withdrawStmt.setBigDecimal(1, BigDecimal.valueOf(amount));
+                withdrawStmt.setBigDecimal(1, amount);
                 withdrawStmt.setString(2, fromAccountId.toString());
                 withdrawStmt.setInt(3, currencyId);
                 withdrawStmt.executeUpdate();
 
-                updateStmt.setBigDecimal(1, BigDecimal.valueOf(amount));
+                updateStmt.setBigDecimal(1, amount);
                 updateStmt.setString(2, toAccountId.toString());
                 updateStmt.setInt(3, currencyId);
                 updateStmt.executeUpdate();
