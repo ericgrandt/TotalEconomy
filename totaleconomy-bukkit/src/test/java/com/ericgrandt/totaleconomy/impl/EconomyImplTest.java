@@ -173,7 +173,7 @@ public class EconomyImplTest {
         UUID playerUUID = UUID.randomUUID();
         OfflinePlayer playerMock = mock(OfflinePlayer.class);
         when(playerMock.getUniqueId()).thenReturn(playerUUID);
-        when(economyMock.createAccount(playerUUID, 1)).thenReturn(true);
+        when(economyMock.createAccount(playerUUID)).thenReturn(true);
 
         EconomyImpl sut = new EconomyImpl(true, defaultCurrency, economyMock);
 

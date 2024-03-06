@@ -53,15 +53,14 @@ public class CommonEconomy {
         }
     }
 
-    public boolean createAccount(UUID uuid, int currencyId) {
+    public boolean createAccount(UUID uuid) {
         try {
-            return accountData.createAccount(uuid, currencyId);
+            return accountData.createAccount(uuid);
         } catch (SQLException e) {
             logger.error(
                 String.format(
-                    "[Total Economy] Error calling createAccount (accountId: %s, currencyId: %s)",
-                    uuid,
-                    currencyId
+                    "[Total Economy] Error calling createAccount (accountId: %s)",
+                    uuid
                 ),
                 e
             );

@@ -16,12 +16,11 @@ public class AccountData {
         this.database = database;
     }
 
-    public boolean createAccount(UUID accountId, int currencyId) throws SQLException {
-        String createAccountQuery = "INSERT INTO te_account(id) VALUES (?)";
-        String createBalanceQuery = "INSERT INTO te_balance(account_id, currency_id, balance) "
-            + "SELECT ?, ?, default_balance "
-            + "FROM te_default_balance tdf "
-            + "WHERE tdf.currency_id = ?";
+    public boolean createAccount(UUID accountId) throws SQLException {
+        String createAccountQuery = "INSERT IGNORE INTO te_account(id) VALUES (?)";
+        String createBalanceQuery = "INSERT IGNORE INTO te_balance(account_id, currency_id, balance) "
+            + "SELECT ?, currency_id, default_balance "
+            + "FROM te_default_balance tdf ";
 
         try (Connection conn = database.getDataSource().getConnection()) {
             conn.setAutoCommit(false);
@@ -34,8 +33,6 @@ public class AccountData {
                 accountStmt.executeUpdate();
 
                 balanceStmt.setString(1, accountId.toString());
-                balanceStmt.setInt(2, currencyId);
-                balanceStmt.setInt(3, currencyId);
                 balanceStmt.executeUpdate();
 
                 conn.commit();

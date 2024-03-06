@@ -124,6 +124,6 @@ public class TotalEconomy {
     }
 
     private void registerListeners() {
-        Sponge.eventManager().registerListeners(container, new PlayerListener(economyImpl));
+        Sponge.eventManager().registerListeners(container, new PlayerListener(economy));
     }
 }
