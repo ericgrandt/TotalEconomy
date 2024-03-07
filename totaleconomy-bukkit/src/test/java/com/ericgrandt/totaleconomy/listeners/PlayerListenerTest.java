@@ -19,7 +19,6 @@ import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
-import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
@@ -40,32 +39,20 @@ public class PlayerListenerTest {
     @Mock
     private Logger loggerMock;
 
-    @Test
-    @Tag("Unit")
-    public void onPlayerJoinHandler_WithAccountAlreadyExisting_ShouldNotCallCreateAccount() {
-        // Arrange
-        Player playerMock = mock(Player.class);
-        EconomyImpl economyMock = mock(EconomyImpl.class);
-        JobService jobServiceMock = mock(JobService.class);
-        when(economyMock.hasAccount(playerMock)).thenReturn(true);
+    @Mock
+    private Player playerMock;
 
-        PlayerListener sut = new PlayerListener(economyMock, jobServiceMock, null);
+    @Mock
+    private CommonEconomy economyMock;
 
-        // Act
-        sut.onPlayerJoinHandler(playerMock);
-
-        // Assert
-        verify(economyMock, times(0)).createPlayerAccount(any(Player.class));
-    }
+    @Mock
+    private JobService jobServiceMock;
 
     @Test
     @Tag("Unit")
     public void onPlayerJoinHandler_WithNoAccountAlreadyExisting_ShouldCallCreateAccount() {
         // Arrange
-        Player playerMock = mock(Player.class);
-        EconomyImpl economyMock = mock(EconomyImpl.class);
-        JobService jobServiceMock = mock(JobService.class);
-        when(economyMock.hasAccount(playerMock)).thenReturn(false);
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
 
         PlayerListener sut = new PlayerListener(economyMock, jobServiceMock, null);
 
@@ -73,7 +60,7 @@ public class PlayerListenerTest {
         sut.onPlayerJoinHandler(playerMock);
 
         // Assert
-        verify(economyMock, times(1)).createPlayerAccount(playerMock);
+        verify(economyMock, times(1)).createAccount(any(UUID.class));
     }
 
     @Test
@@ -98,16 +85,11 @@ public class PlayerListenerTest {
         BalanceData balanceData = new BalanceData(databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);
 
-        CommonEconomy commonEconomy = new CommonEconomy(
+        CommonEconomy economy = new CommonEconomy(
             new BukkitLogger(loggerMock),
             accountData,
             balanceData,
             currencyData
-        );
-        EconomyImpl economy = new EconomyImpl(
-            true,
-            currencyDto,
-            commonEconomy
         );
         JobService jobServiceMock = new JobService(loggerMock, jobData);
         PlayerListener sut = new PlayerListener(economy, jobServiceMock, null);

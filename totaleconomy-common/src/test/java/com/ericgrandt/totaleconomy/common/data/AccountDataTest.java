@@ -237,24 +237,25 @@ public class AccountDataTest {
         assertNotNull(actualAccount.created());
 
         BalanceDto actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
-        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
         BalanceDto expectedBalance = new BalanceDto(
             null,
             uuid.toString(),
             1,
             BigDecimal.valueOf(100.50).setScale(2, RoundingMode.DOWN)
         );
+        assertNotNull(actualBalance);
+        assertNotNull(actualBalance.id());
+        assertEquals(expectedBalance.accountId(), actualBalance.accountId());
+        assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
+        assertEquals(expectedBalance.balance(), actualBalance.balance());
+
+        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
         BalanceDto expectedBalance2 = new BalanceDto(
             null,
             uuid.toString(),
             2,
             BigDecimal.valueOf(10.00).setScale(2, RoundingMode.DOWN)
         );
-        assertNotNull(actualBalance);
-        assertNotNull(actualBalance.id());
-        assertEquals(expectedBalance.accountId(), actualBalance.accountId());
-        assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
-        assertEquals(expectedBalance.balance(), actualBalance.balance());
         assertEquals(expectedBalance2.accountId(), actualBalance2.accountId());
         assertEquals(expectedBalance2.currencyId(), actualBalance2.currencyId());
         assertEquals(expectedBalance2.balance(), actualBalance2.balance());
@@ -291,24 +292,25 @@ public class AccountDataTest {
         assertNotNull(actualAccount.created());
 
         BalanceDto actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
-        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
         BalanceDto expectedBalance = new BalanceDto(
             null,
             uuid.toString(),
             1,
             BigDecimal.valueOf(50).setScale(2, RoundingMode.DOWN)
         );
+        assertNotNull(actualBalance);
+        assertNotNull(actualBalance.id());
+        assertEquals(expectedBalance.accountId(), actualBalance.accountId());
+        assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
+        assertEquals(expectedBalance.balance(), actualBalance.balance());
+
+        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
         BalanceDto expectedBalance2 = new BalanceDto(
             null,
             uuid.toString(),
             2,
             BigDecimal.valueOf(10.00).setScale(2, RoundingMode.DOWN)
         );
-        assertNotNull(actualBalance);
-        assertNotNull(actualBalance.id());
-        assertEquals(expectedBalance.accountId(), actualBalance.accountId());
-        assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
-        assertEquals(expectedBalance.balance(), actualBalance.balance());
         assertEquals(expectedBalance2.accountId(), actualBalance2.accountId());
         assertEquals(expectedBalance2.currencyId(), actualBalance2.currencyId());
         assertEquals(expectedBalance2.balance(), actualBalance2.balance());

@@ -109,10 +109,16 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new PlayerListener(economyImpl, jobService, this), this);
+        getServer().getPluginManager().registerEvents(
+            new PlayerListener(economy, jobService, this),
+            this
+        );
 
         if (config.getFeatures().get("jobs")) {
-            getServer().getPluginManager().registerEvents(new JobListener(economyImpl, jobService), this);
+            getServer().getPluginManager().registerEvents(
+                new JobListener(economy, jobService, defaultCurrency.id()),
+                this
+            );
         }
     }
 }
