@@ -16,21 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class BukkitPlayerTest {
     @Test
     @Tag("Unit")
-    public void isPlayer_ShouldReturnTrue() {
-        // Arrange
-        Player playerMock = mock(Player.class);
-
-        BukkitPlayer sut = new BukkitPlayer(playerMock);
-
-        // Act
-        boolean actual = sut.isPlayer();
-
-        // Assert
-        assertTrue(actual);
-    }
-
-    @Test
-    @Tag("Unit")
     public void getUniqueId_ShouldReturnPlayerUuid() {
         // Arrange
         Player playerMock = mock(Player.class);

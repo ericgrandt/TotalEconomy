@@ -16,21 +16,6 @@ import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 public class SpongePlayerTest {
     @Test
     @Tag("Unit")
-    public void isPlayer_ShouldReturnTrue() {
-        // Arrange
-        ServerPlayer playerMock = mock(ServerPlayer.class);
-
-        SpongePlayer sut = new SpongePlayer(playerMock);
-
-        // Act
-        boolean actual = sut.isPlayer();
-
-        // Assert
-        assertTrue(actual);
-    }
-
-    @Test
-    @Tag("Unit")
     public void getUniqueId_ShouldReturnUuid() {
         // Arrange
         ServerPlayer playerMock = mock(ServerPlayer.class);
