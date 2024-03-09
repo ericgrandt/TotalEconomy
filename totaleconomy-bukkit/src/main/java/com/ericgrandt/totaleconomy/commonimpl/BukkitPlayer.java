@@ -20,4 +20,9 @@ public record BukkitPlayer(Player player) implements CommonPlayer {
     public UUID getUniqueId() {
         return player.getUniqueId();
     }
+
+    @Override
+    public String getName() {
+        return player.getName();
+    }
 }

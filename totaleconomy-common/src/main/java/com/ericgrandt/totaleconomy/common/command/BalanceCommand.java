@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.game.CommonSender;
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.text.Component;
 
@@ -18,28 +19,27 @@ public class BalanceCommand implements CommonCommand {
     }
 
     @Override
-    public boolean execute(CommonSender sender, CommonArguments args) {
-        if (!sender.isPlayer()) {
+    public boolean execute(CommonSender sender, Map<String, CommonParameter<?>> args) {
+        if (!(sender instanceof CommonPlayer player)) {
             return false;
         }
 
-        CompletableFuture.runAsync(() -> onCommandHandler(sender));
+        CompletableFuture.runAsync(() -> onCommandHandler(player));
 
         return true;
     }
 
-    private void onCommandHandler(CommonSender sender) {
-        CommonPlayer player = (CommonPlayer) sender;
+    private void onCommandHandler(CommonPlayer player) {
         BigDecimal balance = economy.getBalance(
             player.getUniqueId(),
             currency.id()
         );
         if (balance == null) {
-            sender.sendMessage(Component.text("No balance found"));
+            player.sendMessage(Component.text("No balance found"));
             return;
         }
 
-        sender.sendMessage(Component.text("Balance: ").append(
+        player.sendMessage(Component.text("Balance: ").append(
             economy.format(currency, balance)
         ));
     }

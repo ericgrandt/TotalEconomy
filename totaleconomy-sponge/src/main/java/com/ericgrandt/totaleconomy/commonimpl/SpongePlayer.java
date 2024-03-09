@@ -20,4 +20,9 @@ public record SpongePlayer(ServerPlayer player) implements CommonPlayer {
     public UUID getUniqueId() {
         return player.uniqueId();
     }
+
+    @Override
+    public String getName() {
+        return player.name();
+    }
 }
