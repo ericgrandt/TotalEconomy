@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
+import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -18,6 +19,7 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
+import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
@@ -111,11 +113,14 @@ public class TotalEconomy {
         Command.Parameterized balanceCommand = Command.builder()
             .executor(new BalanceCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
             .build();
-        event.register(
-            container,
-            balanceCommand,
-            "balance"
-        );
+        event.register(container, balanceCommand, "balance");
+
+        Command.Parameterized payCommand = Command.builder()
+            .executor(new PayCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
+            .addParameter(Parameter.player().key("toPlayer").build())
+            .addParameter(Parameter.doubleNumber().key("amount").build())
+            .build();
+        event.register(container, payCommand, "pay");
     }
 
     @Listener

@@ -43,8 +43,8 @@ public class PayCommandExecutor implements CommandExecutor {
         }
 
         Map<String, CommonParameter<?>> argsMap = Map.of(
-            "amount", new CommonParameter<>(BigDecimal.valueOf(Double.parseDouble(amountArg))),
-            "toPlayer", new CommonParameter<>(new BukkitPlayer(toPlayer))
+            "toPlayer", new CommonParameter<>(new BukkitPlayer(toPlayer)),
+            "amount", new CommonParameter<>(BigDecimal.valueOf(Double.parseDouble(amountArg)))
         );
 
         return new PayCommand(economy, currency).execute(new BukkitPlayer(player), argsMap);
