@@ -20,4 +20,9 @@ public record BukkitPlayer(Player player) implements CommonPlayer {
     public String getName() {
         return player.getName();
     }
+
+    @Override
+    public boolean isNull() {
+        return player == null;
+    }
 }

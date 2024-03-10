@@ -6,6 +6,7 @@ import com.ericgrandt.totaleconomy.common.econ.TransactionResult;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.game.CommonSender;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.text.Component;
@@ -30,8 +31,15 @@ public class PayCommand implements CommonCommand {
         }
 
         CommonPlayer toPlayer = (CommonPlayer) args.get("toPlayer").value();
-        BigDecimal amount = (BigDecimal) args.get("amount").value();
+        BigDecimal amount = ((BigDecimal) args.get("amount").value()).setScale(
+            currency.numFractionDigits(),
+            RoundingMode.DOWN
+        );
 
+        if (toPlayer.isNull()) {
+            player.sendMessage(Component.text("Invalid player specified"));
+            return false;
+        }
         if (player.getUniqueId() == toPlayer.getUniqueId()) {
             player.sendMessage(Component.text("You cannot pay yourself"));
             return false;

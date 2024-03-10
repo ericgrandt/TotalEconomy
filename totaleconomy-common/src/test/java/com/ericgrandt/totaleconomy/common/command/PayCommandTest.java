@@ -105,6 +105,27 @@ public class PayCommandTest {
 
     @Test
     @Tag("Unit")
+    public void execute_WithNullToPlayer_ShouldReturnFalse() {
+        // Arrange
+        CommonPlayer toPlayerMock = mock(CommonPlayer.class);
+        when(toPlayerMock.isNull()).thenReturn(true);
+
+        Map<String, CommonParameter<?>> args = Map.of(
+            "toPlayer", new CommonParameter<>(toPlayerMock),
+            "amount", new CommonParameter<>(BigDecimal.TEN)
+        );
+
+        PayCommand sut = new PayCommand(economyMock, currency);
+
+        // Act
+        boolean actual = sut.execute(playerMock, args);
+
+        // Assert
+        assertFalse(actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void execute_WithSameSenderAndToPlayer_ShouldReturnFalse() {
         // Arrange
         when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
@@ -163,13 +184,7 @@ public class PayCommandTest {
         Database databaseMock = mock(Database.class);
         CommonPlayer toPlayerMock = mock(CommonPlayer.class);
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
-        when(databaseMock.getDataSource().getConnection()).thenReturn(
-            TestUtils.getConnection(),
-            TestUtils.getConnection(),
-            TestUtils.getConnection(),
-            TestUtils.getConnection(),
-            TestUtils.getConnection()
-        );
+        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
         when(playerMock.getUniqueId()).thenReturn(
             UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0")
         );

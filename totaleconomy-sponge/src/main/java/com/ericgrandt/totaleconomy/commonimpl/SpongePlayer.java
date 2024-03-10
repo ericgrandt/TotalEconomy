@@ -20,4 +20,9 @@ public record SpongePlayer(ServerPlayer player) implements CommonPlayer {
     public String getName() {
         return player.name();
     }
+
+    @Override
+    public boolean isNull() {
+        return player == null;
+    }
 }
