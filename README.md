@@ -11,8 +11,6 @@ Total Economy is available to download from the following sources:
 - [CurseForge](https://www.curseforge.com/minecraft/bukkit-plugins/total-economy) (Bukkit)
 - [Ore](https://ore.spongepowered.org/Erigitic/Total-Economy) (Sponge)
 
-**NOTE: The latest Sponge version of Total Economy is currently in development and not yet available for download.**
-
 ## Features
 
 - Vault support to allow easy integration with multiple plugins
