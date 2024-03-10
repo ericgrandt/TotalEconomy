@@ -14,7 +14,6 @@ public class PlayerListener {
         this.economy = economy;
     }
 
-    // TODO: Test
     @Listener
     public void onPlayerJoin(ServerSideConnectionEvent.Join event) {
         ServerPlayer player = event.player();

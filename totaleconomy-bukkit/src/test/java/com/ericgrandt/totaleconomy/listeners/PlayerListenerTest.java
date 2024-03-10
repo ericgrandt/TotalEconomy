@@ -72,7 +72,6 @@ public class PlayerListenerTest {
         TestUtils.seedDefaultBalances();
         TestUtils.seedJobs();
 
-        CurrencyDto currencyDto = new CurrencyDto(1, "", "", "", 0, true);
         Database databaseMock = mock(Database.class);
         Player playerMock = mock(Player.class);
         UUID playerId = UUID.randomUUID();
