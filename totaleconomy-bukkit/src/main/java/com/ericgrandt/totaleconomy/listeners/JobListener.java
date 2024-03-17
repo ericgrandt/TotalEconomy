@@ -1,7 +1,7 @@
 package com.ericgrandt.totaleconomy.listeners;
 
 import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
-import com.ericgrandt.totaleconomy.impl.EconomyImpl;
+import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.impl.JobExperienceBar;
 import com.ericgrandt.totaleconomy.models.AddExperienceResult;
 import com.ericgrandt.totaleconomy.models.JobExperience;
@@ -24,13 +24,18 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 
 public class JobListener implements Listener {
-    private final EconomyImpl economy;
+    private final CommonEconomy economy;
     private final JobService jobService;
+    private final int currencyId;
 
-    // TODO: Replace with CommonEconomy
-    public JobListener(EconomyImpl economy, JobService jobService) {
+    public JobListener(
+        final CommonEconomy economy,
+        final JobService jobService,
+        final int currencyId
+    ) {
         this.economy = economy;
         this.jobService = jobService;
+        this.currencyId = currencyId;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -91,7 +96,7 @@ public class JobListener implements Listener {
         }
 
         addExperience(player, jobRewardDto, jobExperienceBar);
-        economy.depositPlayer(player, jobRewardDto.money().doubleValue());
+        economy.deposit(player.getUniqueId(), currencyId, jobRewardDto.money());
     }
 
     private void addExperience(Player player, JobRewardDto jobRewardDto, JobExperienceBar jobExperienceBar) {

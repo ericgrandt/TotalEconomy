@@ -48,7 +48,7 @@ public class EconomyImpl implements EconomyService {
     @Override
     public Optional<UniqueAccount> findOrCreateAccount(UUID uuid) {
         if (!hasAccount(uuid)) {
-            boolean accountCreated = economy.createAccount(uuid, currencyDto.id());
+            boolean accountCreated = economy.createAccount(uuid);
             if (!accountCreated) {
                 return Optional.empty();
             }

@@ -2,7 +2,6 @@ package com.ericgrandt.totaleconomy.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -17,12 +16,10 @@ import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
-import com.ericgrandt.totaleconomy.impl.EconomyImpl;
 import com.ericgrandt.totaleconomy.impl.JobExperienceBar;
 import com.ericgrandt.totaleconomy.models.AddExperienceResult;
 import com.ericgrandt.totaleconomy.models.JobExperience;
@@ -47,13 +44,16 @@ public class JobListenerTest {
     private Logger loggerMock;
 
     @Mock
-    private EconomyImpl economyMock;
+    private CommonEconomy economyMock;
 
     @Mock
     private JobService jobServiceMock;
 
     @Mock
     private JobExperienceBar jobExperienceBarMock;
+
+    @Mock
+    private Player playerMock;
 
     @Test
     @Tag("Unit")
@@ -64,14 +64,15 @@ public class JobListenerTest {
 
         when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(jobRewardDto);
         when(jobServiceMock.addExperience(any(), any(), anyInt())).thenReturn(addExperienceResult);
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
 
-        JobListener sut = new JobListener(economyMock, jobServiceMock);
+        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
 
         // Act
-        sut.actionHandler("stone", mock(Player.class), "action", jobExperienceBarMock);
+        sut.actionHandler("stone", playerMock, "action", jobExperienceBarMock);
 
         // Assert
-        verify(economyMock, times(1)).depositPlayer(any(Player.class), anyDouble());
+        verify(economyMock, times(1)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class));
     }
 
     @Test
@@ -80,13 +81,13 @@ public class JobListenerTest {
         // Arrange
         when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(null);
 
-        JobListener sut = new JobListener(economyMock, jobServiceMock);
+        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
 
         // Act
-        sut.actionHandler("stone", mock(Player.class), "break", jobExperienceBarMock);
+        sut.actionHandler("stone", playerMock, "break", jobExperienceBarMock);
 
         // Assert
-        verify(economyMock, times(0)).depositPlayer(any(Player.class), anyDouble());
+        verify(economyMock, times(0)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class));
     }
 
     @Test
@@ -99,11 +100,11 @@ public class JobListenerTest {
             true
         );
 
-        Player playerMock = mock(Player.class);
         when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(jobRewardDto);
         when(jobServiceMock.addExperience(any(), any(), anyInt())).thenReturn(addExperienceResult);
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
 
-        JobListener sut = new JobListener(economyMock, jobServiceMock);
+        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
 
         // Act
         sut.actionHandler("stone", playerMock, "kill", jobExperienceBarMock);
@@ -119,11 +120,11 @@ public class JobListenerTest {
         JobRewardDto jobRewardDto = new JobRewardDto("", UUID.randomUUID().toString(), "", 1, "", BigDecimal.TEN, 1);
         AddExperienceResult addExperienceResult = new AddExperienceResult(null, false);
 
-        Player playerMock = mock(Player.class);
         when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(jobRewardDto);
         when(jobServiceMock.addExperience(any(), any(), anyInt())).thenReturn(addExperienceResult);
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
 
-        JobListener sut = new JobListener(economyMock, jobServiceMock);
+        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
 
         // Act
         sut.actionHandler("stone", playerMock, "break", jobExperienceBarMock);
@@ -145,7 +146,6 @@ public class JobListenerTest {
         TestUtils.seedJobRewards();
         TestUtils.seedJobExperience();
 
-        CurrencyDto currencyDto = new CurrencyDto(1, "", "", "", 0, true);
         Database databaseMock = mock(Database.class);
         Player playerMock = mock(Player.class);
         UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
@@ -159,19 +159,14 @@ public class JobListenerTest {
         BalanceData balanceData = new BalanceData(databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);
 
-        CommonEconomy commonEconomy = new CommonEconomy(
+        CommonEconomy economy = new CommonEconomy(
             new BukkitLogger(loggerMock),
             accountData,
             balanceData,
             currencyData
         );
-        EconomyImpl economy = new EconomyImpl(
-            true,
-            currencyDto,
-            commonEconomy
-        );
 
-        JobListener sut = new JobListener(economy, jobService);
+        JobListener sut = new JobListener(economy, jobService, 1);
 
         // Act
         sut.actionHandler("coal_ore", playerMock, "break", jobExperienceBarMock);
@@ -212,7 +207,6 @@ public class JobListenerTest {
         TestUtils.seedJobRewards();
         TestUtils.seedJobExperience();
 
-        CurrencyDto currencyDto = new CurrencyDto(1, "", "", "", 0, true);
         Database databaseMock = mock(Database.class);
         Player playerMock = mock(Player.class);
         UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
@@ -232,13 +226,8 @@ public class JobListenerTest {
             balanceData,
             currencyData
         );
-        EconomyImpl economy = new EconomyImpl(
-            true,
-            currencyDto,
-            commonEconomy
-        );
 
-        JobListener sut = new JobListener(economy, jobService);
+        JobListener sut = new JobListener(commonEconomy, jobService, 1);
 
         // Act
         sut.actionHandler("chicken", playerMock, "kill", jobExperienceBarMock);
@@ -279,7 +268,6 @@ public class JobListenerTest {
         TestUtils.seedJobRewards();
         TestUtils.seedJobExperience();
 
-        CurrencyDto currencyDto = new CurrencyDto(1, "", "", "", 0, true);
         Database databaseMock = mock(Database.class);
         Player playerMock = mock(Player.class);
         UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
@@ -299,13 +287,8 @@ public class JobListenerTest {
             balanceData,
             currencyData
         );
-        EconomyImpl economy = new EconomyImpl(
-            true,
-            currencyDto,
-            commonEconomy
-        );
 
-        JobListener sut = new JobListener(economy, jobService);
+        JobListener sut = new JobListener(commonEconomy, jobService, 1);
 
         // Act
         sut.actionHandler("salmon", playerMock, "fish", jobExperienceBarMock);
@@ -346,7 +329,6 @@ public class JobListenerTest {
         TestUtils.seedJobRewards();
         TestUtils.seedJobExperience();
 
-        CurrencyDto currencyDto = new CurrencyDto(1, "", "", "", 0, true);
         Database databaseMock = mock(Database.class);
         Player playerMock = mock(Player.class);
         UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
@@ -366,13 +348,8 @@ public class JobListenerTest {
             balanceData,
             currencyData
         );
-        EconomyImpl economy = new EconomyImpl(
-            true,
-            currencyDto,
-            commonEconomy
-        );
 
-        JobListener sut = new JobListener(economy, jobService);
+        JobListener sut = new JobListener(commonEconomy, jobService, 1);
 
         // Act
         sut.actionHandler("oak_sapling", playerMock, "place", jobExperienceBarMock);

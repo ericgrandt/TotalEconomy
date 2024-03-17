@@ -2,7 +2,7 @@ package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.JobCommand;
-import com.ericgrandt.totaleconomy.commands.PayCommand;
+import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -96,9 +96,11 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerCommands() {
-        Objects.requireNonNull(this.getCommand("balance")).setExecutor(new BalanceCommandExecutor(economy, defaultCurrency));
+        Objects.requireNonNull(this.getCommand("balance")).setExecutor(
+            new BalanceCommandExecutor(economy, defaultCurrency)
+        );
         Objects.requireNonNull(this.getCommand("pay")).setExecutor(
-            new PayCommand(logger, bukkitWrapper, economyImpl, balanceService)
+            new PayCommandExecutor(economy, defaultCurrency, bukkitWrapper)
         );
 
         if (config.getFeatures().get("jobs")) {
@@ -109,10 +111,16 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new PlayerListener(economyImpl, jobService, this), this);
+        getServer().getPluginManager().registerEvents(
+            new PlayerListener(economy, jobService, this),
+            this
+        );
 
         if (config.getFeatures().get("jobs")) {
-            getServer().getPluginManager().registerEvents(new JobListener(economyImpl, jobService), this);
+            getServer().getPluginManager().registerEvents(
+                new JobListener(economy, jobService, defaultCurrency.id()),
+                this
+            );
         }
     }
 }

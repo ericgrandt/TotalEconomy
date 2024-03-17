@@ -15,6 +15,7 @@ import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.common.game.CommonSender;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
@@ -54,12 +55,10 @@ public class BalanceCommandTest {
     @Tag("Unit")
     public void execute_WithNonPlayerSender_ShouldReturnFalse() {
         // Arrange
-        when(playerMock.isPlayer()).thenReturn(false);
-
         BalanceCommand sut = new BalanceCommand(economyMock, currency);
 
         // Act
-        boolean actual = sut.execute(playerMock, null);
+        boolean actual = sut.execute(mock(CommonSender.class), null);
 
         // Assert
         assertFalse(actual);
@@ -69,7 +68,6 @@ public class BalanceCommandTest {
     @Tag("Unit")
     public void execute_WithNoBalance_ShouldSendMessage() {
         // Arrange
-        when(playerMock.isPlayer()).thenReturn(true);
         when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
         when(economyMock.getBalance(any(UUID.class), any(Integer.class))).thenReturn(null);
 
@@ -89,7 +87,6 @@ public class BalanceCommandTest {
         // Arrange
         BigDecimal balance = BigDecimal.valueOf(100).setScale(2, RoundingMode.DOWN);
 
-        when(playerMock.isPlayer()).thenReturn(true);
         when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
         when(economyMock.getBalance(any(UUID.class), any(Integer.class))).thenReturn(balance);
         when(economyMock.format(any(CurrencyDto.class), any(BigDecimal.class))).thenReturn(
@@ -117,7 +114,6 @@ public class BalanceCommandTest {
         Database databaseMock = mock(Database.class);
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
-        when(playerMock.isPlayer()).thenReturn(true);
         when(playerMock.getUniqueId()).thenReturn(
             UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0")
         );
