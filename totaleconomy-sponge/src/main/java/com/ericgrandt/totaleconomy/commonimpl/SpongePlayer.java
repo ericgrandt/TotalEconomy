@@ -7,11 +7,6 @@ import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 public record SpongePlayer(ServerPlayer player) implements CommonPlayer {
     @Override
-    public boolean isPlayer() {
-        return true;
-    }
-
-    @Override
     public void sendMessage(Component message) {
         player.sendMessage(message);
     }
@@ -19,5 +14,15 @@ public record SpongePlayer(ServerPlayer player) implements CommonPlayer {
     @Override
     public UUID getUniqueId() {
         return player.uniqueId();
+    }
+
+    @Override
+    public String getName() {
+        return player.name();
+    }
+
+    @Override
+    public boolean isNull() {
+        return player == null;
     }
 }

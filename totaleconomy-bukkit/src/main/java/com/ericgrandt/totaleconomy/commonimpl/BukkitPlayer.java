@@ -7,11 +7,6 @@ import org.bukkit.entity.Player;
 
 public record BukkitPlayer(Player player) implements CommonPlayer {
     @Override
-    public boolean isPlayer() {
-        return true;
-    }
-
-    @Override
     public void sendMessage(Component message) {
         player.sendMessage(message);
     }
@@ -19,5 +14,15 @@ public record BukkitPlayer(Player player) implements CommonPlayer {
     @Override
     public UUID getUniqueId() {
         return player.getUniqueId();
+    }
+
+    @Override
+    public String getName() {
+        return player.getName();
+    }
+
+    @Override
+    public boolean isNull() {
+        return player == null;
     }
 }

@@ -48,7 +48,7 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        boolean actual = sut.createAccount(UUID.randomUUID(), 1);
+        boolean actual = sut.createAccount(UUID.randomUUID());
 
         // Assert
         assertTrue(actual);
@@ -69,7 +69,7 @@ public class AccountDataTest {
         // Act/Assert
         assertThrows(
             SQLException.class,
-            () -> sut.createAccount(UUID.randomUUID(), 1)
+            () -> sut.createAccount(UUID.randomUUID())
         );
         verify(connectionMock, times(1)).rollback();
     }
@@ -209,7 +209,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    public void createAccount_WithSuccess_ShouldCreateAnAccountAndBalance() throws SQLException {
+    public void createAccount_WithSuccess_ShouldCreateAccountAndBalances() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -224,7 +224,7 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        sut.createAccount(uuid, 1);
+        sut.createAccount(uuid);
 
         // Assert
         AccountDto actualAccount = getAccountForId(uuid);
@@ -248,6 +248,72 @@ public class AccountDataTest {
         assertEquals(expectedBalance.accountId(), actualBalance.accountId());
         assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
         assertEquals(expectedBalance.balance(), actualBalance.balance());
+
+        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
+        BalanceDto expectedBalance2 = new BalanceDto(
+            null,
+            uuid.toString(),
+            2,
+            BigDecimal.valueOf(10.00).setScale(2, RoundingMode.DOWN)
+        );
+        assertEquals(expectedBalance2.accountId(), actualBalance2.accountId());
+        assertEquals(expectedBalance2.currencyId(), actualBalance2.currencyId());
+        assertEquals(expectedBalance2.balance(), actualBalance2.balance());
+    }
+
+    @Test
+    @Tag("Integration")
+    public void createAccount_WithMissingBalance_ShouldCreateMissingBalance() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedDefaultBalances();
+        TestUtils.seedAccounts();
+
+        UUID uuid = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
+
+        Database databaseMock = mock(Database.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
+
+        AccountData sut = new AccountData(databaseMock);
+
+        // Act
+        sut.createAccount(uuid);
+
+        // Assert
+        AccountDto actualAccount = getAccountForId(uuid);
+        AccountDto expectedAccount = new AccountDto(
+            uuid.toString(),
+            null
+        );
+        assertNotNull(actualAccount);
+        assertEquals(expectedAccount.id(), actualAccount.id());
+        assertNotNull(actualAccount.created());
+
+        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
+        BalanceDto expectedBalance = new BalanceDto(
+            null,
+            uuid.toString(),
+            1,
+            BigDecimal.valueOf(50).setScale(2, RoundingMode.DOWN)
+        );
+        assertNotNull(actualBalance);
+        assertNotNull(actualBalance.id());
+        assertEquals(expectedBalance.accountId(), actualBalance.accountId());
+        assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
+        assertEquals(expectedBalance.balance(), actualBalance.balance());
+
+        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
+        BalanceDto expectedBalance2 = new BalanceDto(
+            null,
+            uuid.toString(),
+            2,
+            BigDecimal.valueOf(10.00).setScale(2, RoundingMode.DOWN)
+        );
+        assertEquals(expectedBalance2.accountId(), actualBalance2.accountId());
+        assertEquals(expectedBalance2.currencyId(), actualBalance2.currencyId());
+        assertEquals(expectedBalance2.balance(), actualBalance2.balance());
     }
 
     @Test

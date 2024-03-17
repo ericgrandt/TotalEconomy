@@ -75,7 +75,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer player) {
-        return economy.createAccount(player.getUniqueId(), defaultCurrency.id());
+        return economy.createAccount(player.getUniqueId());
     }
 
     @Override

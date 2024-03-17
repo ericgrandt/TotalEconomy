@@ -99,7 +99,7 @@ public class EconomyImplTest {
         // Arrange
         UUID uuid = UUID.randomUUID();
         when(economyMock.hasAccount(uuid)).thenReturn(false);
-        when(economyMock.createAccount(uuid, 1)).thenReturn(true);
+        when(economyMock.createAccount(uuid)).thenReturn(true);
         when(economyMock.getBalance(uuid, 1)).thenReturn(BigDecimal.TEN);
 
         EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
@@ -126,7 +126,7 @@ public class EconomyImplTest {
         // Arrange
         UUID uuid = UUID.randomUUID();
         when(economyMock.hasAccount(uuid)).thenReturn(false);
-        when(economyMock.createAccount(uuid, 1)).thenReturn(false);
+        when(economyMock.createAccount(uuid)).thenReturn(false);
 
         EconomyImpl sut = new EconomyImpl(spongeWrapperMock, currency, economyMock);
 

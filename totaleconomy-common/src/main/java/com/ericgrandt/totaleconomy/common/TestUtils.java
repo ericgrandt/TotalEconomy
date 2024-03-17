@@ -56,9 +56,12 @@ public class TestUtils {
         try (Connection conn = TestUtils.getConnection()) {
             String insertDollarCurrency = "INSERT INTO te_currency\n"
                 + "VALUES(1, 'Dollar', 'Dollars', '$', 0, true)";
+            String insertOtherCurrency = "INSERT INTO te_currency\n"
+                + "VALUES(2, 'A', 'B', 'C', 0, false)";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDollarCurrency);
+            statement.execute(insertOtherCurrency);
         }
     }
 
@@ -85,9 +88,12 @@ public class TestUtils {
         try (Connection conn = TestUtils.getConnection()) {
             String insertDefaultBalance = "INSERT INTO te_default_balance\n"
                 + "VALUES('05231a59-b6fa-4d57-8450-5bd07f148a98', 1, 100.50);";
+            String insertDefaultBalance2 = "INSERT INTO te_default_balance\n"
+                + "VALUES('ad468b85-fda7-453c-a899-23e94ea3c107', 2, 10.00);";
 
             Statement statement = conn.createStatement();
             statement.execute(insertDefaultBalance);
+            statement.execute(insertDefaultBalance2);
         }
     }
 

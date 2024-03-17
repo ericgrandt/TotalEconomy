@@ -1,4 +1,4 @@
 package com.ericgrandt.totaleconomy.common.command;
 
-public interface CommonArguments {
+public record CommonParameter<T>(T value) {
 }
