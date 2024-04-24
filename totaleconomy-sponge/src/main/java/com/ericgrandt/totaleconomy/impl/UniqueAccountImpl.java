@@ -129,7 +129,8 @@ public class UniqueAccountImpl implements UniqueAccount {
         com.ericgrandt.totaleconomy.common.econ.TransactionResult result = economy.deposit(
             accountId,
             defaultCurrencyId,
-            amount
+            amount,
+            false
         );
         ResultType resultType = result.resultType() == com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS
             ? ResultType.SUCCESS
@@ -154,7 +155,8 @@ public class UniqueAccountImpl implements UniqueAccount {
         com.ericgrandt.totaleconomy.common.econ.TransactionResult result = economy.withdraw(
             accountId,
             defaultCurrencyId,
-            amount
+            amount,
+            false
         );
         ResultType resultType = result.resultType() == com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS
             ? ResultType.SUCCESS

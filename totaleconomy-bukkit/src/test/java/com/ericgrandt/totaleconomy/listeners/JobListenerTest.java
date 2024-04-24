@@ -72,7 +72,7 @@ public class JobListenerTest {
         sut.actionHandler("stone", playerMock, "action", jobExperienceBarMock);
 
         // Assert
-        verify(economyMock, times(1)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class));
+        verify(economyMock, times(1)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class), any(Boolean.class));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class JobListenerTest {
         sut.actionHandler("stone", playerMock, "break", jobExperienceBarMock);
 
         // Assert
-        verify(economyMock, times(0)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class));
+        verify(economyMock, times(0)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class), any(Boolean.class));
     }
 
     @Test

@@ -108,7 +108,8 @@ public class EconomyImpl implements Economy {
         TransactionResult result = economy.withdraw(
             player.getUniqueId(),
             defaultCurrency.id(),
-            BigDecimal.valueOf(amount)
+            BigDecimal.valueOf(amount),
+            false
         );
         EconomyResponse.ResponseType responseType = result.resultType() == TransactionResult.ResultType.SUCCESS
             ? EconomyResponse.ResponseType.SUCCESS
@@ -132,7 +133,8 @@ public class EconomyImpl implements Economy {
         TransactionResult result = economy.deposit(
             player.getUniqueId(),
             defaultCurrency.id(),
-            BigDecimal.valueOf(amount)
+            BigDecimal.valueOf(amount),
+            false
         );
         EconomyResponse.ResponseType responseType = result.resultType() == TransactionResult.ResultType.SUCCESS
             ? EconomyResponse.ResponseType.SUCCESS
