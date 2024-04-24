@@ -130,7 +130,7 @@ public class UniqueAccountImpl implements UniqueAccount {
             accountId,
             defaultCurrencyId,
             amount,
-            false
+            true
         );
         ResultType resultType = result.resultType() == com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS
             ? ResultType.SUCCESS
@@ -156,7 +156,7 @@ public class UniqueAccountImpl implements UniqueAccount {
             accountId,
             defaultCurrencyId,
             amount,
-            false
+            true
         );
         ResultType resultType = result.resultType() == com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS
             ? ResultType.SUCCESS

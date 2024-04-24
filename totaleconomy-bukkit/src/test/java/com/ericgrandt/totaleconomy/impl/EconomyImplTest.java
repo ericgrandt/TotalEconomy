@@ -264,7 +264,7 @@ public class EconomyImplTest {
         UUID playerUUID = UUID.randomUUID();
         OfflinePlayer playerMock = mock(OfflinePlayer.class);
         when(playerMock.getUniqueId()).thenReturn(playerUUID);
-        when(economyMock.withdraw(playerUUID, 1, BigDecimal.valueOf(10D), false)).thenReturn(
+        when(economyMock.withdraw(playerUUID, 1, BigDecimal.valueOf(10D), true)).thenReturn(
             new TransactionResult(TransactionResult.ResultType.SUCCESS, "")
         );
 
@@ -293,7 +293,7 @@ public class EconomyImplTest {
         UUID playerUUID = UUID.randomUUID();
         OfflinePlayer playerMock = mock(OfflinePlayer.class);
         when(playerMock.getUniqueId()).thenReturn(playerUUID);
-        when(economyMock.withdraw(playerUUID, 1, BigDecimal.valueOf(10D), false)).thenReturn(
+        when(economyMock.withdraw(playerUUID, 1, BigDecimal.valueOf(10D), true)).thenReturn(
             new TransactionResult(TransactionResult.ResultType.FAILURE, "Failed")
         );
 
@@ -322,7 +322,7 @@ public class EconomyImplTest {
         UUID playerUUID = UUID.randomUUID();
         OfflinePlayer playerMock = mock(OfflinePlayer.class);
         when(playerMock.getUniqueId()).thenReturn(playerUUID);
-        when(economyMock.deposit(playerUUID, 1, BigDecimal.valueOf(10D), false)).thenReturn(
+        when(economyMock.deposit(playerUUID, 1, BigDecimal.valueOf(10D), true)).thenReturn(
             new TransactionResult(TransactionResult.ResultType.SUCCESS, "")
         );
 
@@ -351,7 +351,7 @@ public class EconomyImplTest {
         UUID playerUUID = UUID.randomUUID();
         OfflinePlayer playerMock = mock(OfflinePlayer.class);
         when(playerMock.getUniqueId()).thenReturn(playerUUID);
-        when(economyMock.deposit(playerUUID, 1, BigDecimal.valueOf(10D), false)).thenReturn(
+        when(economyMock.deposit(playerUUID, 1, BigDecimal.valueOf(10D), true)).thenReturn(
             new TransactionResult(TransactionResult.ResultType.FAILURE, "Failed")
         );
 
