@@ -298,7 +298,7 @@ public class UniqueAccountImplTest {
         UUID uuid = UUID.randomUUID();
         Currency currency = new CurrencyImpl(currencyDto);
 
-        when(economyMock.deposit(uuid, 1, BigDecimal.TEN)).thenReturn(
+        when(economyMock.deposit(uuid, 1, BigDecimal.TEN, false)).thenReturn(
             new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
                 com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS,
                 ""
@@ -334,7 +334,7 @@ public class UniqueAccountImplTest {
         UUID uuid = UUID.randomUUID();
         Currency currency = new CurrencyImpl(currencyDto);
 
-        when(economyMock.deposit(uuid, 1, BigDecimal.TEN)).thenReturn(
+        when(economyMock.deposit(uuid, 1, BigDecimal.TEN, false)).thenReturn(
             new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
                 com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.FAILURE,
                 ""
@@ -370,7 +370,7 @@ public class UniqueAccountImplTest {
         UUID uuid = UUID.randomUUID();
         Currency currency = new CurrencyImpl(currencyDto);
 
-        when(economyMock.deposit(uuid, 1, BigDecimal.TEN)).thenReturn(
+        when(economyMock.deposit(uuid, 1, BigDecimal.TEN, false)).thenReturn(
             new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
                 com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS,
                 ""
@@ -406,7 +406,7 @@ public class UniqueAccountImplTest {
         UUID uuid = UUID.randomUUID();
         Currency currency = new CurrencyImpl(currencyDto);
 
-        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN)).thenReturn(
+        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN, false)).thenReturn(
             new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
                 com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS,
                 ""
@@ -442,7 +442,7 @@ public class UniqueAccountImplTest {
         UUID uuid = UUID.randomUUID();
         Currency currency = new CurrencyImpl(currencyDto);
 
-        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN)).thenReturn(
+        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN, false)).thenReturn(
             new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
                 com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.FAILURE,
                 ""
@@ -478,7 +478,7 @@ public class UniqueAccountImplTest {
         UUID uuid = UUID.randomUUID();
         Currency currency = new CurrencyImpl(currencyDto);
 
-        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN)).thenReturn(
+        when(economyMock.withdraw(uuid, 1, BigDecimal.TEN, false)).thenReturn(
             new com.ericgrandt.totaleconomy.common.econ.TransactionResult(
                 com.ericgrandt.totaleconomy.common.econ.TransactionResult.ResultType.SUCCESS,
                 ""

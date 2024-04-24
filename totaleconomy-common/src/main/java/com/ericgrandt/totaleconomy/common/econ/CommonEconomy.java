@@ -68,11 +68,12 @@ public class CommonEconomy {
         }
     }
 
-    public TransactionResult withdraw(UUID uuid, int currencyId, BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+    public TransactionResult withdraw(UUID uuid, int currencyId, BigDecimal amount, boolean allowZero) {
+        boolean invalidAmount = allowZero ? amount.compareTo(BigDecimal.ZERO) < 0 : amount.compareTo(BigDecimal.ZERO) <= 0;
+        if (invalidAmount) {
             return new TransactionResult(
                 TransactionResult.ResultType.FAILURE,
-                "Amount must be greater than zero"
+                "Invalid amount"
             );
         }
 
@@ -108,11 +109,12 @@ public class CommonEconomy {
         }
     }
 
-    public TransactionResult deposit(UUID uuid, int currencyId, BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+    public TransactionResult deposit(UUID uuid, int currencyId, BigDecimal amount, boolean allowZero) {
+        boolean invalidAmount = allowZero ? amount.compareTo(BigDecimal.ZERO) < 0 : amount.compareTo(BigDecimal.ZERO) <= 0;
+        if (invalidAmount) {
             return new TransactionResult(
                 TransactionResult.ResultType.FAILURE,
-                "Amount must be greater than zero"
+                "Invalid amount"
             );
         }
 
@@ -145,7 +147,7 @@ public class CommonEconomy {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             return new TransactionResult(
                 TransactionResult.ResultType.FAILURE,
-                "Amount must be greater than zero"
+                "Invalid amount"
             );
         }
 

@@ -166,7 +166,7 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.SUCCESS,
             ""
@@ -187,10 +187,10 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
-            "Amount must be greater than zero"
+            "Invalid amount"
         );
 
         // Assert
@@ -208,10 +208,10 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
-            "Amount must be greater than zero"
+            "Invalid amount"
         );
 
         // Assert
@@ -231,7 +231,7 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
             "Insufficient funds"
@@ -255,7 +255,7 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.withdraw(uuid, currencyId, amount);
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
             "An error occurred. Please contact an administrator."
@@ -264,6 +264,51 @@ public class CommonEconomyTest {
         // Assert
         assertEquals(expected, actual);
         verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithAmountOfZeroAndAllowZeroTrue_ShouldReturnSuccessfulTransactionResult() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.ZERO;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.ZERO);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.ZERO)).thenReturn(1);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, true);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.SUCCESS,
+            ""
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void withdraw_WithAmountLessThanZeroAndAllowZeroTrue_ShouldReturnFailedTransactionResult() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.valueOf(-1);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        TransactionResult actual = sut.withdraw(uuid, currencyId, amount, true);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "Invalid amount"
+        );
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -280,7 +325,7 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.SUCCESS,
             ""
@@ -301,10 +346,10 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
-            "Amount must be greater than zero"
+            "Invalid amount"
         );
 
         // Assert
@@ -322,10 +367,10 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
-            "Amount must be greater than zero"
+            "Invalid amount"
         );
 
         // Assert
@@ -346,7 +391,7 @@ public class CommonEconomyTest {
         CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
 
         // Act
-        TransactionResult actual = sut.deposit(uuid, currencyId, amount);
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount, false);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
             "An error occurred. Please contact an administrator."
@@ -355,6 +400,51 @@ public class CommonEconomyTest {
         // Assert
         assertEquals(expected, actual);
         verify(loggerMock, times(1)).error(any(String.class), any(SQLException.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_WithAmountOfZeroAndAllowZeroTrue_ShouldReturnSuccessfulTransactionResult() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.ZERO;
+
+        when(balanceDataMock.getBalance(uuid, currencyId)).thenReturn(BigDecimal.ZERO);
+        when(balanceDataMock.updateBalance(uuid, currencyId, BigDecimal.ZERO)).thenReturn(1);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount, true);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.SUCCESS,
+            ""
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void deposit_WithAmountLessThanZeroAndAllowZeroTrue_ShouldReturnFailedTransactionResult() throws SQLException {
+        // Arrange
+        UUID uuid = UUID.randomUUID();
+        int currencyId = 1;
+        BigDecimal amount = BigDecimal.valueOf(-1);
+
+        CommonEconomy sut = new CommonEconomy(loggerMock, accountDataMock, balanceDataMock, currencyDataMock);
+
+        // Act
+        TransactionResult actual = sut.deposit(uuid, currencyId, amount, true);
+        TransactionResult expected = new TransactionResult(
+            TransactionResult.ResultType.FAILURE,
+            "Invalid amount"
+        );
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -400,7 +490,7 @@ public class CommonEconomyTest {
         TransactionResult actual = sut.transfer(uuid, toUuid, currencyId, amount);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
-            "Amount must be greater than zero"
+            "Invalid amount"
         );
 
         // Assert
@@ -422,7 +512,7 @@ public class CommonEconomyTest {
         TransactionResult actual = sut.transfer(uuid, toUuid, currencyId, amount);
         TransactionResult expected = new TransactionResult(
             TransactionResult.ResultType.FAILURE,
-            "Amount must be greater than zero"
+            "Invalid amount"
         );
 
         // Assert

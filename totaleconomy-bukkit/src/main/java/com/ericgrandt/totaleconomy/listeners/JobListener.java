@@ -96,7 +96,7 @@ public class JobListener implements Listener {
         }
 
         addExperience(player, jobRewardDto, jobExperienceBar);
-        economy.deposit(player.getUniqueId(), currencyId, jobRewardDto.money());
+        economy.deposit(player.getUniqueId(), currencyId, jobRewardDto.money(), false);
     }
 
     private void addExperience(Player player, JobRewardDto jobRewardDto, JobExperienceBar jobExperienceBar) {
