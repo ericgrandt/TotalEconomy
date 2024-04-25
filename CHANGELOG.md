@@ -2,7 +2,7 @@
 
 All notable changes to Total Economy will be documented in this file.
 
-## [Unreleased]
+## [0.12.0] - 2024-04-24
 
 ### Changed
 
