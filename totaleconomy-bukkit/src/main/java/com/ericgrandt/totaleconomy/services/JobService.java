@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.services;
 
-import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.JobDataOld;
 import com.ericgrandt.totaleconomy.common.data.dto.JobActionDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
@@ -19,10 +19,10 @@ import java.util.logging.Logger;
 
 public class JobService {
     private final Logger logger;
-    private final JobData jobData;
+    private final JobDataOld jobData;
     private final HashMap<UUID, JobExperienceBar> playerJobExperienceBars = new HashMap<>();
 
-    public JobService(Logger logger, JobData jobData) {
+    public JobService(Logger logger, JobDataOld jobData) {
         this.logger = logger;
         this.jobData = jobData;
     }

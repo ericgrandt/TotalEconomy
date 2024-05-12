@@ -12,7 +12,7 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.JobDataOld;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
@@ -78,7 +78,7 @@ public class PlayerListenerTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
 
-        JobData jobData = new JobData(databaseMock);
+        JobDataOld jobData = new JobDataOld(databaseMock);
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);

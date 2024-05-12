@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
 import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.JobDataOld;
 import com.ericgrandt.totaleconomy.models.JobExperience;
 import com.ericgrandt.totaleconomy.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
@@ -180,7 +180,7 @@ public class JobCommandTest {
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
         when((playerMock).getUniqueId()).thenReturn(playerUuid);
 
-        JobData jobData = new JobData(databaseMock);
+        JobDataOld jobData = new JobDataOld(databaseMock);
         JobService jobService = new JobService(loggerMock, jobData);
         JobCommand sut = new JobCommand(loggerMock, jobService);
 

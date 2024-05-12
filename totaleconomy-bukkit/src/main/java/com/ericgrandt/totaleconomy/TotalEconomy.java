@@ -7,7 +7,7 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.JobDataOld;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
@@ -78,7 +78,7 @@ public class TotalEconomy extends JavaPlugin implements Listener {
 
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
-        JobData jobData = new JobData(database);
+        JobDataOld jobData = new JobDataOld(database);
         economy = new CommonEconomy(new BukkitLogger(logger), accountData, balanceData, currencyData);
         economyImpl = new EconomyImpl(true, defaultCurrency, economy);
         jobService = new JobService(logger, jobData);

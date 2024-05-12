@@ -10,7 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.JobDataOld;
 import com.ericgrandt.totaleconomy.common.data.dto.JobActionDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
@@ -49,7 +49,7 @@ public class JobServiceTest {
             1
         );
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getJobActionByName("break")).thenReturn(jobAction);
         when(jobDataMock.getJobReward(jobAction.id(), jobReward.material())).thenReturn(jobReward);
 
@@ -77,7 +77,7 @@ public class JobServiceTest {
             1
         );
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getJobActionByName("break")).thenReturn(null);
 
         JobService sut = new JobService(loggerMock, jobDataMock);
@@ -104,7 +104,7 @@ public class JobServiceTest {
             1
         );
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getJobActionByName("break")).thenReturn(jobAction);
         when(jobDataMock.getJobReward(jobAction.id(), jobReward.material())).thenReturn(null);
 
@@ -131,7 +131,7 @@ public class JobServiceTest {
             1
         );
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getJobActionByName("break")).thenThrow(SQLException.class);
 
         JobService sut = new JobService(loggerMock, jobDataMock);
@@ -158,7 +158,7 @@ public class JobServiceTest {
             1
         );
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getJobActionByName("break")).thenReturn(jobAction);
         when(jobDataMock.getJobReward(jobAction.id(), jobReward.material())).thenThrow(SQLException.class);
 
@@ -194,7 +194,7 @@ public class JobServiceTest {
             10
         );
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(jobExperienceDto);
         when(jobDataMock.getJob(jobId)).thenReturn(
             new JobDto(jobId.toString(), "jobName")
@@ -217,7 +217,7 @@ public class JobServiceTest {
         UUID accountId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForAllJobs(accountId)).thenReturn(
             List.of(
                 new JobExperienceDto("id", accountId.toString(), jobId.toString(), 10)
@@ -245,7 +245,7 @@ public class JobServiceTest {
         // Arrange
         UUID accountId = UUID.randomUUID();
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
 
         JobService sut = new JobService(loggerMock, jobDataMock);
 
@@ -262,7 +262,7 @@ public class JobServiceTest {
         // Arrange
         UUID accountId = UUID.randomUUID();
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         doThrow(SQLException.class).when(jobDataMock).createJobExperienceRows(accountId);
 
         JobService sut = new JobService(loggerMock, jobDataMock);
@@ -298,7 +298,7 @@ public class JobServiceTest {
         JobDto jobDto = new JobDto(jobId.toString(), "Test Job 1");
         int experienceToAdd = 1;
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(jobExperienceDto);
         when(jobDataMock.getJob(jobId)).thenReturn(jobDto);
 
@@ -330,7 +330,7 @@ public class JobServiceTest {
         JobDto jobDto = new JobDto(jobId.toString(), "Test Job 1");
         int experienceToAdd = 1;
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(jobExperienceDto);
         when(jobDataMock.getJob(jobId)).thenReturn(jobDto);
 
@@ -362,7 +362,7 @@ public class JobServiceTest {
         JobDto jobDto = new JobDto(jobId.toString(), "Test Job 1");
         int experienceToAdd = 100;
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(jobExperienceDto);
         when(jobDataMock.getJob(jobId)).thenReturn(jobDto);
 
@@ -387,7 +387,7 @@ public class JobServiceTest {
         UUID jobId = UUID.randomUUID();
         int experienceToAdd = 100;
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(null);
 
         JobService sut = new JobService(loggerMock, jobDataMock);
@@ -417,7 +417,7 @@ public class JobServiceTest {
         );
         int experienceToAdd = 100;
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(jobExperienceDto);
         when(
             jobDataMock.updateExperienceForJob(
@@ -459,7 +459,7 @@ public class JobServiceTest {
         );
         int experienceToAdd = 100;
 
-        JobData jobDataMock = mock(JobData.class);
+        JobDataOld jobDataMock = mock(JobDataOld.class);
         when(jobDataMock.getExperienceForJob(accountId, jobId)).thenReturn(jobExperienceDto);
         when(
             jobDataMock.updateExperienceForJob(
@@ -483,7 +483,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void calculateLevelFromExperience_WithExperienceOf49_ShouldReturnOne() {
         // Arrange
-        JobService sut = new JobService(loggerMock, mock(JobData.class));
+        JobService sut = new JobService(loggerMock, mock(JobDataOld.class));
 
         // Act
         int actual = sut.calculateLevelFromExperience(49);
@@ -497,7 +497,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void calculateLevelFromExperience_WithExperienceOf50_ShouldReturnTwo() {
         // Arrange
-        JobService sut = new JobService(loggerMock, mock(JobData.class));
+        JobService sut = new JobService(loggerMock, mock(JobDataOld.class));
 
         // Act
         int actual = sut.calculateLevelFromExperience(50);
@@ -511,7 +511,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void calculateLevelFromExperience_WithExperienceOf4900_ShouldReturnTen() {
         // Arrange
-        JobService sut = new JobService(loggerMock, mock(JobData.class));
+        JobService sut = new JobService(loggerMock, mock(JobDataOld.class));
 
         // Act
         int actual = sut.calculateLevelFromExperience(4900);
@@ -525,7 +525,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void calculateLevelFromExperience_WithExperienceOfZero_ShouldReturnOne() {
         // Arrange
-        JobService sut = new JobService(loggerMock, mock(JobData.class));
+        JobService sut = new JobService(loggerMock, mock(JobDataOld.class));
 
         // Act
         int actual = sut.calculateLevelFromExperience(0);

@@ -14,7 +14,7 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.data.JobDataOld;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
@@ -153,7 +153,7 @@ public class JobListenerTest {
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
         when(playerMock.getUniqueId()).thenReturn(playerId);
 
-        JobData jobData = new JobData(databaseMock);
+        JobDataOld jobData = new JobDataOld(databaseMock);
         JobService jobService = new JobService(loggerMock, jobData);
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
@@ -214,7 +214,7 @@ public class JobListenerTest {
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
         when(playerMock.getUniqueId()).thenReturn(playerId);
 
-        JobData jobData = new JobData(databaseMock);
+        JobDataOld jobData = new JobDataOld(databaseMock);
         JobService jobService = new JobService(loggerMock, jobData);
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
@@ -275,7 +275,7 @@ public class JobListenerTest {
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
         when(playerMock.getUniqueId()).thenReturn(playerId);
 
-        JobData jobData = new JobData(databaseMock);
+        JobDataOld jobData = new JobDataOld(databaseMock);
         JobService jobService = new JobService(loggerMock, jobData);
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
@@ -336,7 +336,7 @@ public class JobListenerTest {
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
         when(playerMock.getUniqueId()).thenReturn(playerId);
 
-        JobData jobData = new JobData(databaseMock);
+        JobDataOld jobData = new JobDataOld(databaseMock);
         JobService jobService = new JobService(loggerMock, jobData);
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
