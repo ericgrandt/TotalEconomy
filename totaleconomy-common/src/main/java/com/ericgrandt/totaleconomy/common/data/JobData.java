@@ -1,9 +1,7 @@
 package com.ericgrandt.totaleconomy.common.data;
 
-import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,7 +44,10 @@ public class JobData {
                 }
             }
         } catch (SQLException e) {
-
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
         }
 
         return Optional.empty();
