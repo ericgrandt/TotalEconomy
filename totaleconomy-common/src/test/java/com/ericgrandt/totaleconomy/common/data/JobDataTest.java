@@ -45,7 +45,7 @@ public class JobDataTest {
         when(resultSetMock.getString("id")).thenReturn("id");
         when(resultSetMock.getString("job_name")).thenReturn("jobName");
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobDto actual = sut.getJob(UUID.randomUUID());
@@ -69,7 +69,7 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobDto actual = sut.getJob(UUID.randomUUID());
@@ -96,7 +96,7 @@ public class JobDataTest {
         when(resultSetMock.getString("job_id")).thenReturn("jobId");
         when(resultSetMock.getInt("experience")).thenReturn(10);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobExperienceDto actual = sut.getExperienceForJob(UUID.randomUUID(), UUID.randomUUID());
@@ -120,7 +120,7 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobExperienceDto actual = sut.getExperienceForJob(UUID.randomUUID(), UUID.randomUUID());
@@ -147,7 +147,7 @@ public class JobDataTest {
         when(resultSetMock.getString("job_id")).thenReturn("jobId");
         when(resultSetMock.getInt("experience")).thenReturn(10);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         List<JobExperienceDto> actual = sut.getExperienceForAllJobs(UUID.randomUUID());
@@ -173,7 +173,7 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         List<JobExperienceDto> actual = sut.getExperienceForAllJobs(UUID.randomUUID());
@@ -204,7 +204,7 @@ public class JobDataTest {
         when(resultSetMock.getBigDecimal("money")).thenReturn(BigDecimal.TEN);
         when(resultSetMock.getInt("experience")).thenReturn(10);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobRewardDto actual = sut.getJobReward("", "");
@@ -236,7 +236,7 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobRewardDto actual = sut.getJobReward("", "");
@@ -261,7 +261,7 @@ public class JobDataTest {
         when(resultSetMock.getString("id")).thenReturn("id");
         when(resultSetMock.getString("action_name")).thenReturn("actionName");
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobActionDto actual = sut.getJobActionByName("break");
@@ -288,7 +288,7 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobActionDto actual = sut.getJobActionByName("break");
@@ -309,7 +309,7 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         int actual = sut.updateExperienceForJob(UUID.randomUUID(), UUID.randomUUID(), 10);
@@ -331,7 +331,7 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(0);
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         int actual = sut.updateExperienceForJob(UUID.randomUUID(), UUID.randomUUID(), 10);
@@ -354,7 +354,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobDto actual = sut.getJob(jobId);
@@ -384,7 +384,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobExperienceDto actual = sut.getExperienceForJob(accountId, jobId);
@@ -415,7 +415,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         List<JobExperienceDto> actual = sut.getExperienceForAllJobs(accountId);
@@ -453,7 +453,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobRewardDto actual = sut.getJobReward("fbc60ff9-d7e2-4704-9460-6edc2e7b6066", "coal_ore");
@@ -484,7 +484,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         JobActionDto actual = sut.getJobActionByName("break");
@@ -512,7 +512,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         sut.createJobExperienceRows(accountId);
@@ -555,7 +555,7 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        JobData sut = new JobData(databaseMock);
+        JobDataOld sut = new JobDataOld(databaseMock);
 
         // Act
         int actual = sut.updateExperienceForJob(accountId, jobId, 60);

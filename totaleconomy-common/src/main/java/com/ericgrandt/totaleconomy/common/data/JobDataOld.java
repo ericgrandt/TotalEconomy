@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class JobData {
+public class JobDataOld {
     private final Database database;
 
-    public JobData(Database database) {
+    public JobDataOld(Database database) {
         this.database = database;
     }
 
