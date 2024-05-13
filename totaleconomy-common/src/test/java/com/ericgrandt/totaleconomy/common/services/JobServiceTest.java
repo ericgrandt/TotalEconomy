@@ -40,6 +40,7 @@ public class JobServiceTest {
             .thenReturn(Optional.of(jobReward));
         when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
         when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.of(jobExperience));
+        when(jobDataMock.updateJobExperience(any(JobExperience.class))).thenReturn(1);
 
         AddExperienceRequest request = new AddExperienceRequest(
             UUID.randomUUID(),
@@ -87,14 +88,16 @@ public class JobServiceTest {
 
     @Test
     @Tag("Unit")
-    public void addExperience_WithNoUpdatedRows_ShouldReturnResponseWithNoChanges() {
+    public void addExperience_WithLevelUpButNoUpdatedRows_ShouldReturnWithNoLevelUp() {
         // Arrange
-        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
-        Job job = new Job("", "");
+        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 20);
+        Job job = new Job("", "miner");
+        JobExperience jobExperience = new JobExperience("", "", "", 40);
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
             .thenReturn(Optional.of(jobReward));
         when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
+        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.of(jobExperience));
+        when(jobDataMock.updateJobExperience(any(JobExperience.class))).thenReturn(0);
 
         AddExperienceRequest request = new AddExperienceRequest(
             UUID.randomUUID(),
@@ -104,11 +107,12 @@ public class JobServiceTest {
         );
         JobService sut = new JobService(jobDataMock);
 
-        // Act/Assert
-        assertThrows(
-            NoSuchElementException.class,
-            () -> sut.addExperience(request)
-        );
+        // Act
+        AddExperienceResponse actual = sut.addExperience(request);
+        AddExperienceResponse expected = new AddExperienceResponse("miner", false);
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     @Test

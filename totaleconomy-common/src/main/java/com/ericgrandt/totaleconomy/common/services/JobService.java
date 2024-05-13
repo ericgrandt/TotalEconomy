@@ -6,7 +6,6 @@ import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceResponse;
-
 import java.util.NoSuchElementException;
 
 public class JobService {
@@ -23,10 +22,10 @@ public class JobService {
 
         boolean willLevelUp = jobExperience.addExperience(jobReward.getExperience());
 
-        // int result = jobData.updateJobExperience(jobExperience);
-        // if (result <= 0) {
-        //     willLevelUp = false;
-        // }
+        int result = jobData.updateJobExperience(jobExperience);
+        if (result <= 0) {
+            return new AddExperienceResponse(job.getJobName(), false);
+        }
 
         return new AddExperienceResponse(job.getJobName(), willLevelUp);
     }
