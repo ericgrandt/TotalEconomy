@@ -4,7 +4,7 @@ public class JobExperience {
     private final String id;
     private final String accountId;
     private final String jobId;
-    private final int experience;
+    private int experience;
 
     public JobExperience(
         final String id,
@@ -27,8 +27,10 @@ public class JobExperience {
         return (int) Math.ceil(49 * Math.pow(level(), 2)) + 1;
     }
 
-    public boolean willLevelUp(int experienceToAdd) {
-        return false;
+    public boolean addExperience(int experienceToAdd) {
+        boolean willLevelUp = (experience + experienceToAdd) >= nextLevelExperience();
+        experience += experienceToAdd;
+        return willLevelUp;
     }
 //
 //

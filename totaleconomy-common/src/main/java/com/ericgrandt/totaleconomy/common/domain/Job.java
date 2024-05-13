@@ -14,4 +14,12 @@ public class Job {
     public String getJobName() {
         return jobName;
     }
+
+    public JobExperience getJobExperience() {
+        return jobExperience;
+    }
+
+    public void setJobExperience(JobExperience jobExperience) {
+        this.jobExperience = jobExperience;
+    }
 }

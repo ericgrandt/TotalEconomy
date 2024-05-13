@@ -28,4 +28,8 @@ public class JobReward {
         this.money = money;
         this.experience = experience;
     }
+
+    public int getExperience() {
+        return experience;
+    }
 }

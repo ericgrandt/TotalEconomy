@@ -33,7 +33,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void addExperience_WithSuccessAndLevelUp_ShouldReturnAddExperienceResponse() {
         // Arrange
-        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
+        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 30);
         Job job = new Job("", "job");
         JobExperience jobExperience = new JobExperience("", "", "", 20);
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
@@ -52,6 +52,34 @@ public class JobServiceTest {
         // Act
         AddExperienceResponse actual = sut.addExperience(request);
         AddExperienceResponse expected = new AddExperienceResponse("job", true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void addExperience_WithSuccessAndNoLevelUp_ShouldReturnAddExperienceResponse() {
+        // Arrange
+        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
+        Job job = new Job("", "miner");
+        JobExperience jobExperience = new JobExperience("", "", "", 20);
+        when(jobDataMock.getJobReward(any(String.class), any(String.class)))
+            .thenReturn(Optional.of(jobReward));
+        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
+        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.of(jobExperience));
+
+        AddExperienceRequest request = new AddExperienceRequest(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            "",
+            ""
+        );
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        AddExperienceResponse actual = sut.addExperience(request);
+        AddExperienceResponse expected = new AddExperienceResponse("miner", false);
 
         // Assert
         assertEquals(expected, actual);

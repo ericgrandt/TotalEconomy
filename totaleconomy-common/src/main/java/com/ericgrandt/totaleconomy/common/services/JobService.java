@@ -20,7 +20,14 @@ public class JobService {
         JobReward jobReward = jobData.getJobReward(request.action(), request.materialName()).orElseThrow();
         Job job = jobData.getJob(request.jobId()).orElseThrow();
         JobExperience jobExperience = jobData.getJobExperience(request.accountId(), request.jobId()).orElseThrow();
-        // job.setJobExperience(jobExperience)
-        return new AddExperienceResponse(job.getJobName(), false);
+
+        boolean willLevelUp = jobExperience.addExperience(jobReward.getExperience());
+
+        // int result = jobData.updateJobExperience(jobExperience);
+        // if (result <= 0) {
+        //     willLevelUp = false;
+        // }
+
+        return new AddExperienceResponse(job.getJobName(), willLevelUp);
     }
 }
