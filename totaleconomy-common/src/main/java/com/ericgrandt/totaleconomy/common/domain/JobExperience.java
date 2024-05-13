@@ -40,12 +40,5 @@ public class JobExperience {
     public int getExperience() {
         return experience;
     }
-
-//
-//
-//    public int currentLevelBaseExperience() {
-//        int experience = (int) Math.ceil(49 * Math.pow(level() - 1, 2));
-//        return experience > 0 ? experience + 1 : experience;
-//    }
 }
 

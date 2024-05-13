@@ -3,7 +3,6 @@ package com.ericgrandt.totaleconomy.common.listeners;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.services.JobService;
-
 import java.util.concurrent.CompletableFuture;
 
 public class CommonJobListener {

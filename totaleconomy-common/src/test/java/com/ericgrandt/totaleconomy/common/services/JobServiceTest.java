@@ -12,11 +12,9 @@ import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceResponse;
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

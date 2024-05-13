@@ -66,7 +66,6 @@ public class JobServiceTest {
     @Tag("Unit")
     public void getJobReward_WithNoJobActionFound_ShouldReturnNull() throws SQLException {
         // Arrange
-        JobActionDto jobAction = new JobActionDto("id", "break");
         JobRewardDto jobReward = new JobRewardDto(
             "",
             "",

@@ -1,11 +1,11 @@
 package com.ericgrandt.totaleconomy.common.domain;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class JobExperienceTest {
     @Test
@@ -130,32 +130,4 @@ public class JobExperienceTest {
         // Assert
         assertEquals(expected, actual);
     }
-
-//    @Test
-//    @Tag("Unit")
-//    public void currentLevelBaseExperience_WithCurrentLevelOfOne_ShouldReturnBaseExperienceForLevelOne() {
-//        // Arrange
-//        JobExperience sut = new JobExperience("", "", "", 12);
-//
-//        // Act
-//        int actual = sut.currentLevelBaseExperience();
-//        int expected = 0;
-//
-//        // Assert
-//        assertEquals(expected, actual);
-//    }
-//
-//    @Test
-//    @Tag("Unit")
-//    public void currentLevelBaseExperience_WithCurrentLevelOfTwo_ShouldReturnBaseExperienceForLevelTwo() {
-//        // Arrange
-//        JobExperience sut = new JobExperience("", "", "", 56);
-//
-//        // Act
-//        int actual = sut.currentLevelBaseExperience();
-//        int expected = 50;
-//
-//        // Assert
-//        assertEquals(expected, actual);
-//    }
 }

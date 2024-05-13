@@ -1,11 +1,10 @@
 package com.ericgrandt.totaleconomy.common.domain;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 public class JobRewardTest {
     @Test
