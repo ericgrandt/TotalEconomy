@@ -10,4 +10,8 @@ public class Job {
         this.id = id;
         this.jobName = jobName;
     }
+
+    public String getJobName() {
+        return jobName;
+    }
 }
