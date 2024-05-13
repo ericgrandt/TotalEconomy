@@ -32,6 +32,15 @@ public class JobExperience {
         experience += experienceToAdd;
         return willLevelUp;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getExperience() {
+        return experience;
+    }
+
 //
 //
 //    public int currentLevelBaseExperience() {

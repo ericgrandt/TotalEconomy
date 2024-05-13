@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.common.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -259,6 +260,54 @@ public class JobDataTest {
         assertTrue(actual.isEmpty());
     }
 
+
+    @Test
+    @Tag("Unit")
+    public void updateJobExperience_WithRowUpdated_ShouldReturnOne() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(1);
+
+        JobExperience jobExperience = new JobExperience("id", "accountId", "jobId", 10);
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        int actual = sut.updateJobExperience(jobExperience);
+        int expected = 1;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void updateJobExperience_WithSQLException_ShouldReturnZero() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenThrow(SQLException.class);
+
+        JobExperience jobExperience = new JobExperience("id", "accountId", "jobId", 10);
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        int actual = sut.updateJobExperience(jobExperience);
+        int expected = 0;
+
+        // Assert
+        verify(loggerMock).error(any(String.class), any(SQLException.class));
+        assertEquals(expected, actual);
+    }
+
     @Test
     @Tag("Integration")
     public void getJobReward_ShouldReturnAJobRewardDto() throws SQLException {
@@ -348,5 +397,41 @@ public class JobDataTest {
         // Assert
         assertTrue(actual.isPresent());
         assertThat(actual.get()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void updateJobExperience_ShouldReturnUpdatedJobExperienceAndReturnOne() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+        TestUtils.seedJobs();
+        TestUtils.seedJobExperience();
+
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
+
+        String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
+        JobExperience jobExperience = new JobExperience(
+            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
+            accountId,
+            jobId,
+            100
+        );
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        int actual = sut.updateJobExperience(jobExperience);
+        int expected = 1;
+
+        JobExperience actualJobExperience = sut.getJobExperience(UUID.fromString(accountId), UUID.fromString(jobId))
+            .orElseThrow();
+
+        // Assert
+        assertThat(actualJobExperience).usingRecursiveComparison().isEqualTo(jobExperience);
+        assertEquals(expected, actual);
     }
 }

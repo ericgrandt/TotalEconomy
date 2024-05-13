@@ -87,6 +87,32 @@ public class JobServiceTest {
 
     @Test
     @Tag("Unit")
+    public void addExperience_WithNoUpdatedRows_ShouldReturnResponseWithNoChanges() {
+        // Arrange
+        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
+        Job job = new Job("", "");
+        when(jobDataMock.getJobReward(any(String.class), any(String.class)))
+            .thenReturn(Optional.of(jobReward));
+        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
+        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
+
+        AddExperienceRequest request = new AddExperienceRequest(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            "",
+            ""
+        );
+        JobService sut = new JobService(jobDataMock);
+
+        // Act/Assert
+        assertThrows(
+            NoSuchElementException.class,
+            () -> sut.addExperience(request)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
     public void addExperience_WithEmptyJobReward_ShouldThrowNoSuchElementException() {
         // Arrange
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))

@@ -103,6 +103,34 @@ public class JobExperienceTest {
         assertFalse(actual);
     }
 
+    @Test
+    @Tag("Unit")
+    public void getId_ShouldReturnId() {
+        // Arrange
+        JobExperience sut = new JobExperience("id", "", "", 0);
+
+        // Act
+        String actual = sut.getId();
+        String expected = "id";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getExperience_ShouldReturnExperience() {
+        // Arrange
+        JobExperience sut = new JobExperience("", "", "", 10);
+
+        // Act
+        int actual = sut.getExperience();
+        int expected = 10;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
 //    @Test
 //    @Tag("Unit")
 //    public void currentLevelBaseExperience_WithCurrentLevelOfOne_ShouldReturnBaseExperienceForLevelOne() {
