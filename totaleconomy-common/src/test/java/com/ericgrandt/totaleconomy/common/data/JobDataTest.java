@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
 import com.ericgrandt.totaleconomy.common.domain.Job;
+import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import com.zaxxer.hikari.HikariDataSource;
@@ -188,6 +189,77 @@ public class JobDataTest {
     }
 
     @Test
+    @Tag("Unit")
+    public void getJobExperience_WithRowFound_ShouldReturnJobExperienceDto() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(true);
+        when(resultSetMock.getString("id")).thenReturn("id");
+        when(resultSetMock.getString("account_id")).thenReturn("accountId");
+        when(resultSetMock.getString("job_id")).thenReturn("jobId");
+        when(resultSetMock.getInt("experience")).thenReturn(10);
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID(), UUID.randomUUID());
+        JobExperience expected = new JobExperience("id", "accountId", "jobId", 10);
+
+        // Assert
+        assertTrue(actual.isPresent());
+        assertThat(actual.get()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getJobExperience_WithNoRowFound_ShouldReturnEmptyOptional() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(false);
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID(), UUID.randomUUID());
+
+        // Assert
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getJobExperience_WithSQLException_ShouldReturnEmptyOptional() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeQuery()).thenThrow(SQLException.class);
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID(), UUID.randomUUID());
+
+        // Assert
+        verify(loggerMock).error(any(String.class), any(SQLException.class));
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
     @Tag("Integration")
     public void getJobReward_ShouldReturnAJobRewardDto() throws SQLException {
         // Arrange
@@ -239,6 +311,38 @@ public class JobDataTest {
         Job expected = new Job(
             "a56a5842-1351-4b73-a021-bcd531260cd1",
             "Test Job 1"
+        );
+
+        // Assert
+        assertTrue(actual.isPresent());
+        assertThat(actual.get()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getJobExperience_ShouldReturnAJobExperienceDto() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+        TestUtils.seedJobs();
+        TestUtils.seedJobExperience();
+
+        UUID accountId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
+        UUID jobId = UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1");
+
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        Optional<JobExperience> actual = sut.getJobExperience(accountId, jobId);
+        JobExperience expected = new JobExperience(
+            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
+            "62694fb0-07cc-4396-8d63-4f70646d75f0",
+            "a56a5842-1351-4b73-a021-bcd531260cd1",
+            50
         );
 
         // Assert
