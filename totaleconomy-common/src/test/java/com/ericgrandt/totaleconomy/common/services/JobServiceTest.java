@@ -1,0 +1,65 @@
+package com.ericgrandt.totaleconomy.common.services;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import com.ericgrandt.totaleconomy.common.data.JobData;
+import com.ericgrandt.totaleconomy.common.domain.JobReward;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceResponse;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+
+@ExtendWith(MockitoExtension.class)
+public class JobServiceTest {
+    @Mock
+    private JobData jobDataMock;
+
+    @Test
+    @Tag("Unit")
+    public void addExperience_WithSuccessAndLevelUp_ShouldReturnAddExperienceResponse() {
+        // Arrange
+        JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
+        when(jobDataMock.getJobReward(any(String.class), any(String.class)))
+            .thenReturn(Optional.of(jobReward));
+
+        AddExperienceRequest request = new AddExperienceRequest("", "", "", "");
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        AddExperienceResponse actual = sut.addExperience(request);
+        AddExperienceResponse expected = new AddExperienceResponse("", true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void addExperience_WithEmptyJobReward_ShouldThrowNoSuchElementException() {
+        // Arrange
+        when(jobDataMock.getJobReward(any(String.class), any(String.class)))
+            .thenReturn(Optional.empty());
+
+        AddExperienceRequest request = new AddExperienceRequest("", "", "", "");
+        JobService sut = new JobService(jobDataMock);
+
+        // Act/Assert
+        assertThrows(
+            NoSuchElementException.class,
+            () -> sut.addExperience(request)
+        );
+    }
+}

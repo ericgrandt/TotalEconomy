@@ -1,5 +1,7 @@
 package com.ericgrandt.totaleconomy.common.data;
 
+import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
+import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.sql.Connection;
@@ -39,6 +41,35 @@ public class JobData {
                             rs.getString("material"),
                             rs.getBigDecimal("money"),
                             rs.getInt("experience")
+                        )
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<Job> getJob(String jobId) {
+        String query = "SELECT * FROM te_job WHERE id = ?";
+
+        try (
+            Connection conn = database.getDataSource().getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)
+        ) {
+            stmt.setString(1, jobId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(
+                        new Job(
+                            rs.getString("id"),
+                            rs.getString("job_name")
                         )
                     );
                 }
