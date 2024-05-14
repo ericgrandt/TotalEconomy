@@ -83,7 +83,7 @@ public class JobServiceTest {
 
         // Act
         AddExperienceResponse actual = sut.addExperience(request);
-        AddExperienceResponse expected = new AddExperienceResponse("job", true);
+        AddExperienceResponse expected = new AddExperienceResponse("job", 2, true);
 
         // Assert
         assertEquals(expected, actual);
@@ -107,7 +107,7 @@ public class JobServiceTest {
 
         // Act
         AddExperienceResponse actual = sut.addExperience(request);
-        AddExperienceResponse expected = new AddExperienceResponse("miner", false);
+        AddExperienceResponse expected = new AddExperienceResponse("miner", 1, false);
 
         // Assert
         assertEquals(expected, actual);
@@ -132,7 +132,7 @@ public class JobServiceTest {
 
         // Act
         AddExperienceResponse actual = sut.addExperience(request);
-        AddExperienceResponse expected = new AddExperienceResponse("miner", false);
+        AddExperienceResponse expected = new AddExperienceResponse("miner", 1, false);
 
         // Assert
         assertEquals(expected, actual);

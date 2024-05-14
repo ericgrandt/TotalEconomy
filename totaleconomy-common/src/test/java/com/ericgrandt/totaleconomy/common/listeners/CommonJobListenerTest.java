@@ -3,7 +3,10 @@ package com.ericgrandt.totaleconomy.common.listeners;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
@@ -15,9 +18,14 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.econ.TransactionResult;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceResponse;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
@@ -26,6 +34,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +43,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class CommonJobListenerTest {
+    @Mock
+    private CommonEconomy economyMock;
+
+    @Mock
+    private JobService jobServiceMock;
+
     @Mock
     private Database databaseMock;
 
@@ -44,8 +59,64 @@ public class CommonJobListenerTest {
     private CommonPlayer playerMock;
 
     @Test
+    @Tag("Unit")
+    public void handleAction_WithLevelUp_ShouldSendLevelUpMessage() {
+        // Arrange
+        when(jobServiceMock.getJobReward(any(GetJobRewardRequest.class))).thenReturn(
+            new GetJobRewardResponse(UUID.randomUUID().toString(), BigDecimal.ONE, 10)
+        );
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(jobServiceMock.addExperience(any(AddExperienceRequest.class))).thenReturn(
+            new AddExperienceResponse("miner", 2, true)
+        );
+        when(economyMock.deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class), any(Boolean.class)))
+            .thenReturn(
+                new TransactionResult(TransactionResult.ResultType.SUCCESS, "")
+            );
+
+        JobEvent jobEvent = new JobEvent(playerMock, "break", "coal_ore");
+        CommonJobListener sut = new CommonJobListener(economyMock, jobServiceMock, 1);
+
+        // Act
+        sut.handleAction(jobEvent);
+
+        // Assert
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
+
+        verify(playerMock, times(1)).sendMessage(any(Component.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void handleAction_WithNoLevelUp_ShouldNotSendLevelUpMessage() {
+        // Arrange
+        when(jobServiceMock.getJobReward(any(GetJobRewardRequest.class))).thenReturn(
+            new GetJobRewardResponse(UUID.randomUUID().toString(), BigDecimal.ONE, 10)
+        );
+        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(jobServiceMock.addExperience(any(AddExperienceRequest.class))).thenReturn(
+            new AddExperienceResponse("miner", 1, false)
+        );
+        when(economyMock.deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class), any(Boolean.class)))
+            .thenReturn(
+                new TransactionResult(TransactionResult.ResultType.SUCCESS, "")
+            );
+
+        JobEvent jobEvent = new JobEvent(playerMock, "break", "coal_ore");
+        CommonJobListener sut = new CommonJobListener(economyMock, jobServiceMock, 1);
+
+        // Act
+        sut.handleAction(jobEvent);
+
+        // Assert
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
+
+        verify(playerMock, times(0)).sendMessage(any(Component.class));
+    }
+
+    @Test
     @Tag("Integration")
-    public void actionHandler_WithBreakActionAndJobReward_ShouldRewardExperienceAndMoney() throws SQLException {
+    public void handleAction_WithBreakActionAndJobReward_ShouldRewardExperienceAndMoney() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -102,5 +173,6 @@ public class CommonJobListenerTest {
 
         assertEquals(expectedBalance, actualBalance);
         assertThat(actualExperience).usingRecursiveComparison().isEqualTo(expectedExperience);
+        verify(playerMock, times(0)).sendMessage(any(Component.class));
     }
 }

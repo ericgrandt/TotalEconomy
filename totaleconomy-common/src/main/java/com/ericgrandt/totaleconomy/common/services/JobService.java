@@ -37,9 +37,10 @@ public class JobService {
 
         int result = jobData.updateJobExperience(jobExperience);
         if (result <= 0) {
-            return new AddExperienceResponse(job.getJobName(), false);
+            jobExperience.addExperience(-request.experience());
+            return new AddExperienceResponse(job.getJobName(), jobExperience.level(), false);
         }
 
-        return new AddExperienceResponse(job.getJobName(), willLevelUp);
+        return new AddExperienceResponse(job.getJobName(), jobExperience.level(), willLevelUp);
     }
 }
