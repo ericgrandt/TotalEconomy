@@ -36,12 +36,11 @@ public class JobServiceTest {
         JobExperience jobExperience = new JobExperience("", "", "", 20);
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
             .thenReturn(Optional.of(jobReward));
-        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.of(jobExperience));
+        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
+        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.of(jobExperience));
         when(jobDataMock.updateJobExperience(any(JobExperience.class))).thenReturn(1);
 
         AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
             UUID.randomUUID(),
             "",
             ""
@@ -65,11 +64,10 @@ public class JobServiceTest {
         JobExperience jobExperience = new JobExperience("", "", "", 20);
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
             .thenReturn(Optional.of(jobReward));
-        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.of(jobExperience));
+        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
+        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.of(jobExperience));
 
         AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
             UUID.randomUUID(),
             "",
             ""
@@ -93,12 +91,11 @@ public class JobServiceTest {
         JobExperience jobExperience = new JobExperience("", "", "", 40);
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
             .thenReturn(Optional.of(jobReward));
-        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.of(jobExperience));
+        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
+        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.of(jobExperience));
         when(jobDataMock.updateJobExperience(any(JobExperience.class))).thenReturn(0);
 
         AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
             UUID.randomUUID(),
             "",
             ""
@@ -122,7 +119,6 @@ public class JobServiceTest {
 
         AddExperienceRequest request = new AddExperienceRequest(
             UUID.randomUUID(),
-            UUID.randomUUID(),
             "",
             ""
         );
@@ -142,10 +138,9 @@ public class JobServiceTest {
         JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
             .thenReturn(Optional.of(jobReward));
-        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.empty());
+        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.empty());
 
         AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
             UUID.randomUUID(),
             "",
             ""
@@ -167,11 +162,10 @@ public class JobServiceTest {
         Job job = new Job("", "");
         when(jobDataMock.getJobReward(any(String.class), any(String.class)))
             .thenReturn(Optional.of(jobReward));
-        when(jobDataMock.getJob(any(UUID.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
+        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
+        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
         AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
             UUID.randomUUID(),
             "",
             ""

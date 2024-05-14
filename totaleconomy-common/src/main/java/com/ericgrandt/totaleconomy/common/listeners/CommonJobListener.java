@@ -22,13 +22,9 @@ public class CommonJobListener {
 
     public void handleAction(JobEvent event) {
         CompletableFuture.runAsync(() -> {
-            // AddExperienceRequest(accountId, jobId, action, materialName);
+            // AddExperienceRequest(accountId, action, materialName);
             // jobService.addExperience(addExperienceRequest);
+            // Deposit money
         });
-        // Get job action reward (JobActionReward domain object) or do we
-        //  handle grabbing this in the service?
-        // Check for existence of job action reward
-        // Deposit money
-        // Add experience to job (Job w/ JobExperience domain object)
     }
 }

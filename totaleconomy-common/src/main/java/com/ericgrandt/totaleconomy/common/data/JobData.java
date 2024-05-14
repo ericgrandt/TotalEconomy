@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import java.util.UUID;
 
 public class JobData {
     private final CommonLogger logger;
@@ -58,14 +57,14 @@ public class JobData {
         return Optional.empty();
     }
 
-    public Optional<Job> getJob(UUID jobId) {
+    public Optional<Job> getJob(String jobId) {
         String query = "SELECT * FROM te_job WHERE id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, jobId.toString());
+            stmt.setString(1, jobId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -87,15 +86,15 @@ public class JobData {
         return Optional.empty();
     }
 
-    public Optional<JobExperience> getJobExperience(UUID accountId, UUID jobId) {
+    public Optional<JobExperience> getJobExperience(String accountId, String jobId) {
         String query = "SELECT * FROM te_job_experience WHERE account_id = ? AND job_id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, accountId.toString());
-            stmt.setString(2, jobId.toString());
+            stmt.setString(1, accountId);
+            stmt.setString(2, jobId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

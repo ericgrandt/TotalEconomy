@@ -17,8 +17,8 @@ public class JobService {
 
     public AddExperienceResponse addExperience(AddExperienceRequest request) throws NoSuchElementException {
         JobReward jobReward = jobData.getJobReward(request.action(), request.materialName()).orElseThrow();
-        Job job = jobData.getJob(request.jobId()).orElseThrow();
-        JobExperience jobExperience = jobData.getJobExperience(request.accountId(), request.jobId()).orElseThrow();
+        Job job = jobData.getJob(jobReward.getJobId()).orElseThrow();
+        JobExperience jobExperience = jobData.getJobExperience(request.accountId().toString(), jobReward.getJobId()).orElseThrow();
 
         boolean willLevelUp = jobExperience.addExperience(jobReward.getExperience());
 

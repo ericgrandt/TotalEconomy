@@ -137,7 +137,7 @@ public class JobDataTest {
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(UUID.randomUUID());
+        Optional<Job> actual = sut.getJob(UUID.randomUUID().toString());
         Job expected = new Job("id", "jobName");
 
         // Assert
@@ -161,7 +161,7 @@ public class JobDataTest {
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(UUID.randomUUID());
+        Optional<Job> actual = sut.getJob(UUID.randomUUID().toString());
 
         // Assert
         assertTrue(actual.isEmpty());
@@ -181,7 +181,7 @@ public class JobDataTest {
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(UUID.randomUUID());
+        Optional<Job> actual = sut.getJob(UUID.randomUUID().toString());
 
         // Assert
         verify(loggerMock).error(any(String.class), any(SQLException.class));
@@ -208,7 +208,7 @@ public class JobDataTest {
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID(), UUID.randomUUID());
+        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID().toString(), UUID.randomUUID().toString());
         JobExperience expected = new JobExperience("id", "accountId", "jobId", 10);
 
         // Assert
@@ -232,7 +232,7 @@ public class JobDataTest {
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID(), UUID.randomUUID());
+        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         // Assert
         assertTrue(actual.isEmpty());
@@ -252,7 +252,7 @@ public class JobDataTest {
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID(), UUID.randomUUID());
+        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         // Assert
         verify(loggerMock).error(any(String.class), any(SQLException.class));
@@ -347,11 +347,10 @@ public class JobDataTest {
         TestUtils.resetDb();
         TestUtils.seedJobs();
 
-        UUID jobId = UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1");
-
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
+        String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
@@ -376,11 +375,11 @@ public class JobDataTest {
         TestUtils.seedJobs();
         TestUtils.seedJobExperience();
 
-        UUID accountId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
-        UUID jobId = UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1");
-
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
+
+        String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
 
         JobData sut = new JobData(loggerMock, databaseMock);
 
@@ -426,7 +425,7 @@ public class JobDataTest {
         int actual = sut.updateJobExperience(jobExperience);
         int expected = 1;
 
-        JobExperience actualJobExperience = sut.getJobExperience(UUID.fromString(accountId), UUID.fromString(jobId))
+        JobExperience actualJobExperience = sut.getJobExperience(accountId, jobId)
             .orElseThrow();
 
         // Assert

@@ -4,7 +4,6 @@ import java.util.UUID;
 
 public record AddExperienceRequest(
     UUID accountId,
-    UUID jobId,
     String action,
     String materialName
 ) {

@@ -29,6 +29,10 @@ public class JobReward {
         this.experience = experience;
     }
 
+    public String getJobId() {
+        return jobId;
+    }
+
     public int getExperience() {
         return experience;
     }
