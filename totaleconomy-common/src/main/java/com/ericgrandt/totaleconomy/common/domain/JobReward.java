@@ -33,6 +33,10 @@ public class JobReward {
         return jobId;
     }
 
+    public BigDecimal getMoney() {
+        return money;
+    }
+
     public int getExperience() {
         return experience;
     }

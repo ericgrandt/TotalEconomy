@@ -9,13 +9,27 @@ import org.junit.jupiter.api.Test;
 public class JobRewardTest {
     @Test
     @Tag("Unit")
-    public void getJobId_ShouldReturnExperience() {
+    public void getJobId_ShouldReturnJobId() {
         // Arrange
         JobReward sut = new JobReward("", "jobId", "", 1, "", BigDecimal.ONE, 10);
 
         // Act
         String actual = sut.getJobId();
         String expected = "jobId";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getMoney_ShouldReturnMoney() {
+        // Arrange
+        JobReward sut = new JobReward("", "", "", 1, "", BigDecimal.ONE, 10);
+
+        // Act
+        BigDecimal actual = sut.getMoney();
+        BigDecimal expected = BigDecimal.ONE;
 
         // Assert
         assertEquals(expected, actual);

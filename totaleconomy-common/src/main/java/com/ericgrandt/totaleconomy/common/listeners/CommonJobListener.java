@@ -2,7 +2,11 @@ package com.ericgrandt.totaleconomy.common.listeners;
 
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import com.ericgrandt.totaleconomy.common.services.JobService;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class CommonJobListener {
@@ -22,9 +26,16 @@ public class CommonJobListener {
 
     public void handleAction(JobEvent event) {
         CompletableFuture.runAsync(() -> {
-            // AddExperienceRequest(accountId, action, materialName);
-            // jobService.addExperience(addExperienceRequest);
-            // Deposit money
+            GetJobRewardResponse jobRewardResponse = jobService.getJobReward(
+                new GetJobRewardRequest(event.action(), event.material())
+            );
+            AddExperienceRequest addExperienceRequest = new AddExperienceRequest(
+                event.player().getUniqueId(),
+                UUID.fromString(jobRewardResponse.jobId()),
+                jobRewardResponse.experience()
+            );
+            jobService.addExperience(addExperienceRequest);
+            economy.deposit(event.player().getUniqueId(), currencyId, jobRewardResponse.money(), false);
         });
     }
 }
