@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
@@ -19,6 +21,8 @@ import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.event.JobEvent;
+import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.ericgrandt.totaleconomy.impl.JobExperienceBar;
 import com.ericgrandt.totaleconomy.models.AddExperienceResult;
@@ -31,7 +35,13 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Logger;
 import net.kyori.adventure.text.Component;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,325 +65,87 @@ public class JobListenerTest {
     @Mock
     private Player playerMock;
 
-    @Test
-    @Tag("Unit")
-    public void actionHandler_WithJobRewardFound_ShouldAddRewards() {
-        // Arrange
-        JobRewardDto jobRewardDto = new JobRewardDto("", UUID.randomUUID().toString(), "", 1, "", BigDecimal.TEN, 1);
-        AddExperienceResult addExperienceResult = new AddExperienceResult(null, false);
-
-        when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(jobRewardDto);
-        when(jobServiceMock.addExperience(any(), any(), anyInt())).thenReturn(addExperienceResult);
-        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
-
-        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
-
-        // Act
-        sut.actionHandler("stone", playerMock, "action", jobExperienceBarMock);
-
-        // Assert
-        verify(economyMock, times(1)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class), any(Boolean.class));
-    }
+    @Mock
+    private CommonJobListener commonJobListenerMock;
 
     @Test
     @Tag("Unit")
-    public void actionHandler_WithNoJobRewardFound_ShouldNotAddRewards() {
+    public void onBreakAction_WithAgeableBlockAndNotMaxAge_ShouldReturnWithoutHandlingAction() {
         // Arrange
-        when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(null);
+        BlockBreakEvent eventMock = mock(BlockBreakEvent.class, RETURNS_DEEP_STUBS);
+        Ageable blockDataMock = mock(Ageable.class);
+        when(eventMock.getPlayer()).thenReturn(playerMock);
+        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
+        when(eventMock.getBlock().getBlockData()).thenReturn(blockDataMock);
+        when(blockDataMock.getAge()).thenReturn(1);
+        when(blockDataMock.getMaximumAge()).thenReturn(2);
 
-        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
+        JobListener sut = new JobListener(commonJobListenerMock);
 
         // Act
-        sut.actionHandler("stone", playerMock, "break", jobExperienceBarMock);
+        sut.onBreakAction(eventMock);
 
         // Assert
-        verify(economyMock, times(0)).deposit(any(UUID.class), any(Integer.class), any(BigDecimal.class), any(Boolean.class));
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
     }
 
     @Test
     @Tag("Unit")
-    public void actionHandler_WithLevelUp_ShouldSendMessage() {
+    public void onBreakAction_WithAgeableBlockAndMaxAge_ShouldHandleAction() {
         // Arrange
-        JobRewardDto jobRewardDto = new JobRewardDto("", UUID.randomUUID().toString(), "", 1, "", BigDecimal.TEN, 1);
-        AddExperienceResult addExperienceResult = new AddExperienceResult(
-            new JobExperience("jobName", 1, 0, 1, 1),
-            true
-        );
+        BlockBreakEvent eventMock = mock(BlockBreakEvent.class, RETURNS_DEEP_STUBS);
+        Ageable blockDataMock = mock(Ageable.class);
+        when(eventMock.getPlayer()).thenReturn(playerMock);
+        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
+        when(eventMock.getBlock().getBlockData()).thenReturn(blockDataMock);
+        when(blockDataMock.getAge()).thenReturn(2);
+        when(blockDataMock.getMaximumAge()).thenReturn(2);
 
-        when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(jobRewardDto);
-        when(jobServiceMock.addExperience(any(), any(), anyInt())).thenReturn(addExperienceResult);
-        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
-
-        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
+        JobListener sut = new JobListener(commonJobListenerMock);
 
         // Act
-        sut.actionHandler("stone", playerMock, "kill", jobExperienceBarMock);
+        sut.onBreakAction(eventMock);
 
         // Assert
-        verify(playerMock, times(1)).sendMessage(any(Component.class));
+        verify(commonJobListenerMock, times(1)).handleAction(any(JobEvent.class));
     }
 
     @Test
     @Tag("Unit")
-    public void actionHandler_WithNoLevelUp_ShouldNotSendMessage() {
+    public void onKillAction_WithNullPlayer_ShouldReturnWithoutHandlingAction() {
         // Arrange
-        JobRewardDto jobRewardDto = new JobRewardDto("", UUID.randomUUID().toString(), "", 1, "", BigDecimal.TEN, 1);
-        AddExperienceResult addExperienceResult = new AddExperienceResult(null, false);
+        EntityDeathEvent eventMock = mock(EntityDeathEvent.class);
+        LivingEntity livingEntityMock = mock(LivingEntity.class);
 
-        when(jobServiceMock.getJobReward(anyString(), anyString())).thenReturn(jobRewardDto);
-        when(jobServiceMock.addExperience(any(), any(), anyInt())).thenReturn(addExperienceResult);
-        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(eventMock.getEntity()).thenReturn(livingEntityMock);
+        when(livingEntityMock.getKiller()).thenReturn(null);
 
-        JobListener sut = new JobListener(economyMock, jobServiceMock, 1);
+        JobListener sut = new JobListener(commonJobListenerMock);
 
         // Act
-        sut.actionHandler("stone", playerMock, "break", jobExperienceBarMock);
+        sut.onKillAction(eventMock);
 
         // Assert
-        verify(playerMock, times(0)).sendMessage(any(Component.class));
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
     }
 
     @Test
-    @Tag("Integration")
-    public void actionHandler_WithBreakActionAndJobReward_ShouldRewardExperienceAndMoney() throws SQLException {
+    @Tag("Unit")
+    public void onKillAction_WithSuccess_ShouldHandleAction() {
         // Arrange
-        TestUtils.resetDb();
-        TestUtils.seedCurrencies();
-        TestUtils.seedDefaultBalances();
-        TestUtils.seedAccounts();
-        TestUtils.seedJobs();
-        TestUtils.seedJobActions();
-        TestUtils.seedJobRewards();
-        TestUtils.seedJobExperience();
+        EntityDeathEvent eventMock = mock(EntityDeathEvent.class);
+        LivingEntity livingEntityMock = mock(LivingEntity.class, RETURNS_DEEP_STUBS);
 
-        Database databaseMock = mock(Database.class);
-        Player playerMock = mock(Player.class);
-        UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
-        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
-        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
-        when(playerMock.getUniqueId()).thenReturn(playerId);
+        when(eventMock.getEntity()).thenReturn(livingEntityMock);
+        when(livingEntityMock.getKiller()).thenReturn(playerMock);
+        when(livingEntityMock.getType().name()).thenReturn("entityName");
 
-        JobDataOld jobData = new JobDataOld(databaseMock);
-        JobService jobService = new JobService(loggerMock, jobData);
-        AccountData accountData = new AccountData(databaseMock);
-        BalanceData balanceData = new BalanceData(databaseMock);
-        CurrencyData currencyData = new CurrencyData(databaseMock);
-
-        CommonEconomy economy = new CommonEconomy(
-            new BukkitLogger(loggerMock),
-            accountData,
-            balanceData,
-            currencyData
-        );
-
-        JobListener sut = new JobListener(economy, jobService, 1);
+        JobListener sut = new JobListener(commonJobListenerMock);
 
         // Act
-        sut.actionHandler("coal_ore", playerMock, "break", jobExperienceBarMock);
+        sut.onKillAction(eventMock);
 
         // Assert
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
-        BalanceDto expectedBalance = new BalanceDto(
-            "ab661384-11f5-41e1-a5e6-6fa93305d4d1",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            1,
-            BigDecimal.valueOf(50.50).setScale(2, RoundingMode.DOWN)
-        );
-        JobExperienceDto actualExperience = TestUtils.getExperienceForJob(
-            playerId,
-            UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1")
-        );
-        JobExperienceDto expectedExperience = new JobExperienceDto(
-            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            "a56a5842-1351-4b73-a021-bcd531260cd1",
-            51
-        );
-
-        assertEquals(expectedBalance, actualBalance);
-        assertEquals(expectedExperience, actualExperience);
-    }
-
-    @Test
-    @Tag("Integration")
-    public void actionHandler_WithKillActionAndJobReward_ShouldRewardExperienceAndMoney() throws SQLException {
-        // Arrange
-        TestUtils.resetDb();
-        TestUtils.seedCurrencies();
-        TestUtils.seedDefaultBalances();
-        TestUtils.seedAccounts();
-        TestUtils.seedJobs();
-        TestUtils.seedJobActions();
-        TestUtils.seedJobRewards();
-        TestUtils.seedJobExperience();
-
-        Database databaseMock = mock(Database.class);
-        Player playerMock = mock(Player.class);
-        UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
-        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
-        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
-        when(playerMock.getUniqueId()).thenReturn(playerId);
-
-        JobDataOld jobData = new JobDataOld(databaseMock);
-        JobService jobService = new JobService(loggerMock, jobData);
-        AccountData accountData = new AccountData(databaseMock);
-        BalanceData balanceData = new BalanceData(databaseMock);
-        CurrencyData currencyData = new CurrencyData(databaseMock);
-
-        CommonEconomy commonEconomy = new CommonEconomy(
-            new BukkitLogger(loggerMock),
-            accountData,
-            balanceData,
-            currencyData
-        );
-
-        JobListener sut = new JobListener(commonEconomy, jobService, 1);
-
-        // Act
-        sut.actionHandler("chicken", playerMock, "kill", jobExperienceBarMock);
-
-        // Assert
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
-        BalanceDto expectedBalance = new BalanceDto(
-            "ab661384-11f5-41e1-a5e6-6fa93305d4d1",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            1,
-            BigDecimal.valueOf(51.00).setScale(2, RoundingMode.DOWN)
-        );
-        JobExperienceDto actualExperience = TestUtils.getExperienceForJob(
-            playerId,
-            UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1")
-        );
-        JobExperienceDto expectedExperience = new JobExperienceDto(
-            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            "a56a5842-1351-4b73-a021-bcd531260cd1",
-            55
-        );
-
-        assertEquals(expectedBalance, actualBalance);
-        assertEquals(expectedExperience, actualExperience);
-    }
-
-    @Test
-    @Tag("Integration")
-    public void actionHandler_WithFishActionAndJobReward_ShouldRewardExperienceAndMoney() throws SQLException {
-        // // Arrange
-        TestUtils.resetDb();
-        TestUtils.seedCurrencies();
-        TestUtils.seedDefaultBalances();
-        TestUtils.seedAccounts();
-        TestUtils.seedJobs();
-        TestUtils.seedJobActions();
-        TestUtils.seedJobRewards();
-        TestUtils.seedJobExperience();
-
-        Database databaseMock = mock(Database.class);
-        Player playerMock = mock(Player.class);
-        UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
-        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
-        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
-        when(playerMock.getUniqueId()).thenReturn(playerId);
-
-        JobDataOld jobData = new JobDataOld(databaseMock);
-        JobService jobService = new JobService(loggerMock, jobData);
-        AccountData accountData = new AccountData(databaseMock);
-        BalanceData balanceData = new BalanceData(databaseMock);
-        CurrencyData currencyData = new CurrencyData(databaseMock);
-
-        CommonEconomy commonEconomy = new CommonEconomy(
-            new BukkitLogger(loggerMock),
-            accountData,
-            balanceData,
-            currencyData
-        );
-
-        JobListener sut = new JobListener(commonEconomy, jobService, 1);
-
-        // Act
-        sut.actionHandler("salmon", playerMock, "fish", jobExperienceBarMock);
-
-        // Assert
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
-        BalanceDto expectedBalance = new BalanceDto(
-            "ab661384-11f5-41e1-a5e6-6fa93305d4d1",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            1,
-            BigDecimal.valueOf(55.00).setScale(2, RoundingMode.DOWN)
-        );
-        JobExperienceDto actualExperience = TestUtils.getExperienceForJob(
-            playerId,
-            UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1")
-        );
-        JobExperienceDto expectedExperience = new JobExperienceDto(
-            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            "a56a5842-1351-4b73-a021-bcd531260cd1",
-            70
-        );
-
-        assertEquals(expectedBalance, actualBalance);
-        assertEquals(expectedExperience, actualExperience);
-    }
-
-    @Test
-    @Tag("Integration")
-    public void actionHandler_WithPlaceActionAndJobReward_ShouldRewardExperienceAndMoney() throws SQLException {
-        // Arrange
-        TestUtils.resetDb();
-        TestUtils.seedCurrencies();
-        TestUtils.seedDefaultBalances();
-        TestUtils.seedAccounts();
-        TestUtils.seedJobs();
-        TestUtils.seedJobActions();
-        TestUtils.seedJobRewards();
-        TestUtils.seedJobExperience();
-
-        Database databaseMock = mock(Database.class);
-        Player playerMock = mock(Player.class);
-        UUID playerId = UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0");
-        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
-        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
-        when(playerMock.getUniqueId()).thenReturn(playerId);
-
-        JobDataOld jobData = new JobDataOld(databaseMock);
-        JobService jobService = new JobService(loggerMock, jobData);
-        AccountData accountData = new AccountData(databaseMock);
-        BalanceData balanceData = new BalanceData(databaseMock);
-        CurrencyData currencyData = new CurrencyData(databaseMock);
-
-        CommonEconomy commonEconomy = new CommonEconomy(
-            new BukkitLogger(loggerMock),
-            accountData,
-            balanceData,
-            currencyData
-        );
-
-        JobListener sut = new JobListener(commonEconomy, jobService, 1);
-
-        // Act
-        sut.actionHandler("oak_sapling", playerMock, "place", jobExperienceBarMock);
-
-        // Assert
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
-        BalanceDto expectedBalance = new BalanceDto(
-            "ab661384-11f5-41e1-a5e6-6fa93305d4d1",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            1,
-            BigDecimal.valueOf(50.01).setScale(2, RoundingMode.DOWN)
-        );
-        JobExperienceDto actualExperience = TestUtils.getExperienceForJob(
-            playerId,
-            UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1")
-        );
-        JobExperienceDto expectedExperience = new JobExperienceDto(
-            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
-            "62694fb0-07cc-4396-8d63-4f70646d75f0",
-            "a56a5842-1351-4b73-a021-bcd531260cd1",
-            51
-        );
-
-        assertEquals(expectedBalance, actualBalance);
-        assertEquals(expectedExperience, actualExperience);
+        verify(commonJobListenerMock, times(1)).handleAction(any(JobEvent.class));
     }
 }

@@ -117,10 +117,10 @@ public class TotalEconomy extends JavaPlugin implements Listener {
         );
 
         if (config.getFeatures().get("jobs")) {
-            getServer().getPluginManager().registerEvents(
-                new JobListener(economy, jobService, defaultCurrency.id()),
-                this
-            );
+//            getServer().getPluginManager().registerEvents(
+//                new JobListener(economy, jobService, defaultCurrency.id()),
+//                this
+//            );
         }
     }
 }
