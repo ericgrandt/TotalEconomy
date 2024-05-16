@@ -1,7 +1,6 @@
 package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
-import com.ericgrandt.totaleconomy.commands.JobCommand;
 import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
@@ -105,7 +104,6 @@ public class TotalEconomy extends JavaPlugin implements Listener {
             new PayCommandExecutor(economy, defaultCurrency, bukkitWrapper)
         );
 
-        // TODO: Update
 //        if (config.getFeatures().get("jobs")) {
 //            JobCommand jobCommand = new JobCommand(logger, jobService);
 //
@@ -114,11 +112,10 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerListeners() {
-        // TODO: Update
-//        getServer().getPluginManager().registerEvents(
-//            new PlayerListener(economy, jobService, this),
-//            this
-//        );
+        getServer().getPluginManager().registerEvents(
+            new PlayerListener(economy, jobService, this),
+            this
+        );
 
         if (config.getFeatures().get("jobs")) {
             CommonJobListener commonJobListener = new CommonJobListener(economy, jobService, defaultCurrency.id());

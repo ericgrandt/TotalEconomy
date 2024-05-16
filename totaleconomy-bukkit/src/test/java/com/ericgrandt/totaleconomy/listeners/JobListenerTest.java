@@ -41,6 +41,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -144,6 +145,23 @@ public class JobListenerTest {
 
         // Act
         sut.onKillAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void onPlaceAction_WithSuccess_ShouldHandleAction() {
+        // Arrange
+        BlockPlaceEvent eventMock = mock(BlockPlaceEvent.class, RETURNS_DEEP_STUBS);
+        when(eventMock.getPlayer()).thenReturn(playerMock);
+        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
+
+        JobListener sut = new JobListener(commonJobListenerMock);
+
+        // Act
+        sut.onPlaceAction(eventMock);
 
         // Assert
         verify(commonJobListenerMock, times(1)).handleAction(any(JobEvent.class));
