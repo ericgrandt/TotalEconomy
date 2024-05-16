@@ -399,7 +399,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Integration")
-    public void updateJobExperience_ShouldReturnUpdatedJobExperienceAndReturnOne() throws SQLException {
+    public void updateJobExperience_ShouldUpdateJobExperienceAndReturnOne() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -412,24 +412,23 @@ public class JobDataTest {
 
         String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
         String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
-        JobExperience jobExperience = new JobExperience(
-            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
-            accountId,
-            jobId,
-            100
-        );
 
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        int actual = sut.updateJobExperience(jobExperience);
+        int actual = sut.updateJobExperience(accountId, jobId, 20);
         int expected = 1;
 
-        JobExperience actualJobExperience = sut.getJobExperience(accountId, jobId)
-            .orElseThrow();
+        JobExperience actualJobExperience = sut.getJobExperience(accountId, jobId).orElseThrow();
+        JobExperience expectedJobExperience = new JobExperience(
+            "748af95b-32a0-45c2-bfdc-9e87c023acdf",
+            "62694fb0-07cc-4396-8d63-4f70646d75f0",
+            "a56a5842-1351-4b73-a021-bcd531260cd1",
+            70
+        );
 
         // Assert
-        assertThat(actualJobExperience).usingRecursiveComparison().isEqualTo(jobExperience);
         assertEquals(expected, actual);
+        assertThat(actualJobExperience).usingRecursiveComparison().isEqualTo(expectedJobExperience);
     }
 }

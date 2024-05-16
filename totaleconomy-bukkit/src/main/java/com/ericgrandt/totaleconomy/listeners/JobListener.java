@@ -63,17 +63,17 @@ public class JobListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onFishAction(PlayerFishEvent event) {
-//        Entity caughtEntity = event.getCaught();
-//        if (caughtEntity == null) {
-//            return;
-//        }
-//
-//        Player player = event.getPlayer();
-//
-//        String caughtItemName = ((Item) caughtEntity).getItemStack().getType().name().toLowerCase();
-//        JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());;
-//
-//        commonJobListener.handleAction(new JobEvent(player, "fish", caughtItemName));
+        Entity caughtEntity = event.getCaught();
+        if (caughtEntity == null) {
+            return;
+        }
+
+        BukkitPlayer player = new BukkitPlayer(event.getPlayer());
+
+        String caughtItemName = ((Item) caughtEntity).getItemStack().getType().name().toLowerCase();
+        //JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());;
+
+        commonJobListener.handleAction(new JobEvent(player, "fish", caughtItemName));
     }
 
 //    @EventHandler(ignoreCancelled = true)

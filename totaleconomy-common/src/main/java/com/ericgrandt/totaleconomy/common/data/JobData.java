@@ -138,4 +138,26 @@ public class JobData {
 
         return 0;
     }
+
+    public int updateJobExperience(String accountId, String jobId, int experienceToAdd) {
+        String query = "UPDATE te_job_experience SET experience = experience + ? WHERE account_id = ? AND job_id = ?";
+
+        try (
+            Connection conn = database.getDataSource().getConnection();
+            PreparedStatement updateExperience = conn.prepareStatement(query)
+        ) {
+            updateExperience.setInt(1, experienceToAdd);
+            updateExperience.setString(2, accountId);
+            updateExperience.setString(3, jobId);
+
+            return updateExperience.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
+        }
+
+        return 0;
+    }
 }

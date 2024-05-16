@@ -26,21 +26,11 @@ public class JobService {
         );
     }
 
-    public AddExperienceResponse addExperience(AddExperienceRequest request) throws NoSuchElementException {
-        Job job = jobData.getJob(request.jobId().toString()).orElseThrow();
-        JobExperience jobExperience = jobData.getJobExperience(
+    public void addExperience(AddExperienceRequest request) {
+        jobData.updateJobExperience(
             request.accountId().toString(),
-            request.jobId().toString()
-        ).orElseThrow();
-
-        boolean willLevelUp = jobExperience.addExperience(request.experience());
-
-        int result = jobData.updateJobExperience(jobExperience);
-        if (result <= 0) {
-            jobExperience.addExperience(-request.experience());
-            return new AddExperienceResponse(job.getJobName(), jobExperience.level(), false);
-        }
-
-        return new AddExperienceResponse(job.getJobName(), jobExperience.level(), willLevelUp);
+            request.jobId().toString(),
+            request.experience()
+        );
     }
 }

@@ -3,14 +3,13 @@ package com.ericgrandt.totaleconomy.common.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.data.JobData;
-import com.ericgrandt.totaleconomy.common.domain.Job;
-import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
-import com.ericgrandt.totaleconomy.common.models.AddExperienceResponse;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import java.math.BigDecimal;
@@ -66,13 +65,13 @@ public class JobServiceTest {
 
     @Test
     @Tag("Unit")
-    public void addExperience_WithSuccessAndLevelUp_ShouldReturnAddExperienceResponse() {
+    public void addExperience_ShouldCallDataLayer() {
         // Arrange
-        Job job = new Job("", "job");
-        JobExperience jobExperience = new JobExperience("", "", "", 20);
-        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.of(jobExperience));
-        when(jobDataMock.updateJobExperience(any(JobExperience.class))).thenReturn(1);
+        when(jobDataMock.updateJobExperience(
+            any(String.class),
+            any(String.class),
+            any(Integer.class)
+        )).thenReturn(1);
 
         AddExperienceRequest request = new AddExperienceRequest(
             UUID.randomUUID(),
@@ -82,101 +81,13 @@ public class JobServiceTest {
         JobService sut = new JobService(jobDataMock);
 
         // Act
-        AddExperienceResponse actual = sut.addExperience(request);
-        AddExperienceResponse expected = new AddExperienceResponse("job", 2, true);
+        sut.addExperience(request);
 
         // Assert
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void addExperience_WithSuccessAndNoLevelUp_ShouldReturnAddExperienceResponse() {
-        // Arrange
-        Job job = new Job("", "miner");
-        JobExperience jobExperience = new JobExperience("", "", "", 20);
-        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.of(jobExperience));
-
-        AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
-            10
-        );
-        JobService sut = new JobService(jobDataMock);
-
-        // Act
-        AddExperienceResponse actual = sut.addExperience(request);
-        AddExperienceResponse expected = new AddExperienceResponse("miner", 1, false);
-
-        // Assert
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void addExperience_WithLevelUpButNoUpdatedRows_ShouldReturnWithNoLevelUp() {
-        // Arrange
-        Job job = new Job("", "miner");
-        JobExperience jobExperience = new JobExperience("", "", "", 40);
-        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.of(jobExperience));
-        when(jobDataMock.updateJobExperience(any(JobExperience.class))).thenReturn(0);
-
-        AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
-            10
-        );
-        JobService sut = new JobService(jobDataMock);
-
-        // Act
-        AddExperienceResponse actual = sut.addExperience(request);
-        AddExperienceResponse expected = new AddExperienceResponse("miner", 1, false);
-
-        // Assert
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Tag("Unit")
-    public void addExperience_WithEmptyJob_ShouldThrowNoSuchElementException() {
-        // Arrange
-        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.empty());
-
-        AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
-            10
-        );
-        JobService sut = new JobService(jobDataMock);
-
-        // Act/Assert
-        assertThrows(
-            NoSuchElementException.class,
-            () -> sut.addExperience(request)
-        );
-    }
-
-    @Test
-    @Tag("Unit")
-    public void addExperience_WithEmptyJobExperience_ShouldThrowNoSuchElementException() {
-        // Arrange
-        Job job = new Job("", "");
-        when(jobDataMock.getJob(any(String.class))).thenReturn(Optional.of(job));
-        when(jobDataMock.getJobExperience(any(String.class), any(String.class))).thenReturn(Optional.empty());
-
-        AddExperienceRequest request = new AddExperienceRequest(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
-            10
-        );
-        JobService sut = new JobService(jobDataMock);
-
-        // Act/Assert
-        assertThrows(
-            NoSuchElementException.class,
-            () -> sut.addExperience(request)
+        verify(jobDataMock, times(1)).updateJobExperience(
+            any(String.class),
+            any(String.class),
+            any(Integer.class)
         );
     }
 }
