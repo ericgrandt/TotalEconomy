@@ -3,8 +3,12 @@ package com.ericgrandt.totaleconomy.common.services;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobExperienceResponse;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class JobService {
@@ -15,7 +19,7 @@ public class JobService {
     }
 
     public GetJobRewardResponse getJobReward(GetJobRewardRequest request) throws NoSuchElementException {
-        JobReward jobReward = jobData.getJobReward(request.action(), request.material()).orElseThrow();;
+        JobReward jobReward = jobData.getJobReward(request).orElseThrow();;
         return new GetJobRewardResponse(
             jobReward.getJobId(),
             jobReward.getMoney(),
@@ -23,11 +27,11 @@ public class JobService {
         );
     }
 
+    public List<GetJobExperienceResponse> getAllJobExperience(GetAllJobExperienceRequest request) {
+        return new ArrayList<>();
+    }
+
     public void addExperience(AddExperienceRequest request) {
-        jobData.updateJobExperience(
-            request.accountId().toString(),
-            request.jobId().toString(),
-            request.experience()
-        );
+        jobData.updateJobExperience(request);
     }
 }

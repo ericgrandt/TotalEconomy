@@ -14,6 +14,11 @@ import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -57,10 +62,11 @@ public class JobDataTest {
         when(resultSetMock.getBigDecimal("money")).thenReturn(BigDecimal.TEN);
         when(resultSetMock.getInt("experience")).thenReturn(10);
 
+        GetJobRewardRequest request = new GetJobRewardRequest("", "");
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobReward> actual = sut.getJobReward("", "");
+        Optional<JobReward> actual = sut.getJobReward(request);
         JobReward expected = new JobReward(
             "id",
             "jobId",
@@ -89,10 +95,11 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
+        GetJobRewardRequest request = new GetJobRewardRequest("", "");
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobReward> actual = sut.getJobReward("", "");
+        Optional<JobReward> actual = sut.getJobReward(request);
 
         // Assert
         assertTrue(actual.isEmpty());
@@ -109,10 +116,11 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeQuery()).thenThrow(SQLException.class);
 
+        GetJobRewardRequest request = new GetJobRewardRequest("", "");
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobReward> actual = sut.getJobReward("", "");
+        Optional<JobReward> actual = sut.getJobReward(request);
 
         // Assert
         verify(loggerMock).error(any(String.class), any(SQLException.class));
@@ -134,10 +142,11 @@ public class JobDataTest {
         when(resultSetMock.getString("id")).thenReturn("id");
         when(resultSetMock.getString("job_name")).thenReturn("jobName");
 
+        GetJobRequest request = new GetJobRequest(UUID.randomUUID());
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(UUID.randomUUID().toString());
+        Optional<Job> actual = sut.getJob(request);
         Job expected = new Job("id", "jobName");
 
         // Assert
@@ -158,10 +167,11 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
+        GetJobRequest request = new GetJobRequest(UUID.randomUUID());
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(UUID.randomUUID().toString());
+        Optional<Job> actual = sut.getJob(request);
 
         // Assert
         assertTrue(actual.isEmpty());
@@ -178,10 +188,11 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeQuery()).thenThrow(SQLException.class);
 
+        GetJobRequest request = new GetJobRequest(UUID.randomUUID());
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(UUID.randomUUID().toString());
+        Optional<Job> actual = sut.getJob(request);
 
         // Assert
         verify(loggerMock).error(any(String.class), any(SQLException.class));
@@ -205,10 +216,11 @@ public class JobDataTest {
         when(resultSetMock.getString("job_id")).thenReturn("jobId");
         when(resultSetMock.getInt("experience")).thenReturn(10);
 
+        GetJobExperienceRequest request = new GetJobExperienceRequest(UUID.randomUUID(), UUID.randomUUID());
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        Optional<JobExperience> actual = sut.getJobExperience(request);
         JobExperience expected = new JobExperience("id", "accountId", "jobId", 10);
 
         // Assert
@@ -229,10 +241,11 @@ public class JobDataTest {
         when(preparedStatementMock.executeQuery()).thenReturn(resultSetMock);
         when(resultSetMock.next()).thenReturn(false);
 
+        GetJobExperienceRequest request = new GetJobExperienceRequest(UUID.randomUUID(), UUID.randomUUID());
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        Optional<JobExperience> actual = sut.getJobExperience(request);
 
         // Assert
         assertTrue(actual.isEmpty());
@@ -249,16 +262,16 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeQuery()).thenThrow(SQLException.class);
 
+        GetJobExperienceRequest request = new GetJobExperienceRequest(UUID.randomUUID(), UUID.randomUUID());
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        Optional<JobExperience> actual = sut.getJobExperience(request);
 
         // Assert
         verify(loggerMock).error(any(String.class), any(SQLException.class));
         assertTrue(actual.isEmpty());
     }
-
 
     @Test
     @Tag("Unit")
@@ -271,12 +284,14 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenReturn(1);
 
-        JobExperience jobExperience = new JobExperience("id", "accountId", "jobId", 10);
-
-        JobData sut = new JobData(loggerMock, databaseMock);
+        AddExperienceRequest request = new AddExperienceRequest(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            1
+        );JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        int actual = sut.updateJobExperience(jobExperience);
+        int actual = sut.updateJobExperience(request);
         int expected = 1;
 
         // Assert
@@ -294,12 +309,15 @@ public class JobDataTest {
         when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
         when(preparedStatementMock.executeUpdate()).thenThrow(SQLException.class);
 
-        JobExperience jobExperience = new JobExperience("id", "accountId", "jobId", 10);
-
+        AddExperienceRequest request = new AddExperienceRequest(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            1
+        );
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        int actual = sut.updateJobExperience(jobExperience);
+        int actual = sut.updateJobExperience(request);
         int expected = 0;
 
         // Assert
@@ -321,10 +339,11 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
+        GetJobRewardRequest request = new GetJobRewardRequest("break", "coal_ore");
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobReward> actual = sut.getJobReward("break", "coal_ore");
+        Optional<JobReward> actual = sut.getJobReward(request);
         JobReward expected = new JobReward(
             "07ac5e1f-39ef-46a8-ad81-a4bc1facc090",
             "a56a5842-1351-4b73-a021-bcd531260cd1",
@@ -350,11 +369,11 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
+        GetJobRequest request = new GetJobRequest(UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1"));
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<Job> actual = sut.getJob(jobId);
+        Optional<Job> actual = sut.getJob(request);
         Job expected = new Job(
             "a56a5842-1351-4b73-a021-bcd531260cd1",
             "Test Job 1"
@@ -378,13 +397,14 @@ public class JobDataTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
 
-        String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
-        String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
-
+        GetJobExperienceRequest request = new GetJobExperienceRequest(
+            UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"),
+            UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1")
+        );
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        Optional<JobExperience> actual = sut.getJobExperience(accountId, jobId);
+        Optional<JobExperience> actual = sut.getJobExperience(request);
         JobExperience expected = new JobExperience(
             "748af95b-32a0-45c2-bfdc-9e87c023acdf",
             "62694fb0-07cc-4396-8d63-4f70646d75f0",
@@ -413,13 +433,24 @@ public class JobDataTest {
         String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
         String jobId = "a56a5842-1351-4b73-a021-bcd531260cd1";
 
+        AddExperienceRequest request = new AddExperienceRequest(
+            UUID.fromString(accountId),
+            UUID.fromString(jobId),
+            20
+        );
+
         JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
-        int actual = sut.updateJobExperience(accountId, jobId, 20);
+        int actual = sut.updateJobExperience(request);
         int expected = 1;
 
-        JobExperience actualJobExperience = sut.getJobExperience(accountId, jobId).orElseThrow();
+        JobExperience actualJobExperience = sut.getJobExperience(
+            new GetJobExperienceRequest(
+                UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0"),
+                UUID.fromString("a56a5842-1351-4b73-a021-bcd531260cd1")
+            )
+        ).orElseThrow();
         JobExperience expectedJobExperience = new JobExperience(
             "748af95b-32a0-45c2-bfdc-9e87c023acdf",
             "62694fb0-07cc-4396-8d63-4f70646d75f0",

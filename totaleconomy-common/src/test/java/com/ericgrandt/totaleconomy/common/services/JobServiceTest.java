@@ -32,7 +32,7 @@ public class JobServiceTest {
     public void getJobReward_WithSuccess_ShouldReturnGetJobRewardResponse() {
         // Arrange
         JobReward jobReward = new JobReward("", "", "", 1, "", BigDecimal.ONE, 30);
-        when(jobDataMock.getJobReward(any(String.class), any(String.class)))
+        when(jobDataMock.getJobReward(any(GetJobRewardRequest.class)))
             .thenReturn(Optional.of(jobReward));
 
         GetJobRewardRequest request = new GetJobRewardRequest("", "");
@@ -50,7 +50,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void getJobReward_WithEmptyJobReward_ShouldThrowNoSuchElementException() {
         // Arrange
-        when(jobDataMock.getJobReward(any(String.class), any(String.class)))
+        when(jobDataMock.getJobReward(any(GetJobRewardRequest.class)))
             .thenReturn(Optional.empty());
 
         GetJobRewardRequest request = new GetJobRewardRequest("", "");
@@ -67,11 +67,7 @@ public class JobServiceTest {
     @Tag("Unit")
     public void addExperience_ShouldCallDataLayer() {
         // Arrange
-        when(jobDataMock.updateJobExperience(
-            any(String.class),
-            any(String.class),
-            any(Integer.class)
-        )).thenReturn(1);
+        when(jobDataMock.updateJobExperience(any(AddExperienceRequest.class))).thenReturn(1);
 
         AddExperienceRequest request = new AddExperienceRequest(
             UUID.randomUUID(),
@@ -84,10 +80,6 @@ public class JobServiceTest {
         sut.addExperience(request);
 
         // Assert
-        verify(jobDataMock, times(1)).updateJobExperience(
-            any(String.class),
-            any(String.class),
-            any(Integer.class)
-        );
+        verify(jobDataMock, times(1)).updateJobExperience(any(AddExperienceRequest.class));
     }
 }

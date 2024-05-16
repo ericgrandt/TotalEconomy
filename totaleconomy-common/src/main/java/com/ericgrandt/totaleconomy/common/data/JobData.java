@@ -4,10 +4,18 @@ import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class JobData {
@@ -19,7 +27,7 @@ public class JobData {
         this.database = database;
     }
 
-    public Optional<JobReward> getJobReward(String jobAction, String material) {
+    public Optional<JobReward> getJobReward(GetJobRewardRequest request) {
         String query = "SELECT tjr.* FROM te_job_reward tjr "
             + "INNER JOIN te_job_action tja ON "
             + "tja.action_name = ? "
@@ -29,8 +37,8 @@ public class JobData {
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, jobAction);
-            stmt.setString(2, material);
+            stmt.setString(1, request.action());
+            stmt.setString(2, request.material());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -57,14 +65,14 @@ public class JobData {
         return Optional.empty();
     }
 
-    public Optional<Job> getJob(String jobId) {
+    public Optional<Job> getJob(GetJobRequest request) {
         String query = "SELECT * FROM te_job WHERE id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, jobId);
+            stmt.setString(1, request.jobId().toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -86,15 +94,15 @@ public class JobData {
         return Optional.empty();
     }
 
-    public Optional<JobExperience> getJobExperience(String accountId, String jobId) {
+    public Optional<JobExperience> getJobExperience(GetJobExperienceRequest request) {
         String query = "SELECT * FROM te_job_experience WHERE account_id = ? AND job_id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, accountId);
-            stmt.setString(2, jobId);
+            stmt.setString(1, request.accountId().toString());
+            stmt.setString(2, request.jobId().toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -118,37 +126,20 @@ public class JobData {
         return Optional.empty();
     }
 
-    public int updateJobExperience(JobExperience jobExperience) {
-        String query = "UPDATE te_job_experience SET experience = ? WHERE id = ?";
-
-        try (
-            Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(query)
-        ) {
-            stmt.setInt(1, jobExperience.getExperience());
-            stmt.setString(2, jobExperience.getId());
-
-            return stmt.executeUpdate();
-        } catch (SQLException e) {
-            logger.error(
-                "[TotalEconomy] Error querying the database",
-                e
-            );
-        }
-
-        return 0;
+    public List<JobExperience> getAllJobExperience(GetAllJobExperienceRequest request) {
+        return new ArrayList<>();
     }
 
-    public int updateJobExperience(String accountId, String jobId, int experienceToAdd) {
+    public int updateJobExperience(AddExperienceRequest request) {
         String query = "UPDATE te_job_experience SET experience = experience + ? WHERE account_id = ? AND job_id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement updateExperience = conn.prepareStatement(query)
         ) {
-            updateExperience.setInt(1, experienceToAdd);
-            updateExperience.setString(2, accountId);
-            updateExperience.setString(3, jobId);
+            updateExperience.setInt(1, request.experience());
+            updateExperience.setString(2, request.accountId().toString());
+            updateExperience.setString(3, request.jobId().toString());
 
             return updateExperience.executeUpdate();
         } catch (SQLException e) {
@@ -159,5 +150,9 @@ public class JobData {
         }
 
         return 0;
+    }
+
+    public void createJobExperience(CreateJobExperienceRequest request) {
+
     }
 }
