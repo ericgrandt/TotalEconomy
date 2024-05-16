@@ -1,11 +1,8 @@
 package com.ericgrandt.totaleconomy.common.services;
 
 import com.ericgrandt.totaleconomy.common.data.JobData;
-import com.ericgrandt.totaleconomy.common.domain.Job;
-import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
-import com.ericgrandt.totaleconomy.common.models.AddExperienceResponse;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import java.util.NoSuchElementException;
