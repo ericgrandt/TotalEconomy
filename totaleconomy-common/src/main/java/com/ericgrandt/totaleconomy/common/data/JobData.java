@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.common.data;
 
+import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
@@ -127,6 +128,36 @@ public class JobData {
     }
 
     public List<JobExperience> getAllJobExperience(GetAllJobExperienceRequest request) {
+        String query = "SELECT * FROM te_job_experience WHERE account_id = ?";
+
+        try (
+            Connection conn = database.getDataSource().getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)
+        ) {
+            stmt.setString(1, request.accountId().toString());
+
+            List<JobExperience> jobExperienceList = new ArrayList<>();
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    jobExperienceList.add(
+                        new JobExperience(
+                            rs.getString("id"),
+                            rs.getString("account_id"),
+                            rs.getString("job_id"),
+                            rs.getInt("experience")
+                        )
+                    );
+                }
+            }
+
+            return jobExperienceList;
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
+        }
+
         return new ArrayList<>();
     }
 

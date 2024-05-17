@@ -15,6 +15,7 @@ import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
@@ -26,6 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
@@ -44,7 +46,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Unit")
-    public void getJobReward_WithRowFound_ShouldReturnAJobRewardDto() throws SQLException {
+    public void getJobReward_WithRowFound_ShouldReturnAJobReward() throws SQLException {
         // Arrange
         Connection connectionMock = mock(Connection.class);
         PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
@@ -129,7 +131,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Unit")
-    public void getJob_WithRowFound_ShouldReturnJobDto() throws SQLException {
+    public void getJob_WithRowFound_ShouldReturnJob() throws SQLException {
         // Arrange
         Connection connectionMock = mock(Connection.class);
         PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
@@ -201,7 +203,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Unit")
-    public void getJobExperience_WithRowFound_ShouldReturnJobExperienceDto() throws SQLException {
+    public void getJobExperience_WithRowFound_ShouldReturnJobExperience() throws SQLException {
         // Arrange
         Connection connectionMock = mock(Connection.class);
         PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
@@ -327,7 +329,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Integration")
-    public void getJobReward_ShouldReturnAJobRewardDto() throws SQLException {
+    public void getJobReward_ShouldReturnAJobReward() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -361,7 +363,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Integration")
-    public void getJob_ShouldReturnAJobDto() throws SQLException {
+    public void getJob_ShouldReturnJob() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedJobs();
@@ -386,7 +388,7 @@ public class JobDataTest {
 
     @Test
     @Tag("Integration")
-    public void getJobExperience_ShouldReturnAJobExperienceDto() throws SQLException {
+    public void getJobExperience_ShouldReturnJobExperience() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -415,6 +417,45 @@ public class JobDataTest {
         // Assert
         assertTrue(actual.isPresent());
         assertThat(actual.get()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void getAllJobExperience_ShouldReturnListOFJobExperience() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+        TestUtils.seedJobs();
+        TestUtils.seedJobExperience();
+
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(TestUtils.getConnection());
+
+        GetAllJobExperienceRequest request = new GetAllJobExperienceRequest(
+            UUID.fromString("62694fb0-07cc-4396-8d63-4f70646d75f0")
+        );
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        List<JobExperience> actual = sut.getAllJobExperience(request);
+        List<JobExperience> expected = List.of(
+            new JobExperience(
+                "748af95b-32a0-45c2-bfdc-9e87c023acdf",
+                "62694fb0-07cc-4396-8d63-4f70646d75f0",
+                "a56a5842-1351-4b73-a021-bcd531260cd1",
+                50
+            ),
+            new JobExperience(
+                "6cebc95b-7743-4f63-92c6-0fd0538d8b0c",
+                "62694fb0-07cc-4396-8d63-4f70646d75f0",
+                "858febd0-7122-4ea4-b270-a69a4b6a53a4",
+                10
+            )
+        );
+
+        // Assert
+        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
     }
 
     @Test
