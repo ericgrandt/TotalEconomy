@@ -18,23 +18,27 @@ public class JobExperience {
         this.experience = experience;
     }
 
-    public int level() {
+    public int getLevel() {
         int level = (int) Math.ceil(Math.sqrt(experience) / 7);
         return Math.max(level, 1);
     }
 
-    public int nextLevelExperience() {
-        return (int) Math.ceil(49 * Math.pow(level(), 2)) + 1;
+    public int getNextLevelExperience() {
+        return (int) Math.ceil(49 * Math.pow(getLevel(), 2)) + 1;
     }
 
     public boolean addExperience(int experienceToAdd) {
-        boolean willLevelUp = (experience + experienceToAdd) >= nextLevelExperience();
+        boolean willLevelUp = (experience + experienceToAdd) >= getNextLevelExperience();
         experience += experienceToAdd;
         return willLevelUp;
     }
 
     public String getId() {
         return id;
+    }
+
+    public String getJobId() {
+        return jobId;
     }
 
     public int getExperience() {

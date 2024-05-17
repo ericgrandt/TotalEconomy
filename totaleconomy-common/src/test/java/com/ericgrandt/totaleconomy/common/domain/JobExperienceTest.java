@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Test;
 public class JobExperienceTest {
     @Test
     @Tag("Unit")
-    public void level_ShouldReturnCorrectLevelForExperience() {
+    public void getLevel_ShouldReturnCorrectLevelForExperience() {
         // Arrange
         JobExperience sut = new JobExperience("", "", "", 100);
 
         // Act
-        int actual = sut.level();
+        int actual = sut.getLevel();
         int expected = 2;
 
         // Assert
@@ -24,12 +24,12 @@ public class JobExperienceTest {
 
     @Test
     @Tag("Unit")
-    public void level_WithNoExperience_ShouldReturnOne() {
+    public void getLevel_WithNoExperience_ShouldReturnOne() {
         // Arrange
         JobExperience sut = new JobExperience("", "", "", 0);
 
         // Act
-        int actual = sut.level();
+        int actual = sut.getLevel();
         int expected = 1;
 
         // Assert
@@ -38,12 +38,12 @@ public class JobExperienceTest {
 
     @Test
     @Tag("Unit")
-    public void nextLevelExperience_WithACurrentLevelOfOne_ShouldReturnExperienceForLevelTwo() {
+    public void getNextLevelExperience_WithACurrentLevelOfOne_ShouldReturnExperienceForLevelTwo() {
         // Arrange
         JobExperience sut = new JobExperience("", "", "", 25);
 
         // Act
-        int actual = sut.nextLevelExperience();
+        int actual = sut.getNextLevelExperience();
         int expected = 50;
 
         // Assert
@@ -52,12 +52,12 @@ public class JobExperienceTest {
 
     @Test
     @Tag("Unit")
-    public void nextLevelExperience_WithACurrentLevelOfTwo_ShouldReturnExperienceForLevelThree() {
+    public void getNextLevelExperience_WithACurrentLevelOfTwo_ShouldReturnExperienceForLevelThree() {
         // Arrange
         JobExperience sut = new JobExperience("", "", "", 50);
 
         // Act
-        int actual = sut.nextLevelExperience();
+        int actual = sut.getNextLevelExperience();
         int expected = 197;
 
         // Assert
@@ -112,6 +112,20 @@ public class JobExperienceTest {
         // Act
         String actual = sut.getId();
         String expected = "id";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getJobId_ShouldReturnJobId() {
+        // Arrange
+        JobExperience sut = new JobExperience("id", "", "jobId", 0);
+
+        // Act
+        String actual = sut.getJobId();
+        String expected = "jobId";
 
         // Assert
         assertEquals(expected, actual);
