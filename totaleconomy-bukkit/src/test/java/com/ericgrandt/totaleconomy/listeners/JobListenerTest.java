@@ -1,43 +1,15 @@
 package com.ericgrandt.totaleconomy.listeners;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
-import com.ericgrandt.totaleconomy.common.TestUtils;
-import com.ericgrandt.totaleconomy.common.data.AccountData;
-import com.ericgrandt.totaleconomy.common.data.BalanceData;
-import com.ericgrandt.totaleconomy.common.data.CurrencyData;
-import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.common.data.JobDataOld;
-import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
-import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
-import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
-import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
-import com.ericgrandt.totaleconomy.impl.JobExperienceBar;
-import com.ericgrandt.totaleconomy.models.AddExperienceResult;
-import com.ericgrandt.totaleconomy.models.JobExperience;
-import com.ericgrandt.totaleconomy.services.JobService;
-import com.zaxxer.hikari.HikariDataSource;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.SQLException;
-import java.util.UUID;
-import java.util.logging.Logger;
-import net.kyori.adventure.text.Component;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -51,18 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class JobListenerTest {
-    @Mock
-    private Logger loggerMock;
-
-    @Mock
-    private CommonEconomy economyMock;
-
-    @Mock
-    private JobService jobServiceMock;
-
-    @Mock
-    private JobExperienceBar jobExperienceBarMock;
-
     @Mock
     private Player playerMock;
 
