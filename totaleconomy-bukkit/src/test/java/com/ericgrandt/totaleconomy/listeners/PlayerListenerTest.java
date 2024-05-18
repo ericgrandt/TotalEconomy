@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -25,8 +26,12 @@ import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,12 +58,14 @@ public class PlayerListenerTest {
         // Arrange
         when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
 
+        PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(playerMock, Component.empty());
         PlayerListener sut = new PlayerListener(economyMock, jobServiceMock, null);
 
         // Act
-        sut.onPlayerJoinHandler(playerMock);
+        sut.onPlayerJoin(playerJoinEvent);
 
         // Assert
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
         verify(economyMock, times(1)).createAccount(any(UUID.class));
     }
 
@@ -90,12 +97,15 @@ public class PlayerListenerTest {
             currencyData
         );
         JobService jobServiceMock = new JobService(jobData);
+        PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(playerMock, Component.empty());
+
         PlayerListener sut = new PlayerListener(economy, jobServiceMock, null);
 
         // Act
-        sut.onPlayerJoinHandler(playerMock);
+        sut.onPlayerJoin(playerJoinEvent);
 
         // Assert
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
         assertAccountsAreEqualOnPlayerJoinHandler(playerId);
         assertJobExperienceIsAddedOnPlayerJoinHandler(playerId);
     }

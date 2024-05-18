@@ -12,6 +12,7 @@ import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobExperienceResponse;
 import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
@@ -134,6 +135,22 @@ public class JobServiceTest {
         sut.addExperience(request);
 
         // Assert
-        verify(jobDataMock, times(1)).updateJobExperience(any(AddExperienceRequest.class));
+        verify(jobDataMock, times(1)).updateJobExperience(request);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void createJobExperience_ShouldCallDataLayer() {
+        // Arrange
+        when(jobDataMock.createJobExperience(any(CreateJobExperienceRequest.class))).thenReturn(1);
+
+        CreateJobExperienceRequest request = new CreateJobExperienceRequest(UUID.randomUUID());
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        sut.createJobExperience(request);
+
+        // Assert
+        verify(jobDataMock, times(1)).createJobExperience(request);
     }
 }

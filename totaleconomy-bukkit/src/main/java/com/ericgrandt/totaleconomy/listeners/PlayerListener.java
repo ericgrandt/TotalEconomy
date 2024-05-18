@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.listeners;
 
 import com.ericgrandt.totaleconomy.TotalEconomy;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -32,12 +33,13 @@ public class PlayerListener implements Listener {
         CompletableFuture.runAsync(() -> onPlayerJoinHandler(player));
     }
 
-    public void onPlayerJoinHandler(Player player) {
+    private void onPlayerJoinHandler(Player player) {
         UUID uuid = player.getUniqueId();
 
         // jobService.addPlayerJobExperienceBar(uuid, new JobExperienceBar(player, plugin));
         economy.createAccount(uuid);
-        // TODO: Implement
-        // jobService.createJobExperienceForAccount(uuid);
+
+        CreateJobExperienceRequest createJobExperienceRequest = new CreateJobExperienceRequest(uuid);
+        jobService.createJobExperience(createJobExperienceRequest);
     }
 }

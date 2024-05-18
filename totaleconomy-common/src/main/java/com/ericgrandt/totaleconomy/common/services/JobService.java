@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobExperienceResponse;
 import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
@@ -55,5 +56,9 @@ public class JobService {
 
     public void addExperience(AddExperienceRequest request) {
         jobData.updateJobExperience(request);
+    }
+
+    public void createJobExperience(CreateJobExperienceRequest request) {
+        jobData.createJobExperience(request);
     }
 }
