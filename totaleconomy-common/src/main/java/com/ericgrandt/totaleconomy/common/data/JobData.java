@@ -182,7 +182,24 @@ public class JobData {
         return 0;
     }
 
-    public void createJobExperience(CreateJobExperienceRequest request) {
+    public int createJobExperience(CreateJobExperienceRequest request) {
+        String query = "INSERT IGNORE INTO te_job_experience(account_id, job_id) "
+            + "SELECT ?, j.id FROM te_job j";
 
+        try (
+            Connection conn = database.getDataSource().getConnection();
+            PreparedStatement accountStmt = conn.prepareStatement(query)
+        ) {
+            accountStmt.setString(1, request.accountId().toString());
+
+            return accountStmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
+        }
+
+        return 0;
     }
 }

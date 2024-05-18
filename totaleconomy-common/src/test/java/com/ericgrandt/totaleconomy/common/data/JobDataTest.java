@@ -15,6 +15,7 @@ import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
@@ -27,6 +28,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -386,6 +388,55 @@ public class JobDataTest {
     }
 
     @Test
+    @Tag("Unit")
+    public void createJobExperience_WithRowInserted_ShouldReturnOne() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenReturn(1);
+
+        CreateJobExperienceRequest request = new CreateJobExperienceRequest(
+            UUID.randomUUID()
+        );
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        int actual = sut.createJobExperience(request);
+        int expected = 1;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void createJobExperience_WithSQLException_ShouldReturnZero() throws SQLException {
+        // Arrange
+        Connection connectionMock = mock(Connection.class);
+        PreparedStatement preparedStatementMock = mock(PreparedStatement.class);
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).thenReturn(connectionMock);
+        when(connectionMock.prepareStatement(anyString())).thenReturn(preparedStatementMock);
+        when(preparedStatementMock.executeUpdate()).thenThrow(SQLException.class);
+
+        CreateJobExperienceRequest request = new CreateJobExperienceRequest(
+            UUID.randomUUID()
+        );
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        int actual = sut.createJobExperience(request);
+        int expected = 0;
+
+        // Assert
+        verify(loggerMock).error(any(String.class), any(SQLException.class));
+        assertEquals(expected, actual);
+    }
+
+    @Test
     @Tag("Integration")
     public void getJobReward_ShouldReturnAJobReward() throws SQLException {
         // Arrange
@@ -555,6 +606,53 @@ public class JobDataTest {
             "62694fb0-07cc-4396-8d63-4f70646d75f0",
             "a56a5842-1351-4b73-a021-bcd531260cd1",
             70
+        );
+
+        // Assert
+        assertEquals(expected, actual);
+        assertThat(actualJobExperience).usingRecursiveComparison().isEqualTo(expectedJobExperience);
+    }
+
+    @Test
+    @Tag("Integration")
+    public void createJobExperience_ShouldInsertJobExperienceAndReturnTwo() throws SQLException {
+        // Arrange
+        TestUtils.resetDb();
+        TestUtils.seedCurrencies();
+        TestUtils.seedAccounts();
+        TestUtils.seedJobs();
+
+        when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
+        when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
+
+        String accountId = "62694fb0-07cc-4396-8d63-4f70646d75f0";
+        CreateJobExperienceRequest request = new CreateJobExperienceRequest(
+            UUID.fromString(accountId)
+        );
+
+        JobData sut = new JobData(loggerMock, databaseMock);
+
+        // Act
+        int actual = sut.createJobExperience(request);
+        int expected = 2;
+
+        List<JobExperience> actualJobExperience = sut.getAllJobExperience(
+            new GetAllJobExperienceRequest(UUID.fromString(accountId))
+        );
+        actualJobExperience.sort(Comparator.comparing(JobExperience::getJobId));
+        List<JobExperience> expectedJobExperience = List.of(
+            new JobExperience(
+                actualJobExperience.get(0).getId(),
+                accountId,
+                "858febd0-7122-4ea4-b270-a69a4b6a53a4",
+                0
+            ),
+            new JobExperience(
+                actualJobExperience.get(1).getId(),
+                accountId,
+                "a56a5842-1351-4b73-a021-bcd531260cd1",
+                0
+            )
         );
 
         // Assert
