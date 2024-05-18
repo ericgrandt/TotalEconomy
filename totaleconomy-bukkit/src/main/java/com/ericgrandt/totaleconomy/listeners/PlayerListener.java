@@ -35,8 +35,9 @@ public class PlayerListener implements Listener {
     public void onPlayerJoinHandler(Player player) {
         UUID uuid = player.getUniqueId();
 
-//        jobService.addPlayerJobExperienceBar(uuid, new JobExperienceBar(player, plugin));
+        // jobService.addPlayerJobExperienceBar(uuid, new JobExperienceBar(player, plugin));
         economy.createAccount(uuid);
-//        jobService.createJobExperienceForAccount(uuid);
+        // TODO: Implement
+        // jobService.createJobExperienceForAccount(uuid);
     }
 }

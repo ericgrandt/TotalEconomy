@@ -36,7 +36,7 @@ public class BalanceCommandExecutorTest {
 
     @Test
     @Tag("Integration")
-    public void onCommand_ShouldSendMessageWithBalanceToPlayer() throws SQLException, ExecutionException, InterruptedException {
+    public void onCommand_ShouldSendMessageWithBalanceToPlayer() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();

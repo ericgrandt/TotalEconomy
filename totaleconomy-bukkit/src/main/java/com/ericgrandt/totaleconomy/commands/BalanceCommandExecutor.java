@@ -14,6 +14,7 @@ public class BalanceCommandExecutor implements CommandExecutor {
     private final CommonEconomy economy;
     private final CurrencyDto currency;
 
+    // TODO: Take in BalanceCommand instead
     public BalanceCommandExecutor(final CommonEconomy economy, final CurrencyDto currency) {
         this.economy = economy;
         this.currency = currency;

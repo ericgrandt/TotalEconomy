@@ -19,6 +19,7 @@ public class PayCommandExecutor implements CommandExecutor {
     private final CurrencyDto currency;
     private final BukkitWrapper bukkitWrapper;
 
+    // TODO: Take in PayCommand instead
     public PayCommandExecutor(
         final CommonEconomy economy,
         final CurrencyDto currency,
