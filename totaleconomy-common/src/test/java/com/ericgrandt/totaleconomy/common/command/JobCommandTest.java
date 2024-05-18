@@ -18,18 +18,17 @@ import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobExperienceResponse;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 
 @ExtendWith(MockitoExtension.class)
 public class JobCommandTest {

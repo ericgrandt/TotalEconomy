@@ -67,7 +67,7 @@ public class JobListener implements Listener {
     public void onPlaceAction(BlockPlaceEvent event) {
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
         String blockName = event.getBlock().getType().name().toLowerCase();
-//        JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
+        // JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
 
         commonJobListener.handleAction(new JobEvent(player, "place", blockName));
     }

@@ -347,7 +347,8 @@ public class JobDataTest {
             UUID.randomUUID(),
             UUID.randomUUID(),
             1
-        );JobData sut = new JobData(loggerMock, databaseMock);
+        );
+        JobData sut = new JobData(loggerMock, databaseMock);
 
         // Act
         int actual = sut.updateJobExperience(request);
