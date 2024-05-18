@@ -16,7 +16,6 @@ import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
