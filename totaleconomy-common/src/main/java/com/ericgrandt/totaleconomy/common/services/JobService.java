@@ -49,7 +49,7 @@ public class JobService {
 
             responses.add(
                 new GetJobExperienceResponse(
-                    job.getJobName(),
+                    job.jobName(),
                     jobExperience.getLevel(),
                     jobExperience.getExperience(),
                     jobExperience.getNextLevelExperience()

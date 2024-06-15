@@ -2,12 +2,15 @@ package com.ericgrandt.totaleconomy.commonimpl;
 
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import java.util.UUID;
+
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 public record SpongePlayer(ServerPlayer player) implements CommonPlayer {
     @Override
-    public void sendMessage(Component message) {
+    public void sendMessage(@NotNull Component message) {
         player.sendMessage(message);
     }
 
