@@ -1,6 +1,8 @@
 package com.ericgrandt.totaleconomy.common.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -11,6 +13,8 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
+import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.common.game.JobExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
@@ -19,7 +23,9 @@ import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +39,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class JobServiceTest {
     @Mock
     private JobData jobDataMock;
+
+    @Mock
+    private CommonPlayer playerMock;
 
     @Test
     @Tag("Unit")
@@ -152,5 +161,73 @@ public class JobServiceTest {
 
         // Assert
         verify(jobDataMock, times(1)).createJobExperience(request);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void addJobExperienceBar_WithNoEntryForPlayer_ShouldReturnNull() {
+        // Arrange
+        UUID playerId = UUID.randomUUID();
+        when(playerMock.getUniqueId()).thenReturn(playerId);
+
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        JobExperienceBar actual = sut.addJobExperienceBar(playerMock);
+
+        // Assert
+        assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void addJobExperienceBar_WithEntryForPlayer_ShouldReturnExistingEntry() {
+        // Arrange
+        UUID playerId = UUID.randomUUID();
+        when(playerMock.getUniqueId()).thenReturn(playerId);
+
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        sut.addJobExperienceBar(playerMock);
+
+        JobExperienceBar actual = sut.addJobExperienceBar(playerMock);
+
+        // Assert
+        assertNotNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void removeJobExperienceBar_WithNoEntryForPlayer_ShouldReturnNull() {
+        // Arrange
+        UUID playerId = UUID.randomUUID();
+        when(playerMock.getUniqueId()).thenReturn(playerId);
+
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        JobExperienceBar actual = sut.removeJobExperienceBar(playerMock);
+
+        // Assert
+        assertNull(actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void removeJobExperienceBar_WithEntryForPlayer_ShouldReturnExistingEntry() {
+        // Arrange
+        UUID playerId = UUID.randomUUID();
+        when(playerMock.getUniqueId()).thenReturn(playerId);
+
+        JobService sut = new JobService(jobDataMock);
+
+        // Act
+        sut.addJobExperienceBar(playerMock);
+
+        JobExperienceBar actual = sut.removeJobExperienceBar(playerMock);
+
+        // Assert
+        assertNotNull(actual);
     }
 }
