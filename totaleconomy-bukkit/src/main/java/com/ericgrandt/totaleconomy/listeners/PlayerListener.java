@@ -4,7 +4,6 @@ import com.ericgrandt.totaleconomy.TotalEconomy;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.services.JobService;
-import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.entity.Player;
@@ -38,13 +37,9 @@ public class PlayerListener implements Listener {
     private void onPlayerJoinHandler(Player player) {
         UUID uuid = player.getUniqueId();
 
-        jobService.addJobExperienceBar(new BukkitPlayer(player));
         economy.createAccount(uuid);
 
         CreateJobExperienceRequest createJobExperienceRequest = new CreateJobExperienceRequest(uuid);
         jobService.createJobExperience(createJobExperienceRequest);
     }
-
-    // TODO: Player leave handler to remove job experience bar from job service
-    // TODO: Use CommonPlayerLeaveHandler
 }

@@ -4,8 +4,6 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
-import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
-import com.ericgrandt.totaleconomy.common.game.JobExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
@@ -14,16 +12,12 @@ import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class JobService {
     private final JobData jobData;
-
-    // TODO: Remove JobExperienceBar from this list when player leaves
-    private final HashMap<UUID, JobExperienceBar> experienceBars = new HashMap<>();
 
     public JobService(final JobData jobData) {
         this.jobData = jobData;
@@ -66,13 +60,5 @@ public class JobService {
 
     public void createJobExperience(CreateJobExperienceRequest request) {
         jobData.createJobExperience(request);
-    }
-
-    public JobExperienceBar addJobExperienceBar(CommonPlayer player) {
-        return experienceBars.putIfAbsent(player.getUniqueId(), new JobExperienceBar(player));
-    }
-
-    public JobExperienceBar removeJobExperienceBar(CommonPlayer player) {
-        return experienceBars.remove(player.getUniqueId());
     }
 }

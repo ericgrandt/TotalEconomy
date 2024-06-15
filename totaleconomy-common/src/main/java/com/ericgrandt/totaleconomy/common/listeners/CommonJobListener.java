@@ -3,12 +3,11 @@ package com.ericgrandt.totaleconomy.common.listeners;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
-import com.ericgrandt.totaleconomy.common.game.JobExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import com.ericgrandt.totaleconomy.common.services.JobService;
-import java.util.HashMap;
+
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 

@@ -11,10 +11,8 @@ public class CommonPlayerListener {
     }
 
     public void onPlayerJoin(CommonPlayer player) {
-        jobService.addJobExperienceBar(player);
     }
 
     public void onPlayerLeave(CommonPlayer player) {
-        jobService.removeJobExperienceBar(player);
     }
 }
