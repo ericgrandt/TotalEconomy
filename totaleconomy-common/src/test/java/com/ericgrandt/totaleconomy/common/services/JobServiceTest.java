@@ -1,8 +1,6 @@
 package com.ericgrandt.totaleconomy.common.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -13,7 +11,6 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
-import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
@@ -36,9 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class JobServiceTest {
     @Mock
     private JobData jobDataMock;
-
-    @Mock
-    private CommonPlayer playerMock;
 
     @Test
     @Tag("Unit")

@@ -7,7 +7,6 @@ import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import com.ericgrandt.totaleconomy.common.services.JobService;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
