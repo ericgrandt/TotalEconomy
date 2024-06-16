@@ -25,7 +25,6 @@ public class JobListener implements Listener {
     public void onBreakAction(BlockBreakEvent event) {
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
         String blockName = event.getBlock().getType().name().toLowerCase();
-        //JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
 
         if (event.getBlock().getBlockData() instanceof Ageable age && age.getAge() != age.getMaximumAge()) {
             return;
@@ -43,8 +42,6 @@ public class JobListener implements Listener {
         }
 
         String entityName = entity.getType().name().toLowerCase();
-        //JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
-
         commonJobListener.handleAction(new JobEvent(player, "kill", entityName));
     }
 
@@ -58,7 +55,6 @@ public class JobListener implements Listener {
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
 
         String caughtItemName = ((Item) caughtEntity).getItemStack().getType().name().toLowerCase();
-        //JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());;
 
         commonJobListener.handleAction(new JobEvent(player, "fish", caughtItemName));
     }
@@ -67,7 +63,6 @@ public class JobListener implements Listener {
     public void onPlaceAction(BlockPlaceEvent event) {
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
         String blockName = event.getBlock().getType().name().toLowerCase();
-        // JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
 
         commonJobListener.handleAction(new JobEvent(player, "place", blockName));
     }
