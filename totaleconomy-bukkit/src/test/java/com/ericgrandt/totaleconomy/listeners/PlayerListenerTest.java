@@ -2,10 +2,7 @@ package com.ericgrandt.totaleconomy.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
@@ -18,6 +15,7 @@ import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.zaxxer.hikari.HikariDataSource;
@@ -42,32 +40,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class PlayerListenerTest {
     @Mock
     private Logger loggerMock;
-
-    @Mock
-    private Player playerMock;
-
-    @Mock
-    private CommonEconomy economyMock;
-
-    @Mock
-    private JobService jobServiceMock;
-
-    @Test
-    @Tag("Unit")
-    public void onPlayerJoinHandler_WithNoAccountAlreadyExisting_ShouldCallCreateAccount() {
-        // Arrange
-        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
-
-        PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(playerMock, Component.empty());
-        PlayerListener sut = new PlayerListener(economyMock, jobServiceMock, null);
-
-        // Act
-        sut.onPlayerJoin(playerJoinEvent);
-
-        // Assert
-        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
-        verify(economyMock, times(1)).createAccount(any(UUID.class));
-    }
 
     @Test
     @Tag("Integration")
@@ -96,10 +68,10 @@ public class PlayerListenerTest {
             balanceData,
             currencyData
         );
-        JobService jobServiceMock = new JobService(jobData);
+        JobService jobService = new JobService(jobData);
         PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(playerMock, Component.empty());
 
-        PlayerListener sut = new PlayerListener(economy, jobServiceMock, null);
+        PlayerListener sut = new PlayerListener(new CommonPlayerListener(economy, jobService));
 
         // Act
         sut.onPlayerJoin(playerJoinEvent);

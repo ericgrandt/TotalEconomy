@@ -12,6 +12,7 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
+import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
@@ -112,7 +113,7 @@ public class TotalEconomy extends JavaPlugin implements Listener {
 
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(
-            new PlayerListener(economy, jobService, this),
+            new PlayerListener(new CommonPlayerListener(economy, jobService)),
             this
         );
 
