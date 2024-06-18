@@ -6,8 +6,11 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
+import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
+import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
@@ -42,6 +45,7 @@ public class TotalEconomy {
     private CurrencyDto defaultCurrency;
     private EconomyImpl economyImpl;
     private CommonEconomy economy;
+    private JobService jobService;
 
     @Inject
     private TotalEconomy(
@@ -101,9 +105,11 @@ public class TotalEconomy {
 
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
+        JobData jobData = new JobData(new SpongeLogger(logger), database);
 
         economy = new CommonEconomy(new SpongeLogger(logger), accountData, balanceData, currencyData);
         economyImpl = new EconomyImpl(new SpongeWrapper(), defaultCurrency, economy);
+        jobService = new JobService(jobData);
 
         registerListeners();
     }
@@ -129,6 +135,9 @@ public class TotalEconomy {
     }
 
     private void registerListeners() {
-        Sponge.eventManager().registerListeners(container, new PlayerListener(economy));
+        Sponge.eventManager().registerListeners(
+            container,
+            new PlayerListener(new CommonPlayerListener(economy, jobService))
+        );
     }
 }
