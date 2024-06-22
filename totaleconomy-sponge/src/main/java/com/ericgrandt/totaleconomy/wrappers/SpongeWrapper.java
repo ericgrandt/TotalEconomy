@@ -1,6 +1,8 @@
 package com.ericgrandt.totaleconomy.wrappers;
 
 import net.kyori.adventure.text.Component;
+import org.spongepowered.api.block.transaction.Operation;
+import org.spongepowered.api.block.transaction.Operations;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -34,5 +36,9 @@ public class SpongeWrapper {
 
     public Parameter.Value<ServerPlayer> playerParameter(String key) {
         return Parameter.player().key(key).build();
+    }
+
+    public Operation breakOperation() {
+        return Operations.BREAK.get();
     }
 }
