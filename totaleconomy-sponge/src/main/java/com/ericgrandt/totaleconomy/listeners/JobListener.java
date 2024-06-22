@@ -3,7 +3,10 @@ package com.ericgrandt.totaleconomy.listeners;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
+import net.kyori.adventure.text.Component;
 import org.spongepowered.api.block.transaction.BlockTransaction;
+import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.entity.living.Ageable;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -33,7 +36,8 @@ public class JobListener {
                 spongeWrapper.breakOperation()
         ).findFirst();
 
-        // var b = blockTransaction.get().original();
+//        player.sendMessage(Component.text(blockTransaction.get().original().state().get(Keys.GROWTH_STAGE).get()));
+//        player.sendMessage(Component.text(blockTransaction.get().original().state().get(Keys.MAX_GROWTH_STAGE).get()));
         // b.state().get(Keys.GROWTH_STAGE) != b.state().get(Keys.MAX_GROWTH_STAGE)
     }
 }

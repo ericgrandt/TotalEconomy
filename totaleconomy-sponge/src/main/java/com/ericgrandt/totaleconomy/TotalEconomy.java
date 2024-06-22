@@ -9,11 +9,13 @@ import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
+import com.ericgrandt.totaleconomy.listeners.JobListener;
 import com.ericgrandt.totaleconomy.listeners.PlayerListener;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.google.inject.Inject;
@@ -40,6 +42,7 @@ public class TotalEconomy {
     private final PluginContainer container;
     private final Logger logger;
     private final ConfigurationReference<CommentedConfigurationNode> configurationReference;
+    private final SpongeWrapper spongeWrapper;
 
     private PluginConfig config;
     private CurrencyDto defaultCurrency;
@@ -56,6 +59,7 @@ public class TotalEconomy {
         this.container = container;
         this.logger = logger;
         this.configurationReference = configurationReference;
+        this.spongeWrapper = new SpongeWrapper();
     }
 
     @Listener
@@ -108,7 +112,7 @@ public class TotalEconomy {
         JobData jobData = new JobData(new SpongeLogger(logger), database);
 
         economy = new CommonEconomy(new SpongeLogger(logger), accountData, balanceData, currencyData);
-        economyImpl = new EconomyImpl(new SpongeWrapper(), defaultCurrency, economy);
+        economyImpl = new EconomyImpl(spongeWrapper, defaultCurrency, economy);
         jobService = new JobService(jobData);
 
         registerListeners();
@@ -117,12 +121,12 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
+            .executor(new BalanceCommandExecutor(economy, defaultCurrency, spongeWrapper))
             .build();
         event.register(container, balanceCommand, "balance");
 
         Command.Parameterized payCommand = Command.builder()
-            .executor(new PayCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
+            .executor(new PayCommandExecutor(economy, defaultCurrency, spongeWrapper))
             .addParameter(Parameter.player().key("toPlayer").build())
             .addParameter(Parameter.doubleNumber().key("amount").build())
             .build();
@@ -138,6 +142,13 @@ public class TotalEconomy {
         Sponge.eventManager().registerListeners(
             container,
             new PlayerListener(new CommonPlayerListener(economy, jobService))
+        );
+        Sponge.eventManager().registerListeners(
+            container,
+            new JobListener(
+                spongeWrapper,
+                new CommonJobListener(economy, jobService, defaultCurrency.id())
+            )
         );
     }
 }
