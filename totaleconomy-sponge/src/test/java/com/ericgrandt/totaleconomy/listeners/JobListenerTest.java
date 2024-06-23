@@ -17,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.block.transaction.BlockTransaction;
-import org.spongepowered.api.block.transaction.Operations;
+import org.spongepowered.api.data.Key;
 import org.spongepowered.api.entity.living.monster.Creeper;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -51,17 +51,39 @@ public class JobListenerTest {
 
     @Test
     @Tag("Unit")
+    public void onBreakAction_WithNoBreakBlockTransaction_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        when(eventMock.source()).thenReturn(playerMock);
+        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst()).thenReturn(Optional.empty());
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    @SuppressWarnings("unchecked")
     public void onBreakAction_WithAgeableBlockAndNotMaxAge_ShouldReturnWithoutHandlingAction() {
         // Arrange
         ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
-//        Ageable blockDataMock = mock(Ageable.class);
-        BlockTransaction blockTransaction = mock(BlockTransaction.class);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
         when(eventMock.source()).thenReturn(playerMock);
-        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst()).thenReturn(Optional.of(blockTransaction));
-//        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
-//        when(eventMock.getBlock().getBlockData()).thenReturn(blockDataMock);
-//        when(blockDataMock.getAge()).thenReturn(1);
-//        when(blockDataMock.getMaximumAge()).thenReturn(2);
+        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst())
+            .thenReturn(Optional.of(blockTransactionMock));
+
+        when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
+        when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
+
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
+            .thenReturn(Optional.of(1));
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
+            .thenReturn(Optional.of(3));
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
 

@@ -1,9 +1,12 @@
 package com.ericgrandt.totaleconomy.listeners;
 
+import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import net.kyori.adventure.text.Component;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.transaction.BlockTransaction;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.Ageable;
@@ -24,7 +27,6 @@ public class JobListener {
 
     @Listener
     public void onBreakAction(ChangeBlockEvent.All event) {
-        // TODO: Check if optional blockTransaction is present
         // TODO: Check if ageable
         // TODO: Handle action
         if (!(event.source() instanceof ServerPlayer serverPlayer)) {
@@ -32,12 +34,32 @@ public class JobListener {
         }
 
         SpongePlayer player = new SpongePlayer(serverPlayer);
-        Optional<BlockTransaction> blockTransaction = event.transactions(
+        Optional<BlockTransaction> blockTransactionOpt = event.transactions(
                 spongeWrapper.breakOperation()
         ).findFirst();
 
-//        player.sendMessage(Component.text(blockTransaction.get().original().state().get(Keys.GROWTH_STAGE).get()));
-//        player.sendMessage(Component.text(blockTransaction.get().original().state().get(Keys.MAX_GROWTH_STAGE).get()));
-        // b.state().get(Keys.GROWTH_STAGE) != b.state().get(Keys.MAX_GROWTH_STAGE)
+        if (blockTransactionOpt.isEmpty()) {
+            return;
+        }
+
+        BlockTransaction blockTransaction = blockTransactionOpt.get();
+        BlockState blockState = blockTransaction.original().state();
+        if (hasGrowthStage(blockState) && !isAtMaxGrowthStage(blockState)) {
+            return;
+        }
+
+        commonJobListener.handleAction(new JobEvent(player, "break", "REPLACE ME"));
+    }
+
+    private boolean hasGrowthStage(BlockState blockState) {
+        var b = blockState.get(spongeWrapper.growthStage()).isPresent();
+        return b;
+    }
+
+    private boolean isAtMaxGrowthStage(BlockState blockState) {
+        int currentGrowthStage = blockState.get(spongeWrapper.growthStage()).orElseThrow();
+        int maxGrowthStage = blockState.get(spongeWrapper.maxGrowthStage()).orElseThrow();
+
+        return currentGrowthStage == maxGrowthStage;
     }
 }
