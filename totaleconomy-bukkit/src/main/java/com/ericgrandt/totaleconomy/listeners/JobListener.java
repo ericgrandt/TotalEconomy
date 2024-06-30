@@ -3,7 +3,9 @@ package com.ericgrandt.totaleconomy.listeners;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -24,12 +26,13 @@ public class JobListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBreakAction(BlockBreakEvent event) {
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
-        String blockName = event.getBlock().getType().name().toLowerCase();
+        BlockData blockData = event.getBlock().getBlockData();
 
-        if (event.getBlock().getBlockData() instanceof Ageable age && age.getAge() != age.getMaximumAge()) {
+        if (blockData instanceof Ageable age && age.getAge() != age.getMaximumAge()) {
             return;
         }
 
+        String blockName = blockData.getMaterial().key().asString().toLowerCase();
         commonJobListener.handleAction(new JobEvent(player, "break", blockName));
     }
 

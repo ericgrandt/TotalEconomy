@@ -36,7 +36,6 @@ public class JobListenerTest {
         BlockBreakEvent eventMock = mock(BlockBreakEvent.class, RETURNS_DEEP_STUBS);
         Ageable blockDataMock = mock(Ageable.class);
         when(eventMock.getPlayer()).thenReturn(playerMock);
-        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
         when(eventMock.getBlock().getBlockData()).thenReturn(blockDataMock);
         when(blockDataMock.getAge()).thenReturn(1);
         when(blockDataMock.getMaximumAge()).thenReturn(2);
@@ -55,12 +54,14 @@ public class JobListenerTest {
     public void onBreakAction_WithAgeableBlockAndMaxAge_ShouldHandleAction() {
         // Arrange
         BlockBreakEvent eventMock = mock(BlockBreakEvent.class, RETURNS_DEEP_STUBS);
-        Ageable blockDataMock = mock(Ageable.class);
+        Ageable blockDataMock = mock(Ageable.class, RETURNS_DEEP_STUBS);
         when(eventMock.getPlayer()).thenReturn(playerMock);
-        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
         when(eventMock.getBlock().getBlockData()).thenReturn(blockDataMock);
         when(blockDataMock.getAge()).thenReturn(2);
         when(blockDataMock.getMaximumAge()).thenReturn(2);
+        when(
+            blockDataMock.getMaterial().key().asString()
+        ).thenReturn("blockName");
 
         JobListener sut = new JobListener(commonJobListenerMock);
 

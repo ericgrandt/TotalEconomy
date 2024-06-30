@@ -44,13 +44,12 @@ public class JobListener {
     }
 
     private boolean hasGrowthStage(BlockState blockState) {
-        var b = blockState.get(spongeWrapper.growthStage()).isPresent();
-        return b;
+        return blockState.get(spongeWrapper.growthStage()).isPresent();
     }
 
     private boolean isAtMaxGrowthStage(BlockState blockState) {
-        int currentGrowthStage = blockState.get(spongeWrapper.growthStage()).orElseThrow();
-        int maxGrowthStage = blockState.get(spongeWrapper.maxGrowthStage()).orElseThrow();
+        int currentGrowthStage = blockState.get(spongeWrapper.growthStage()).orElse(0);
+        int maxGrowthStage = blockState.get(spongeWrapper.maxGrowthStage()).orElse(0);
 
         return currentGrowthStage == maxGrowthStage;
     }
