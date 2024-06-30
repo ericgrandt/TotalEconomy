@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
+import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import java.util.Optional;
 import org.junit.jupiter.api.Tag;
@@ -32,6 +33,28 @@ public class JobListenerTest {
 
     @Mock
     private CommonJobListener commonJobListenerMock;
+
+    @Test
+    @Tag("Unit")
+    public void onBreakAction_WithSuccess_ShouldHandleAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.source()).thenReturn(playerMock);
+        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst())
+            .thenReturn(Optional.of(blockTransactionMock));
+        when(blockTransactionMock.original().state().type().asComponent().toString()).thenReturn("minecraft:coal_ore");
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(
+            new JobEvent(new SpongePlayer(playerMock), "break", "minecraft:coal_ore")
+        );
+    }
 
     @Test
     @Tag("Unit")
