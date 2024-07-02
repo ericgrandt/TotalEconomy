@@ -3,13 +3,10 @@
 Total Economy is a Minecraft plugin that aims to provide a full-fledged economy for your server. Each feature can be 
 enabled/disabled and configured to your liking.
 
-## Download
+## Downloads
 
-Total Economy is available to download from the following sources:
-
-- [Modrinth](https://modrinth.com/plugin/total-economy) (Bukkit and Sponge) **(recommended)**
-- [CurseForge](https://www.curseforge.com/minecraft/bukkit-plugins/total-economy) (Bukkit)
-- [Ore](https://ore.spongepowered.org/Erigitic/Total-Economy) (Sponge)
+- [Bukkit/Paper/Spigot](https://modrinth.com/plugin/total-economy/versions?l=bukkit&l=paper&l=spigot)
+- [Sponge](https://modrinth.com/plugin/total-economy/versions?l=sponge)
 
 ## Features
 
