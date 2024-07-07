@@ -78,80 +78,80 @@ INSERT IGNORE INTO te_job(job_name) VALUES ('Miner');
 SET @miner_job_id = (SELECT id FROM te_job WHERE job_name = 'Miner');
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'coal_ore', 0.50, 5);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:coal_ore', 0.50, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_coal_ore', 0.50, 5);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_coal_ore', 0.50, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'copper_ore', 0.10, 1);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:copper_ore', 0.10, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_copper_ore', 0.10, 1);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_copper_ore', 0.10, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'iron_ore', 1.00, 10);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:iron_ore', 1.00, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_iron_ore', 1.00, 10);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_iron_ore', 1.00, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'gold_ore', 2.50, 15);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:gold_ore', 2.50, 15);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_gold_ore', 2.50, 15);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_gold_ore', 2.50, 15);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'nether_gold_ore', 2.50, 15);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:nether_gold_ore', 2.50, 15);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'lapis_ore', 2.00, 15);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:lapis_ore', 2.00, 15);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_lapis_ore', 2.00, 15);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_lapis_ore', 2.00, 15);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'diamond_ore', 5.00, 25);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:diamond_ore', 5.00, 25);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_diamond_ore', 5.00, 25);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_diamond_ore', 5.00, 25);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'redstone_ore', 2.00, 10);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:redstone_ore', 2.00, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_redstone_ore', 2.00, 10);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_redstone_ore', 2.00, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'emerald_ore', 5.00, 30);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:emerald_ore', 5.00, 30);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'deepslate_emerald_ore', 5.00, 30);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:deepslate_emerald_ore', 5.00, 30);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@miner_job_id, @break_action_id, 1, 'nether_quartz_ore', 0.10, 1);
+VALUES (@miner_job_id, @break_action_id, 1, 'minecraft:nether_quartz_ore', 0.10, 1);
 
 -- Insert Lumberjack job and rewards
 INSERT IGNORE INTO te_job(job_name) VALUES ('Lumberjack');
 SET @lumberjack_job_id = (SELECT id FROM te_job WHERE job_name = 'Lumberjack');
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@lumberjack_job_id, @break_action_id, 1, 'oak_log', 0.10, 5);
+VALUES (@lumberjack_job_id, @break_action_id, 1, 'minecraft:oak_log', 0.10, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@lumberjack_job_id, @break_action_id, 1, 'birch_log', 0.10, 5);
+VALUES (@lumberjack_job_id, @break_action_id, 1, 'minecraft:birch_log', 0.10, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@lumberjack_job_id, @break_action_id, 1, 'spruce_log', 0.10, 5);
+VALUES (@lumberjack_job_id, @break_action_id, 1, 'minecraft:spruce_log', 0.10, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@lumberjack_job_id, @break_action_id, 1, 'jungle_log', 0.10, 5);
+VALUES (@lumberjack_job_id, @break_action_id, 1, 'minecraft:jungle_log', 0.10, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@lumberjack_job_id, @break_action_id, 1, 'acacia_log', 0.10, 5);
+VALUES (@lumberjack_job_id, @break_action_id, 1, 'minecraft:acacia_log', 0.10, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@lumberjack_job_id, @break_action_id, 1, 'dark_oak_log', 0.10, 5);
+VALUES (@lumberjack_job_id, @break_action_id, 1, 'minecraft:dark_oak_log', 0.10, 5);
 
 -- Insert kill action
 INSERT IGNORE INTO te_job_action(action_name) VALUES ('kill');
@@ -162,19 +162,19 @@ INSERT IGNORE INTO te_job(job_name) VALUES ('Hunter');
 SET @hunter_job_id = (SELECT id FROM te_job WHERE job_name = 'Hunter');
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@hunter_job_id, @kill_action_id, 1, 'chicken', 2.50, 10);
+VALUES (@hunter_job_id, @kill_action_id, 1, 'minecraft:chicken', 2.50, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@hunter_job_id, @kill_action_id, 1, 'rabbit', 2.50, 10);
+VALUES (@hunter_job_id, @kill_action_id, 1, 'minecraft:rabbit', 2.50, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@hunter_job_id, @kill_action_id, 1, 'cow', 2.50, 10);
+VALUES (@hunter_job_id, @kill_action_id, 1, 'minecraft:cow', 2.50, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@hunter_job_id, @kill_action_id, 1, 'pig', 2.50, 10);
+VALUES (@hunter_job_id, @kill_action_id, 1, 'minecraft:pig', 2.50, 10);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@hunter_job_id, @kill_action_id, 1, 'sheep', 2.50, 10);
+VALUES (@hunter_job_id, @kill_action_id, 1, 'minecraft:sheep', 2.50, 10);
 
 -- Insert fish action
 INSERT IGNORE INTO te_job_action(action_name) VALUES ('fish');
@@ -185,16 +185,16 @@ INSERT IGNORE INTO te_job(job_name) VALUES ('Fisher');
 SET @fisher_job_id = (SELECT id FROM te_job WHERE job_name = 'Fisher');
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@fisher_job_id, @fish_action_id, 1, 'cod', 5, 20);
+VALUES (@fisher_job_id, @fish_action_id, 1, 'minecraft:cod', 5, 20);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@fisher_job_id, @fish_action_id, 1, 'salmon', 10, 40);
+VALUES (@fisher_job_id, @fish_action_id, 1, 'minecraft:salmon', 10, 40);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@fisher_job_id, @fish_action_id, 1, 'pufferfish', 20, 80);
+VALUES (@fisher_job_id, @fish_action_id, 1, 'minecraft:pufferfish', 20, 80);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@fisher_job_id, @fish_action_id, 1, 'tropical_fish', 40, 160);
+VALUES (@fisher_job_id, @fish_action_id, 1, 'minecraft:tropical_fish', 40, 160);
 
 -- Insert place action
 INSERT IGNORE INTO te_job_action(action_name) VALUES ('place');
@@ -205,37 +205,37 @@ INSERT IGNORE INTO te_job(job_name) VALUES ('Farmer');
 SET @farmer_job_id = (SELECT id FROM te_job WHERE job_name = 'Farmer');
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'wheat_seeds', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:wheat_seeds', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'melon_seeds', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:melon_seeds', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'pumpkin_seeds', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:pumpkin_seeds', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'beetroot_seeds', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:beetroot_seeds', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'carrots', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:carrots', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'potatoes', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:potatoes', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @break_action_id, 1, 'melon', 0.25, 5);
+VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:melon', 0.25, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @break_action_id, 1, 'pumpkin', 0.25, 5);
+VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:pumpkin', 0.25, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @break_action_id, 1, 'wheat', 0.25, 5);
+VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:wheat', 0.25, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @break_action_id, 1, 'carrots', 0.25, 5);
+VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:carrots', 0.25, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @break_action_id, 1, 'beetroots', 0.25, 5);
+VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:beetroots', 0.25, 5);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @break_action_id, 1, 'potatoes', 0.25, 5);
+VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:potatoes', 0.25, 5);

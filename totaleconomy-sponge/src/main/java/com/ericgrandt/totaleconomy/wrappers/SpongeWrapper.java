@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.wrappers;
 
 import net.kyori.adventure.text.Component;
+import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.transaction.Operation;
 import org.spongepowered.api.block.transaction.Operations;
 import org.spongepowered.api.command.CommandResult;
@@ -9,6 +10,8 @@ import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.registry.DefaultedRegistryType;
+import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.economy.transaction.TransactionType;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 
@@ -51,5 +54,9 @@ public class SpongeWrapper {
 
     public Key<Value<Integer>> maxGrowthStage() {
         return Keys.MAX_GROWTH_STAGE;
+    }
+
+    public DefaultedRegistryType<BlockType> blockType() {
+        return RegistryTypes.BLOCK_TYPE;
     }
 }

@@ -10,7 +10,9 @@ All notable changes to Total Economy will be documented in this file.
 
 ### Changed
 
-- Jobs in Bukkit have been migrated to the common implementation
+- Both Bukkit and Sponge use the common job implementation
+    - Experience tracking through the boss bar currently not implemented; will be added in a future update
+    - Level up notifications removed; will be added back in a future update or implemented in a different way
 
 ## [0.12.1] - 2024-04-24
 

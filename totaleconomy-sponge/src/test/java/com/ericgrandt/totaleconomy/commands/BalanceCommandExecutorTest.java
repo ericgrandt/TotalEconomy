@@ -18,7 +18,6 @@ import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
@@ -38,7 +37,7 @@ public class BalanceCommandExecutorTest {
 
     @Test
     @Tag("Integration")
-    public void execute_ShouldSendMessageWithBalanceToPlayer() throws SQLException, ExecutionException, InterruptedException {
+    public void execute_ShouldSendMessageWithBalanceToPlayer() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();

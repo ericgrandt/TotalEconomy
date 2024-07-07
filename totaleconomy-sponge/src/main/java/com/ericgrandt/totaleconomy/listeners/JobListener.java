@@ -39,9 +39,30 @@ public class JobListener {
         }
 
         commonJobListener.handleAction(
-            new JobEvent(player, "break", blockState.type().asComponent().toString())
+            new JobEvent(
+                player,
+                "break",
+                blockState.type().key(spongeWrapper.blockType()).formatted()
+            )
         );
     }
+
+//    @Listener
+//    public void onKillAction() {
+//
+//    }
+//
+//    @Listener
+//    public void onFishAction() {
+//
+//    }
+//
+//    @Listener
+//    public void onPlaceAction() {
+//        // TODO: Can this be combined into just a single ChangeBlockEvent action handler? I think both
+//        //  break and place are covered by that event.
+//    }
+
 
     private boolean hasGrowthStage(BlockState blockState) {
         return blockState.get(spongeWrapper.growthStage()).isPresent();

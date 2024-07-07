@@ -3,7 +3,6 @@ package com.ericgrandt.totaleconomy.listeners;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
-import net.kyori.adventure.text.Component;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;

@@ -43,7 +43,9 @@ public class JobListenerTest {
         when(eventMock.source()).thenReturn(playerMock);
         when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst())
             .thenReturn(Optional.of(blockTransactionMock));
-        when(blockTransactionMock.original().state().type().asComponent().toString()).thenReturn("minecraft:coal_ore");
+        when(
+            blockTransactionMock.original().state().type().key(spongeWrapperMock.blockType()
+        ).formatted()).thenReturn("minecraft:coal_ore");
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
 
