@@ -1,6 +1,5 @@
 package com.ericgrandt.totaleconomy.commands;
 
-import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.common.command.JobCommand;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
