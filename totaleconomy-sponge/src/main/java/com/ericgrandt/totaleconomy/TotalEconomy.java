@@ -1,7 +1,9 @@
 package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
+import com.ericgrandt.totaleconomy.commands.JobCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
+import com.ericgrandt.totaleconomy.common.command.JobCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -131,6 +133,18 @@ public class TotalEconomy {
             .addParameter(Parameter.doubleNumber().key("amount").build())
             .build();
         event.register(container, payCommand, "pay");
+
+        if (config.getFeatures().get("jobs")) {
+            JobCommandExecutor jobCommandExecutor = new JobCommandExecutor(
+                new JobCommand(jobService),
+                spongeWrapper
+            );
+
+            Command.Parameterized jobCommand = Command.builder()
+                .executor(jobCommandExecutor)
+                .build();
+            event.register(container, jobCommand, "job");
+        }
     }
 
     @Listener
@@ -143,12 +157,15 @@ public class TotalEconomy {
             container,
             new PlayerListener(new CommonPlayerListener(economy, jobService))
         );
-        Sponge.eventManager().registerListeners(
-            container,
-            new JobListener(
-                spongeWrapper,
-                new CommonJobListener(economy, jobService, defaultCurrency.id())
-            )
-        );
+
+        if (config.getFeatures().get("jobs")) {
+            Sponge.eventManager().registerListeners(
+                container,
+                new JobListener(
+                    spongeWrapper,
+                    new CommonJobListener(economy, jobService, defaultCurrency.id())
+                )
+            );
+        }
     }
 }
