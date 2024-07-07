@@ -15,7 +15,7 @@ This update causes a breaking change for custom job rewards. See the "Changed" s
 - Both Bukkit and Sponge use the common job implementation
     - Experience tracking through the boss bar currently not implemented; will be added in a future update
     - Level up notifications removed; will be added back in a future update or implemented in a different way
-    - Full ids are now used (e.g. `minecraft:coal_ore` instead of `coal_ore`). This will cause custom job rewards to no longer work. Add the relevant prefix to custom job rewards to fix.
+    - Full ids are now used (e.g. `minecraft:coal_ore` instead of `coal_ore`). This will cause existing custom job rewards to no longer work. Add the relevant prefix to custom job rewards to fix.
 
 ## [0.12.1] - 2024-04-24
 

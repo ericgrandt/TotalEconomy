@@ -8,6 +8,8 @@ import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.entity.DamageEntityEvent;
+import org.spongepowered.api.registry.RegistryTypes;
 
 public class JobListener {
     private final SpongeWrapper spongeWrapper;
@@ -47,11 +49,25 @@ public class JobListener {
         );
     }
 
-//    @Listener
-//    public void onKillAction() {
-//
-//    }
-//
+    // TODO: Test
+    @Listener
+    public void onKillAction(DamageEntityEvent event) {
+        if (event.cause().first(ServerPlayer.class).isEmpty() || !event.willCauseDeath()) {
+            return;
+        }
+
+        SpongePlayer player = new SpongePlayer(event.cause().first(ServerPlayer.class).get());
+        var entityName = event.entity().createSnapshot().type().key(RegistryTypes.ENTITY_TYPE).formatted();
+
+        commonJobListener.handleAction(
+            new JobEvent(
+                player,
+                "kill",
+                entityName
+            )
+        );
+    }
+
 //    @Listener
 //    public void onFishAction() {
 //
