@@ -20,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.block.transaction.BlockTransaction;
+import org.spongepowered.api.block.transaction.Operation;
+import org.spongepowered.api.block.transaction.Operations;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.entity.EntitySnapshot;
@@ -41,6 +43,9 @@ public class JobListenerTest {
     @Mock
     private CommonJobListener commonJobListenerMock;
 
+    @Mock
+    private Operation operationMock;
+
     @Test
     @Tag("Unit")
     public void onBreakAction_WithSuccess_ShouldHandleAction() {
@@ -58,6 +63,33 @@ public class JobListenerTest {
 
         // Act
         sut.onBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(
+            new JobEvent(new SpongePlayer(playerMock), "break", "minecraft:coal_ore")
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void onPlaceOrBreakAction_WithBreakSuccess_ShouldHandleAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
+        when(eventMock.source()).thenReturn(playerMock);
+        when(spongeWrapperMock.breakOperation()).thenReturn(operationMock);
+        when(blockTransactionMock.operation()).thenReturn(operationMock);
+        when(
+            blockTransactionMock.original().state().type().key(
+                spongeWrapperMock.blockType()
+            ).formatted()
+        ).thenReturn("minecraft:coal_ore");
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onPlaceOrBreakAction(eventMock);
 
         // Assert
         verify(commonJobListenerMock, times(1)).handleAction(
@@ -127,6 +159,7 @@ public class JobListenerTest {
     }
 
     @Test
+    @Tag("Unit")
     public void onKillAction_WithSuccess_ShouldHandleAction() {
         // Arrange
         DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
@@ -150,6 +183,7 @@ public class JobListenerTest {
     }
 
     @Test
+    @Tag("Unit")
     public void onKillAction_WithNonPlayerCause_ShouldReturnWithoutHandlingAction() {
         // Arrange
         DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
@@ -165,6 +199,7 @@ public class JobListenerTest {
     }
 
     @Test
+    @Tag("Unit")
     public void onKillAction_WithEventNotCausingDeath_ShouldReturnWithoutHandlingAction() {
         // Arrange
         DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
@@ -181,6 +216,7 @@ public class JobListenerTest {
     }
 
     @Test
+    @Tag("Unit")
     public void onFishAction_WithSuccess_ShouldHandleAction() {
         // Arrange
         FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);
@@ -204,6 +240,7 @@ public class JobListenerTest {
     }
 
     @Test
+    @Tag("Unit")
     public void onFishAction_WithNonPlayerSource_ShouldReturnWithoutHandlingAction() {
         // Arrange
         FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);
@@ -219,6 +256,7 @@ public class JobListenerTest {
     }
 
     @Test
+    @Tag("Unit")
     public void onFishAction_WithNoItemCaught_ShouldReturnWithoutHandlingAction() {
         // Arrange
         FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);

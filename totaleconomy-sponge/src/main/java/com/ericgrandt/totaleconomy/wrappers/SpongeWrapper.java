@@ -48,10 +48,6 @@ public class SpongeWrapper {
         return Parameter.player().key(key).build();
     }
 
-    public Operation breakOperation() {
-        return Operations.BREAK.get();
-    }
-
     public Key<Value<Integer>> growthStage() {
         return Keys.GROWTH_STAGE;
     }
@@ -62,6 +58,14 @@ public class SpongeWrapper {
 
     public DefaultedRegistryType<BlockType> blockType() {
         return RegistryTypes.BLOCK_TYPE;
+    }
+
+    public Operation breakOperation() {
+        return Operations.BREAK.get();
+    }
+
+    public Operation placeOperation() {
+        return Operations.PLACE.get();
     }
 
     public DefaultedRegistryType<EntityType<?>> entityType = RegistryTypes.ENTITY_TYPE;

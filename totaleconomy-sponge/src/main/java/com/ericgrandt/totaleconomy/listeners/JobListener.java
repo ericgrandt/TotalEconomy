@@ -4,6 +4,7 @@ import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
+import net.kyori.adventure.text.Component;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
@@ -50,6 +51,25 @@ public class JobListener {
     }
 
     @Listener
+    public void onPlaceOrBreakAction(ChangeBlockEvent.All event) {
+        var blockTransactionOpt = event.transactions().stream().findFirst();
+        if (!(event.source() instanceof ServerPlayer serverPlayer) || blockTransactionOpt.isEmpty()) {
+            return;
+        }
+
+        var player = new SpongePlayer(serverPlayer);
+        var blockTransaction = blockTransactionOpt.get();
+        var blockState = blockTransaction.original().state();
+
+        var operation = blockTransaction.operation();
+        if (operation == spongeWrapper.breakOperation()) {
+            handleBreakAction(player, blockState);
+        } else if (operation == spongeWrapper.placeOperation()) {
+            handlePlaceAction(player, blockState);
+        }
+    }
+
+    @Listener
     public void onKillAction(DamageEntityEvent event) {
         if (event.cause().first(ServerPlayer.class).isEmpty() || !event.willCauseDeath()) {
             return;
@@ -84,11 +104,29 @@ public class JobListener {
         );
     }
 
-// @Listener
-// public void onPlaceAction() {
-//     // TODO: Can this be combined into just a single ChangeBlockEvent action handler? I think both
-//     //  break and place are covered by that event.
-// }
+    private void handleBreakAction(SpongePlayer player, BlockState blockState) {
+        if (hasGrowthStage(blockState) && !isAtMaxGrowthStage(blockState)) {
+            return;
+        }
+
+        commonJobListener.handleAction(
+            new JobEvent(
+                player,
+                "break",
+                blockState.type().key(spongeWrapper.blockType()).formatted()
+            )
+        );
+    }
+
+    private void handlePlaceAction(SpongePlayer player, BlockState blockState) {
+        commonJobListener.handleAction(
+            new JobEvent(
+                player,
+                "place",
+                blockState.type().key(spongeWrapper.blockType()).formatted()
+            )
+        );
+    }
 
     private boolean hasGrowthStage(BlockState blockState) {
         return blockState.get(spongeWrapper.growthStage()).isPresent();
