@@ -9,12 +9,16 @@ import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
+import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.economy.transaction.TransactionType;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 
+// TODO: Convert these to variables where appropriate. I don't think we need them to be
+//  functions
 public class SpongeWrapper {
     public CommandResult success() {
         return CommandResult.success();
@@ -59,4 +63,8 @@ public class SpongeWrapper {
     public DefaultedRegistryType<BlockType> blockType() {
         return RegistryTypes.BLOCK_TYPE;
     }
+
+    public DefaultedRegistryType<EntityType<?>> entityType = RegistryTypes.ENTITY_TYPE;
+
+    public DefaultedRegistryType<ItemType> itemType = RegistryTypes.ITEM_TYPE;
 }

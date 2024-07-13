@@ -4,9 +4,12 @@ import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
+import net.kyori.adventure.text.Component;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.registry.RegistryTypes;
@@ -49,7 +52,6 @@ public class JobListener {
         );
     }
 
-    // TODO: Test
     @Listener
     public void onKillAction(DamageEntityEvent event) {
         if (event.cause().first(ServerPlayer.class).isEmpty() || !event.willCauseDeath()) {
@@ -57,7 +59,7 @@ public class JobListener {
         }
 
         SpongePlayer player = new SpongePlayer(event.cause().first(ServerPlayer.class).get());
-        var entityName = event.entity().createSnapshot().type().key(RegistryTypes.ENTITY_TYPE).formatted();
+        var entityName = event.entity().createSnapshot().type().key(spongeWrapper.entityType).formatted();
 
         commonJobListener.handleAction(
             new JobEvent(
@@ -68,17 +70,28 @@ public class JobListener {
         );
     }
 
-//    @Listener
-//    public void onFishAction() {
-//
-//    }
-//
+    @Listener
+    public void onFishAction(FishingEvent.Stop event) {
+        if (!(event.source() instanceof ServerPlayer player) || event.transactions().isEmpty()) {
+            return;
+        }
+
+        var itemName = event.transactions().getFirst().original().type().key(spongeWrapper.itemType).formatted();
+
+        commonJobListener.handleAction(
+            new JobEvent(
+                new SpongePlayer(player),
+                "fish",
+                itemName
+            )
+        );
+    }
+
 //    @Listener
 //    public void onPlaceAction() {
 //        // TODO: Can this be combined into just a single ChangeBlockEvent action handler? I think both
 //        //  break and place are covered by that event.
 //    }
-
 
     private boolean hasGrowthStage(BlockState blockState) {
         return blockState.get(spongeWrapper.growthStage()).isPresent();

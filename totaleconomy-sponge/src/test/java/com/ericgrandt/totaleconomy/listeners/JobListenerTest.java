@@ -11,6 +11,8 @@ import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
+
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -19,9 +21,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.block.transaction.BlockTransaction;
 import org.spongepowered.api.data.Key;
+import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.entity.EntitySnapshot;
+import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.monster.Creeper;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.entity.DamageEntityEvent;
 
 @ExtendWith(MockitoExtension.class)
 public class JobListenerTest {
@@ -117,5 +124,77 @@ public class JobListenerTest {
 
         // Assert
         verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    public void onKillAction_WithSuccess_ShouldHandleAction() {
+        // Arrange
+        DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
+        when(eventMock.cause().first(ServerPlayer.class)).thenReturn(Optional.of(playerMock));
+        when(eventMock.willCauseDeath()).thenReturn(true);
+        when(
+            eventMock.entity().createSnapshot().type().key(
+                spongeWrapperMock.entityType
+            ).formatted()
+        ).thenReturn("minecraft:bat");
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onKillAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(
+            new JobEvent(new SpongePlayer(playerMock), "kill", "minecraft:bat")
+        );
+    }
+
+    @Test
+    public void onKillAction_WithNonPlayerCause_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
+        when(eventMock.cause().first(ServerPlayer.class)).thenReturn(Optional.empty());
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onKillAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    public void onKillAction_WithEventNotCausingDeath_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
+        when(eventMock.cause().first(ServerPlayer.class)).thenReturn(Optional.of(playerMock));
+        when(eventMock.willCauseDeath()).thenReturn(false);
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onKillAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    public void onFishAction_WithSuccess_ShouldHandleAction() {
+        // Arrange
+        FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);
+        when(eventMock.source()).thenReturn(playerMock);
+        when(eventMock.transactions().isEmpty()).thenReturn(false);
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onFishAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(
+            new JobEvent(new SpongePlayer(playerMock), "fish", "")
+        );
     }
 }
