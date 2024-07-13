@@ -4,15 +4,12 @@ import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
-import net.kyori.adventure.text.Component;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
-import org.spongepowered.api.registry.RegistryTypes;
 
 public class JobListener {
     private final SpongeWrapper spongeWrapper;
@@ -87,11 +84,11 @@ public class JobListener {
         );
     }
 
-//    @Listener
-//    public void onPlaceAction() {
-//        // TODO: Can this be combined into just a single ChangeBlockEvent action handler? I think both
-//        //  break and place are covered by that event.
-//    }
+// @Listener
+// public void onPlaceAction() {
+//     // TODO: Can this be combined into just a single ChangeBlockEvent action handler? I think both
+//     //  break and place are covered by that event.
+// }
 
     private boolean hasGrowthStage(BlockState blockState) {
         return blockState.get(spongeWrapper.growthStage()).isPresent();
