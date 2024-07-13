@@ -186,6 +186,11 @@ public class JobListenerTest {
         FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);
         when(eventMock.source()).thenReturn(playerMock);
         when(eventMock.transactions().isEmpty()).thenReturn(false);
+        when(
+            eventMock.transactions().getFirst().original().type().key(
+                spongeWrapperMock.itemType
+            ).formatted()
+        ).thenReturn("minecraft:cod");
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
 
@@ -194,7 +199,38 @@ public class JobListenerTest {
 
         // Assert
         verify(commonJobListenerMock, times(1)).handleAction(
-            new JobEvent(new SpongePlayer(playerMock), "fish", "")
+            new JobEvent(new SpongePlayer(playerMock), "fish", "minecraft:cod")
         );
+    }
+
+    @Test
+    public void onFishAction_WithNonPlayerSource_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);
+        when(eventMock.source()).thenReturn(mock(Creeper.class));
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onFishAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    public void onFishAction_WithNoItemCaught_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        FishingEvent.Stop eventMock = mock(FishingEvent.Stop.class, RETURNS_DEEP_STUBS);
+        when(eventMock.source()).thenReturn(playerMock);
+        when(eventMock.transactions().isEmpty()).thenReturn(true);
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onFishAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
     }
 }
