@@ -48,30 +48,6 @@ public class JobListenerTest {
 
     @Test
     @Tag("Unit")
-    public void onBreakAction_WithSuccess_ShouldHandleAction() {
-        // Arrange
-        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
-        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
-        when(eventMock.source()).thenReturn(playerMock);
-        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst())
-            .thenReturn(Optional.of(blockTransactionMock));
-        when(
-            blockTransactionMock.original().state().type().key(spongeWrapperMock.blockType()
-        ).formatted()).thenReturn("minecraft:coal_ore");
-
-        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
-
-        // Act
-        sut.onBreakAction(eventMock);
-
-        // Assert
-        verify(commonJobListenerMock, times(1)).handleAction(
-            new JobEvent(new SpongePlayer(playerMock), "break", "minecraft:coal_ore")
-        );
-    }
-
-    @Test
-    @Tag("Unit")
     public void onPlaceOrBreakAction_WithBreakSuccess_ShouldHandleAction() {
         // Arrange
         ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
@@ -99,15 +75,60 @@ public class JobListenerTest {
 
     @Test
     @Tag("Unit")
-    public void onBreakAction_WithNonPlayerSource_ShouldReturnWithoutHandlingAction() {
+    @SuppressWarnings("unchecked")
+    public void onPlaceOrBreakAction_WithBreakAndMaxAgeBlock_ShouldHandleAction() {
         // Arrange
         ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
-        when(eventMock.source()).thenReturn(mock(Creeper.class));
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
+        when(eventMock.source()).thenReturn(playerMock);
+        when(spongeWrapperMock.breakOperation()).thenReturn(operationMock);
+        when(blockTransactionMock.operation()).thenReturn(operationMock);
+        when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
+        when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
+            .thenReturn(Optional.of(3));
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
+            .thenReturn(Optional.of(3));
+        when(
+            blockTransactionMock.original().state().type().key(
+                spongeWrapperMock.blockType()
+            ).formatted()
+        ).thenReturn("minecraft:coal_ore");
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
 
         // Act
-        sut.onBreakAction(eventMock);
+        sut.onPlaceOrBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(
+            new JobEvent(new SpongePlayer(playerMock), "break", "minecraft:coal_ore")
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    @SuppressWarnings("unchecked")
+    public void onPlaceOrBreakAction_WithBreakAndNotMaxAgeBlock_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
+        when(eventMock.source()).thenReturn(playerMock);
+        when(spongeWrapperMock.breakOperation()).thenReturn(operationMock);
+        when(blockTransactionMock.operation()).thenReturn(operationMock);
+        when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
+        when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
+            .thenReturn(Optional.of(1));
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
+            .thenReturn(Optional.of(3));
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onPlaceOrBreakAction(eventMock);
 
         // Assert
         verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
@@ -115,16 +136,79 @@ public class JobListenerTest {
 
     @Test
     @Tag("Unit")
-    public void onBreakAction_WithNoBreakBlockTransaction_ShouldReturnWithoutHandlingAction() {
+    public void onPlaceOrBreakAction_WithPlaceSuccess_ShouldHandleAction() {
         // Arrange
         ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
         when(eventMock.source()).thenReturn(playerMock);
-        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst()).thenReturn(Optional.empty());
+        when(spongeWrapperMock.placeOperation()).thenReturn(operationMock);
+        when(blockTransactionMock.operation()).thenReturn(operationMock);
+        when(
+            blockTransactionMock.original().state().type().key(
+                spongeWrapperMock.blockType()
+            ).formatted()
+        ).thenReturn("minecraft:coal_ore");
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
 
         // Act
-        sut.onBreakAction(eventMock);
+        sut.onPlaceOrBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(1)).handleAction(
+            new JobEvent(new SpongePlayer(playerMock), "place", "minecraft:coal_ore")
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void onPlaceOrBreakAction_WithNonPlayerSource_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
+        when(eventMock.source()).thenReturn(mock(Creeper.class));
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onPlaceOrBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void onPlaceOrBreakAction_WithNoBlockTransactions_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.empty());
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onPlaceOrBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void onPlaceOrBreakAction_WithNoBreakOrPlaceAction_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
+        when(eventMock.source()).thenReturn(playerMock);
+        when(blockTransactionMock.operation()).thenReturn(operationMock);
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onPlaceOrBreakAction(eventMock);
 
         // Assert
         verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
