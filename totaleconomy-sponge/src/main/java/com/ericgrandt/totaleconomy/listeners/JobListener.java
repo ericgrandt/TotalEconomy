@@ -4,7 +4,6 @@ import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
-import net.kyori.adventure.text.Component;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
@@ -22,35 +21,6 @@ public class JobListener {
     }
 
     @Listener
-    public void onBreakAction(ChangeBlockEvent.All event) {
-        if (!(event.source() instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-
-        SpongePlayer player = new SpongePlayer(serverPlayer);
-        var blockTransaction = event.transactions(
-            spongeWrapper.breakOperation()
-        ).findFirst().orElse(null);
-
-        if (blockTransaction == null) {
-            return;
-        }
-
-        BlockState blockState = blockTransaction.original().state();
-        if (hasGrowthStage(blockState) && !isAtMaxGrowthStage(blockState)) {
-            return;
-        }
-
-        commonJobListener.handleAction(
-            new JobEvent(
-                player,
-                "break",
-                blockState.type().key(spongeWrapper.blockType()).formatted()
-            )
-        );
-    }
-
-    @Listener
     public void onPlaceOrBreakAction(ChangeBlockEvent.All event) {
         var blockTransactionOpt = event.transactions().stream().findFirst();
         if (!(event.source() instanceof ServerPlayer serverPlayer) || blockTransactionOpt.isEmpty()) {
@@ -59,7 +29,7 @@ public class JobListener {
 
         var player = new SpongePlayer(serverPlayer);
         var blockTransaction = blockTransactionOpt.get();
-        var blockState = blockTransaction.original().state();
+        var blockState = blockTransaction.finalReplacement().state();
 
         var operation = blockTransaction.operation();
         if (operation == spongeWrapper.breakOperation()) {

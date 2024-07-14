@@ -11,8 +11,6 @@ import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
-
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,11 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spongepowered.api.block.transaction.BlockTransaction;
 import org.spongepowered.api.block.transaction.Operation;
-import org.spongepowered.api.block.transaction.Operations;
 import org.spongepowered.api.data.Key;
-import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.entity.EntitySnapshot;
-import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.monster.Creeper;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.action.FishingEvent;
@@ -57,7 +51,7 @@ public class JobListenerTest {
         when(spongeWrapperMock.breakOperation()).thenReturn(operationMock);
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(
-            blockTransactionMock.original().state().type().key(
+            blockTransactionMock.finalReplacement().state().type().key(
                 spongeWrapperMock.blockType()
             ).formatted()
         ).thenReturn("minecraft:coal_ore");
@@ -86,12 +80,12 @@ public class JobListenerTest {
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
         when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
-        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
+        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.growthStage()))
             .thenReturn(Optional.of(3));
-        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
+        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.maxGrowthStage()))
             .thenReturn(Optional.of(3));
         when(
-            blockTransactionMock.original().state().type().key(
+            blockTransactionMock.finalReplacement().state().type().key(
                 spongeWrapperMock.blockType()
             ).formatted()
         ).thenReturn("minecraft:coal_ore");
@@ -120,9 +114,9 @@ public class JobListenerTest {
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
         when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
-        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
+        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.growthStage()))
             .thenReturn(Optional.of(1));
-        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
+        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.maxGrowthStage()))
             .thenReturn(Optional.of(3));
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
@@ -145,7 +139,7 @@ public class JobListenerTest {
         when(spongeWrapperMock.placeOperation()).thenReturn(operationMock);
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(
-            blockTransactionMock.original().state().type().key(
+            blockTransactionMock.finalReplacement().state().type().key(
                 spongeWrapperMock.blockType()
             ).formatted()
         ).thenReturn("minecraft:coal_ore");
@@ -209,34 +203,6 @@ public class JobListenerTest {
 
         // Act
         sut.onPlaceOrBreakAction(eventMock);
-
-        // Assert
-        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
-    }
-
-    @Test
-    @Tag("Unit")
-    @SuppressWarnings("unchecked")
-    public void onBreakAction_WithAgeableBlockAndNotMaxAge_ShouldReturnWithoutHandlingAction() {
-        // Arrange
-        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
-        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
-        when(eventMock.source()).thenReturn(playerMock);
-        when(eventMock.transactions(spongeWrapperMock.breakOperation()).findFirst())
-            .thenReturn(Optional.of(blockTransactionMock));
-
-        when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
-        when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
-
-        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
-            .thenReturn(Optional.of(1));
-        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
-            .thenReturn(Optional.of(3));
-
-        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
-
-        // Act
-        sut.onBreakAction(eventMock);
 
         // Assert
         verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
