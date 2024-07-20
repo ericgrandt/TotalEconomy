@@ -20,8 +20,6 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.economy.transaction.TransactionType;
 import org.spongepowered.api.service.economy.transaction.TransactionTypes;
 
-// TODO: Convert these to variables where appropriate. I don't think we need them to be
-//  functions
 public class SpongeWrapper {
     public CommandResult success() {
         return CommandResult.success();

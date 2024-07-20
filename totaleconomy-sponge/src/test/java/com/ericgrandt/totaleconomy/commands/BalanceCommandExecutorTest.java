@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
+import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -69,7 +70,7 @@ public class BalanceCommandExecutorTest {
         CurrencyData currencyData = new CurrencyData(databaseMock);
         CommonEconomy economy = new CommonEconomy(new SpongeLogger(loggerMock), accountData, balanceData, currencyData);
 
-        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, defaultCurrency, mock(SpongeWrapper.class));
+        BalanceCommandExecutor sut = new BalanceCommandExecutor(new BalanceCommand(economy, defaultCurrency), mock(SpongeWrapper.class));
 
         // Act
         sut.execute(commandContextMock);

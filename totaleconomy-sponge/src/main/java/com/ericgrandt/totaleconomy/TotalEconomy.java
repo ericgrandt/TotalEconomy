@@ -3,7 +3,9 @@ package com.ericgrandt.totaleconomy;
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.JobCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
+import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.common.command.JobCommand;
+import com.ericgrandt.totaleconomy.common.command.PayCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -123,12 +125,12 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommandExecutor(economy, defaultCurrency, spongeWrapper))
+            .executor(new BalanceCommandExecutor(new BalanceCommand(economy, defaultCurrency), spongeWrapper))
             .build();
         event.register(container, balanceCommand, "balance");
 
         Command.Parameterized payCommand = Command.builder()
-            .executor(new PayCommandExecutor(economy, defaultCurrency, spongeWrapper))
+            .executor(new PayCommandExecutor(new PayCommand(economy, defaultCurrency), spongeWrapper))
             .addParameter(Parameter.player().key("toPlayer").build())
             .addParameter(Parameter.doubleNumber().key("amount").build())
             .build();
