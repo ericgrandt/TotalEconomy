@@ -90,7 +90,7 @@ public class JobListener {
     }
 
     private void handlePlaceAction(SpongePlayer player, EventContext context) {
-        var usedItemOpt = context.get(EventContextKeys.USED_ITEM);
+        var usedItemOpt = context.get(spongeWrapper.usedItem());
 
         if (usedItemOpt.isEmpty()) {
             return;

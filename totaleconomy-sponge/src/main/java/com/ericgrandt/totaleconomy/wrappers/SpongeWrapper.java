@@ -11,7 +11,10 @@ import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.event.EventContextKey;
+import org.spongepowered.api.event.EventContextKeys;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.economy.transaction.TransactionType;
@@ -66,6 +69,10 @@ public class SpongeWrapper {
 
     public DefaultedRegistryType<EntityType<?>> entityType() {
         return RegistryTypes.ENTITY_TYPE;
+    }
+
+    public EventContextKey<ItemStackSnapshot> usedItem() {
+        return EventContextKeys.USED_ITEM;
     }
 
     public Operation breakOperation() {

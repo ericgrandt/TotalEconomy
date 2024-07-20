@@ -22,9 +22,11 @@ import org.spongepowered.api.block.transaction.Operation;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.entity.living.monster.Creeper;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 @ExtendWith(MockitoExtension.class)
 public class JobListenerTest {
@@ -51,7 +53,7 @@ public class JobListenerTest {
         when(spongeWrapperMock.breakOperation()).thenReturn(operationMock);
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(
-            blockTransactionMock.finalReplacement().state().type().key(
+            blockTransactionMock.original().state().type().key(
                 spongeWrapperMock.blockType()
             ).formatted()
         ).thenReturn("minecraft:coal_ore");
@@ -80,12 +82,12 @@ public class JobListenerTest {
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
         when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
-        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.growthStage()))
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
             .thenReturn(Optional.of(3));
-        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.maxGrowthStage()))
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
             .thenReturn(Optional.of(3));
         when(
-            blockTransactionMock.finalReplacement().state().type().key(
+            blockTransactionMock.original().state().type().key(
                 spongeWrapperMock.blockType()
             ).formatted()
         ).thenReturn("minecraft:coal_ore");
@@ -114,9 +116,9 @@ public class JobListenerTest {
         when(blockTransactionMock.operation()).thenReturn(operationMock);
         when(spongeWrapperMock.growthStage()).thenReturn(mock(Key.class));
         when(spongeWrapperMock.maxGrowthStage()).thenReturn(mock(Key.class));
-        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.growthStage()))
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.growthStage()))
             .thenReturn(Optional.of(1));
-        when(blockTransactionMock.finalReplacement().state().get(spongeWrapperMock.maxGrowthStage()))
+        when(blockTransactionMock.original().state().get(spongeWrapperMock.maxGrowthStage()))
             .thenReturn(Optional.of(3));
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
@@ -133,16 +135,17 @@ public class JobListenerTest {
     public void onPlaceOrBreakAction_WithPlaceSuccess_ShouldHandleAction() {
         // Arrange
         ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
-        BlockTransaction blockTransactionMock = mock(BlockTransaction.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class);
+        EventContext eventContextMock = mock(EventContext.class);
+        ItemStackSnapshot itemStackSnapshotMock = mock(ItemStackSnapshot.class, RETURNS_DEEP_STUBS);
         when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
         when(eventMock.source()).thenReturn(playerMock);
+        when(eventMock.cause().context()).thenReturn(eventContextMock);
         when(spongeWrapperMock.placeOperation()).thenReturn(operationMock);
         when(blockTransactionMock.operation()).thenReturn(operationMock);
-        when(
-            blockTransactionMock.finalReplacement().state().type().key(
-                spongeWrapperMock.blockType()
-            ).formatted()
-        ).thenReturn("minecraft:coal_ore");
+        when(eventContextMock.get(spongeWrapperMock.usedItem())).thenReturn(Optional.of(itemStackSnapshotMock));
+        when(itemStackSnapshotMock.type().key(spongeWrapperMock.itemType())
+            .formatted()).thenReturn("minecraft:carrot");
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
 
@@ -151,7 +154,7 @@ public class JobListenerTest {
 
         // Assert
         verify(commonJobListenerMock, times(1)).handleAction(
-            new JobEvent(new SpongePlayer(playerMock), "place", "minecraft:coal_ore")
+            new JobEvent(new SpongePlayer(playerMock), "place", "minecraft:carrot")
         );
     }
 
@@ -217,7 +220,7 @@ public class JobListenerTest {
         when(eventMock.willCauseDeath()).thenReturn(true);
         when(
             eventMock.entity().createSnapshot().type().key(
-                spongeWrapperMock.entityType
+                spongeWrapperMock.entityType()
             ).formatted()
         ).thenReturn("minecraft:bat");
 
@@ -274,7 +277,7 @@ public class JobListenerTest {
         when(eventMock.transactions().isEmpty()).thenReturn(false);
         when(
             eventMock.transactions().getFirst().original().type().key(
-                spongeWrapperMock.itemType
+                spongeWrapperMock.itemType()
             ).formatted()
         ).thenReturn("minecraft:cod");
 
