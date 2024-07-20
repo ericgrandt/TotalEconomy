@@ -217,10 +217,10 @@ INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, 
 VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:beetroot_seeds', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:carrots', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:carrot', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
-VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:potatoes', 0.01, 1);
+VALUES (@farmer_job_id, @place_action_id, 1, 'minecraft:potato', 0.01, 1);
 
 INSERT IGNORE INTO te_job_reward (job_id, job_action_id, currency_id, material, money, experience)
 VALUES (@farmer_job_id, @break_action_id, 1, 'minecraft:melon', 0.25, 5);
