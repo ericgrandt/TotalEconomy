@@ -56,8 +56,16 @@ public class SpongeWrapper {
         return Keys.MAX_GROWTH_STAGE;
     }
 
+    public DefaultedRegistryType<ItemType> itemType() {
+        return RegistryTypes.ITEM_TYPE;
+    }
+
     public DefaultedRegistryType<BlockType> blockType() {
         return RegistryTypes.BLOCK_TYPE;
+    }
+
+    public DefaultedRegistryType<EntityType<?>> entityType() {
+        return RegistryTypes.ENTITY_TYPE;
     }
 
     public Operation breakOperation() {
@@ -67,8 +75,4 @@ public class SpongeWrapper {
     public Operation placeOperation() {
         return Operations.PLACE.get();
     }
-
-    public DefaultedRegistryType<EntityType<?>> entityType = RegistryTypes.ENTITY_TYPE;
-
-    public DefaultedRegistryType<ItemType> itemType = RegistryTypes.ITEM_TYPE;
 }

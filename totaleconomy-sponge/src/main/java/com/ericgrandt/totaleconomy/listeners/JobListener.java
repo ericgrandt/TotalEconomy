@@ -6,6 +6,8 @@ import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.event.EventContext;
+import org.spongepowered.api.event.EventContextKeys;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -29,13 +31,12 @@ public class JobListener {
 
         var player = new SpongePlayer(serverPlayer);
         var blockTransaction = blockTransactionOpt.get();
-        var blockState = blockTransaction.finalReplacement().state();
 
         var operation = blockTransaction.operation();
         if (operation == spongeWrapper.breakOperation()) {
-            handleBreakAction(player, blockState);
+            handleBreakAction(player, blockTransaction.original().state());
         } else if (operation == spongeWrapper.placeOperation()) {
-            handlePlaceAction(player, blockState);
+            handlePlaceAction(player, event.cause().context());
         }
     }
 
@@ -46,7 +47,7 @@ public class JobListener {
         }
 
         SpongePlayer player = new SpongePlayer(event.cause().first(ServerPlayer.class).get());
-        var entityName = event.entity().createSnapshot().type().key(spongeWrapper.entityType).formatted();
+        var entityName = event.entity().createSnapshot().type().key(spongeWrapper.entityType()).formatted();
 
         commonJobListener.handleAction(
             new JobEvent(
@@ -63,7 +64,7 @@ public class JobListener {
             return;
         }
 
-        var itemName = event.transactions().getFirst().original().type().key(spongeWrapper.itemType).formatted();
+        var itemName = event.transactions().getFirst().original().type().key(spongeWrapper.itemType()).formatted();
 
         commonJobListener.handleAction(
             new JobEvent(
@@ -88,12 +89,18 @@ public class JobListener {
         );
     }
 
-    private void handlePlaceAction(SpongePlayer player, BlockState blockState) {
+    private void handlePlaceAction(SpongePlayer player, EventContext context) {
+        var usedItemOpt = context.get(EventContextKeys.USED_ITEM);
+
+        if (usedItemOpt.isEmpty()) {
+            return;
+        }
+
         commonJobListener.handleAction(
             new JobEvent(
                 player,
                 "place",
-                blockState.type().key(spongeWrapper.blockType()).formatted()
+                usedItemOpt.get().type().key(spongeWrapper.itemType()).formatted()
             )
         );
     }
