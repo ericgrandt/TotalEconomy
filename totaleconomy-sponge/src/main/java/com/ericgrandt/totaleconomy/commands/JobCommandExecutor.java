@@ -9,7 +9,6 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
-// TODO: Test
 public class JobCommandExecutor implements CommandExecutor {
     private final JobCommand jobCommand;
     private final SpongeWrapper spongeWrapper;

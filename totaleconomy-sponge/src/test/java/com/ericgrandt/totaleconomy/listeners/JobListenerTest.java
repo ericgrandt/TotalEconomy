@@ -160,6 +160,30 @@ public class JobListenerTest {
 
     @Test
     @Tag("Unit")
+    public void onPlaceOrBreakAction_WithPlaceActionAndNoUsedItem_ShouldReturnWithoutHandlingAction() {
+        // Arrange
+        ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
+        BlockTransaction blockTransactionMock = mock(BlockTransaction.class);
+        EventContext eventContextMock = mock(EventContext.class);
+        ItemStackSnapshot itemStackSnapshotMock = mock(ItemStackSnapshot.class, RETURNS_DEEP_STUBS);
+        when(eventMock.transactions().stream().findFirst()).thenReturn(Optional.of(blockTransactionMock));
+        when(eventMock.source()).thenReturn(playerMock);
+        when(eventMock.cause().context()).thenReturn(eventContextMock);
+        when(spongeWrapperMock.placeOperation()).thenReturn(operationMock);
+        when(blockTransactionMock.operation()).thenReturn(operationMock);
+        when(eventContextMock.get(spongeWrapperMock.usedItem())).thenReturn(Optional.empty());
+
+        JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
+
+        // Act
+        sut.onPlaceOrBreakAction(eventMock);
+
+        // Assert
+        verify(commonJobListenerMock, times(0)).handleAction(any(JobEvent.class));
+    }
+
+    @Test
+    @Tag("Unit")
     public void onPlaceOrBreakAction_WithNonPlayerSource_ShouldReturnWithoutHandlingAction() {
         // Arrange
         ChangeBlockEvent.All eventMock = mock(ChangeBlockEvent.All.class, RETURNS_DEEP_STUBS);
