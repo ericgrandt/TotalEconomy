@@ -100,7 +100,7 @@ public class JobListenerTest {
 
         when(eventMock.getEntity()).thenReturn(livingEntityMock);
         when(livingEntityMock.getKiller()).thenReturn(playerMock);
-        when(livingEntityMock.getType().name()).thenReturn("entityName");
+        when(livingEntityMock.getType().key().asString()).thenReturn("entityName");
 
         JobListener sut = new JobListener(commonJobListenerMock);
 
@@ -117,7 +117,7 @@ public class JobListenerTest {
         // Arrange
         BlockPlaceEvent eventMock = mock(BlockPlaceEvent.class, RETURNS_DEEP_STUBS);
         when(eventMock.getPlayer()).thenReturn(playerMock);
-        when(eventMock.getBlock().getType().name()).thenReturn("blockName");
+        when(eventMock.getItemInHand().getType().key().asString()).thenReturn("blockName");
 
         JobListener sut = new JobListener(commonJobListenerMock);
 
