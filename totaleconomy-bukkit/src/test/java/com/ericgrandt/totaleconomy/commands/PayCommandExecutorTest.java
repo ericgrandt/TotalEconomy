@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
+import com.ericgrandt.totaleconomy.common.command.PayCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -61,7 +62,7 @@ public class PayCommandExecutorTest {
     @Tag("Unit")
     public void onCommand_WithInvalidAmountType_ShouldReturnFalse() {
         // Arrange
-        PayCommandExecutor sut = new PayCommandExecutor(economyMock, currency, wrapperMock);
+        PayCommandExecutor sut = new PayCommandExecutor(new PayCommand(economyMock, currency), wrapperMock);
 
         // Act
         boolean actual = sut.onCommand(
@@ -120,11 +121,7 @@ public class PayCommandExecutorTest {
             balanceData,
             currencyData
         );
-        PayCommandExecutor sut = new PayCommandExecutor(
-            economy,
-            currency,
-            wrapperMock
-        );
+        PayCommandExecutor sut = new PayCommandExecutor(new PayCommand(economy, currency), wrapperMock);
 
         // Act
         sut.onCommand(playerMock, mock(Command.class), "", new String[] { toPlayerName, "10" });

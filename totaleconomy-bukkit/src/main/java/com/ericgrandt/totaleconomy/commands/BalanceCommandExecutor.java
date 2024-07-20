@@ -1,8 +1,6 @@
 package com.ericgrandt.totaleconomy.commands;
 
 import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -11,13 +9,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class BalanceCommandExecutor implements CommandExecutor {
-    private final CommonEconomy economy;
-    private final CurrencyDto currency;
+    private final BalanceCommand balanceCommand;
 
-    // TODO: Take in BalanceCommand instead
-    public BalanceCommandExecutor(final CommonEconomy economy, final CurrencyDto currency) {
-        this.economy = economy;
-        this.currency = currency;
+    public BalanceCommandExecutor(final BalanceCommand balanceCommand) {
+        this.balanceCommand = balanceCommand;
     }
 
     @Override
@@ -26,6 +21,6 @@ public class BalanceCommandExecutor implements CommandExecutor {
             return false;
         }
 
-        return new BalanceCommand(economy, currency).execute(new BukkitPlayer(player), null);
+        return balanceCommand.execute(new BukkitPlayer(player), null);
     }
 }

@@ -2,8 +2,6 @@ package com.ericgrandt.totaleconomy.commands;
 
 import com.ericgrandt.totaleconomy.common.command.CommonParameter;
 import com.ericgrandt.totaleconomy.common.command.PayCommand;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import com.ericgrandt.totaleconomy.wrappers.BukkitWrapper;
 import java.math.BigDecimal;
@@ -15,18 +13,14 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class PayCommandExecutor implements CommandExecutor {
-    private final CommonEconomy economy;
-    private final CurrencyDto currency;
+    private final PayCommand payCommand;
     private final BukkitWrapper bukkitWrapper;
 
-    // TODO: Take in PayCommand instead
     public PayCommandExecutor(
-        final CommonEconomy economy,
-        final CurrencyDto currency,
+        final PayCommand payCommand,
         final BukkitWrapper bukkitWrapper
     ) {
-        this.economy = economy;
-        this.currency = currency;
+        this.payCommand = payCommand;
         this.bukkitWrapper = bukkitWrapper;
     }
 
@@ -48,7 +42,7 @@ public class PayCommandExecutor implements CommandExecutor {
             "amount", new CommonParameter<>(BigDecimal.valueOf(Double.parseDouble(amountArg)))
         );
 
-        return new PayCommand(economy, currency).execute(new BukkitPlayer(player), argsMap);
+        return payCommand.execute(new BukkitPlayer(player), argsMap);
     }
 
     private boolean isValidDouble(String amount) {

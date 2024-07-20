@@ -3,7 +3,9 @@ package com.ericgrandt.totaleconomy;
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.JobCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
+import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.common.command.JobCommand;
+import com.ericgrandt.totaleconomy.common.command.PayCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -96,10 +98,10 @@ public class TotalEconomy extends JavaPlugin implements Listener {
 
     private void registerCommands() {
         Objects.requireNonNull(this.getCommand("balance")).setExecutor(
-            new BalanceCommandExecutor(economy, defaultCurrency)
+            new BalanceCommandExecutor(new BalanceCommand(economy, defaultCurrency))
         );
         Objects.requireNonNull(this.getCommand("pay")).setExecutor(
-            new PayCommandExecutor(economy, defaultCurrency, bukkitWrapper)
+            new PayCommandExecutor(new PayCommand(economy, defaultCurrency), bukkitWrapper)
         );
 
         if (config.getFeatures().get("jobs")) {

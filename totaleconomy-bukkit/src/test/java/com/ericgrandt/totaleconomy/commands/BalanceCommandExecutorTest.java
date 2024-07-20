@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
+import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -62,7 +63,7 @@ public class BalanceCommandExecutorTest {
         CurrencyData currencyData = new CurrencyData(databaseMock);
         CommonEconomy economy = new CommonEconomy(new BukkitLogger(loggerMock), accountData, balanceData, currencyData);
 
-        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, defaultCurrency);
+        BalanceCommandExecutor sut = new BalanceCommandExecutor(new BalanceCommand(economy, defaultCurrency));
 
         // Act
         sut.onCommand(playerMock, mock(Command.class), "", new String[0]);
