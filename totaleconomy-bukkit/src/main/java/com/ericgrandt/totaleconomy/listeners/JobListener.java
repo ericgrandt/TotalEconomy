@@ -43,7 +43,7 @@ public class JobListener implements Listener {
             return;
         }
 
-        String entityName = entity.getType().name().toLowerCase();
+        String entityName = entity.getType().key().asString().toLowerCase();
         commonJobListener.handleAction(new JobEvent(player, "kill", entityName));
     }
 
@@ -56,7 +56,7 @@ public class JobListener implements Listener {
 
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
 
-        String caughtItemName = ((Item) caughtEntity).getItemStack().getType().name().toLowerCase();
+        String caughtItemName = ((Item) caughtEntity).getItemStack().getType().key().asString().toLowerCase();
 
         commonJobListener.handleAction(new JobEvent(player, "fish", caughtItemName));
     }
@@ -64,7 +64,7 @@ public class JobListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlaceAction(BlockPlaceEvent event) {
         BukkitPlayer player = new BukkitPlayer(event.getPlayer());
-        String blockName = event.getBlock().getType().name().toLowerCase();
+        String blockName = event.getItemInHand().getType().key().asString().toLowerCase();
 
         commonJobListener.handleAction(new JobEvent(player, "place", blockName));
     }
