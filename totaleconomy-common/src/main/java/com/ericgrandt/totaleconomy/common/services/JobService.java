@@ -24,7 +24,7 @@ public class JobService {
     }
 
     public GetJobRewardResponse getJobReward(GetJobRewardRequest request) throws NoSuchElementException {
-        JobReward jobReward = jobData.getJobReward(request).orElseThrow();;
+        JobReward jobReward = jobData.getJobReward(request).orElseThrow();
         return new GetJobRewardResponse(
             jobReward.getJobId(),
             jobReward.getMoney(),
