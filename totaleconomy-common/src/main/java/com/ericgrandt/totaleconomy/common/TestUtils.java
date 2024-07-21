@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.common;
 import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
+import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.InputStream;
@@ -242,6 +243,29 @@ public class TestUtils {
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         return new JobExperienceDto(
+                            rs.getString("id"),
+                            rs.getString("account_id"),
+                            rs.getString("job_id"),
+                            rs.getInt("experience")
+                        );
+                    }
+
+                    return null;
+                }
+            }
+        }
+    }
+
+    public static JobExperience getJobExperience(String id) throws SQLException {
+        String query = "SELECT * FROM te_job_experience WHERE id = ?";
+
+        try (Connection conn = TestUtils.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, id);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return new JobExperience(
                             rs.getString("id"),
                             rs.getString("account_id"),
                             rs.getString("job_id"),

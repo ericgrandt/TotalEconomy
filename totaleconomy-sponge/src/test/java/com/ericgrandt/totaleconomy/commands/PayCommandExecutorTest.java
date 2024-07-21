@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
+import com.ericgrandt.totaleconomy.common.command.PayCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -102,7 +103,7 @@ public class PayCommandExecutorTest {
             currencyData
         );
 
-        PayCommandExecutor sut = new PayCommandExecutor(economy, defaultCurrency, wrapperMock);
+        PayCommandExecutor sut = new PayCommandExecutor(new PayCommand(economy, defaultCurrency), wrapperMock);
 
         // Act
         sut.execute(commandContextMock);

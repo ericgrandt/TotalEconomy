@@ -4,10 +4,11 @@ import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public record BukkitPlayer(Player player) implements CommonPlayer {
     @Override
-    public void sendMessage(Component message) {
+    public void sendMessage(@NotNull Component message) {
         player.sendMessage(message);
     }
 

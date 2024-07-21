@@ -1,10 +1,8 @@
 package com.ericgrandt.totaleconomy.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
@@ -17,16 +15,21 @@ import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
+import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.ericgrandt.totaleconomy.commonimpl.BukkitLogger;
-import com.ericgrandt.totaleconomy.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,30 +40,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class PlayerListenerTest {
     @Mock
     private Logger loggerMock;
-
-    @Mock
-    private Player playerMock;
-
-    @Mock
-    private CommonEconomy economyMock;
-
-    @Mock
-    private JobService jobServiceMock;
-
-    @Test
-    @Tag("Unit")
-    public void onPlayerJoinHandler_WithNoAccountAlreadyExisting_ShouldCallCreateAccount() {
-        // Arrange
-        when(playerMock.getUniqueId()).thenReturn(UUID.randomUUID());
-
-        PlayerListener sut = new PlayerListener(economyMock, jobServiceMock, null);
-
-        // Act
-        sut.onPlayerJoinHandler(playerMock);
-
-        // Assert
-        verify(economyMock, times(1)).createAccount(any(UUID.class));
-    }
 
     @Test
     @Tag("Integration")
@@ -78,7 +57,7 @@ public class PlayerListenerTest {
         when(databaseMock.getDataSource()).thenReturn(mock(HikariDataSource.class));
         when(databaseMock.getDataSource().getConnection()).then(x -> TestUtils.getConnection());
 
-        JobData jobData = new JobData(databaseMock);
+        JobData jobData = new JobData(new BukkitLogger(loggerMock), databaseMock);
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);
@@ -89,13 +68,16 @@ public class PlayerListenerTest {
             balanceData,
             currencyData
         );
-        JobService jobServiceMock = new JobService(loggerMock, jobData);
-        PlayerListener sut = new PlayerListener(economy, jobServiceMock, null);
+        JobService jobService = new JobService(jobData);
+        PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(playerMock, Component.empty());
+
+        PlayerListener sut = new PlayerListener(new CommonPlayerListener(economy, jobService));
 
         // Act
-        sut.onPlayerJoinHandler(playerMock);
+        sut.onPlayerJoin(playerJoinEvent);
 
         // Assert
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
         assertAccountsAreEqualOnPlayerJoinHandler(playerId);
         assertJobExperienceIsAddedOnPlayerJoinHandler(playerId);
     }
