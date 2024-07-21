@@ -1,21 +1,13 @@
 package com.ericgrandt.totaleconomy.listeners;
 
-import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
-import com.ericgrandt.totaleconomy.impl.JobExperienceBar;
-import com.ericgrandt.totaleconomy.models.AddExperienceResult;
-import com.ericgrandt.totaleconomy.models.JobExperience;
-import com.ericgrandt.totaleconomy.services.JobService;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import com.ericgrandt.totaleconomy.common.event.JobEvent;
+import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
+import com.ericgrandt.totaleconomy.commonimpl.BukkitPlayer;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -24,45 +16,35 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 
 public class JobListener implements Listener {
-    private final CommonEconomy economy;
-    private final JobService jobService;
-    private final int currencyId;
+    private final CommonJobListener commonJobListener;
 
-    public JobListener(
-        final CommonEconomy economy,
-        final JobService jobService,
-        final int currencyId
-    ) {
-        this.economy = economy;
-        this.jobService = jobService;
-        this.currencyId = currencyId;
+    public JobListener(final CommonJobListener commonJobListener) {
+        this.commonJobListener = commonJobListener;
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBreakAction(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        String blockName = event.getBlock().getType().name().toLowerCase();
-        JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
+        BukkitPlayer player = new BukkitPlayer(event.getPlayer());
+        BlockData blockData = event.getBlock().getBlockData();
 
-        if (event.getBlock().getBlockData() instanceof Ageable age && age.getAge() != age.getMaximumAge()) {
+        if (blockData instanceof Ageable age && age.getAge() != age.getMaximumAge()) {
             return;
         }
 
-        CompletableFuture.runAsync(() -> actionHandler(blockName, player, "break", jobExperienceBar));
+        String blockName = blockData.getMaterial().key().asString().toLowerCase();
+        commonJobListener.handleAction(new JobEvent(player, "break", blockName));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onKillAction(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        Player player = entity.getKiller();
-        if (player == null) {
+        BukkitPlayer player = new BukkitPlayer(entity.getKiller());
+        if (player.isNull()) {
             return;
         }
 
-        String entityName = entity.getType().name().toLowerCase();
-        JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());;
-
-        CompletableFuture.runAsync(() -> actionHandler(entityName, player, "kill", jobExperienceBar));
+        String entityName = entity.getType().key().asString().toLowerCase();
+        commonJobListener.handleAction(new JobEvent(player, "kill", entityName));
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -72,67 +54,18 @@ public class JobListener implements Listener {
             return;
         }
 
-        Player player = event.getPlayer();
+        BukkitPlayer player = new BukkitPlayer(event.getPlayer());
 
-        String caughtItemName = ((Item) caughtEntity).getItemStack().getType().name().toLowerCase();
-        JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());;
+        String caughtItemName = ((Item) caughtEntity).getItemStack().getType().key().asString().toLowerCase();
 
-        CompletableFuture.runAsync(() -> actionHandler(caughtItemName, player, "fish", jobExperienceBar));
+        commonJobListener.handleAction(new JobEvent(player, "fish", caughtItemName));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlaceAction(BlockPlaceEvent event) {
-        Player player = event.getPlayer();
-        String blockName = event.getBlock().getType().name().toLowerCase();
-        JobExperienceBar jobExperienceBar = jobService.getPlayerJobExperienceBar(player.getUniqueId());
+        BukkitPlayer player = new BukkitPlayer(event.getPlayer());
+        String blockName = event.getItemInHand().getType().key().asString().toLowerCase();
 
-        CompletableFuture.runAsync(() -> actionHandler(blockName, player, "place", jobExperienceBar));
-    }
-
-    public void actionHandler(String materialName, Player player, String action, JobExperienceBar jobExperienceBar) {
-        JobRewardDto jobRewardDto = jobService.getJobReward(action, materialName);
-        if (jobRewardDto == null) {
-            return;
-        }
-
-        addExperience(player, jobRewardDto, jobExperienceBar);
-        economy.deposit(player.getUniqueId(), currencyId, jobRewardDto.money(), false);
-    }
-
-    private void addExperience(Player player, JobRewardDto jobRewardDto, JobExperienceBar jobExperienceBar) {
-        int experienceGain = jobRewardDto.experience();
-
-        AddExperienceResult addExperienceResult = jobService.addExperience(
-            player.getUniqueId(),
-            UUID.fromString(jobRewardDto.jobId()),
-            experienceGain
-        );
-        if (addExperienceResult.leveledUp()) {
-            player.sendMessage(getLevelUpMessage(addExperienceResult));
-        }
-
-        JobExperience jobExperience = addExperienceResult.jobExperience();
-        jobExperienceBar.setExperienceBarName(jobExperience, experienceGain);
-        jobExperienceBar.setProgress(jobExperience);
-        jobExperienceBar.show();
-    }
-
-    private Component getLevelUpMessage(AddExperienceResult addExperienceResult) {
-        return Component.text(
-            addExperienceResult.jobExperience().jobName(),
-            TextColor.fromHexString("#DADFE1"),
-            TextDecoration.BOLD
-        ).append(
-            Component.text(
-                " is now level",
-                TextColor.fromHexString("#708090")
-            ).decoration(TextDecoration.BOLD, false)
-        ).append(
-            Component.text(
-                String.format(" %s", addExperienceResult.jobExperience().level()),
-                TextColor.fromHexString("#DADFE1"),
-                TextDecoration.BOLD
-            )
-        );
+        commonJobListener.handleAction(new JobEvent(player, "place", blockName));
     }
 }

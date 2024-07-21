@@ -1,12 +1,12 @@
 plugins {
     id("java-library")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.github.goooler.shadow") version "8.1.7"
     checkstyle
 }
 
 subprojects {
     plugins.apply("java-library")
-    plugins.apply("com.github.johnrengelman.shadow")
+    plugins.apply("io.github.goooler.shadow")
     plugins.apply("checkstyle")
 
     repositories {
@@ -14,18 +14,19 @@ subprojects {
     }
 
     dependencies {
-        testImplementation("com.h2database:h2:2.2.222")
-        testImplementation("com.zaxxer:HikariCP:5.0.1")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-        testImplementation("org.mockito:mockito-core:4.8.0")
-        testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
+        testImplementation("com.h2database:h2:2.2.224")
+        testImplementation("com.zaxxer:HikariCP:5.1.0")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+        testImplementation("org.mockito:mockito-core:5.12.0")
+        testImplementation("org.mockito:mockito-inline:5.2.0")
+        testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
 
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     }
 
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
+            languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 

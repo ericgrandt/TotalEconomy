@@ -2,8 +2,6 @@ package com.ericgrandt.totaleconomy.commands;
 
 import com.ericgrandt.totaleconomy.common.command.CommonParameter;
 import com.ericgrandt.totaleconomy.common.command.PayCommand;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
-import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.SpongePlayer;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import java.math.BigDecimal;
@@ -16,13 +14,11 @@ import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 public class PayCommandExecutor implements CommandExecutor {
-    private final CommonEconomy economy;
-    private final CurrencyDto currency;
+    private final PayCommand payCommand;
     private final SpongeWrapper spongeWrapper;
 
-    public PayCommandExecutor(final CommonEconomy economy, final CurrencyDto currency, final SpongeWrapper spongeWrapper) {
-        this.economy = economy;
-        this.currency = currency;
+    public PayCommandExecutor(final PayCommand payCommand, final SpongeWrapper spongeWrapper) {
+        this.payCommand = payCommand;
         this.spongeWrapper = spongeWrapper;
     }
 
@@ -43,7 +39,7 @@ public class PayCommandExecutor implements CommandExecutor {
             "amount", new CommonParameter<>(amount)
         );
 
-        new PayCommand(economy, currency).execute(new SpongePlayer(player), argsMap);
+        payCommand.execute(new SpongePlayer(player), argsMap);
 
         return spongeWrapper.success();
     }

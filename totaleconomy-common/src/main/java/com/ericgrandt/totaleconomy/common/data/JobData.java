@@ -1,85 +1,146 @@
 package com.ericgrandt.totaleconomy.common.data;
 
-import com.ericgrandt.totaleconomy.common.data.dto.JobActionDto;
-import com.ericgrandt.totaleconomy.common.data.dto.JobDto;
-import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
-import com.ericgrandt.totaleconomy.common.data.dto.JobRewardDto;
+import com.ericgrandt.totaleconomy.common.domain.Job;
+import com.ericgrandt.totaleconomy.common.domain.JobExperience;
+import com.ericgrandt.totaleconomy.common.domain.JobReward;
+import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
+import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 public class JobData {
+    private final CommonLogger logger;
     private final Database database;
 
-    public JobData(Database database) {
+    public JobData(final CommonLogger logger, final Database database) {
+        this.logger = logger;
         this.database = database;
     }
 
-    public JobDto getJob(UUID jobId) throws SQLException {
-        String getDefaultBalanceQuery = "SELECT * FROM te_job WHERE id = ?";
+    public Optional<JobReward> getJobReward(GetJobRewardRequest request) {
+        String query = "SELECT tjr.* FROM te_job_reward tjr "
+            + "INNER JOIN te_job_action tja ON "
+            + "tja.id = tjr.job_action_id "
+            + "AND tja.action_name = ? "
+            + "WHERE material = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(getDefaultBalanceQuery)
+            PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, jobId.toString());
+            stmt.setString(1, request.action());
+            stmt.setString(2, request.material());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new JobDto(
-                        rs.getString("id"),
-                        rs.getString("job_name")
+                    return Optional.of(
+                        new JobReward(
+                            rs.getString("id"),
+                            rs.getString("job_id"),
+                            rs.getString("job_action_id"),
+                            rs.getInt("currency_id"),
+                            rs.getString("material"),
+                            rs.getBigDecimal("money"),
+                            rs.getInt("experience")
+                        )
                     );
                 }
             }
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
         }
 
-        return null;
+        return Optional.empty();
     }
 
-    public JobExperienceDto getExperienceForJob(UUID accountId, UUID jobId) throws SQLException {
-        String getDefaultBalanceQuery = "SELECT * FROM te_job_experience WHERE account_id = ? AND job_id = ?";
+    public Optional<Job> getJob(GetJobRequest request) {
+        String query = "SELECT * FROM te_job WHERE id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(getDefaultBalanceQuery)
+            PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, accountId.toString());
-            stmt.setString(2, jobId.toString());
+            stmt.setString(1, request.jobId().toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new JobExperienceDto(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
-                        rs.getString("job_id"),
-                        rs.getInt("experience")
+                    return Optional.of(
+                        new Job(
+                            rs.getString("id"),
+                            rs.getString("job_name")
+                        )
                     );
                 }
             }
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
         }
 
-        return null;
+        return Optional.empty();
     }
 
-    public List<JobExperienceDto> getExperienceForAllJobs(UUID accountId) throws SQLException {
-        String getDefaultBalanceQuery = "SELECT * FROM te_job_experience WHERE account_id = ?";
+    public Optional<JobExperience> getJobExperience(GetJobExperienceRequest request) {
+        String query = "SELECT * FROM te_job_experience WHERE account_id = ? AND job_id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(getDefaultBalanceQuery)
+            PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, accountId.toString());
+            stmt.setString(1, request.accountId().toString());
+            stmt.setString(2, request.jobId().toString());
 
-            List<JobExperienceDto> jobExperienceDtos = new ArrayList<>();
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(
+                        new JobExperience(
+                            rs.getString("id"),
+                            rs.getString("account_id"),
+                            rs.getString("job_id"),
+                            rs.getInt("experience")
+                        )
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
+        }
+
+        return Optional.empty();
+    }
+
+    public List<JobExperience> getAllJobExperience(GetAllJobExperienceRequest request) {
+        String query = "SELECT * FROM te_job_experience WHERE account_id = ?";
+
+        try (
+            Connection conn = database.getDataSource().getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)
+        ) {
+            stmt.setString(1, request.accountId().toString());
+
+            List<JobExperience> jobExperienceList = new ArrayList<>();
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    jobExperienceDtos.add(
-                        new JobExperienceDto(
+                    jobExperienceList.add(
+                        new JobExperience(
                             rs.getString("id"),
                             rs.getString("account_id"),
                             rs.getString("job_id"),
@@ -89,85 +150,57 @@ public class JobData {
                 }
             }
 
-            return jobExperienceDtos;
+            return jobExperienceList;
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
         }
+
+        return new ArrayList<>();
     }
 
-    public JobRewardDto getJobReward(String jobActionId, String material) throws SQLException {
-        String getDefaultBalanceQuery = "SELECT * FROM te_job_reward "
-            + "WHERE job_action_id = ? AND material = ?";
+    public int updateJobExperience(AddExperienceRequest request) {
+        String query = "UPDATE te_job_experience SET experience = experience + ? WHERE account_id = ? AND job_id = ?";
 
         try (
             Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(getDefaultBalanceQuery)
+            PreparedStatement updateExperience = conn.prepareStatement(query)
         ) {
-            stmt.setString(1, jobActionId);
-            stmt.setString(2, material);
+            updateExperience.setInt(1, request.experience());
+            updateExperience.setString(2, request.accountId().toString());
+            updateExperience.setString(3, request.jobId().toString());
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new JobRewardDto(
-                        rs.getString("id"),
-                        rs.getString("job_id"),
-                        rs.getString("job_action_id"),
-                        rs.getInt("currency_id"),
-                        rs.getString("material"),
-                        rs.getBigDecimal("money"),
-                        rs.getInt("experience")
-                    );
-                }
-            }
+            return updateExperience.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
         }
 
-        return null;
+        return 0;
     }
 
-    public JobActionDto getJobActionByName(String jobActionName) throws SQLException {
-        String getDefaultBalanceQuery = "SELECT * FROM te_job_action WHERE action_name = ?";
-
-        try (
-            Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(getDefaultBalanceQuery)
-        ) {
-            stmt.setString(1, jobActionName);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new JobActionDto(
-                        rs.getString("id"),
-                        rs.getString("action_name")
-                    );
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public void createJobExperienceRows(UUID accountId) throws SQLException {
-        String createJobExperienceQuery = "INSERT IGNORE INTO te_job_experience(account_id, job_id) "
+    public int createJobExperience(CreateJobExperienceRequest request) {
+        String query = "INSERT IGNORE INTO te_job_experience(account_id, job_id) "
             + "SELECT ?, j.id FROM te_job j";
 
-        try (Connection conn = database.getDataSource().getConnection()) {
-            try (PreparedStatement accountStmt = conn.prepareStatement(createJobExperienceQuery)) {
-                accountStmt.setString(1, accountId.toString());
-                accountStmt.executeUpdate();
-            }
-        }
-    }
-
-    public int updateExperienceForJob(UUID accountId, UUID jobId, int experience) throws SQLException {
-        String updateExperienceForJobQuery = "UPDATE te_job_experience SET experience = ? WHERE account_id = ? AND job_id = ?";
-
         try (
             Connection conn = database.getDataSource().getConnection();
-            PreparedStatement stmt = conn.prepareStatement(updateExperienceForJobQuery)
+            PreparedStatement accountStmt = conn.prepareStatement(query)
         ) {
-            stmt.setInt(1, experience);
-            stmt.setString(2, accountId.toString());
-            stmt.setString(3, jobId.toString());
+            accountStmt.setString(1, request.accountId().toString());
 
-            return stmt.executeUpdate();
+            return accountStmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(
+                "[TotalEconomy] Error querying the database",
+                e
+            );
         }
+
+        return 0;
     }
 }

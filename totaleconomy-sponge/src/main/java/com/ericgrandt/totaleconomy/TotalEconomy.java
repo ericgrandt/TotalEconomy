@@ -1,16 +1,25 @@
 package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.commands.BalanceCommandExecutor;
+import com.ericgrandt.totaleconomy.commands.JobCommandExecutor;
 import com.ericgrandt.totaleconomy.commands.PayCommandExecutor;
+import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
+import com.ericgrandt.totaleconomy.common.command.JobCommand;
+import com.ericgrandt.totaleconomy.common.command.PayCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
+import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
+import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
+import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
+import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
 import com.ericgrandt.totaleconomy.config.PluginConfig;
 import com.ericgrandt.totaleconomy.impl.EconomyImpl;
+import com.ericgrandt.totaleconomy.listeners.JobListener;
 import com.ericgrandt.totaleconomy.listeners.PlayerListener;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.google.inject.Inject;
@@ -37,11 +46,13 @@ public class TotalEconomy {
     private final PluginContainer container;
     private final Logger logger;
     private final ConfigurationReference<CommentedConfigurationNode> configurationReference;
+    private final SpongeWrapper spongeWrapper;
 
     private PluginConfig config;
     private CurrencyDto defaultCurrency;
     private EconomyImpl economyImpl;
     private CommonEconomy economy;
+    private JobService jobService;
 
     @Inject
     private TotalEconomy(
@@ -52,6 +63,7 @@ public class TotalEconomy {
         this.container = container;
         this.logger = logger;
         this.configurationReference = configurationReference;
+        this.spongeWrapper = new SpongeWrapper();
     }
 
     @Listener
@@ -101,9 +113,11 @@ public class TotalEconomy {
 
         AccountData accountData = new AccountData(database);
         BalanceData balanceData = new BalanceData(database);
+        JobData jobData = new JobData(new SpongeLogger(logger), database);
 
         economy = new CommonEconomy(new SpongeLogger(logger), accountData, balanceData, currencyData);
-        economyImpl = new EconomyImpl(new SpongeWrapper(), defaultCurrency, economy);
+        economyImpl = new EconomyImpl(spongeWrapper, defaultCurrency, economy);
+        jobService = new JobService(jobData);
 
         registerListeners();
     }
@@ -111,16 +125,28 @@ public class TotalEconomy {
     @Listener
     public void onRegisterCommands(final RegisterCommandEvent<Command.Parameterized> event) {
         Command.Parameterized balanceCommand = Command.builder()
-            .executor(new BalanceCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
+            .executor(new BalanceCommandExecutor(new BalanceCommand(economy, defaultCurrency), spongeWrapper))
             .build();
         event.register(container, balanceCommand, "balance");
 
         Command.Parameterized payCommand = Command.builder()
-            .executor(new PayCommandExecutor(economy, defaultCurrency, new SpongeWrapper()))
+            .executor(new PayCommandExecutor(new PayCommand(economy, defaultCurrency), spongeWrapper))
             .addParameter(Parameter.player().key("toPlayer").build())
             .addParameter(Parameter.doubleNumber().key("amount").build())
             .build();
         event.register(container, payCommand, "pay");
+
+        if (config.getFeatures().get("jobs")) {
+            JobCommandExecutor jobCommandExecutor = new JobCommandExecutor(
+                new JobCommand(jobService),
+                spongeWrapper
+            );
+
+            Command.Parameterized jobCommand = Command.builder()
+                .executor(jobCommandExecutor)
+                .build();
+            event.register(container, jobCommand, "job");
+        }
     }
 
     @Listener
@@ -129,6 +155,19 @@ public class TotalEconomy {
     }
 
     private void registerListeners() {
-        Sponge.eventManager().registerListeners(container, new PlayerListener(economy));
+        Sponge.eventManager().registerListeners(
+            container,
+            new PlayerListener(new CommonPlayerListener(economy, jobService))
+        );
+
+        if (config.getFeatures().get("jobs")) {
+            Sponge.eventManager().registerListeners(
+                container,
+                new JobListener(
+                    spongeWrapper,
+                    new CommonJobListener(economy, jobService, defaultCurrency.id())
+                )
+            );
+        }
     }
 }

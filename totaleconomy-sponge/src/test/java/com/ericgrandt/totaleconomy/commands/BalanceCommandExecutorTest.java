@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
+import com.ericgrandt.totaleconomy.common.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
@@ -18,7 +19,6 @@ import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
@@ -38,7 +38,7 @@ public class BalanceCommandExecutorTest {
 
     @Test
     @Tag("Integration")
-    public void execute_ShouldSendMessageWithBalanceToPlayer() throws SQLException, ExecutionException, InterruptedException {
+    public void execute_ShouldSendMessageWithBalanceToPlayer() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -70,7 +70,7 @@ public class BalanceCommandExecutorTest {
         CurrencyData currencyData = new CurrencyData(databaseMock);
         CommonEconomy economy = new CommonEconomy(new SpongeLogger(loggerMock), accountData, balanceData, currencyData);
 
-        BalanceCommandExecutor sut = new BalanceCommandExecutor(economy, defaultCurrency, mock(SpongeWrapper.class));
+        BalanceCommandExecutor sut = new BalanceCommandExecutor(new BalanceCommand(economy, defaultCurrency), mock(SpongeWrapper.class));
 
         // Act
         sut.execute(commandContextMock);
