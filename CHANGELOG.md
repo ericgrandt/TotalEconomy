@@ -17,6 +17,10 @@ This update causes a breaking change for custom job rewards. See the "Changed" s
     - Level up notifications removed; will be added back in a future update or implemented in a different way
     - Full ids are now used (e.g. `minecraft:coal_ore` instead of `coal_ore`). This will cause existing custom job rewards to no longer work. Add the relevant prefix to custom job rewards to fix.
 
+### Fixed
+
+- Fixed a bug where a player would be rewarded experience and money when performing an action that doesn't match what's in the database (e.g. being rewarded for placing a spruce_log when it should only reward for breaking)
+
 ## [0.12.1] - 2024-04-24
 
 ### Changed
