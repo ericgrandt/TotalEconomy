@@ -30,7 +30,8 @@ public class JobData {
     public Optional<JobReward> getJobReward(GetJobRewardRequest request) {
         String query = "SELECT tjr.* FROM te_job_reward tjr "
             + "INNER JOIN te_job_action tja ON "
-            + "tja.action_name = ? "
+            + "tja.id = tjr.job_action_id "
+            + "AND tja.action_name = ? "
             + "WHERE material = ?";
 
         try (
