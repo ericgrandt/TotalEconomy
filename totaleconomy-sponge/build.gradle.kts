@@ -43,5 +43,8 @@ tasks {
         minimize {
             exclude(dependency("com.mysql:mysql-connector-j:.*"))
         }
+
+        // Exclude net.kyori packages to avoid interfering with the one bundled with Sponge
+        //exclude("net/kyori/**/*")
     }
 }
