@@ -35,11 +35,6 @@ subprojects {
             archiveClassifier.set("")
             archiveFileName.set("TotalEconomy-${project.version}.jar")
 
-            mergeServiceFiles()
-
-            // Exclude net.kyori packages to avoid interfering with the one bundled with Sponge
-            exclude("net/kyori/**/*")
-
             minimize {
                 exclude(project(":totaleconomy-common"))
             }
