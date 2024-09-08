@@ -2,7 +2,7 @@
 
 All notable changes to Total Economy will be documented in this file.
 
-## [0.13.1] - 2024-08-XX
+## [0.13.1] - 2024-09-08
 
 ### Fixed
 
