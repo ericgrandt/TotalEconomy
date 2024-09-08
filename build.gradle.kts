@@ -1,12 +1,12 @@
 plugins {
     id("java-library")
-    id("io.github.goooler.shadow") version "8.1.7"
+    id("com.gradleup.shadow") version "8.3.0"
     checkstyle
 }
 
 subprojects {
     plugins.apply("java-library")
-    plugins.apply("io.github.goooler.shadow")
+    plugins.apply("com.gradleup.shadow")
     plugins.apply("checkstyle")
 
     repositories {

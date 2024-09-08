@@ -22,4 +22,11 @@ tasks {
         dependsOn(shadowJar)
         minecraftVersion("1.21")
     }
+
+    shadowJar {
+        mergeServiceFiles()
+
+        // Exclude net.kyori packages to avoid interfering with the one bundled with Paper
+        exclude("net/kyori/**/*")
+    }
 }

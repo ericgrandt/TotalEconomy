@@ -2,6 +2,12 @@
 
 All notable changes to Total Economy will be documented in this file.
 
+## [0.13.1] - 2024-09-08
+
+### Fixed
+
+- Fix an issue with SpongeForge not working due to duplicate dependencies
+
 ## [0.13.0] - 2024-07-20
 
 This update causes a breaking change for custom job rewards. See the "Changed" section below for more information.
