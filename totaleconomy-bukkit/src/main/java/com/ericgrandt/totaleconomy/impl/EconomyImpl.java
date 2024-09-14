@@ -9,7 +9,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.OfflinePlayer;
 
 public class EconomyImpl implements Economy {
@@ -70,7 +69,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public boolean hasAccount(OfflinePlayer player, String worldName) {
-        throw new NotImplementedException("World specific accounts are not yet supported");
+        return hasAccount(player);
     }
 
     @Override
@@ -80,7 +79,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer player, String worldName) {
-        throw new NotImplementedException("World specific accounts are not yet supported");
+        return createPlayerAccount(player);
     }
 
     @Override
@@ -90,7 +89,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public double getBalance(OfflinePlayer player, String world) {
-        throw new NotImplementedException("World specific accounts are not yet supported");
+        return getBalance(player);
     }
 
     @Override
@@ -100,7 +99,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public boolean has(OfflinePlayer player, String worldName, double amount) {
-        throw new NotImplementedException("World specific accounts are not yet supported");
+        return has(player, amount);
     }
 
     @Override
@@ -125,7 +124,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, String worldName, double amount) {
-        throw new NotImplementedException("World specific accounts are not yet supported");
+        return withdrawPlayer(player, amount);
     }
 
     @Override
@@ -150,7 +149,7 @@ public class EconomyImpl implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer player, String worldName, double amount) {
-        throw new NotImplementedException("World specific accounts are not yet supported");
+        return depositPlayer(player, amount);
     }
 
     @Override
@@ -271,9 +270,5 @@ public class EconomyImpl implements Economy {
     @Override
     public boolean createPlayerAccount(String playerName, String worldName) {
         throw new UnsupportedOperationException();
-    }
-
-    public CurrencyDto getDefaultCurrency() {
-        return defaultCurrency;
     }
 }
