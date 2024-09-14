@@ -168,7 +168,7 @@ public class EconomyImplTest {
 
     @Test
     @Tag("Unit")
-    public void hasAccount_WorldName_WithPlayerHavingAnAccount_ShouldReturnTrue() {
+    public void hasAccount_World_WithPlayerHavingAnAccount_ShouldReturnTrue() {
         // Arrange
         UUID playerUUID = UUID.randomUUID();
         OfflinePlayer playerMock = mock(OfflinePlayer.class);
