@@ -2,6 +2,13 @@
 
 All notable changes to Total Economy will be documented in this file.
 
+## [0.13.2] - 2024-09-14
+
+### Added
+
+- Implementations for multi world Vault API functions (Bukkit only)
+  - Since Total Economy does not support multi-world, these implementations will act the same as the global Vault API functions.
+
 ## [0.13.1] - 2024-09-08
 
 ### Fixed
