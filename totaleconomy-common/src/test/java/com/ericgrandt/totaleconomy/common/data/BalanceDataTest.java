@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
+import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -162,7 +163,7 @@ public class BalanceDataTest {
         int actual = sut.updateBalance(accountId, currencyId, BigDecimal.valueOf(100));
         int expected = 1;
 
-        BalanceDto actualBalanceDto = TestUtils.getBalanceForAccountId(accountId, currencyId);
+        Balance actualBalanceDto = TestUtils.getBalanceForAccountId(accountId, currencyId);
 
         // Assert
         assertEquals(expected, actual);
@@ -190,8 +191,8 @@ public class BalanceDataTest {
         // Act
         sut.transfer(fromAccountId, toAccountId, 1, BigDecimal.TEN);
 
-        BalanceDto actualFromBalanceDto = TestUtils.getBalanceForAccountId(fromAccountId, 1);
-        BalanceDto actualToBalanceDto = TestUtils.getBalanceForAccountId(toAccountId, 1);
+        Balance actualFromBalanceDto = TestUtils.getBalanceForAccountId(fromAccountId, 1);
+        Balance actualToBalanceDto = TestUtils.getBalanceForAccountId(toAccountId, 1);
         BigDecimal expectedFromBalance = BigDecimal.valueOf(40).setScale(2, RoundingMode.DOWN);
         BigDecimal expectedToBalance = BigDecimal.valueOf(110).setScale(2, RoundingMode.DOWN);
 

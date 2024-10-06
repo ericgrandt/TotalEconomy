@@ -13,6 +13,7 @@ import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
+import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
@@ -83,8 +84,8 @@ public class CommonJobListenerTest {
         // Assert
         assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10, TimeUnit.SECONDS));
 
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
-        BalanceDto expectedBalance = new BalanceDto(
+        Balance actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
+        Balance expectedBalance = new Balance(
             "ab661384-11f5-41e1-a5e6-6fa93305d4d1",
             "62694fb0-07cc-4396-8d63-4f70646d75f0",
             1,

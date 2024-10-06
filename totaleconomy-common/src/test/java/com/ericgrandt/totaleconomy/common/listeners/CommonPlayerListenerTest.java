@@ -11,7 +11,10 @@ import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
-import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
+import com.ericgrandt.totaleconomy.common.domain.Account;
+import com.ericgrandt.totaleconomy.common.domain.Balance;
+import com.ericgrandt.totaleconomy.common.domain.JobExperience;
+import com.ericgrandt.totaleconomy.common.dto.AccountDto;
 import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
@@ -78,14 +81,14 @@ public class CommonPlayerListenerTest {
     }
 
     private void assertAccountsAreEqualOnPlayerJoinHandler(UUID playerId) throws SQLException {
-        AccountDto actualAccount = TestUtils.getAccount(playerId);
-        AccountDto expectedAccount = new AccountDto(
+        Account actualAccount = TestUtils.getAccount(playerId);
+        Account expectedAccount = new Account(
             playerId.toString(),
             actualAccount.created()
         );
 
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
-        BalanceDto expectedBalance = new BalanceDto(
+        Balance actualBalance = TestUtils.getBalanceForAccountId(playerId, 1);
+        Balance expectedBalance = new Balance(
             actualBalance.id(),
             playerId.toString(),
             1,
@@ -97,7 +100,7 @@ public class CommonPlayerListenerTest {
     }
 
     private void assertJobExperienceIsAddedOnPlayerJoinHandler(UUID accountId) throws SQLException {
-        List<JobExperienceDto> actualJobExperience = TestUtils.getExperienceForJobs(accountId);
+        List<JobExperience> actualJobExperience = TestUtils.getExperienceForJobs(accountId);
 
         assert actualJobExperience.size() == 2;
     }
