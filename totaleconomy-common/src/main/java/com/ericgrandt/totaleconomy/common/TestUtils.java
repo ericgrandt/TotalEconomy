@@ -1,8 +1,7 @@
 package com.ericgrandt.totaleconomy.common;
 
-import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
-import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
-import com.ericgrandt.totaleconomy.common.data.dto.JobExperienceDto;
+import com.ericgrandt.totaleconomy.common.domain.Account;
+import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -187,7 +186,7 @@ public class TestUtils {
         }
     }
 
-    public static AccountDto getAccount(UUID accountId) throws SQLException {
+    public static Account getAccount(UUID accountId) throws SQLException {
         String query = "SELECT * FROM te_account WHERE id = ?";
 
         try (Connection conn = TestUtils.getConnection()) {
@@ -196,19 +195,19 @@ public class TestUtils {
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return new AccountDto(
+                        return new Account(
                             rs.getString("id"),
                             rs.getTimestamp("created")
                         );
                     }
 
-                    return new AccountDto("", Timestamp.valueOf("2000-01-01"));
+                    return new Account("", Timestamp.valueOf("2000-01-01"));
                 }
             }
         }
     }
 
-    public static BalanceDto getBalanceForAccountId(UUID accountId, int currencyId) throws SQLException {
+    public static Balance getBalanceForAccountId(UUID accountId, int currencyId) throws SQLException {
         String query = "SELECT * FROM te_balance WHERE account_id = ? AND currency_id = ?";
 
         try (Connection conn = TestUtils.getConnection()) {
@@ -218,7 +217,7 @@ public class TestUtils {
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return new BalanceDto(
+                        return new Balance(
                             rs.getString("id"),
                             rs.getString("account_id"),
                             rs.getInt("currency_id"),
@@ -226,13 +225,13 @@ public class TestUtils {
                         );
                     }
 
-                    return new BalanceDto("", "", 0, BigDecimal.ONE);
+                    return new Balance("", "", 0, BigDecimal.ONE);
                 }
             }
         }
     }
 
-    public static JobExperienceDto getExperienceForJob(UUID accountId, UUID jobId) throws SQLException {
+    public static JobExperience getExperienceForJob(UUID accountId, UUID jobId) throws SQLException {
         String query = "SELECT * FROM te_job_experience WHERE account_id = ? AND job_id = ?";
 
         try (Connection conn = TestUtils.getConnection()) {
@@ -242,7 +241,7 @@ public class TestUtils {
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return new JobExperienceDto(
+                        return new JobExperience(
                             rs.getString("id"),
                             rs.getString("account_id"),
                             rs.getString("job_id"),
@@ -279,7 +278,7 @@ public class TestUtils {
         }
     }
 
-    public static List<JobExperienceDto> getExperienceForJobs(UUID accountId) throws SQLException {
+    public static List<JobExperience> getExperienceForJobs(UUID accountId) throws SQLException {
         String query = "SELECT account_id, job_id, experience FROM te_job_experience WHERE account_id = ?";
 
         try (Connection conn = TestUtils.getConnection()) {
@@ -287,10 +286,10 @@ public class TestUtils {
                 stmt.setString(1, accountId.toString());
 
                 try (ResultSet rs = stmt.executeQuery()) {
-                    List<JobExperienceDto> jobExperienceDtos = new ArrayList<>();
+                    List<JobExperience> jobExperienceDtos = new ArrayList<>();
                     while (rs.next()) {
                         jobExperienceDtos.add(
-                            new JobExperienceDto(
+                            new JobExperience(
                                 "",
                                 rs.getString("account_id"),
                                 rs.getString("job_id"),

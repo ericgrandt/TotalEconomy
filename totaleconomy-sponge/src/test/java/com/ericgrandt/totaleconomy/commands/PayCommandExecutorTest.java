@@ -14,7 +14,7 @@ import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.commonimpl.SpongeLogger;
 import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;

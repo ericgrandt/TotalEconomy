@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.common.data;
 
-import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
+import com.ericgrandt.totaleconomy.common.domain.Account;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -47,7 +47,7 @@ public class AccountData {
         }
     }
 
-    public AccountDto getAccount(UUID accountId) throws SQLException {
+    public Account getAccount(UUID accountId) throws SQLException {
         String getAccountQuery = "SELECT * FROM te_account WHERE id = ?";
 
         try (
@@ -58,7 +58,7 @@ public class AccountData {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new AccountDto(
+                    return new Account(
                         rs.getString("id"),
                         rs.getTimestamp("created")
                     );
@@ -69,18 +69,18 @@ public class AccountData {
         return null;
     }
 
-    public List<AccountDto> getAccounts() throws SQLException {
+    public List<Account> getAccounts() throws SQLException {
         String getAccountQuery = "SELECT * FROM te_account";
 
         try (
             Connection conn = database.getDataSource().getConnection();
             PreparedStatement stmt = conn.prepareStatement(getAccountQuery)
         ) {
-            List<AccountDto> accounts = new ArrayList<>();
+            List<Account> accounts = new ArrayList<>();
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     accounts.add(
-                        new AccountDto(
+                        new Account(
                             rs.getString("id"),
                             rs.getTimestamp("created")
                         )

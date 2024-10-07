@@ -13,8 +13,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
-import com.ericgrandt.totaleconomy.common.data.dto.AccountDto;
-import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
+import com.ericgrandt.totaleconomy.common.domain.Account;
+import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -96,8 +96,8 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        AccountDto actual = sut.getAccount(accountId);
-        AccountDto expected = new AccountDto(
+        Account actual = sut.getAccount(accountId);
+        Account expected = new Account(
             accountId.toString(),
             timestamp
         );
@@ -125,7 +125,7 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        AccountDto actual = sut.getAccount(accountId);
+        Account actual = sut.getAccount(accountId);
 
         // Arrange
         assertNull(actual);
@@ -155,10 +155,10 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        List<AccountDto> actual = sut.getAccounts();
-        List<AccountDto> expected = Arrays.asList(
-            new AccountDto(accountId1.toString(), Timestamp.valueOf("2022-01-01 00:00:00")),
-            new AccountDto(accountId2.toString(), Timestamp.valueOf("2022-01-01 00:00:00"))
+        List<Account> actual = sut.getAccounts();
+        List<Account> expected = Arrays.asList(
+            new Account(accountId1.toString(), Timestamp.valueOf("2022-01-01 00:00:00")),
+            new Account(accountId2.toString(), Timestamp.valueOf("2022-01-01 00:00:00"))
         );
 
         // Arrange
@@ -227,8 +227,8 @@ public class AccountDataTest {
         sut.createAccount(uuid);
 
         // Assert
-        AccountDto actualAccount = getAccountForId(uuid);
-        AccountDto expectedAccount = new AccountDto(
+        Account actualAccount = getAccountForId(uuid);
+        Account expectedAccount = new Account(
             uuid.toString(),
             null
         );
@@ -236,8 +236,8 @@ public class AccountDataTest {
         assertEquals(expectedAccount.id(), actualAccount.id());
         assertNotNull(actualAccount.created());
 
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
-        BalanceDto expectedBalance = new BalanceDto(
+        Balance actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
+        Balance expectedBalance = new Balance(
             null,
             uuid.toString(),
             1,
@@ -249,8 +249,8 @@ public class AccountDataTest {
         assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
         assertEquals(expectedBalance.balance(), actualBalance.balance());
 
-        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
-        BalanceDto expectedBalance2 = new BalanceDto(
+        Balance actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
+        Balance expectedBalance2 = new Balance(
             null,
             uuid.toString(),
             2,
@@ -282,8 +282,8 @@ public class AccountDataTest {
         sut.createAccount(uuid);
 
         // Assert
-        AccountDto actualAccount = getAccountForId(uuid);
-        AccountDto expectedAccount = new AccountDto(
+        Account actualAccount = getAccountForId(uuid);
+        Account expectedAccount = new Account(
             uuid.toString(),
             null
         );
@@ -291,8 +291,8 @@ public class AccountDataTest {
         assertEquals(expectedAccount.id(), actualAccount.id());
         assertNotNull(actualAccount.created());
 
-        BalanceDto actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
-        BalanceDto expectedBalance = new BalanceDto(
+        Balance actualBalance = TestUtils.getBalanceForAccountId(uuid, 1);
+        Balance expectedBalance = new Balance(
             null,
             uuid.toString(),
             1,
@@ -304,8 +304,8 @@ public class AccountDataTest {
         assertEquals(expectedBalance.currencyId(), actualBalance.currencyId());
         assertEquals(expectedBalance.balance(), actualBalance.balance());
 
-        BalanceDto actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
-        BalanceDto expectedBalance2 = new BalanceDto(
+        Balance actualBalance2 = TestUtils.getBalanceForAccountId(uuid, 2);
+        Balance expectedBalance2 = new Balance(
             null,
             uuid.toString(),
             2,
@@ -333,8 +333,8 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        AccountDto actual = sut.getAccount(uuid);
-        AccountDto expected = new AccountDto(
+        Account actual = sut.getAccount(uuid);
+        Account expected = new Account(
             uuid.toString(),
             Timestamp.valueOf("2022-01-01 00:00:00")
         );
@@ -358,10 +358,10 @@ public class AccountDataTest {
         AccountData sut = new AccountData(databaseMock);
 
         // Act
-        List<AccountDto> actual = sut.getAccounts();
-        List<AccountDto> expected = Arrays.asList(
-            new AccountDto("62694fb0-07cc-4396-8d63-4f70646d75f0", Timestamp.valueOf("2022-01-01 00:00:00")),
-            new AccountDto("551fe9be-f77f-4bcb-81db-548db6e77aea", Timestamp.valueOf("2022-01-02 00:00:00"))
+        List<Account> actual = sut.getAccounts();
+        List<Account> expected = Arrays.asList(
+            new Account("62694fb0-07cc-4396-8d63-4f70646d75f0", Timestamp.valueOf("2022-01-01 00:00:00")),
+            new Account("551fe9be-f77f-4bcb-81db-548db6e77aea", Timestamp.valueOf("2022-01-02 00:00:00"))
         );
 
         // Assert
@@ -386,14 +386,14 @@ public class AccountDataTest {
 
         // Act
         boolean actual = sut.deleteAccount(uuid);
-        AccountDto deletedAccount = getAccountForId(uuid);
+        Account deletedAccount = getAccountForId(uuid);
 
         // Assert
         assertTrue(actual);
         assertNull(deletedAccount);
     }
 
-    private AccountDto getAccountForId(UUID uuid) throws SQLException {
+    private Account getAccountForId(UUID uuid) throws SQLException {
         String query = "SELECT * FROM te_account WHERE id = ?";
 
         try (Connection conn = TestUtils.getConnection()) {
@@ -402,7 +402,7 @@ public class AccountDataTest {
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return new AccountDto(
+                        return new Account(
                             rs.getString("id"),
                             rs.getTimestamp("created")
                         );

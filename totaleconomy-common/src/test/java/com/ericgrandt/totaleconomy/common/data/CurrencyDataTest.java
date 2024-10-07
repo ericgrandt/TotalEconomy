@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.domain.Currency;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -43,8 +43,8 @@ public class CurrencyDataTest {
         CurrencyData sut = new CurrencyData(databaseMock);
 
         // Act
-        CurrencyDto actual = sut.getDefaultCurrency();
-        CurrencyDto expected = new CurrencyDto(
+        Currency actual = sut.getDefaultCurrency();
+        Currency expected = new Currency(
             1,
             "Dollar",
             "Dollars",
@@ -74,7 +74,7 @@ public class CurrencyDataTest {
         CurrencyData sut = new CurrencyData(databaseMock);
 
         // Act
-        CurrencyDto actual = sut.getDefaultCurrency();
+        Currency actual = sut.getDefaultCurrency();
 
         // Assert
         assertNull(actual);
@@ -94,8 +94,8 @@ public class CurrencyDataTest {
         CurrencyData sut = new CurrencyData(databaseMock);
 
         // Act
-        CurrencyDto actual = sut.getDefaultCurrency();
-        CurrencyDto expected = new CurrencyDto(
+        Currency actual = sut.getDefaultCurrency();
+        Currency expected = new Currency(
             1,
             "Dollar",
             "Dollars",

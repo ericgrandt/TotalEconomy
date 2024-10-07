@@ -3,7 +3,7 @@ package com.ericgrandt.totaleconomy.common.econ;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,7 +31,15 @@ public class CommonEconomy {
 
     public CurrencyDto getDefaultCurrency() {
         try {
-            return currencyData.getDefaultCurrency();
+            var currency = currencyData.getDefaultCurrency();
+            return new CurrencyDto(
+                currency.id(),
+                currency.nameSingular(),
+                currency.namePlural(),
+                currency.symbol(),
+                currency.numFractionDigits(),
+                currency.isDefault()
+            );
         } catch (SQLException e) {
             logger.error(
                 "[Total Economy] Error calling getDefaultCurrency",

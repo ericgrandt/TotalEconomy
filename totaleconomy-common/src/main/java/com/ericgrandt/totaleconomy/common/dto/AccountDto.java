@@ -1,4 +1,4 @@
-package com.ericgrandt.totaleconomy.common.data.dto;
+package com.ericgrandt.totaleconomy.common.dto;
 
 import java.sql.Timestamp;
 
