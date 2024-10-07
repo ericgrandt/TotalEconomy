@@ -13,7 +13,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
-import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.domain.Account;
 import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.zaxxer.hikari.HikariDataSource;

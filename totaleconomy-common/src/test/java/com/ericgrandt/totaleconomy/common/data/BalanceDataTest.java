@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
-import com.ericgrandt.totaleconomy.common.data.dto.BalanceDto;
 import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
@@ -163,12 +162,12 @@ public class BalanceDataTest {
         int actual = sut.updateBalance(accountId, currencyId, BigDecimal.valueOf(100));
         int expected = 1;
 
-        Balance actualBalanceDto = TestUtils.getBalanceForAccountId(accountId, currencyId);
+        Balance actualBalance = TestUtils.getBalanceForAccountId(accountId, currencyId);
 
         // Assert
         assertEquals(expected, actual);
-        assertNotNull(actualBalanceDto);
-        assertEquals(BigDecimal.valueOf(100).setScale(2, RoundingMode.DOWN), actualBalanceDto.balance());
+        assertNotNull(actualBalance);
+        assertEquals(BigDecimal.valueOf(100).setScale(2, RoundingMode.DOWN), actualBalance.balance());
     }
 
     @Test
@@ -191,13 +190,13 @@ public class BalanceDataTest {
         // Act
         sut.transfer(fromAccountId, toAccountId, 1, BigDecimal.TEN);
 
-        Balance actualFromBalanceDto = TestUtils.getBalanceForAccountId(fromAccountId, 1);
-        Balance actualToBalanceDto = TestUtils.getBalanceForAccountId(toAccountId, 1);
+        Balance actualFromBalance = TestUtils.getBalanceForAccountId(fromAccountId, 1);
+        Balance actualToBalance = TestUtils.getBalanceForAccountId(toAccountId, 1);
         BigDecimal expectedFromBalance = BigDecimal.valueOf(40).setScale(2, RoundingMode.DOWN);
         BigDecimal expectedToBalance = BigDecimal.valueOf(110).setScale(2, RoundingMode.DOWN);
 
         // Assert
-        assertEquals(expectedFromBalance, actualFromBalanceDto.balance());
-        assertEquals(expectedToBalance, actualToBalanceDto.balance());
+        assertEquals(expectedFromBalance, actualFromBalance.balance());
+        assertEquals(expectedToBalance, actualToBalance.balance());
     }
 }

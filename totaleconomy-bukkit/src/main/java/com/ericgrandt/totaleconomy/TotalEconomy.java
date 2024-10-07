@@ -11,7 +11,8 @@ import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
 import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.domain.Currency;
+import com.ericgrandt.totaleconomy.common.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.listeners.CommonJobListener;
 import com.ericgrandt.totaleconomy.common.listeners.CommonPlayerListener;
@@ -67,7 +68,15 @@ public class TotalEconomy extends JavaPlugin implements Listener {
 
         CurrencyData currencyData = new CurrencyData(database);
         try {
-            defaultCurrency = currencyData.getDefaultCurrency();
+            Currency currency = currencyData.getDefaultCurrency();
+            defaultCurrency = new CurrencyDto(
+                currency.id(),
+                currency.nameSingular(),
+                currency.namePlural(),
+                currency.symbol(),
+                currency.numFractionDigits(),
+                currency.isDefault()
+            );
         } catch (SQLException e) {
             logger.log(
                 Level.SEVERE,

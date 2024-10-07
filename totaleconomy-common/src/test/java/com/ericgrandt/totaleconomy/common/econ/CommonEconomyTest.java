@@ -14,8 +14,9 @@ import static org.mockito.Mockito.when;
 import com.ericgrandt.totaleconomy.common.data.AccountData;
 import com.ericgrandt.totaleconomy.common.data.BalanceData;
 import com.ericgrandt.totaleconomy.common.data.CurrencyData;
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.domain.Account;
+import com.ericgrandt.totaleconomy.common.domain.Currency;
+import com.ericgrandt.totaleconomy.common.dto.CurrencyDto;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -45,7 +46,7 @@ public class CommonEconomyTest {
     @Tag("Unit")
     public void getDefaultCurrency_WithDefaultCurrency_ShouldReturnCurrency() throws SQLException {
         // Arrange
-        CurrencyDto defaultCurrency = new CurrencyDto(
+        Currency defaultCurrency = new Currency(
             1,
             "singular",
             "plural",
@@ -60,7 +61,14 @@ public class CommonEconomyTest {
 
         // Act
         CurrencyDto actual = sut.getDefaultCurrency();
-        CurrencyDto expected = defaultCurrency;
+        CurrencyDto expected = new CurrencyDto(
+            defaultCurrency.id(),
+            defaultCurrency.nameSingular(),
+            defaultCurrency.namePlural(),
+            defaultCurrency.symbol(),
+            defaultCurrency.numFractionDigits(),
+            defaultCurrency.isDefault()
+        );
 
         // Assert
         assertEquals(expected, actual);

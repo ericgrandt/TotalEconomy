@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.common.data;
 
-import com.ericgrandt.totaleconomy.common.data.dto.CurrencyDto;
+import com.ericgrandt.totaleconomy.common.domain.Currency;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,7 +13,7 @@ public class CurrencyData {
         this.database = database;
     }
 
-    public CurrencyDto getDefaultCurrency() throws SQLException {
+    public Currency getDefaultCurrency() throws SQLException {
         String query = "SELECT * FROM te_currency WHERE is_default IS TRUE LIMIT 1";
 
         try (
@@ -22,7 +22,7 @@ public class CurrencyData {
         ) {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new CurrencyDto(
+                    return new Currency(
                         rs.getInt("id"),
                         rs.getString("name_singular"),
                         rs.getString("name_plural"),
