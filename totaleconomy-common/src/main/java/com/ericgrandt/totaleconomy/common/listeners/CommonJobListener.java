@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.common.listeners;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.common.jobs.ExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
@@ -28,6 +29,7 @@ public class CommonJobListener {
 
     public void handleAction(JobEvent event) {
         CommonPlayer player = event.player();
+        ExperienceBar experienceBar = jobService.getPlayerExperienceBar(player.getUniqueId());
 
         CompletableFuture.runAsync(() -> {
             GetJobRewardResponse jobRewardResponse = jobService.getJobReward(
@@ -40,6 +42,9 @@ public class CommonJobListener {
                 jobRewardResponse.experience()
             );
             jobService.addExperience(addExperienceRequest);
+
+            // TODO: Test
+            experienceBar.show();
             economy.deposit(player.getUniqueId(), currencyId, jobRewardResponse.money(), false);
         });
     }

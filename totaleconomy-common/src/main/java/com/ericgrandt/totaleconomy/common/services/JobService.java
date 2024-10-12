@@ -4,6 +4,7 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
+import com.ericgrandt.totaleconomy.common.jobs.ExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
@@ -12,12 +13,14 @@ import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class JobService {
     private final JobData jobData;
+    private final HashMap<UUID, ExperienceBar> playerExperienceBars = new HashMap<>();
 
     public JobService(final JobData jobData) {
         this.jobData = jobData;
@@ -60,5 +63,15 @@ public class JobService {
 
     public void createJobExperience(CreateJobExperienceRequest request) {
         jobData.createJobExperience(request);
+    }
+
+    // TODO: Test
+    public void addPlayerExperienceBar(UUID playerUuid, ExperienceBar experienceBar) {
+        playerExperienceBars.put(playerUuid, experienceBar);
+    }
+
+    // TODO: Test
+    public ExperienceBar getPlayerExperienceBar(UUID playerUuid) {
+        return playerExperienceBars.get(playerUuid);
     }
 }
