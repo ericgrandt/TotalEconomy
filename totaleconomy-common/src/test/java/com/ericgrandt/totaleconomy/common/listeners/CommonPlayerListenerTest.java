@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.common.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,7 +43,7 @@ public class CommonPlayerListenerTest {
 
     @Test
     @Tag("Integration")
-    public void onPlayerJoinHandler_ShouldCreateNewAccountAndBalances() throws SQLException {
+    public void onPlayerJoinHandler_ShouldSetupDataForPlayer() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -76,6 +77,7 @@ public class CommonPlayerListenerTest {
         assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10,TimeUnit.SECONDS));
         assertAccountsAreEqualOnPlayerJoinHandler(playerId);
         assertJobExperienceIsAddedOnPlayerJoinHandler(playerId);
+        assertNotNull(jobService.getPlayerExperienceBar(playerId));
     }
 
     private void assertAccountsAreEqualOnPlayerJoinHandler(UUID playerId) throws SQLException {
