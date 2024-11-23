@@ -147,6 +147,20 @@ public class JobExperienceTest {
 
     @Test
     @Tag("Unit")
+    public void getAccountId_ShouldReturnAccountId() {
+        // Arrange
+        JobExperience sut = new JobExperience("id", "accountId", "", 0);
+
+        // Act
+        String actual = sut.getAccountId();
+        String expected = "accountId";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void getJobId_ShouldReturnJobId() {
         // Arrange
         JobExperience sut = new JobExperience("id", "", "jobId", 0);

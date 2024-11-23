@@ -42,6 +42,10 @@ public class JobExperience {
         return id;
     }
 
+    public String getAccountId() {
+        return accountId;
+    }
+
     public String getJobId() {
         return jobId;
     }
