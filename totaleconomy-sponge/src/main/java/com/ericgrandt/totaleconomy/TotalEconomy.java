@@ -26,6 +26,8 @@ import com.ericgrandt.totaleconomy.wrappers.SpongeWrapper;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Optional;
+
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
@@ -164,12 +166,19 @@ public class TotalEconomy {
     }
 
     private void registerListeners() {
+        boolean jobsEnabled = config.getFeatures().get("jobs");
+
         Sponge.eventManager().registerListeners(
             container,
-            new PlayerListener(new CommonPlayerListener(economy, jobService))
+            new PlayerListener(
+                new CommonPlayerListener(
+                    economy,
+                    jobsEnabled ? Optional.of(jobService) : Optional.empty()
+                )
+            )
         );
 
-        if (config.getFeatures().get("jobs")) {
+        if (jobsEnabled) {
             Sponge.eventManager().registerListeners(
                 container,
                 new JobListener(
