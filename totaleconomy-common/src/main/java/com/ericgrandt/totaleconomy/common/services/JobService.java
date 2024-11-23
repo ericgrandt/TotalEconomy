@@ -4,10 +4,12 @@ import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.Job;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
 import com.ericgrandt.totaleconomy.common.domain.JobReward;
+import com.ericgrandt.totaleconomy.common.dto.ExperienceBarDto;
 import com.ericgrandt.totaleconomy.common.jobs.ExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.AddExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetAllJobExperienceRequest;
+import com.ericgrandt.totaleconomy.common.models.GetJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobExperienceResponse;
 import com.ericgrandt.totaleconomy.common.models.GetJobRequest;
 import com.ericgrandt.totaleconomy.common.models.GetJobRewardRequest;
@@ -32,6 +34,19 @@ public class JobService {
             jobReward.getJobId(),
             jobReward.getMoney(),
             jobReward.getExperience()
+        );
+    }
+
+    public ExperienceBarDto getExperienceBarDto(GetJobExperienceRequest request) {
+        JobExperience jobExperience = jobData.getJobExperience(request).orElseThrow();
+        Job job = jobData.getJob(
+            new GetJobRequest(UUID.fromString(jobExperience.getJobId()))
+        ).orElseThrow();
+        return new ExperienceBarDto(
+            job.jobName(),
+            jobExperience.getExperience(),
+            jobExperience.getNextLevelExperience(),
+            jobExperience.getCurrentLevelBaseExperience()
         );
     }
 
@@ -65,12 +80,10 @@ public class JobService {
         jobData.createJobExperience(request);
     }
 
-    // TODO: Test
     public void addPlayerExperienceBar(UUID playerUuid, ExperienceBar experienceBar) {
         playerExperienceBars.put(playerUuid, experienceBar);
     }
 
-    // TODO: Test
     public ExperienceBar getPlayerExperienceBar(UUID playerUuid) {
         return playerExperienceBars.get(playerUuid);
     }
