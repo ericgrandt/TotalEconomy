@@ -6,7 +6,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
 public class FeatureSettings {
-    private boolean jobs = false;
+    private boolean jobs = true;
 
     public Map<String, Boolean> getFeatures() {
         Map<String, Boolean> features = new HashMap<>();
