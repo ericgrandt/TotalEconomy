@@ -27,7 +27,6 @@ import com.google.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Optional;
-
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
