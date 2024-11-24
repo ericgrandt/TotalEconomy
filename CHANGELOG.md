@@ -2,11 +2,11 @@
 
 All notable changes to Total Economy will be documented in this file.
 
-## [0.14.0] - 2024-11-XX
+## [0.14.0] - 2024-11-24
 
 ### Added
 
-- Experience bars have been added back. On job action, the experience will show up for around 5 seconds before disappearing again.
+- Experience bars have been added back. On job action, the experience bar will show up for around 5 seconds before disappearing again.
 
 ### Fix
 
