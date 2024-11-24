@@ -40,11 +40,9 @@ public class ExperienceBar {
         bossBar.name(
             Component.text(
                 String.format(
-                    "%s [+%s EXP] [%s/%s]",
+                    "%s [+%s EXP]",
                     expBarDto.jobName(),
                     expGain,
-                    expBarDto.exp(),
-                    expBarDto.expToNext()
                 )
             )
         );
