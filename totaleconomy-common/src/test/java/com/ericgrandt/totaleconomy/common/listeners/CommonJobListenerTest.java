@@ -3,7 +3,11 @@ package com.ericgrandt.totaleconomy.common.listeners;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ericgrandt.totaleconomy.common.TestUtils;
@@ -14,9 +18,11 @@ import com.ericgrandt.totaleconomy.common.data.Database;
 import com.ericgrandt.totaleconomy.common.data.JobData;
 import com.ericgrandt.totaleconomy.common.domain.Balance;
 import com.ericgrandt.totaleconomy.common.domain.JobExperience;
+import com.ericgrandt.totaleconomy.common.dto.ExperienceBarDto;
 import com.ericgrandt.totaleconomy.common.econ.CommonEconomy;
 import com.ericgrandt.totaleconomy.common.event.JobEvent;
 import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
+import com.ericgrandt.totaleconomy.common.jobs.ExperienceBar;
 import com.ericgrandt.totaleconomy.common.logger.CommonLogger;
 import com.ericgrandt.totaleconomy.common.services.JobService;
 import com.zaxxer.hikari.HikariDataSource;
@@ -25,6 +31,7 @@ import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -42,6 +49,9 @@ public class CommonJobListenerTest {
 
     @Mock
     private CommonPlayer playerMock;
+
+    @Mock
+    private ScheduledThreadPoolExecutor threadPoolExecutorMock;
 
     @Test
     @Tag("Integration")
@@ -66,6 +76,9 @@ public class CommonJobListenerTest {
         AccountData accountData = new AccountData(databaseMock);
         BalanceData balanceData = new BalanceData(databaseMock);
         CurrencyData currencyData = new CurrencyData(databaseMock);
+
+        ExperienceBar experienceBar = spy(new ExperienceBar(playerMock, threadPoolExecutorMock));
+        jobService.addPlayerExperienceBar(playerId, experienceBar);
 
         CommonEconomy economy = new CommonEconomy(
             loggerMock,
@@ -102,5 +115,6 @@ public class CommonJobListenerTest {
 
         assertEquals(expectedBalance, actualBalance);
         assertThat(actualExperience).usingRecursiveComparison().isEqualTo(expectedExperience);
+        verify(experienceBar, times(1)).show(any(ExperienceBarDto.class), any(Integer.class));
     }
 }

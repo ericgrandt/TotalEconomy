@@ -23,6 +23,11 @@ public class JobExperience {
         return Math.max(level, 1);
     }
 
+    public int getCurrentLevelBaseExperience() {
+        int experience = (int) Math.ceil(49 * Math.pow(getLevel() - 1, 2));
+        return experience > 0 ? experience + 1 : experience;
+    }
+
     public int getNextLevelExperience() {
         return (int) Math.ceil(49 * Math.pow(getLevel(), 2)) + 1;
     }
@@ -35,6 +40,10 @@ public class JobExperience {
 
     public String getId() {
         return id;
+    }
+
+    public String getAccountId() {
+        return accountId;
     }
 
     public String getJobId() {

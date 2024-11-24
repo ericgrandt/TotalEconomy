@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.common.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +43,7 @@ public class CommonPlayerListenerTest {
 
     @Test
     @Tag("Integration")
-    public void onPlayerJoinHandler_ShouldCreateNewAccountAndBalances() throws SQLException {
+    public void onPlayerJoinHandler_ShouldSetupDataForPlayer() throws SQLException {
         // Arrange
         TestUtils.resetDb();
         TestUtils.seedCurrencies();
@@ -66,7 +68,7 @@ public class CommonPlayerListenerTest {
         );
         JobService jobService = new JobService(jobData);
 
-        CommonPlayerListener sut = new CommonPlayerListener(economy, jobService);
+        CommonPlayerListener sut = new CommonPlayerListener(economy, Optional.of(jobService));
 
         // Act
         sut.onPlayerJoin(playerMock);
@@ -75,6 +77,7 @@ public class CommonPlayerListenerTest {
         assertTrue(ForkJoinPool.commonPool().awaitQuiescence(10,TimeUnit.SECONDS));
         assertAccountsAreEqualOnPlayerJoinHandler(playerId);
         assertJobExperienceIsAddedOnPlayerJoinHandler(playerId);
+        assertNotNull(jobService.getPlayerExperienceBar(playerId));
     }
 
     private void assertAccountsAreEqualOnPlayerJoinHandler(UUID playerId) throws SQLException {

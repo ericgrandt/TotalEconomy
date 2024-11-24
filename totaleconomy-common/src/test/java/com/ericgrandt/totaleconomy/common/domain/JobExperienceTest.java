@@ -38,6 +38,34 @@ public class JobExperienceTest {
 
     @Test
     @Tag("Unit")
+    public void getCurrentLevelBaseExperience_WithLevelOne_ShouldReturnBaseExperienceOfZero() {
+        // Arrange
+        JobExperience sut = new JobExperience("", "", "", 0);
+
+        // Act
+        int actual = sut.getCurrentLevelBaseExperience();
+        int expected = 0;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getCurrentLevelBaseExperience_WithLevelTwo_ShouldReturnCorrectBaseExperience() {
+        // Arrange
+        JobExperience sut = new JobExperience("", "", "", 100);
+
+        // Act
+        int actual = sut.getCurrentLevelBaseExperience();
+        int expected = 50;
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
     public void getNextLevelExperience_WithACurrentLevelOfOne_ShouldReturnExperienceForLevelTwo() {
         // Arrange
         JobExperience sut = new JobExperience("", "", "", 25);
@@ -112,6 +140,20 @@ public class JobExperienceTest {
         // Act
         String actual = sut.getId();
         String expected = "id";
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccountId_ShouldReturnAccountId() {
+        // Arrange
+        JobExperience sut = new JobExperience("id", "accountId", "", 0);
+
+        // Act
+        String actual = sut.getAccountId();
+        String expected = "accountId";
 
         // Assert
         assertEquals(expected, actual);

@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +74,7 @@ public class PlayerListenerTest {
         );
         JobService jobService = new JobService(jobData);
 
-        PlayerListener sut = new PlayerListener(new CommonPlayerListener(economy, jobService));
+        PlayerListener sut = new PlayerListener(new CommonPlayerListener(economy, Optional.of(jobService)));
 
         // Act
         sut.onPlayerJoin(joinEventMock);

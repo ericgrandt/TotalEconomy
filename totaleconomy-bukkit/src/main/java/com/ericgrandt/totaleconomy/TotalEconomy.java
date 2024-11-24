@@ -26,6 +26,7 @@ import com.ericgrandt.totaleconomy.wrappers.BukkitWrapper;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
@@ -123,12 +124,19 @@ public class TotalEconomy extends JavaPlugin implements Listener {
     }
 
     private void registerListeners() {
+        boolean jobsEnabled = config.getFeatures().get("jobs");
+
         getServer().getPluginManager().registerEvents(
-            new PlayerListener(new CommonPlayerListener(economy, jobService)),
+            new PlayerListener(
+                new CommonPlayerListener(
+                    economy,
+                    jobsEnabled ? Optional.of(jobService) : Optional.empty()
+                )
+            ),
             this
         );
 
-        if (config.getFeatures().get("jobs")) {
+        if (jobsEnabled) {
             CommonJobListener commonJobListener = new CommonJobListener(economy, jobService, defaultCurrency.id());
             getServer().getPluginManager().registerEvents(
                 new JobListener(commonJobListener),

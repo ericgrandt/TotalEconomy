@@ -9,18 +9,18 @@ repositories {
 
 dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT")
 
     implementation(project(":totaleconomy-common", configuration = "shadow"))
 
     testImplementation("com.github.MilkBowl:VaultAPI:1.7")
-    testImplementation("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT")
 }
 
 tasks {
     runServer {
         dependsOn(shadowJar)
-        minecraftVersion("1.21")
+        minecraftVersion("1.21.3")
     }
 
     shadowJar {
