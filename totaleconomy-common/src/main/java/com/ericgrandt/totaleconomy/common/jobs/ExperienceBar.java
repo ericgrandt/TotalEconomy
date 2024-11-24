@@ -42,7 +42,7 @@ public class ExperienceBar {
                 String.format(
                     "%s [+%s EXP]",
                     expBarDto.jobName(),
-                    expGain,
+                    expGain
                 )
             )
         );
