@@ -2,10 +2,10 @@ import org.spongepowered.gradle.plugin.config.PluginLoaders
 import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
-    id("org.spongepowered.gradle.plugin") version "2.2.0"
+    id("org.spongepowered.gradle.plugin") version "2.3.0"
 }
 
-var spongeApiVersion = "12.0.0"
+var spongeApiVersion = "14.0.0-SNAPSHOT"
 
 sponge {
     apiVersion(spongeApiVersion)

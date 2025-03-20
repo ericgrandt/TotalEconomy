@@ -2,6 +2,10 @@
 
 All notable changes to Total Economy will be documented in this file.
 
+## [0.15.0] - 2025-03-20
+
+- Updated to support Minecraft 1.21.4
+
 ## [0.14.0] - 2024-11-24
 
 ### Added
