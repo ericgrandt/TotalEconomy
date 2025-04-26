@@ -2,6 +2,12 @@
 
 All notable changes to Total Economy will be documented in this file.
 
+## [0.15.0] - 2025-04-25
+
+### Fix
+
+- DamageEntityEvent changed to DamageEntityEvent.Post to fix error
+
 ## [0.15.0] - 2025-03-20
 
 - Updated to support Minecraft 1.21.4

@@ -239,7 +239,7 @@ public class JobListenerTest {
     @Tag("Unit")
     public void onKillAction_WithSuccess_ShouldHandleAction() {
         // Arrange
-        DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
+        DamageEntityEvent.Post eventMock = mock(DamageEntityEvent.Post.class, RETURNS_DEEP_STUBS);
         when(eventMock.cause().first(ServerPlayer.class)).thenReturn(Optional.of(playerMock));
         when(eventMock.willCauseDeath()).thenReturn(true);
         when(
@@ -263,7 +263,7 @@ public class JobListenerTest {
     @Tag("Unit")
     public void onKillAction_WithNonPlayerCause_ShouldReturnWithoutHandlingAction() {
         // Arrange
-        DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
+        DamageEntityEvent.Post eventMock = mock(DamageEntityEvent.Post.class, RETURNS_DEEP_STUBS);
         when(eventMock.cause().first(ServerPlayer.class)).thenReturn(Optional.empty());
 
         JobListener sut = new JobListener(spongeWrapperMock, commonJobListenerMock);
@@ -279,7 +279,7 @@ public class JobListenerTest {
     @Tag("Unit")
     public void onKillAction_WithEventNotCausingDeath_ShouldReturnWithoutHandlingAction() {
         // Arrange
-        DamageEntityEvent eventMock = mock(DamageEntityEvent.class, RETURNS_DEEP_STUBS);
+        DamageEntityEvent.Post eventMock = mock(DamageEntityEvent.Post.class, RETURNS_DEEP_STUBS);
         when(eventMock.cause().first(ServerPlayer.class)).thenReturn(Optional.of(playerMock));
         when(eventMock.willCauseDeath()).thenReturn(false);
 

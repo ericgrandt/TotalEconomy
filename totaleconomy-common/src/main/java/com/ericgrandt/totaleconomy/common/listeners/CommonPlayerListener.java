@@ -5,7 +5,6 @@ import com.ericgrandt.totaleconomy.common.game.CommonPlayer;
 import com.ericgrandt.totaleconomy.common.jobs.ExperienceBar;
 import com.ericgrandt.totaleconomy.common.models.CreateJobExperienceRequest;
 import com.ericgrandt.totaleconomy.common.services.JobService;
-
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;

@@ -40,7 +40,7 @@ public class JobListener {
     }
 
     @Listener
-    public void onKillAction(DamageEntityEvent event) {
+    public void onKillAction(DamageEntityEvent.Post event) {
         if (event.cause().first(ServerPlayer.class).isEmpty() || !event.willCauseDeath()) {
             return;
         }

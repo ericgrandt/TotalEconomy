@@ -1,8 +1,7 @@
 package com.ericgrandt.totaleconomy.common.game;
 
-import net.kyori.adventure.bossbar.BossBar;
-
 import java.util.UUID;
+import net.kyori.adventure.bossbar.BossBar;
 
 public interface CommonPlayer extends CommonSender {
     UUID getUniqueId();
