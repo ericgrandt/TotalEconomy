@@ -2,11 +2,11 @@
 
 All notable changes to Total Economy will be documented in this file.
 
-## [0.15.0] - 2025-04-25
+## [0.15.1] - 2025-04-25
 
 ### Fix
 
-- DamageEntityEvent changed to DamageEntityEvent.Post to fix error
+- DamageEntityEvent changed to DamageEntityEvent.Post to fix error in Sponge version
 
 ## [0.15.0] - 2025-03-20
 
