@@ -5,125 +5,133 @@ import net.milkbowl.vault.economy.EconomyResponse
 import org.bukkit.OfflinePlayer
 
 class EconomyImpl : Economy {
+    constructor() {
+
+    }
+
     override fun isEnabled(): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
     override fun getName(): String {
-        TODO("Not yet implemented")
+        return "Total Economy"
     }
 
     override fun hasBankSupport(): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
 
     override fun fractionalDigits(): Int {
-        TODO("Not yet implemented")
+        return 2
     }
 
-    override fun format(p0: Double): String {
-        TODO("Not yet implemented")
+    override fun format(amount: Double): String {
+        var currencyName = currencyNamePlural()
+        if (amount == 1.0) {
+            currencyName = currencyNameSingular()
+        }
+        return "%.${fractionalDigits()}f $currencyName".format(amount)
     }
 
     override fun currencyNamePlural(): String {
-        TODO("Not yet implemented")
+        return "Diamonds"
     }
 
     override fun currencyNameSingular(): String {
-        TODO("Not yet implemented")
+        return "Diamond"
     }
 
     override fun hasAccount(player: OfflinePlayer): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun hasAccount(p0: OfflinePlayer?, p1: String?): Boolean {
+    override fun hasAccount(p0: OfflinePlayer, p1: String): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(p0: OfflinePlayer?): Double {
+    override fun getBalance(p0: OfflinePlayer): Double {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(p0: OfflinePlayer?, p1: String?): Double {
+    override fun getBalance(p0: OfflinePlayer, p1: String): Double {
         TODO("Not yet implemented")
     }
 
-    override fun has(p0: OfflinePlayer?, p1: Double): Boolean {
+    override fun has(p0: OfflinePlayer, p1: Double): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun has(p0: OfflinePlayer?, p1: String?, p2: Double): Boolean {
+    override fun has(p0: OfflinePlayer, p1: String, p2: Double): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun withdrawPlayer(
-        p0: OfflinePlayer?,
+        p0: OfflinePlayer,
         p1: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun withdrawPlayer(
-        p0: OfflinePlayer?,
-        p1: String?,
+        p0: OfflinePlayer,
+        p1: String,
         p2: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun depositPlayer(
-        p0: OfflinePlayer?,
+        p0: OfflinePlayer,
         p1: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun depositPlayer(
-        p0: OfflinePlayer?,
-        p1: String?,
+        p0: OfflinePlayer,
+        p1: String,
         p2: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun createBank(
-        p0: String?,
-        p1: OfflinePlayer?
+        p0: String,
+        p1: OfflinePlayer
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun deleteBank(p0: String?): EconomyResponse {
+    override fun deleteBank(p0: String): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankBalance(p0: String?): EconomyResponse {
+    override fun bankBalance(p0: String): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankHas(p0: String?, p1: Double): EconomyResponse {
+    override fun bankHas(p0: String, p1: Double): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankWithdraw(p0: String?, p1: Double): EconomyResponse {
+    override fun bankWithdraw(p0: String, p1: Double): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankDeposit(p0: String?, p1: Double): EconomyResponse {
+    override fun bankDeposit(p0: String, p1: Double): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun isBankOwner(
-        p0: String?,
-        p1: OfflinePlayer?
+        p0: String,
+        p1: OfflinePlayer
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun isBankMember(
-        p0: String?,
-        p1: OfflinePlayer?
+        p0: String,
+        p1: OfflinePlayer
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
@@ -136,75 +144,75 @@ class EconomyImpl : Economy {
         TODO("Not yet implemented")
     }
 
-    override fun createPlayerAccount(p0: OfflinePlayer?, p1: String?): Boolean {
+    override fun createPlayerAccount(p0: OfflinePlayer, p1: String): Boolean {
         TODO("Not yet implemented")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("hasAccount(OfflinePlayer)"))
-    override fun hasAccount(p0: String?, p1: String?): Boolean {
+    override fun hasAccount(p0: String, p1: String): Boolean {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("hasAccount(OfflinePlayer)"))
-    override fun hasAccount(p0: String?): Boolean {
+    override fun hasAccount(p0: String): Boolean {
         TODO("Not yet implemented")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("getBalance(OfflinePlayer)"))
-    override fun getBalance(p0: String?): Double {
+    override fun getBalance(p0: String): Double {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("getBalance(OfflinePlayer, String)"))
-    override fun getBalance(p0: String?, p1: String?): Double {
+    override fun getBalance(p0: String, p1: String): Double {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("has(OfflinePlayer, Double)"))
-    override fun has(p0: String?, p1: Double): Boolean {
+    override fun has(p0: String, p1: Double): Boolean {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("has(OfflinePlayer, String, Double)"))
-    override fun has(p0: String?, p1: String?, p2: Double): Boolean {
+    override fun has(p0: String, p1: String, p2: Double): Boolean {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("withdrawPlayer(OfflinePlayer, Double)"))
-    override fun withdrawPlayer(p0: String?, p1: Double): EconomyResponse {
+    override fun withdrawPlayer(p0: String, p1: Double): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("withdrawPlayer(OfflinePlayer, String, Double)"))
     override fun withdrawPlayer(
-        p0: String?,
-        p1: String?,
+        p0: String,
+        p1: String,
         p2: Double
     ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("depositPlayer(OfflinePlayer, Double)"))
-    override fun depositPlayer(p0: String?, p1: Double): EconomyResponse {
+    override fun depositPlayer(p0: String, p1: Double): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("depositPlayer(OfflinePlayer, String, Double)"))
     override fun depositPlayer(
-        p0: String?,
-        p1: String?,
+        p0: String,
+        p1: String,
         p2: Double
     ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("createBank(String, OfflinePlayer)"))
-    override fun createBank(p0: String?, p1: String?): EconomyResponse {
+    override fun createBank(p0: String, p1: String): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("isBankOwner(String, OfflinePlayer)"))
-    override fun isBankOwner(p0: String?, p1: String?): EconomyResponse {
+    override fun isBankOwner(p0: String, p1: String): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
@@ -219,7 +227,7 @@ class EconomyImpl : Economy {
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("createPlayerAccount(OfflinePlayer, String)"))
-    override fun createPlayerAccount(p0: String?, p1: String?): Boolean {
+    override fun createPlayerAccount(p0: String, p1: String): Boolean {
         TODO("Not implemented due to deprecation")
     }
 }
