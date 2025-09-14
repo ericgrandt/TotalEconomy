@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     id("com.gradleup.shadow") version "8.3.0"
+    kotlin("jvm") version "2.2.0"
     checkstyle
 }
 
@@ -8,6 +9,7 @@ subprojects {
     plugins.apply("java-library")
     plugins.apply("com.gradleup.shadow")
     plugins.apply("checkstyle")
+    plugins.apply("kotlin")
 
     repositories {
         mavenCentral()
@@ -20,14 +22,13 @@ subprojects {
         testImplementation("org.mockito:mockito-core:5.12.0")
         testImplementation("org.mockito:mockito-inline:5.2.0")
         testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
+        testImplementation(kotlin("test"))
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     }
 
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
+    kotlin {
+        jvmToolchain(21)
     }
 
     tasks {
