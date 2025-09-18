@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data
 
-class SqlScripts {
+class TestSqlScripts {
     companion object {
         val createAccountTable = """
             CREATE TABLE IF NOT EXISTS te_account (

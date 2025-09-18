@@ -27,8 +27,8 @@ class Database {
     }
 
     fun initDatabase() {
-        SqlScripts.initScripts.forEach { script ->
-            this.dataSource.connection.use { conn ->
+        this.dataSource.connection.use { conn ->
+            SqlScripts.initScripts.forEach { script ->
                 conn.prepareStatement(script).use { pst ->
                     pst.execute()
                 }
