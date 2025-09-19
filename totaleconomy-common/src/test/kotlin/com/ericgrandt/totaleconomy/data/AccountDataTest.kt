@@ -1,7 +1,10 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.TestUtils
-import com.ericgrandt.totaleconomy.model.Result
+import com.ericgrandt.totaleconomy.data.entity.Account
+import com.ericgrandt.totaleconomy.model.ResultA
+import com.ericgrandt.totaleconomy.result.Ok
+import com.ericgrandt.totaleconomy.result.Err
 import com.zaxxer.hikari.HikariDataSource
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -9,10 +12,11 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
 import java.sql.SQLException
 import java.util.UUID
 import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class AccountDataTest {
     @MockK
@@ -23,7 +27,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun createAccount_WithSuccess() {
+    fun createAccount_WithSuccess_ShouldReturnBoolean() {
         // Arrange
         TestUtils.resetDb()
 
@@ -36,12 +40,34 @@ class AccountDataTest {
 
         // Act
         val actual = sut.createAccount(uuid)
+        val expected = Ok(true)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    @Tag("Integration")
+    fun createAccount_WithSQLException_ShouldReturnErrorResult() {
+        // Arrange
+        TestUtils.resetDb()
+
+        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
+        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
+        every { databaseMock.dataSource.connection.prepareStatement(any()) } throws SQLException()
+
+        val uuid = UUID.randomUUID()
+
+        val sut = AccountData(databaseMock);
+
+        // Act
+        val actual = sut.createAccount(uuid)
 
         // Assert
         assertThat(actual)
-            .isInstanceOf(Result.Success::class.java)
-            .extracting { (it as Result.Success).data }
-            .isEqualTo(true)
+            .isInstanceOf(Err::class.java)
+            .extracting { (it as Err).error }
+            .isInstanceOf(SQLException::class.java)
     }
 
     @Test
@@ -58,12 +84,10 @@ class AccountDataTest {
 
         // Act
         val actual = sut.getAccount(testAccount.id)
+        val expected = Ok(testAccount)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Result.Success::class.java)
-            .extracting { (it as Result.Success).data }
-            .isEqualTo(testAccount)
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -79,12 +103,10 @@ class AccountDataTest {
 
         // Act
         val actual = sut.getAccount(UUID.randomUUID())
+        val expected = Ok(null)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Result.Info::class.java)
-            .extracting { (it as Result.Info).message }
-            .isEqualTo("account not found")
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -105,8 +127,8 @@ class AccountDataTest {
 
         // Assert
         assertThat(actual)
-            .isInstanceOf(Result.Error::class.java)
-            .extracting { (it as Result.Error).cause }
+            .isInstanceOf(Err::class.java)
+            .extracting { (it as Err).error }
             .isInstanceOf(SQLException::class.java)
     }
 }
