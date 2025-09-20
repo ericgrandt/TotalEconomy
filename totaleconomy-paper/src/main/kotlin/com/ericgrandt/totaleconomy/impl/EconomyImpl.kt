@@ -32,7 +32,7 @@ class EconomyImpl : Economy {
 
     override fun format(amount: Double): String {
         var currencyName = currencyNamePlural()
-        if (amount == 1.0) {
+        if (amount == 1.00) {
             currencyName = currencyNameSingular()
         }
         return "%.${fractionalDigits()}f $currencyName".format(amount)

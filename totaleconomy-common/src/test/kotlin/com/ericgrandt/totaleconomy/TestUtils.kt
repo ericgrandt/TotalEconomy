@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy
 
 import com.ericgrandt.totaleconomy.data.TestSqlScripts
 import com.ericgrandt.totaleconomy.data.entity.Account
+import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import java.sql.Connection
@@ -52,6 +53,22 @@ class TestUtils {
                 conn.prepareStatement(query).use { stmt ->
                     stmt.setString(1, toInsert.id.toString())
                     stmt.setObject(2, toInsert.createdAt)
+                    stmt.execute()
+                }
+            }
+            return toInsert
+        }
+
+        fun seedBalance(accountId: UUID, balance: Balance?) : Balance {
+            val query = "INSERT INTO te_balance VALUES(?, ?, ?)"
+
+            val toInsert = balance ?: Balance(UUID.randomUUID(), accountId, 1.23)
+
+            getConnection().use { conn ->
+                conn.prepareStatement(query).use { stmt ->
+                    stmt.setString(1, toInsert.id.toString())
+                    stmt.setString(2, toInsert.accountId.toString())
+                    stmt.setDouble(3, toInsert.balance)
                     stmt.execute()
                 }
             }
