@@ -9,8 +9,19 @@ class SqlScripts {
             );
         """.trimIndent()
 
+        val createBalanceTable = """
+            CREATE TABLE IF NOT EXISTS te_balance (
+                id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+                account_id VARCHAR(36) NOT NULL,
+                balance DECIMAL(38, 2) NOT NULL DEFAULT 0,
+                FOREIGN KEY (account_id) REFERENCES te_account(id) ON DELETE CASCADE,
+                CONSTRAINT uk_balance UNIQUE(account_id)
+            );
+        """.trimIndent()
+
         val initScripts = arrayOf(
-            createAccountTable
+            createAccountTable,
+            createBalanceTable
         )
     }
 }
