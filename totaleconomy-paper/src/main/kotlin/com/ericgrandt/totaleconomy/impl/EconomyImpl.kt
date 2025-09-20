@@ -1,12 +1,17 @@
 package com.ericgrandt.totaleconomy.impl
 
+import com.ericgrandt.totaleconomy.econ.CommonEconomy
+import com.ericgrandt.totaleconomy.result.Err
+import com.ericgrandt.totaleconomy.result.Ok
 import net.milkbowl.vault.economy.Economy
 import net.milkbowl.vault.economy.EconomyResponse
 import org.bukkit.OfflinePlayer
 
 class EconomyImpl : Economy {
-    constructor() {
+    val econ: CommonEconomy
 
+    constructor(econ: CommonEconomy) {
+        this.econ = econ
     }
 
     override fun isEnabled(): Boolean {
@@ -42,7 +47,14 @@ class EconomyImpl : Economy {
     }
 
     override fun hasAccount(player: OfflinePlayer): Boolean {
-        TODO("Not yet implemented")
+        return when (val result = econ.hasAccount(player.uniqueId)) {
+            is Ok -> {
+                result.value
+            }
+            is Err -> {
+                false
+            }
+        }
     }
 
     override fun hasAccount(p0: OfflinePlayer, p1: String): Boolean {

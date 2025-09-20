@@ -1,10 +1,8 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.data.entity.Account
-import com.ericgrandt.totaleconomy.result.Ok
 import com.ericgrandt.totaleconomy.result.Result
 import com.ericgrandt.totaleconomy.result.runOrCatch
-import java.sql.SQLException
 import java.time.Instant
 import java.util.UUID
 

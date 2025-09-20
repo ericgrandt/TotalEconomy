@@ -1,8 +1,6 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.TestUtils
-import com.ericgrandt.totaleconomy.data.entity.Account
-import com.ericgrandt.totaleconomy.model.ResultA
 import com.ericgrandt.totaleconomy.result.Ok
 import com.ericgrandt.totaleconomy.result.Err
 import com.zaxxer.hikari.HikariDataSource

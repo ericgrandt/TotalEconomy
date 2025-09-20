@@ -1,11 +1,32 @@
 package com.ericgrandt.totaleconomy.impl
 
+import com.ericgrandt.totaleconomy.econ.CommonEconomy
+import com.ericgrandt.totaleconomy.model.DatabaseError
+import com.ericgrandt.totaleconomy.result.Err
+import com.ericgrandt.totaleconomy.result.Ok
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import org.bukkit.OfflinePlayer
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import kotlin.math.exp
+import java.util.UUID
+import kotlin.test.BeforeTest
 
 class EconomyImplTest {
-    private val sut: EconomyImpl = EconomyImpl()
+    @MockK
+    lateinit var econMock: CommonEconomy
+
+    @MockK
+    lateinit var playerMock: OfflinePlayer
+
+    private lateinit var sut: EconomyImpl
+
+    @BeforeTest
+    fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+        sut = EconomyImpl(econMock)
+    }
 
     @Test
     fun isEnabled_ShouldReturnTrue() {
@@ -100,5 +121,44 @@ class EconomyImplTest {
 
         // Assert
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun hasAccount_WithAccount_ShouldReturnTrue() {
+        // Arrange
+        every { econMock.hasAccount(any()) } returns Ok(true)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.hasAccount(playerMock)
+
+        // Assert
+        assertTrue(actual)
+    }
+
+    @Test
+    fun hasAccount_WithNoAccount_ShouldReturnFalse() {
+        // Arrange
+        every { econMock.hasAccount(any()) } returns Ok(false)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.hasAccount(playerMock)
+
+        // Assert
+        assertFalse(actual)
+    }
+
+    @Test
+    fun hasAccount_WithErrorResult_ShouldReturnFalse() {
+        // Arrange
+        every { econMock.hasAccount(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.hasAccount(playerMock)
+
+        // Assert
+        assertFalse(actual)
     }
 }
