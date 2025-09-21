@@ -57,12 +57,19 @@ class EconomyImpl : Economy {
         }
     }
 
-    override fun hasAccount(p0: OfflinePlayer, p1: String): Boolean {
+    override fun hasAccount(player: OfflinePlayer, world: String): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(p0: OfflinePlayer): Double {
-        TODO("Not yet implemented")
+    override fun getBalance(player: OfflinePlayer): Double {
+        return when (val result = econ.getBalance(player.uniqueId)) {
+            is Ok -> {
+                result.value
+            }
+            is Err -> {
+                0.0
+            }
+        }
     }
 
     override fun getBalance(p0: OfflinePlayer, p1: String): Double {

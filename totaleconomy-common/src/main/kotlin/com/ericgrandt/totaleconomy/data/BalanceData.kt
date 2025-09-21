@@ -1,10 +1,8 @@
 package com.ericgrandt.totaleconomy.data
 
-import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.result.Result
 import com.ericgrandt.totaleconomy.result.runOrCatch
-import java.time.Instant
 import java.util.UUID
 import kotlin.use
 

@@ -161,4 +161,32 @@ class EconomyImplTest {
         // Assert
         assertFalse(actual)
     }
+
+    @Test
+    fun getBalance_WithSuccess_ShouldReturnBalance() {
+        // Arrange
+        every { econMock.getBalance(any()) } returns Ok(1.00)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.getBalance(playerMock)
+        val expected = 1.00
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun getBalance_WithErrorResult_ShouldReturnAZeroBalance() {
+        // Arrange
+        every { econMock.getBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.getBalance(playerMock)
+        val expected = 0.00
+
+        // Assert
+        assertEquals(expected, actual)
+    }
 }
