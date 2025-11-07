@@ -1,6 +1,8 @@
 package com.ericgrandt.totaleconomy.impl
 
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
+import com.ericgrandt.totaleconomy.model.SetBalance
+import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
 import com.ericgrandt.totaleconomy.result.Ok
 import net.milkbowl.vault.economy.Economy
@@ -72,44 +74,68 @@ class EconomyImpl : Economy {
         }
     }
 
-    override fun getBalance(p0: OfflinePlayer, p1: String): Double {
+    override fun getBalance(player: OfflinePlayer, world: String): Double {
         TODO("Not yet implemented")
     }
 
-    override fun has(p0: OfflinePlayer, p1: Double): Boolean {
-        TODO("Not yet implemented")
+    override fun has(player: OfflinePlayer, amount: Double): Boolean {
+        if (amount <= 0) {
+            return false
+        }
+
+        return when (val result = econ.getBalance(player.uniqueId)) {
+            is Ok -> {
+                result.value >= amount
+            }
+            is Err -> {
+               false
+            }
+        }
     }
 
-    override fun has(p0: OfflinePlayer, p1: String, p2: Double): Boolean {
+    override fun has(player: OfflinePlayer, world: String, amount: Double): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun withdrawPlayer(
-        p0: OfflinePlayer,
-        p1: Double
+        player: OfflinePlayer,
+        amount: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
+        //if (amount <= 0) {
+        //    return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "Amount must be greater than 0")
+        //}
+
+        //val input = WithdrawFromBalance(player.uniqueId, amount)
+        //return when (val result = econ.withdrawFromBalance(input)) {
+        //    is Ok -> {
+        //        return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "Amount must be greater than 0")
+        //    }
+        //    is Err -> {
+        //        return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "Amount must be greater than 0")
+        //    }
+        //}
     }
 
     override fun withdrawPlayer(
-        p0: OfflinePlayer,
-        p1: String,
-        p2: Double
+        player: OfflinePlayer,
+        world: String,
+        amount: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun depositPlayer(
-        p0: OfflinePlayer,
-        p1: Double
+        player: OfflinePlayer,
+        amount: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun depositPlayer(
-        p0: OfflinePlayer,
-        p1: String,
-        p2: Double
+        player: OfflinePlayer,
+        world: String,
+        amount: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
@@ -174,7 +200,7 @@ class EconomyImpl : Economy {
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("hasAccount(OfflinePlayer)"))
     override fun hasAccount(p0: String): Boolean {
-        TODO("Not yet implemented")
+        TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("getBalance(OfflinePlayer)"))

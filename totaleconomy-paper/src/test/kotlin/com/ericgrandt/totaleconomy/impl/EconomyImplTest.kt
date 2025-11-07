@@ -189,4 +189,67 @@ class EconomyImplTest {
         // Assert
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun has_WithAmountEqualToZero_ShouldReturnFalse() {
+        // Arrange
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.has(playerMock, 0.00)
+
+        // Assert
+        assertFalse(actual)
+    }
+
+    @Test
+    fun has_WithAmountLessThanZero_ShouldReturnFalse() {
+        // Arrange
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.has(playerMock, -1.00)
+
+        // Assert
+        assertFalse(actual)
+    }
+
+    @Test
+    fun has_WithEnoughBalance_ShouldReturnTrue() {
+        // Arrange
+        every { econMock.getBalance(any()) } returns Ok(4.00)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.has(playerMock, 1.50)
+
+        // Assert
+        assertTrue(actual)
+    }
+
+    @Test
+    fun has_WithInsufficientBalance_ShouldReturnFalse() {
+        // Arrange
+        every { econMock.getBalance(any()) } returns Ok(4.00)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.has(playerMock, 5.50)
+
+        // Assert
+        assertFalse(actual)
+    }
+
+    @Test
+    fun has_WithErrorGettingBalance_ShouldReturnFalse() {
+        // Arrange
+        every { econMock.getBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.has(playerMock, 1.00)
+
+        // Assert
+        assertFalse(actual)
+    }
 }
