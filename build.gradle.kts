@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
     id("com.gradleup.shadow") version "8.3.0"
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.2.21"
     checkstyle
 }
 
