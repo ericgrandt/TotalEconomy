@@ -5,6 +5,10 @@ plugins {
     checkstyle
 }
 
+repositories {
+    mavenCentral()
+}
+
 subprojects {
     plugins.apply("java-library")
     plugins.apply("com.gradleup.shadow")
