@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.TestUtils
 import com.ericgrandt.totaleconomy.data.entity.Balance
+import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
@@ -224,6 +225,77 @@ class BalanceDataTest {
 
         // Act
         val actual = sut.withdrawFromBalance(input)
+        val expected = Err(SQLException())
+
+        // Assert
+        assertThat(actual)
+            .isInstanceOf(Err::class.java)
+            .extracting { (it as Err).error }
+            .isInstanceOf(SQLException::class.java)
+    }
+
+    @Test
+    @Tag("Integration")
+    fun depositIntoBalance_WithUpdatedRow_ShouldReturnOne() {
+        // Arrange
+        TestUtils.resetDb()
+        val testAccount = TestUtils.seedAccount(null)
+        val testBalance = TestUtils.seedBalance(testAccount.id, null)
+
+        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
+        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
+
+        val input = DepositIntoBalance(testAccount.id, 10.0)
+
+        val sut = BalanceData(databaseMock);
+
+        // Act
+        val actual = sut.depositIntoBalance(input)
+        val expected = Ok(1)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    @Tag("Integration")
+    fun depositIntoBalance_WithNoUpdatedRow_ShouldReturnZero() {
+        // Arrange
+        TestUtils.resetDb()
+        val testAccount = TestUtils.seedAccount(null)
+
+        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
+        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
+
+        val input = DepositIntoBalance(testAccount.id, 10.0)
+
+        val sut = BalanceData(databaseMock);
+
+        // Act
+        val actual = sut.depositIntoBalance(input)
+        val expected = Ok(0)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    @Tag("Integration")
+    fun depositIntoBalance_WithSqlException_ShouldReturnErrResult() {
+        // Arrange
+        TestUtils.resetDb()
+        val testAccount = TestUtils.seedAccount(null)
+
+        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
+        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
+        every { databaseMock.dataSource.connection.prepareStatement(any()) } throws SQLException()
+
+        val input = DepositIntoBalance(testAccount.id, 10.0)
+
+        val sut = BalanceData(databaseMock);
+
+        // Act
+        val actual = sut.depositIntoBalance(input)
         val expected = Err(SQLException())
 
         // Assert

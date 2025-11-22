@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.impl
 
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
+import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
@@ -101,20 +102,19 @@ class EconomyImpl : Economy {
         player: OfflinePlayer,
         amount: Double
     ): EconomyResponse {
-        TODO("Not yet implemented")
-        //if (amount <= 0) {
-        //    return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "Amount must be greater than 0")
-        //}
+        if (amount <= 0) {
+            return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+        }
 
-        //val input = WithdrawFromBalance(player.uniqueId, amount)
-        //return when (val result = econ.withdrawFromBalance(input)) {
-        //    is Ok -> {
-        //        return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "Amount must be greater than 0")
-        //    }
-        //    is Err -> {
-        //        return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "Amount must be greater than 0")
-        //    }
-        //}
+        val input = WithdrawFromBalance(player.uniqueId, amount)
+        return when (val result = econ.withdrawFromBalance(input)) {
+            is Ok -> {
+                EconomyResponse(amount, result.value.balance, EconomyResponse.ResponseType.SUCCESS, "")
+            }
+            is Err -> {
+                EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to withdraw from balance")
+            }
+        }
     }
 
     override fun withdrawPlayer(
@@ -130,6 +130,19 @@ class EconomyImpl : Economy {
         amount: Double
     ): EconomyResponse {
         TODO("Not yet implemented")
+        //if (amount <= 0) {
+        //    return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
+        //}
+
+        //val input = DepositIntoBalance(player.uniqueId, amount)
+        //return when (val result = econ.depositIntAccount(input)) {
+        //    is Ok -> {
+        //        EconomyResponse(amount, result.value.balance, EconomyResponse.ResponseType.SUCCESS, "")
+        //    }
+        //    is Err -> {
+        //        EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to deposit into balance")
+        //    }
+        //}
     }
 
     override fun depositPlayer(

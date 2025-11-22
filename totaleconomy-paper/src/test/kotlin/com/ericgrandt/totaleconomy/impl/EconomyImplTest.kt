@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.impl
 
+import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.result.Err
@@ -7,10 +8,12 @@ import com.ericgrandt.totaleconomy.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import net.milkbowl.vault.economy.EconomyResponse
 import org.bukkit.OfflinePlayer
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.math.exp
 import kotlin.test.BeforeTest
 
 class EconomyImplTest {
@@ -251,5 +254,74 @@ class EconomyImplTest {
 
         // Assert
         assertFalse(actual)
+    }
+
+    @Test
+    fun withdrawPlayer_WithSuccessWithdrawing_ShouldReturnSuccessResponse() {
+        // Arrange
+        val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 15.0)
+        every { econMock.withdrawFromBalance(any()) } returns Ok(mockBalance)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.withdrawPlayer(playerMock, 5.0)
+        val expected = EconomyResponse(5.0, 15.0, EconomyResponse.ResponseType.SUCCESS, "")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun withdrawPlayer_WithErrorWithdrawing_ShouldReturnSuccessResponse() {
+        // Arrange
+        every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.withdrawPlayer(playerMock, 5.0)
+        val expected = EconomyResponse(5.0, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to withdraw from balance")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun withdrawPlayer_WithWithdrawAmountOfZero_ShouldReturnFailureResponse() {
+        // Arrange
+        every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.withdrawPlayer(playerMock, 0.0)
+        val expected = EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun withdrawPlayer_WithWithdrawAmountLessThanZero_ShouldReturnFailureResponse() {
+        // Arrange
+        every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.withdrawPlayer(playerMock, -0.1)
+        val expected = EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
     }
 }

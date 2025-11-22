@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.data.entity.Balance
+import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Result
@@ -56,6 +57,21 @@ class BalanceData {
 
     fun withdrawFromBalance(input: WithdrawFromBalance): Result<Int, Throwable> {
         val setBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance - ? WHERE b.account_id = ?"
+
+        return runOrCatch {
+            database.dataSource.connection.use { conn ->
+                conn.prepareStatement(setBalanceQuery).use { stmt ->
+                    stmt.setDouble(1, input.amount)
+                    stmt.setString(2, input.accountId.toString())
+
+                    stmt.executeUpdate()
+                }
+            }
+        }
+    }
+
+    fun depositIntoBalance(input: DepositIntoBalance): Result<Int, Throwable> {
+        val setBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance + ? WHERE b.account_id = ?"
 
         return runOrCatch {
             database.dataSource.connection.use { conn ->
