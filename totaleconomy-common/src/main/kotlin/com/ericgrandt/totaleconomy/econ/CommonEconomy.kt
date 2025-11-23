@@ -30,10 +30,10 @@ class CommonEconomy {
     }
 
     // TODO: Return created account?
-    fun createAccount(uuid: UUID): Result<Boolean, ErrorMessage> {
+    fun createAccount(uuid: UUID): Result<Int, ErrorMessage> {
         return when (val result = accountData.createAccount(uuid)) {
             is Ok -> {
-                Ok(true)
+                Ok(result.value)
             }
             is Err -> {
                 logger.log(Level.SEVERE, "error creating account", result.error)

@@ -13,7 +13,7 @@ class AccountData {
         this.database = database
     }
 
-    fun createAccount(accountId: UUID): Result<Boolean, Throwable> {
+    fun createAccount(accountId: UUID): Result<Int, Throwable> {
         val createAccountQuery = "INSERT IGNORE INTO te_account(id) VALUES (?)"
 
         return runOrCatch {
@@ -21,8 +21,6 @@ class AccountData {
                 conn.prepareStatement(createAccountQuery).use { stmt ->
                     stmt.setString(1, accountId.toString())
                     stmt.executeUpdate()
-
-                    true
                 }
             }
         }

@@ -393,4 +393,43 @@ class EconomyImplTest {
         assertEquals(expected.type, actual.type)
         assertEquals(expected.errorMessage, actual.errorMessage)
     }
+
+    @Test
+    fun createPlayerAccount_WithSuccess_ShouldReturnTrue() {
+        // Arrange
+        every { econMock.createAccount(any()) } returns Ok(1)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.createPlayerAccount(playerMock)
+
+        // Assert
+        assertTrue(actual)
+    }
+
+    @Test
+    fun createPlayerAccount_WithNoAccountCreated_ShouldReturnFalse() {
+        // Arrange
+        every { econMock.createAccount(any()) } returns Ok(0)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.createPlayerAccount(playerMock)
+
+        // Assert
+        assertFalse(actual)
+    }
+
+    @Test
+    fun createPlayerAccount_WithErrorCreatingAccount_ShouldReturnFalse() {
+        // Arrange
+        every { econMock.createAccount(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.createPlayerAccount(playerMock)
+
+        // Assert
+        assertFalse(actual)
+    }
 }

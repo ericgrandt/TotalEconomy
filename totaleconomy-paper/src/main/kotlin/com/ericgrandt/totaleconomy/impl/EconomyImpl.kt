@@ -197,8 +197,15 @@ class EconomyImpl : Economy {
         TODO("Not yet implemented")
     }
 
-    override fun createPlayerAccount(p0: OfflinePlayer): Boolean {
-        TODO("Not yet implemented")
+    override fun createPlayerAccount(player: OfflinePlayer): Boolean {
+        return when (val result = econ.createAccount(player.uniqueId)) {
+            is Ok -> {
+                result.value == 1
+            }
+            is Err -> {
+                false
+            }
+        }
     }
 
     override fun createPlayerAccount(p0: OfflinePlayer, p1: String): Boolean {

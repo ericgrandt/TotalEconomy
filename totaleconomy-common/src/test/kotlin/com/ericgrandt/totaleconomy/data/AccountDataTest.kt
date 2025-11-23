@@ -38,7 +38,7 @@ class AccountDataTest {
 
         // Act
         val actual = sut.createAccount(uuid)
-        val expected = Ok(true)
+        val expected = Ok(1)
 
         // Assert
         assertEquals(expected, actual)

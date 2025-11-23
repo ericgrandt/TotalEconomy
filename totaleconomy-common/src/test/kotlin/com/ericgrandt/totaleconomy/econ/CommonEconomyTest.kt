@@ -33,13 +33,13 @@ class CommonEconomyTest {
     @Test
     fun createAccount_WithSuccessResultFromAccountData_ShouldReturnTrue() {
         // Arrange
-        every { accountDataMock.createAccount(any()) } returns Ok(true)
+        every { accountDataMock.createAccount(any()) } returns Ok(1)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
         val actual = sut.createAccount(UUID.randomUUID())
-        val expected = Ok(true)
+        val expected = Ok(1)
 
         // Assert
         assertEquals(expected, actual)
