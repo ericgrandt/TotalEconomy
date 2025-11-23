@@ -4,6 +4,7 @@ import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.BalanceData
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.model.DatabaseError
+import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.ErrorMessage
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
@@ -94,6 +95,32 @@ class CommonEconomy {
                     Ok(result.value)
                 } ?: run {
                     logger.log(Level.SEVERE, "balance for account id not found after withdrawing")
+                    Err(DatabaseError) // NOTE: If there is no balance here, something went wrong which is why it's returning a DatabaseError
+                }
+            }
+            is Err -> {
+                logger.log(Level.SEVERE, "error getting balance", result.error)
+                Err(DatabaseError)
+            }
+        }
+    }
+
+    fun depositIntoBalance(input: DepositIntoBalance): Result<Balance, ErrorMessage> {
+        // TODO: Add a check to make sure a row was actually updated?
+        when (val result = balanceData.depositIntoBalance(input)) {
+            is Ok -> {}
+            is Err -> {
+                logger.log(Level.SEVERE, "error depositing into balance", result.error)
+                return Err(DatabaseError)
+            }
+        }
+
+        return when (val result = balanceData.getBalance(input.accountId)) {
+            is Ok -> {
+                result.value?.let {
+                    Ok(result.value)
+                } ?: run {
+                    logger.log(Level.SEVERE, "balance for account id not found after depositing")
                     Err(DatabaseError) // NOTE: If there is no balance here, something went wrong which is why it's returning a DatabaseError
                 }
             }

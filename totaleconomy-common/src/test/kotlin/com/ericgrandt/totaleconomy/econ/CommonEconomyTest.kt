@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.data.BalanceData
 import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.model.DatabaseError
+import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
@@ -238,6 +239,64 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.withdrawFromBalance(input)
+        val expected = Err(DatabaseError)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun depositIntoBalance_WithSuccess_ShouldReturnUpdatedBalance() {
+        // Arrange
+        val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 1.0);
+
+        every { balanceDataMock.depositIntoBalance(any()) } returns Ok(1)
+        every { balanceDataMock.getBalance(any()) } returns Ok(mockBalance)
+
+        val input = DepositIntoBalance(UUID.randomUUID(), 10.0)
+
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.depositIntoBalance(input)
+        val expected = Ok(mockBalance)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun depositIntoBalance_WithErrorDepositing_ShouldReturnDatabaseError() {
+        // Arrange
+        val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 1.0);
+
+        every { balanceDataMock.depositIntoBalance(any()) } returns Err(SQLException())
+        every { balanceDataMock.getBalance(any()) } returns Ok(mockBalance)
+
+        val input = DepositIntoBalance(UUID.randomUUID(), 10.0)
+
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.depositIntoBalance(input)
+        val expected = Err(DatabaseError)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun depositIntoBalance_WithErrorGettingBalanceAfterDeposit_ShouldReturnDatabaseError() {
+        // Arrange
+        every { balanceDataMock.depositIntoBalance(any()) } returns Ok(1)
+        every { balanceDataMock.getBalance(any()) } returns Err(SQLException())
+
+        val input = DepositIntoBalance(UUID.randomUUID(), 10.0)
+
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.depositIntoBalance(input)
         val expected = Err(DatabaseError)
 
         // Assert

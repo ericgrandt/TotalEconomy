@@ -275,7 +275,7 @@ class EconomyImplTest {
     }
 
     @Test
-    fun withdrawPlayer_WithErrorWithdrawing_ShouldReturnSuccessResponse() {
+    fun withdrawPlayer_WithErrorWithdrawing_ShouldReturnFailureResponse() {
         // Arrange
         every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
@@ -317,6 +317,75 @@ class EconomyImplTest {
         // Act
         val actual = sut.withdrawPlayer(playerMock, -0.1)
         val expected = EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun depositPlayer_WithSuccessDepositing_ShouldReturnSuccessResponse() {
+        // Arrange
+        val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 15.0)
+        every { econMock.depositIntoBalance(any()) } returns Ok(mockBalance)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.depositPlayer(playerMock, 5.0)
+        val expected = EconomyResponse(5.0, 15.0, EconomyResponse.ResponseType.SUCCESS, "")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun depositPlayer_WithErrorDepositing_ShouldReturnFailureResponse() {
+        // Arrange
+        every { econMock.depositIntoBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.depositPlayer(playerMock, 5.0)
+        val expected = EconomyResponse(5.0, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to deposit into balance")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun depositPlayer_WithDepositAmountOfZero_ShouldReturnFailureResponse() {
+        // Arrange
+        every { econMock.depositIntoBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.depositPlayer(playerMock, 0.0)
+        val expected = EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
+
+        // Assert
+        assertEquals(expected.amount, actual.amount)
+        assertEquals(expected.balance, actual.balance)
+        assertEquals(expected.type, actual.type)
+        assertEquals(expected.errorMessage, actual.errorMessage)
+    }
+
+    @Test
+    fun depositPlayer_WithDepositAmountLessThanZero_ShouldReturnFailureResponse() {
+        // Arrange
+        every { econMock.depositIntoBalance(any()) } returns Err(DatabaseError)
+        every { playerMock.uniqueId } returns UUID.randomUUID()
+
+        // Act
+        val actual = sut.depositPlayer(playerMock, -0.1)
+        val expected = EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
 
         // Assert
         assertEquals(expected.amount, actual.amount)
