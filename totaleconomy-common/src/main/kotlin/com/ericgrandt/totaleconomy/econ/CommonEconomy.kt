@@ -14,7 +14,6 @@ import com.ericgrandt.totaleconomy.result.Result
 import java.util.UUID
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.xml.crypto.Data
 
 class CommonEconomy {
     val accountData: AccountData
