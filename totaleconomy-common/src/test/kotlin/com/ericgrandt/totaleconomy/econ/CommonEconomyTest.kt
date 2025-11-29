@@ -14,6 +14,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
+import net.kyori.adventure.text.Component
 import java.sql.SQLException
 import java.util.UUID
 import kotlin.test.BeforeTest
@@ -29,6 +30,32 @@ class CommonEconomyTest {
 
     @BeforeTest
     fun setUp() = MockKAnnotations.init(this, relaxUnitFun = true)
+
+    @Test
+    fun currencyNamePlural_ShouldReturnCorrectString() {
+        // Arrange
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.currencyNamePlural()
+        val expected = "Diamonds"
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun currencyNameSingular_ShouldReturnCorrectString() {
+        // Arrange
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.currencyNameSingular()
+        val expected = "Diamond"
+
+        // Assert
+        assertEquals(expected, actual)
+    }
 
     @Test
     fun createAccount_WithSuccessResultFromAccountData_ShouldReturnTrue() {
@@ -298,6 +325,58 @@ class CommonEconomyTest {
         // Act
         val actual = sut.depositIntoBalance(input)
         val expected = Err(DatabaseError)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun format_WithAmountEqualToOne_ShouldReturnFormattedAmountWithSingularCurrencyName() {
+        // Arrange
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.format(1.0)
+        val expected = Component.text("1.00 Diamond")
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun format_WithAmountGreaterThanOne_ShouldReturnFormattedAmountWithPluralCurrencyName() {
+        // Arrange
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.format(10.52)
+        val expected = Component.text("10.52 Diamonds")
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun format_WithMoreThanTwoFractionalDigitsAndThirdNumberBeingUnderFive_ShouldRoundDown() {
+        // Arrange
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.format(10.521651234)
+        val expected = Component.text("10.52 Diamonds")
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun format_WithMoreThanTwoFractionalDigitsAndThirdNumberBeingFive_ShouldRoundUp() {
+        // Arrange
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.format(10.5252)
+        val expected = Component.text("10.53 Diamonds")
 
         // Assert
         assertEquals(expected, actual)

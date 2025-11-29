@@ -6,5 +6,5 @@ sealed interface ErrorMessage
 data object DatabaseError : ErrorMessage
 
 fun errorToUserMessage(error: ErrorMessage) = when (error) {
-    DatabaseError -> "An error occurred. Please contact and administrator."
+    DatabaseError -> "An error occurred. Please contact an administrator."
 }

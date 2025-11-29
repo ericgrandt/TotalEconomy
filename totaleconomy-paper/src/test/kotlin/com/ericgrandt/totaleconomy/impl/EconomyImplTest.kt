@@ -8,12 +8,12 @@ import com.ericgrandt.totaleconomy.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import net.kyori.adventure.text.Component
 import net.milkbowl.vault.economy.EconomyResponse
 import org.bukkit.OfflinePlayer
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.math.exp
 import kotlin.test.BeforeTest
 
 class EconomyImplTest {
@@ -68,8 +68,9 @@ class EconomyImplTest {
     }
 
     @Test
-    fun format_WithAmountOfOne_ShouldReturnSingularCurrencyName() {
+    fun format_ShouldReturnCorrectString() {
         // Arrange
+        every { econMock.format(any()) } returns Component.text("1.00 Diamond")
         val amount = 1.0
 
         // Act
@@ -81,34 +82,10 @@ class EconomyImplTest {
     }
 
     @Test
-    fun format_WithAmountLessThanOne_ShouldReturnPluralCurrencyName() {
-        // Arrange
-        val amount = 0.03
-
-        // Act
-        val actual = sut.format(amount)
-        val expected = "0.03 Diamonds"
-
-        // Arrange
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun format_WithAmountGreaterThanOne_ShouldReturnPluralCurrencyName() {
-        // Arrange
-        val amount = 12.156
-
-        // Act
-        val actual = sut.format(amount)
-        val expected = "12.16 Diamonds"
-
-        // Arrange
-        assertEquals(expected, actual)
-    }
-
-    @Test
     fun currencyNamePlural_ShouldReturnDiamonds() {
         // Act
+        every { econMock.currencyNamePlural() } returns "Diamonds"
+
         val actual = sut.currencyNamePlural()
         val expected = "Diamonds"
 
@@ -119,6 +96,8 @@ class EconomyImplTest {
     @Test
     fun currencyNameSingular_ShouldReturnDiamond() {
         // Act
+        every { econMock.currencyNameSingular() } returns "Diamond"
+
         val actual = sut.currencyNameSingular()
         val expected = "Diamond"
 

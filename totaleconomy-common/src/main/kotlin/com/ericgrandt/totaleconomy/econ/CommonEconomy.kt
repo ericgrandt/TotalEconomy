@@ -11,6 +11,7 @@ import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
 import com.ericgrandt.totaleconomy.result.Ok
 import com.ericgrandt.totaleconomy.result.Result
+import net.kyori.adventure.text.Component
 import java.util.UUID
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -26,6 +27,14 @@ class CommonEconomy {
     constructor(accountData: AccountData, balanceData: BalanceData) {
         this.accountData = accountData
         this.balanceData = balanceData
+    }
+
+    fun currencyNamePlural(): String {
+        return "Diamonds"
+    }
+
+    fun currencyNameSingular(): String {
+        return "Diamond"
     }
 
     // TODO: Return created account?
@@ -128,5 +137,13 @@ class CommonEconomy {
                 Err(DatabaseError)
             }
         }
+    }
+
+    fun format(amount: Double): Component {
+        var currencyName = currencyNamePlural()
+        if (amount == 1.00) {
+            currencyName = currencyNameSingular()
+        }
+        return Component.text("%.2f $currencyName".format(amount))
     }
 }

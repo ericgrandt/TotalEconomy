@@ -18,6 +18,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
     implementation(project(":totaleconomy-common", configuration = "shadow"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     testImplementation("com.github.MilkBowl:VaultAPI:1.7.1")
     testImplementation("io.mockk:mockk:1.14.5")

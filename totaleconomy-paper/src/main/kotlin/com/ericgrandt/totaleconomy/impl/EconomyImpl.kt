@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
 import com.ericgrandt.totaleconomy.result.Ok
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.milkbowl.vault.economy.Economy
 import net.milkbowl.vault.economy.EconomyResponse
 import org.bukkit.OfflinePlayer
@@ -33,19 +34,15 @@ class EconomyImpl : Economy {
     }
 
     override fun format(amount: Double): String {
-        var currencyName = currencyNamePlural()
-        if (amount == 1.00) {
-            currencyName = currencyNameSingular()
-        }
-        return "%.${fractionalDigits()}f $currencyName".format(amount)
+        return PlainTextComponentSerializer.plainText().serialize(econ.format(amount))
     }
 
     override fun currencyNamePlural(): String {
-        return "Diamonds"
+        return econ.currencyNamePlural()
     }
 
     override fun currencyNameSingular(): String {
-        return "Diamond"
+        return econ.currencyNameSingular()
     }
 
     override fun hasAccount(player: OfflinePlayer): Boolean {
