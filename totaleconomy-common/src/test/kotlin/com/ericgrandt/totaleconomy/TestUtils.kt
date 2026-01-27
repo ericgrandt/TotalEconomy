@@ -44,7 +44,7 @@ class TestUtils {
             }
         }
 
-        fun seedAccount(account: Account?) : Account {
+        fun seedAccount() : Account {
             val query = "INSERT INTO te_account VALUES(?, ?)"
 
             val toInsert = Account(UUID.randomUUID(), Instant.parse(TEST_DATE))

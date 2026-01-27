@@ -73,7 +73,7 @@ class AccountDataTest {
     fun getAccount_WithSuccess_ShouldReturnAccount() {
         // Arrange
         TestUtils.resetDb()
-        val testAccount = TestUtils.seedAccount(null)
+        val testAccount = TestUtils.seedAccount()
 
         every { databaseMock.dataSource } returns mockk<HikariDataSource>()
         every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
@@ -112,7 +112,7 @@ class AccountDataTest {
     fun getAccount_WithSQLException_ShouldReturnError() {
         // Arrange
         TestUtils.resetDb()
-        val testAccount = TestUtils.seedAccount(null)
+        val testAccount = TestUtils.seedAccount()
 
         every { databaseMock.dataSource } returns mockk<HikariDataSource>()
         every { databaseMock.dataSource.connection } returns TestUtils.getConnection()

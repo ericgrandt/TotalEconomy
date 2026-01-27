@@ -3,9 +3,12 @@ package com.ericgrandt.totaleconomy.data
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
+import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
+import com.ericgrandt.totaleconomy.result.Ok
 import com.ericgrandt.totaleconomy.result.Result
 import com.ericgrandt.totaleconomy.result.runOrCatch
+import java.sql.SQLException
 import java.util.UUID
 import kotlin.use
 
@@ -82,6 +85,40 @@ class BalanceData {
                     stmt.executeUpdate()
                 }
             }
+        }
+    }
+
+    fun transferBalance(input: TransferBalance): Result<Boolean, Throwable> {
+        val withdrawBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance - ? WHERE b.account_id = ?"
+        val depositBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance + ? WHERE b.account_id = ?"
+
+        return runOrCatch {
+            database.dataSource.connection.use { conn ->
+                conn.autoCommit = false
+
+                try {
+                    conn.prepareStatement(withdrawBalanceQuery).use { stmt ->
+                        stmt.setDouble(1, input.amount)
+                        stmt.setString(2, input.fromAccountId.toString())
+
+                        stmt.executeUpdate()
+                    }
+
+                    conn.prepareStatement(depositBalanceQuery).use { stmt ->
+                        stmt.setDouble(1, input.amount)
+                        stmt.setString(2, input.toAccountId.toString())
+
+                        stmt.executeUpdate()
+                    }
+
+                    conn.commit()
+                } catch (e: SQLException) {
+                    runCatching { conn.rollback() }
+                    throw e
+                }
+            }
+
+            true
         }
     }
 }

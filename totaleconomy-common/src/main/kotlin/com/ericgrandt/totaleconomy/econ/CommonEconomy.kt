@@ -7,6 +7,7 @@ import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.ErrorMessage
 import com.ericgrandt.totaleconomy.model.SetBalance
+import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
 import com.ericgrandt.totaleconomy.result.Ok
@@ -137,6 +138,11 @@ class CommonEconomy {
                 Err(DatabaseError)
             }
         }
+    }
+
+    fun transferBalance(input: TransferBalance): Result<Boolean, ErrorMessage> {
+        // TODO: Verify fromBalance has enough for transfer
+        return Ok(true)
     }
 
     fun format(amount: Double): Component {
