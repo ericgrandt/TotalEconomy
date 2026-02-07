@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.game.CommonPlayer
 import com.ericgrandt.totaleconomy.game.CommonSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class PayCommand : CommonCommand {
     private val economy: CommonEconomy
@@ -18,17 +19,20 @@ class PayCommand : CommonCommand {
         sender: CommonSender,
         args: MutableMap<String, CommonParameter<*>>
     ): Boolean {
-        if (sender !is CommonPlayer) {
+        if (sender !is CommonPlayer || args["toPlayer"]?.value !is CommonPlayer || args["amount"]?.value !is Double) {
             return false
         }
 
+        val toPlayer = args["toPlayer"]?.value as CommonPlayer
+        val amount = args["amount"]?.value as Double
+
         scope.launch {
-            execute(sender)
+            execute(sender, toPlayer, amount)
         }
 
         return true
     }
 
-    private fun execute(player: CommonPlayer) {
+    private fun execute(fromPlayer: CommonPlayer, toPlayer: CommonPlayer, amount: Double) {
     }
 }

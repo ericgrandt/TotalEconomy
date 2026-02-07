@@ -5,7 +5,6 @@ import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
-import com.ericgrandt.totaleconomy.result.Ok
 import com.ericgrandt.totaleconomy.result.Result
 import com.ericgrandt.totaleconomy.result.runOrCatch
 import java.sql.SQLException
