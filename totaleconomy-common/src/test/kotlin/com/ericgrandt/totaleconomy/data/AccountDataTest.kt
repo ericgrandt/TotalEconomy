@@ -37,7 +37,7 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.createAccount(uuid)
+        val actual = sut.createAccountOld(uuid)
         val expected = Ok(1)
 
         // Assert
@@ -59,7 +59,7 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.createAccount(uuid)
+        val actual = sut.createAccountOld(uuid)
 
         // Assert
         assertThat(actual)

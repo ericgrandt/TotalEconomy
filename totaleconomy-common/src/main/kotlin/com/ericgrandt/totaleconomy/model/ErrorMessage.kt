@@ -2,9 +2,11 @@ package com.ericgrandt.totaleconomy.model
 
 sealed interface ErrorMessage
 
-// Internal
-data object DatabaseError : ErrorMessage
+// Server
+data object DatabaseErrorN : ErrorMessage
+
+// Client
 
 fun errorToUserMessage(error: ErrorMessage) = when (error) {
-    DatabaseError -> "An error occurred. Please contact an administrator."
+    DatabaseErrorN -> "An error occurred. Please contact an administrator."
 }

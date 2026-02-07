@@ -1,8 +1,10 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.data.entity.Account
-import com.ericgrandt.totaleconomy.result.Result
+import com.ericgrandt.totaleconomy.result.Result as ResultOld
 import com.ericgrandt.totaleconomy.result.runOrCatch
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.runCatching
 import java.time.Instant
 import java.util.UUID
 
@@ -13,7 +15,7 @@ class AccountData {
         this.database = database
     }
 
-    fun createAccount(accountId: UUID): Result<Int, Throwable> {
+    fun createAccountOld(accountId: UUID): ResultOld<Int, Throwable> {
         val createAccountQuery = "INSERT IGNORE INTO te_account(id) VALUES (?)"
 
         return runOrCatch {
@@ -26,7 +28,20 @@ class AccountData {
         }
     }
 
-    fun getAccount(accountId: UUID): Result<Account?, Throwable> {
+    fun createAccount(accountId: UUID): Result<Int, Throwable> {
+        val createAccountQuery = "INSERT IGNORE INTO te_account(id) VALUES (?)"
+
+        return runCatching {
+            database.dataSource.connection.use { conn ->
+                conn.prepareStatement(createAccountQuery).use { stmt ->
+                    stmt.setString(1, accountId.toString())
+                    stmt.executeUpdate()
+                }
+            }
+        }
+    }
+
+    fun getAccount(accountId: UUID): ResultOld<Account?, Throwable> {
         val getAccountQuery = "SELECT id, created_at FROM te_account a WHERE a.id = ?"
 
         return runOrCatch {

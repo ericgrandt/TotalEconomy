@@ -194,7 +194,7 @@ class EconomyImpl : Economy {
     }
 
     override fun createPlayerAccount(player: OfflinePlayer): Boolean {
-        return when (val result = econ.createAccount(player.uniqueId)) {
+        return when (val result = econ.createAccountOld(player.uniqueId)) {
             is Ok -> {
                 result.value == 1
             }
