@@ -70,7 +70,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithSuccess_ShouldReturnAccount() {
+    fun getAccount_WithSuccess_ShouldReturnAccountOld() {
         // Arrange
         TestUtils.resetDb()
         val testAccount = TestUtils.seedAccount()
@@ -81,7 +81,7 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.getAccount(testAccount.id)
+        val actual = sut.getAccountOld(testAccount.id)
         val expected = Ok(testAccount)
 
         // Assert
@@ -90,7 +90,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithNoAccountFound_ShouldReturnAnInfoResult() {
+    fun getAccount_WithNoAccountOldFound_ShouldReturnAnInfoResult() {
         // Arrange
         TestUtils.resetDb()
 
@@ -100,7 +100,7 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.getAccount(UUID.randomUUID())
+        val actual = sut.getAccountOld(UUID.randomUUID())
         val expected = Ok(null)
 
         // Assert
@@ -109,7 +109,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithSQLException_ShouldReturnError() {
+    fun getAccount_Old_WithSQLException_ShouldReturnError() {
         // Arrange
         TestUtils.resetDb()
         val testAccount = TestUtils.seedAccount()
@@ -121,7 +121,7 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.getAccount(testAccount.id)
+        val actual = sut.getAccountOld(testAccount.id)
 
         // Assert
         assertThat(actual)

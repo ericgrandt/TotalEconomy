@@ -2,7 +2,6 @@ package com.ericgrandt.totaleconomy.impl
 
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
-import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DatabaseErrorN
 import com.ericgrandt.totaleconomy.result.Err
 import com.ericgrandt.totaleconomy.result.Ok
@@ -109,7 +108,7 @@ class EconomyImplTest {
     @Test
     fun hasAccount_WithAccount_ShouldReturnTrue() {
         // Arrange
-        every { econMock.hasAccount(any()) } returns Ok(true)
+        every { econMock.hasAccountOld(any()) } returns Ok(true)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -122,7 +121,7 @@ class EconomyImplTest {
     @Test
     fun hasAccount_WithNoAccount_ShouldReturnFalse() {
         // Arrange
-        every { econMock.hasAccount(any()) } returns Ok(false)
+        every { econMock.hasAccountOld(any()) } returns Ok(false)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -135,7 +134,7 @@ class EconomyImplTest {
     @Test
     fun hasAccount_WithErrorResult_ShouldReturnFalse() {
         // Arrange
-        every { econMock.hasAccount(any()) } returns Err(DatabaseErrorN)
+        every { econMock.hasAccountOld(any()) } returns Err(DatabaseErrorN)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act

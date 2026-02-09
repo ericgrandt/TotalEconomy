@@ -9,8 +9,10 @@ import com.ericgrandt.totaleconomy.model.DatabaseErrorN
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
-import com.ericgrandt.totaleconomy.result.Err
-import com.ericgrandt.totaleconomy.result.Ok
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.ericgrandt.totaleconomy.result.Err as ErrOld
+import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -59,14 +61,14 @@ class CommonEconomyTest {
     }
 
     @Test
-    fun createAccount_WithSuccessResultFromAccountOldData_ShouldReturnTrue() {
+    fun createAccount_WithSuccessResultFromAccountData_ShouldReturnTrue() {
         // Arrange
-        every { accountDataMock.createAccountOld(any()) } returns Ok(1)
+        every { accountDataMock.createAccount(any()) } returns Ok(1)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.createAccountOld(UUID.randomUUID())
+        val actual = sut.createAccount(UUID.randomUUID())
         val expected = Ok(1)
 
         // Assert
@@ -74,61 +76,61 @@ class CommonEconomyTest {
     }
 
     @Test
-    fun createAccount_WithErrorFromAccountOldData_ShouldReturnDatabaseError() {
+    fun createAccount_WithErrorFromAccountData_ShouldReturnDatabaseError() {
         // Arrange
-        every { accountDataMock.createAccountOld(any()) } returns Err(SQLException())
+        every { accountDataMock.createAccount(any()) } returns Err(SQLException())
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.createAccountOld(UUID.randomUUID())
-        val expected = Err(DatabaseErrorN)
+        val actual = sut.createAccount(UUID.randomUUID())
+        val expected = Err(DatabaseError)
 
         // Assert
         assertEquals(expected, actual)
     }
 
     @Test
-    fun hasAccount_WithAnAccount_ShouldReturnTrue() {
+    fun hasAccount_WithAnAccount_Old_ShouldReturnTrue() {
         // Arrange
         val accountMock = mockk<Account>()
-        every { accountDataMock.getAccount(any()) } returns Ok(accountMock)
+        every { accountDataMock.getAccountOld(any()) } returns OkOld(accountMock)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.hasAccount(UUID.randomUUID())
-        val expected = Ok(true)
+        val actual = sut.hasAccountOld(UUID.randomUUID())
+        val expected = OkOld(true)
 
         // Assert
         assertEquals(expected, actual)
     }
 
     @Test
-    fun hasAccount_WithNoAccount_ShouldReturnFalse() {
+    fun hasAccount_WithNoAccount_Old_ShouldReturnFalse() {
         // Arrange
-        every { accountDataMock.getAccount(any()) } returns Ok(null)
+        every { accountDataMock.getAccountOld(any()) } returns OkOld(null)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.hasAccount(UUID.randomUUID())
-        val expected = Ok(false)
+        val actual = sut.hasAccountOld(UUID.randomUUID())
+        val expected = OkOld(false)
 
         // Assert
         assertEquals(expected, actual)
     }
 
     @Test
-    fun hasAccount_WithErrorGettingAccount_ShouldReturnDatabaseError() {
+    fun hasAccount_WithErrorGettingAccount_Old_ShouldReturnDatabaseError() {
         // Arrange
-        every { accountDataMock.getAccount(any()) } returns Err(SQLException())
+        every { accountDataMock.getAccountOld(any()) } returns ErrOld(SQLException())
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.hasAccount(UUID.randomUUID())
-        val expected = Err(DatabaseErrorN)
+        val actual = sut.hasAccountOld(UUID.randomUUID())
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)
@@ -139,13 +141,13 @@ class CommonEconomyTest {
         // Arrange
         val balanceMock = mockk<Balance>()
         every { balanceMock.balance } returns 1.23
-        every { balanceDataMock.getBalance(any()) } returns Ok(balanceMock)
+        every { balanceDataMock.getBalance(any()) } returns OkOld(balanceMock)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
         val actual = sut.getBalance(UUID.randomUUID())
-        val expected = Ok(1.23)
+        val expected = OkOld(1.23)
 
         // Assert
         assertEquals(expected, actual)
@@ -154,13 +156,13 @@ class CommonEconomyTest {
     @Test
     fun getBalance_WithNullBalance_ShouldReturnZeroBalance() {
         // Arrange
-        every { balanceDataMock.getBalance(any()) } returns Ok(null)
+        every { balanceDataMock.getBalance(any()) } returns OkOld(null)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
         val actual = sut.getBalance(UUID.randomUUID())
-        val expected = Ok(0.00)
+        val expected = OkOld(0.00)
 
         // Assert
         assertEquals(expected, actual)
@@ -169,13 +171,13 @@ class CommonEconomyTest {
     @Test
     fun getBalance_WithErrorGettingBalance_ShouldReturnDatabaseError() {
         // Arrange
-        every { balanceDataMock.getBalance(any()) } returns Err(SQLException())
+        every { balanceDataMock.getBalance(any()) } returns ErrOld(SQLException())
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
         val actual = sut.getBalance(UUID.randomUUID())
-        val expected = Err(DatabaseErrorN)
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)
@@ -184,7 +186,7 @@ class CommonEconomyTest {
     @Test
     fun setBalance_WithSuccess_ShouldReturnNumberOfUpdatedRows() {
         // Arrange
-        every { balanceDataMock.setBalance(any()) } returns Ok(1)
+        every { balanceDataMock.setBalance(any()) } returns OkOld(1)
 
         val input = SetBalance(UUID.randomUUID(), 10.0)
 
@@ -192,7 +194,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.setBalance(input)
-        val expected = Ok(1)
+        val expected = OkOld(1)
 
         // Assert
         assertEquals(expected, actual)
@@ -201,7 +203,7 @@ class CommonEconomyTest {
     @Test
     fun setBalance_WithErrorGettingBalance_ShouldReturnDatabaseError() {
         // Arrange
-        every { balanceDataMock.setBalance(any()) } returns Err(SQLException())
+        every { balanceDataMock.setBalance(any()) } returns ErrOld(SQLException())
 
         val input = SetBalance(UUID.randomUUID(), 10.0)
 
@@ -209,7 +211,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.setBalance(input)
-        val expected = Err(DatabaseErrorN)
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)
@@ -220,8 +222,8 @@ class CommonEconomyTest {
         // Arrange
         val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 1.0);
 
-        every { balanceDataMock.withdrawFromBalance(any()) } returns Ok(1)
-        every { balanceDataMock.getBalance(any()) } returns Ok(mockBalance)
+        every { balanceDataMock.withdrawFromBalance(any()) } returns OkOld(1)
+        every { balanceDataMock.getBalance(any()) } returns OkOld(mockBalance)
 
         val input = WithdrawFromBalance(UUID.randomUUID(), 10.0)
 
@@ -229,7 +231,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.withdrawFromBalance(input)
-        val expected = Ok(mockBalance)
+        val expected = OkOld(mockBalance)
 
         // Assert
         assertEquals(expected, actual)
@@ -240,8 +242,8 @@ class CommonEconomyTest {
         // Arrange
         val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 1.0);
 
-        every { balanceDataMock.withdrawFromBalance(any()) } returns Err(SQLException())
-        every { balanceDataMock.getBalance(any()) } returns Ok(mockBalance)
+        every { balanceDataMock.withdrawFromBalance(any()) } returns ErrOld(SQLException())
+        every { balanceDataMock.getBalance(any()) } returns OkOld(mockBalance)
 
         val input = WithdrawFromBalance(UUID.randomUUID(), 10.0)
 
@@ -249,7 +251,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.withdrawFromBalance(input)
-        val expected = Err(DatabaseErrorN)
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)
@@ -258,8 +260,8 @@ class CommonEconomyTest {
     @Test
     fun withdrawFromBalance_WithErrorGettingBalanceAfterWithdraw_ShouldReturnDatabaseError() {
         // Arrange
-        every { balanceDataMock.withdrawFromBalance(any()) } returns Ok(1)
-        every { balanceDataMock.getBalance(any()) } returns Err(SQLException())
+        every { balanceDataMock.withdrawFromBalance(any()) } returns OkOld(1)
+        every { balanceDataMock.getBalance(any()) } returns ErrOld(SQLException())
 
         val input = WithdrawFromBalance(UUID.randomUUID(), 10.0)
 
@@ -267,7 +269,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.withdrawFromBalance(input)
-        val expected = Err(DatabaseErrorN)
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)
@@ -278,8 +280,8 @@ class CommonEconomyTest {
         // Arrange
         val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 1.0);
 
-        every { balanceDataMock.depositIntoBalance(any()) } returns Ok(1)
-        every { balanceDataMock.getBalance(any()) } returns Ok(mockBalance)
+        every { balanceDataMock.depositIntoBalance(any()) } returns OkOld(1)
+        every { balanceDataMock.getBalance(any()) } returns OkOld(mockBalance)
 
         val input = DepositIntoBalance(UUID.randomUUID(), 10.0)
 
@@ -287,7 +289,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.depositIntoBalance(input)
-        val expected = Ok(mockBalance)
+        val expected = OkOld(mockBalance)
 
         // Assert
         assertEquals(expected, actual)
@@ -298,8 +300,8 @@ class CommonEconomyTest {
         // Arrange
         val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 1.0);
 
-        every { balanceDataMock.depositIntoBalance(any()) } returns Err(SQLException())
-        every { balanceDataMock.getBalance(any()) } returns Ok(mockBalance)
+        every { balanceDataMock.depositIntoBalance(any()) } returns ErrOld(SQLException())
+        every { balanceDataMock.getBalance(any()) } returns OkOld(mockBalance)
 
         val input = DepositIntoBalance(UUID.randomUUID(), 10.0)
 
@@ -307,7 +309,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.depositIntoBalance(input)
-        val expected = Err(DatabaseErrorN)
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)
@@ -316,8 +318,8 @@ class CommonEconomyTest {
     @Test
     fun depositIntoBalance_WithErrorGettingBalanceAfterDeposit_ShouldReturnDatabaseError() {
         // Arrange
-        every { balanceDataMock.depositIntoBalance(any()) } returns Ok(1)
-        every { balanceDataMock.getBalance(any()) } returns Err(SQLException())
+        every { balanceDataMock.depositIntoBalance(any()) } returns OkOld(1)
+        every { balanceDataMock.getBalance(any()) } returns ErrOld(SQLException())
 
         val input = DepositIntoBalance(UUID.randomUUID(), 10.0)
 
@@ -325,7 +327,7 @@ class CommonEconomyTest {
 
         // Act
         val actual = sut.depositIntoBalance(input)
-        val expected = Err(DatabaseErrorN)
+        val expected = ErrOld(DatabaseErrorN)
 
         // Assert
         assertEquals(expected, actual)

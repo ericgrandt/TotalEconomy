@@ -41,7 +41,30 @@ class AccountData {
         }
     }
 
-    fun getAccount(accountId: UUID): ResultOld<Account?, Throwable> {
+    fun getAccount(accountId: UUID): Result<Account?, Throwable> {
+        val getAccountQuery = "SELECT id, created_at FROM te_account a WHERE a.id = ?"
+
+        return runCatching {
+            database.dataSource.connection.use { conn ->
+                conn.prepareStatement(getAccountQuery).use { stmt ->
+                    stmt.setString(1, accountId.toString())
+
+                    stmt.executeQuery().use { rs ->
+                        if (rs.next()) {
+                            Account(
+                                UUID.fromString(rs.getString("id")),
+                                rs.getObject("created_at", Instant::class.java)
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getAccountOld(accountId: UUID): ResultOld<Account?, Throwable> {
         val getAccountQuery = "SELECT id, created_at FROM te_account a WHERE a.id = ?"
 
         return runOrCatch {
