@@ -76,7 +76,6 @@ class CommonEconomy {
         }
     }
 
-    // TODO: Return updated balance?
     fun setBalance(input: SetBalance): ResultOld<Int, ErrorMessage> {
         return when (val result = balanceData.setBalance(input)) {
             is OkOld -> {
