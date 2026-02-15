@@ -16,7 +16,6 @@ import com.github.michaelbull.result.Ok
 import com.ericgrandt.totaleconomy.result.Err as ErrOld
 import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.fold
 import com.github.michaelbull.result.mapBoth
 import com.ericgrandt.totaleconomy.result.Result as ResultOld
 import com.github.michaelbull.result.mapError
