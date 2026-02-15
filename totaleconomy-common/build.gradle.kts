@@ -1,5 +1,4 @@
 dependencies {
-    implementation("com.michael-bull.kotlin-result:kotlin-result:2.1.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("net.kyori:adventure-api:4.25.0")

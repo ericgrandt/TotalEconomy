@@ -45,18 +45,6 @@ class CommonEconomy {
         return "Diamond"
     }
 
-    fun createAccountOld(uuid: UUID): ResultOld<Int, ErrorMessage> {
-        return when (val result = accountData.createAccountOld(uuid)) {
-            is OkOld -> {
-                OkOld(result.value)
-            }
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error creating account", result.error)
-                ErrOld(DatabaseErrorN)
-            }
-        }
-    }
-
     fun createAccount(uuid: UUID): Result<Int, DomainError> {
         return accountData.createAccount(uuid).mapError {
             logger.log(Level.SEVERE, "error creating account", it)

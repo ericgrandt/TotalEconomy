@@ -20,6 +20,8 @@ subprojects {
     }
 
     dependencies {
+        implementation("com.michael-bull.kotlin-result:kotlin-result:2.1.0")
+
         testImplementation("com.h2database:h2:2.2.224")
         testImplementation("com.zaxxer:HikariCP:5.1.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")

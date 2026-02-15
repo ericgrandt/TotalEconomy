@@ -4,7 +4,8 @@ import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
-import com.ericgrandt.totaleconomy.result.Ok
+import com.github.michaelbull.result.getOr
+import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.milkbowl.vault.economy.Economy
 import net.milkbowl.vault.economy.EconomyResponse
@@ -47,7 +48,7 @@ class EconomyImpl : Economy {
 
     override fun hasAccount(player: OfflinePlayer): Boolean {
         return when (val result = econ.hasAccountOld(player.uniqueId)) {
-            is Ok -> {
+            is OkOld -> {
                 result.value
             }
             is Err -> {
@@ -62,7 +63,7 @@ class EconomyImpl : Economy {
 
     override fun getBalance(player: OfflinePlayer): Double {
         return when (val result = econ.getBalance(player.uniqueId)) {
-            is Ok -> {
+            is OkOld -> {
                 result.value
             }
             is Err -> {
@@ -81,7 +82,7 @@ class EconomyImpl : Economy {
         }
 
         return when (val result = econ.getBalance(player.uniqueId)) {
-            is Ok -> {
+            is OkOld -> {
                 result.value >= amount
             }
             is Err -> {
@@ -104,7 +105,7 @@ class EconomyImpl : Economy {
 
         val input = WithdrawFromBalance(player.uniqueId, amount)
         return when (val result = econ.withdrawFromBalance(input)) {
-            is Ok -> {
+            is OkOld -> {
                 EconomyResponse(amount, result.value.balance, EconomyResponse.ResponseType.SUCCESS, "")
             }
             is Err -> {
@@ -131,7 +132,7 @@ class EconomyImpl : Economy {
 
         val input = DepositIntoBalance(player.uniqueId, amount)
         return when (val result = econ.depositIntoBalance(input)) {
-            is Ok -> {
+            is OkOld -> {
                 EconomyResponse(amount, result.value.balance, EconomyResponse.ResponseType.SUCCESS, "")
             }
             is Err -> {
@@ -194,14 +195,7 @@ class EconomyImpl : Economy {
     }
 
     override fun createPlayerAccount(player: OfflinePlayer): Boolean {
-        return when (val result = econ.createAccountOld(player.uniqueId)) {
-            is Ok -> {
-                result.value == 1
-            }
-            is Err -> {
-                false
-            }
-        }
+        return econ.createAccount(player.uniqueId).getOr(0) == 1
     }
 
     override fun createPlayerAccount(p0: OfflinePlayer, p1: String): Boolean {
