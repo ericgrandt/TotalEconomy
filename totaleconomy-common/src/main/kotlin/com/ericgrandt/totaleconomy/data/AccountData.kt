@@ -15,19 +15,6 @@ class AccountData {
         this.database = database
     }
 
-    fun createAccountOld(accountId: UUID): ResultOld<Int, Throwable> {
-        val createAccountQuery = "INSERT IGNORE INTO te_account(id) VALUES (?)"
-
-        return runOrCatch {
-            database.dataSource.connection.use { conn ->
-                conn.prepareStatement(createAccountQuery).use { stmt ->
-                    stmt.setString(1, accountId.toString())
-                    stmt.executeUpdate()
-                }
-            }
-        }
-    }
-
     fun createAccount(accountId: UUID): Result<Int, Throwable> {
         val createAccountQuery = "INSERT IGNORE INTO te_account(id) VALUES (?)"
 
