@@ -47,14 +47,7 @@ class EconomyImpl : Economy {
     }
 
     override fun hasAccount(player: OfflinePlayer): Boolean {
-        return when (val result = econ.hasAccountOld(player.uniqueId)) {
-            is OkOld -> {
-                result.value
-            }
-            is Err -> {
-                false
-            }
-        }
+        return econ.hasAccount(player.uniqueId).getOr(false)
     }
 
     override fun hasAccount(player: OfflinePlayer, world: String): Boolean {

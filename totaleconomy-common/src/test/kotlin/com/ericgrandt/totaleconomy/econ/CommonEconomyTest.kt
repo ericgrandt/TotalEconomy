@@ -91,46 +91,46 @@ class CommonEconomyTest {
     }
 
     @Test
-    fun hasAccount_WithAnAccount_Old_ShouldReturnTrue() {
+    fun hasAccount_WithAnAccount_ShouldReturnTrue() {
         // Arrange
         val accountMock = mockk<Account>()
-        every { accountDataMock.getAccountOld(any()) } returns OkOld(accountMock)
+        every { accountDataMock.getAccount(any()) } returns Ok(accountMock)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.hasAccountOld(UUID.randomUUID())
-        val expected = OkOld(true)
+        val actual = sut.hasAccount(UUID.randomUUID())
+        val expected = Ok(true)
 
         // Assert
         assertEquals(expected, actual)
     }
 
     @Test
-    fun hasAccount_WithNoAccount_Old_ShouldReturnFalse() {
+    fun hasAccount_WithNoAccount_ShouldReturnFalse() {
         // Arrange
-        every { accountDataMock.getAccountOld(any()) } returns OkOld(null)
+        every { accountDataMock.getAccount(any()) } returns Ok(null)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.hasAccountOld(UUID.randomUUID())
-        val expected = OkOld(false)
+        val actual = sut.hasAccount(UUID.randomUUID())
+        val expected = Ok(false)
 
         // Assert
         assertEquals(expected, actual)
     }
 
     @Test
-    fun hasAccount_WithErrorGettingAccount_Old_ShouldReturnDatabaseError() {
+    fun hasAccount_WithErrorGettingAccount_ShouldReturnDatabaseError() {
         // Arrange
-        every { accountDataMock.getAccountOld(any()) } returns ErrOld(SQLException())
+        every { accountDataMock.getAccount(any()) } returns Err(SQLException())
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
         // Act
-        val actual = sut.hasAccountOld(UUID.randomUUID())
-        val expected = ErrOld(DatabaseErrorN)
+        val actual = sut.hasAccount(UUID.randomUUID())
+        val expected = Err(DatabaseError)
 
         // Assert
         assertEquals(expected, actual)

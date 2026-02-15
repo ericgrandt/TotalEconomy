@@ -111,7 +111,7 @@ class EconomyImplTest {
     @Test
     fun hasAccount_WithAccount_ShouldReturnTrue() {
         // Arrange
-        every { econMock.hasAccountOld(any()) } returns OkOld(true)
+        every { econMock.hasAccount(any()) } returns Ok(true)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -124,7 +124,7 @@ class EconomyImplTest {
     @Test
     fun hasAccount_WithNoAccount_ShouldReturnFalse() {
         // Arrange
-        every { econMock.hasAccountOld(any()) } returns OkOld(false)
+        every { econMock.hasAccount(any()) } returns Ok(false)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -137,7 +137,7 @@ class EconomyImplTest {
     @Test
     fun hasAccount_WithErrorResult_ShouldReturnFalse() {
         // Arrange
-        every { econMock.hasAccountOld(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.hasAccount(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act

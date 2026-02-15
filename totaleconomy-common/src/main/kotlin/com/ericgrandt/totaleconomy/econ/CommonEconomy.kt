@@ -64,18 +64,6 @@ class CommonEconomy {
         )
     }
 
-    fun hasAccountOld(uuid: UUID): ResultOld<Boolean, ErrorMessage> {
-        return when (val result = accountData.getAccountOld(uuid)) {
-            is OkOld -> {
-                OkOld(result.value != null)
-            }
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error getting account", result.error)
-                ErrOld(DatabaseErrorN)
-            }
-        }
-    }
-
     fun getBalance(uuid: UUID): ResultOld<Double, ErrorMessage> {
         return when (val result = balanceData.getBalance(uuid)) {
             is OkOld -> {
