@@ -150,7 +150,7 @@ class EconomyImplTest {
     @Test
     fun getBalance_WithSuccess_ShouldReturnBalance() {
         // Arrange
-        every { econMock.getBalance(any()) } returns OkOld(1.00)
+        every { econMock.getBalance(any()) } returns Ok(1.00)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -164,7 +164,7 @@ class EconomyImplTest {
     @Test
     fun getBalance_WithErrorResult_ShouldReturnAZeroBalance() {
         // Arrange
-        every { econMock.getBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.getBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -202,7 +202,7 @@ class EconomyImplTest {
     @Test
     fun has_WithEnoughBalance_ShouldReturnTrue() {
         // Arrange
-        every { econMock.getBalance(any()) } returns OkOld(4.00)
+        every { econMock.getBalance(any()) } returns Ok(4.00)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -215,7 +215,7 @@ class EconomyImplTest {
     @Test
     fun has_WithInsufficientBalance_ShouldReturnFalse() {
         // Arrange
-        every { econMock.getBalance(any()) } returns OkOld(4.00)
+        every { econMock.getBalance(any()) } returns Ok(4.00)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -228,7 +228,7 @@ class EconomyImplTest {
     @Test
     fun has_WithErrorGettingBalance_ShouldReturnFalse() {
         // Arrange
-        every { econMock.getBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.getBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -242,7 +242,7 @@ class EconomyImplTest {
     fun withdrawPlayer_WithSuccessWithdrawing_ShouldReturnSuccessResponse() {
         // Arrange
         val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 15.0)
-        every { econMock.withdrawFromBalance(any()) } returns OkOld(mockBalance)
+        every { econMock.withdrawFromBalance(any()) } returns Ok(mockBalance)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -259,7 +259,7 @@ class EconomyImplTest {
     @Test
     fun withdrawPlayer_WithErrorWithdrawing_ShouldReturnFailureResponse() {
         // Arrange
-        every { econMock.withdrawFromBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -276,7 +276,7 @@ class EconomyImplTest {
     @Test
     fun withdrawPlayer_WithWithdrawAmountOfZero_ShouldReturnFailureResponse() {
         // Arrange
-        every { econMock.withdrawFromBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -293,7 +293,7 @@ class EconomyImplTest {
     @Test
     fun withdrawPlayer_WithWithdrawAmountLessThanZero_ShouldReturnFailureResponse() {
         // Arrange
-        every { econMock.withdrawFromBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.withdrawFromBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -311,7 +311,7 @@ class EconomyImplTest {
     fun depositPlayer_WithSuccessDepositing_ShouldReturnSuccessResponse() {
         // Arrange
         val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 15.0)
-        every { econMock.depositIntoBalance(any()) } returns OkOld(mockBalance)
+        every { econMock.depositIntoBalance(any()) } returns Ok(mockBalance)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -328,7 +328,7 @@ class EconomyImplTest {
     @Test
     fun depositPlayer_WithErrorDepositing_ShouldReturnFailureResponse() {
         // Arrange
-        every { econMock.depositIntoBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.depositIntoBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -345,7 +345,7 @@ class EconomyImplTest {
     @Test
     fun depositPlayer_WithDepositAmountOfZero_ShouldReturnFailureResponse() {
         // Arrange
-        every { econMock.depositIntoBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.depositIntoBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -362,7 +362,7 @@ class EconomyImplTest {
     @Test
     fun depositPlayer_WithDepositAmountLessThanZero_ShouldReturnFailureResponse() {
         // Arrange
-        every { econMock.depositIntoBalance(any()) } returns ErrOld(DatabaseErrorN)
+        every { econMock.depositIntoBalance(any()) } returns Err(DatabaseError)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act

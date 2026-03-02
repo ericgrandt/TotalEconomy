@@ -5,6 +5,9 @@ import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.result.Err
 import com.github.michaelbull.result.getOr
+import com.github.michaelbull.result.map
+import com.github.michaelbull.result.mapBoth
+import com.github.michaelbull.result.orElse
 import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.milkbowl.vault.economy.Economy
@@ -55,14 +58,7 @@ class EconomyImpl : Economy {
     }
 
     override fun getBalance(player: OfflinePlayer): Double {
-        return when (val result = econ.getBalance(player.uniqueId)) {
-            is OkOld -> {
-                result.value
-            }
-            is Err -> {
-                0.0
-            }
-        }
+        return econ.getBalance(player.uniqueId).getOr(0.0)
     }
 
     override fun getBalance(player: OfflinePlayer, world: String): Double {
@@ -74,14 +70,7 @@ class EconomyImpl : Economy {
             return false
         }
 
-        return when (val result = econ.getBalance(player.uniqueId)) {
-            is OkOld -> {
-                result.value >= amount
-            }
-            is Err -> {
-               false
-            }
-        }
+        return econ.getBalance(player.uniqueId).getOr(0.0) >= amount
     }
 
     override fun has(player: OfflinePlayer, world: String, amount: Double): Boolean {
@@ -97,14 +86,14 @@ class EconomyImpl : Economy {
         }
 
         val input = WithdrawFromBalance(player.uniqueId, amount)
-        return when (val result = econ.withdrawFromBalance(input)) {
-            is OkOld -> {
-                EconomyResponse(amount, result.value.balance, EconomyResponse.ResponseType.SUCCESS, "")
-            }
-            is Err -> {
+        return econ.withdrawFromBalance(input).mapBoth(
+            success = {
+                EconomyResponse(amount, it.balance, EconomyResponse.ResponseType.SUCCESS, "")
+            },
+            failure = {
                 EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to withdraw from balance")
             }
-        }
+        )
     }
 
     override fun withdrawPlayer(
@@ -124,14 +113,14 @@ class EconomyImpl : Economy {
         }
 
         val input = DepositIntoBalance(player.uniqueId, amount)
-        return when (val result = econ.depositIntoBalance(input)) {
-            is OkOld -> {
-                EconomyResponse(amount, result.value.balance, EconomyResponse.ResponseType.SUCCESS, "")
-            }
-            is Err -> {
+        return econ.depositIntoBalance(input).mapBoth(
+            success = {
+                EconomyResponse(amount, it.balance, EconomyResponse.ResponseType.SUCCESS, "")
+            },
+            failure = {
                 EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to deposit into balance")
             }
-        }
+        )
     }
 
     override fun depositPlayer(

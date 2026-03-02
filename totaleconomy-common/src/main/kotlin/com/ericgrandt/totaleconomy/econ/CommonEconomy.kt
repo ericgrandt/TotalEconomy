@@ -90,7 +90,7 @@ class CommonEconomy {
         )
     }
 
-    fun withdrawFromBalance(input: WithdrawFromBalance): Result<Balance?, DomainError> {
+    fun withdrawFromBalance(input: WithdrawFromBalance): Result<Balance, DomainError> {
         // TODO: Add a check to make sure a row was actually updated?
         balanceData.withdrawFromBalance(input).getOrElse {
             logger.log(Level.SEVERE, "error withdrawing from balance", it)
