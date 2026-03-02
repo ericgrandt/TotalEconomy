@@ -6,14 +6,11 @@ import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
-import com.ericgrandt.totaleconomy.model.DatabaseErrorN
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
-import com.ericgrandt.totaleconomy.result.Err as ErrOld
-import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

@@ -4,8 +4,6 @@ import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.game.CommonPlayer
 import com.ericgrandt.totaleconomy.game.CommonSender
 import com.ericgrandt.totaleconomy.model.errorToUserMessage
-import com.ericgrandt.totaleconomy.result.Err
-import com.ericgrandt.totaleconomy.result.Ok
 import com.github.michaelbull.result.mapBoth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

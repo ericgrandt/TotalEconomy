@@ -3,9 +3,6 @@ package com.ericgrandt.totaleconomy.impl
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.model.DatabaseError
-import com.ericgrandt.totaleconomy.model.DatabaseErrorN
-import com.ericgrandt.totaleconomy.result.Err as ErrOld
-import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations

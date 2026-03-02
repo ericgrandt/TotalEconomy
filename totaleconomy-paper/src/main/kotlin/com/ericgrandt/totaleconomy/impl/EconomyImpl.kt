@@ -3,12 +3,8 @@ package com.ericgrandt.totaleconomy.impl
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
-import com.ericgrandt.totaleconomy.result.Err
 import com.github.michaelbull.result.getOr
-import com.github.michaelbull.result.map
 import com.github.michaelbull.result.mapBoth
-import com.github.michaelbull.result.orElse
-import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.milkbowl.vault.economy.Economy
 import net.milkbowl.vault.economy.EconomyResponse

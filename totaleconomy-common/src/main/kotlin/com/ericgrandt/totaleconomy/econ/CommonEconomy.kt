@@ -5,7 +5,6 @@ import com.ericgrandt.totaleconomy.data.BalanceData
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
-import com.ericgrandt.totaleconomy.model.DatabaseErrorN
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.DomainError
 import com.ericgrandt.totaleconomy.model.ErrorMessage
@@ -14,12 +13,9 @@ import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
-import com.ericgrandt.totaleconomy.result.Err as ErrOld
-import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.mapBoth
-import com.ericgrandt.totaleconomy.result.Result as ResultOld
 import com.github.michaelbull.result.mapError
 import net.kyori.adventure.text.Component
 import java.util.UUID
@@ -134,9 +130,9 @@ class CommonEconomy {
         )
     }
 
-    fun transferBalance(input: TransferBalance): ResultOld<Boolean, ErrorMessage> {
+    fun transferBalance(input: TransferBalance): Result<Boolean, ErrorMessage> {
         // TODO: Verify fromBalance has enough for transfer
-        return OkOld(true)
+        return Ok(true)
     }
 
     fun format(amount: Double): Component {
