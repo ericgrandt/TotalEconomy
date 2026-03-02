@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.econ
 import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.BalanceData
 import com.ericgrandt.totaleconomy.data.entity.Balance
+import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DatabaseErrorN
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
@@ -16,6 +17,7 @@ import com.github.michaelbull.result.Ok
 import com.ericgrandt.totaleconomy.result.Err as ErrOld
 import com.ericgrandt.totaleconomy.result.Ok as OkOld
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.mapBoth
 import com.ericgrandt.totaleconomy.result.Result as ResultOld
 import com.github.michaelbull.result.mapError
@@ -64,80 +66,72 @@ class CommonEconomy {
         )
     }
 
-    fun getBalance(uuid: UUID): ResultOld<Double, ErrorMessage> {
-        return when (val result = balanceData.getBalance(uuid)) {
-            is OkOld -> {
-                OkOld(result.value?.balance ?: 0.00)
+    fun getBalance(uuid: UUID): Result<Double, DomainError> {
+        return balanceData.getBalance(uuid).mapBoth(
+            success = {
+                Ok(it?.balance ?: 0.00)
+            },
+            failure = {
+                logger.log(Level.SEVERE, "error getting balance", it)
+                Err(DatabaseError)
             }
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error getting balance", result.error)
-                ErrOld(DatabaseErrorN)
-            }
-        }
+        )
     }
 
-    fun setBalance(input: SetBalance): ResultOld<Int, ErrorMessage> {
-        return when (val result = balanceData.setBalance(input)) {
-            is OkOld -> {
-                OkOld(result.value)
+    fun setBalance(input: SetBalance): Result<Int, DomainError> {
+        return balanceData.setBalance(input).mapBoth(
+            success = {
+                Ok(it)
+            },
+            failure = {
+                logger.log(Level.SEVERE, "error setting balance", it)
+                Err(DatabaseError)
             }
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error setting balance", result.error)
-                ErrOld(DatabaseErrorN)
-            }
-        }
+        )
     }
 
-    fun withdrawFromBalance(input: WithdrawFromBalance): ResultOld<Balance, ErrorMessage> {
+    fun withdrawFromBalance(input: WithdrawFromBalance): Result<Balance?, DomainError> {
         // TODO: Add a check to make sure a row was actually updated?
-        when (val result = balanceData.withdrawFromBalance(input)) {
-            is OkOld -> {}
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error withdrawing from balance", result.error)
-                return ErrOld(DatabaseErrorN)
-            }
+        balanceData.withdrawFromBalance(input).getOrElse {
+            logger.log(Level.SEVERE, "error withdrawing from balance", it)
+            return Err(DatabaseError)
         }
 
-        return when (val result = balanceData.getBalance(input.accountId)) {
-            is OkOld -> {
-                result.value?.let {
-                    OkOld(result.value)
-                } ?: run {
-                    logger.log(Level.SEVERE, "balance for account id not found after withdrawing")
-                    ErrOld(DatabaseErrorN) // NOTE: If there is no balance here, something went wrong which is why it's returning a DatabaseError
+        return balanceData.getBalance(input.accountId).mapBoth(
+            success = {
+                if (it == null) {
+                    return Err(BalanceNotFoundInDatabase)
                 }
+
+                return Ok(it)
+            },
+            failure = {
+                logger.log(Level.SEVERE, "error getting balance", it)
+                Err(DatabaseError)
             }
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error getting balance", result.error)
-                ErrOld(DatabaseErrorN)
-            }
-        }
+        )
     }
 
-    fun depositIntoBalance(input: DepositIntoBalance): ResultOld<Balance, ErrorMessage> {
+    fun depositIntoBalance(input: DepositIntoBalance): Result<Balance, DomainError> {
         // TODO: Add a check to make sure a row was actually updated?
-        when (val result = balanceData.depositIntoBalance(input)) {
-            is OkOld -> {}
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error depositing into balance", result.error)
-                return ErrOld(DatabaseErrorN)
-            }
+        balanceData.depositIntoBalance(input).getOrElse {
+            logger.log(Level.SEVERE, "error depositing into balance", it)
+            return Err(DatabaseError)
         }
 
-        return when (val result = balanceData.getBalance(input.accountId)) {
-            is OkOld -> {
-                result.value?.let {
-                    OkOld(result.value)
-                } ?: run {
-                    logger.log(Level.SEVERE, "balance for account id not found after depositing")
-                    ErrOld(DatabaseErrorN) // NOTE: If there is no balance here, something went wrong which is why it's returning a DatabaseError
+        return balanceData.getBalance(input.accountId).mapBoth(
+            success = {
+                if (it == null) {
+                    return Err(BalanceNotFoundInDatabase)
                 }
+
+                return Ok(it)
+            },
+            failure = {
+                logger.log(Level.SEVERE, "error getting balance", it)
+                Err(DatabaseError)
             }
-            is ErrOld -> {
-                logger.log(Level.SEVERE, "error getting balance", result.error)
-                ErrOld(DatabaseErrorN)
-            }
-        }
+        )
     }
 
     fun transferBalance(input: TransferBalance): ResultOld<Boolean, ErrorMessage> {

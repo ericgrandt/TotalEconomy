@@ -6,6 +6,7 @@ import com.ericgrandt.totaleconomy.game.CommonSender
 import com.ericgrandt.totaleconomy.model.errorToUserMessage
 import com.ericgrandt.totaleconomy.result.Err
 import com.ericgrandt.totaleconomy.result.Ok
+import com.github.michaelbull.result.mapBoth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
@@ -34,14 +35,14 @@ class BalanceCommand : CommonCommand {
     }
 
     private fun execute(player: CommonPlayer) {
-        when (val result = economy.getBalance(player.uniqueId)) {
-            is Ok -> {
-                player.sendMessage(Component.text("You have ").append(economy.format(result.value)))
-            }
-            is Err -> {
-                val userMessage = errorToUserMessage(result.error)
+        economy.getBalance(player.uniqueId).mapBoth(
+            success = {
+                player.sendMessage(Component.text("You have ").append(economy.format(it)))
+            },
+            failure = {
+                val userMessage = errorToUserMessage(it)
                 player.sendMessage(Component.text(userMessage))
             }
-        }
+        )
     }
 }

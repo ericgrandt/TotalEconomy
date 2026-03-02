@@ -1,13 +1,13 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.TestUtils
-import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
-import com.ericgrandt.totaleconomy.result.Err
-import com.ericgrandt.totaleconomy.result.Ok
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.getError
 import com.zaxxer.hikari.HikariDataSource
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -16,11 +16,9 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import java.sql.SQLException
-import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class BalanceDataTest {
     @MockK
@@ -87,9 +85,7 @@ class BalanceDataTest {
         val actual = sut.getBalance(testAccount.id)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Err::class.java)
-            .extracting { (it as Err).error }
+        assertThat(actual.getError())
             .isInstanceOf(SQLException::class.java)
     }
 
@@ -157,9 +153,7 @@ class BalanceDataTest {
         val actual = sut.setBalance(input)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Err::class.java)
-            .extracting { (it as Err).error }
+        assertThat(actual.getError())
             .isInstanceOf(SQLException::class.java)
     }
 
@@ -227,9 +221,7 @@ class BalanceDataTest {
         val actual = sut.withdrawFromBalance(input)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Err::class.java)
-            .extracting { (it as Err).error }
+        assertThat(actual.getError())
             .isInstanceOf(SQLException::class.java)
     }
 
@@ -297,9 +289,7 @@ class BalanceDataTest {
         val actual = sut.depositIntoBalance(input)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Err::class.java)
-            .extracting { (it as Err).error }
+        assertThat(actual.getError())
             .isInstanceOf(SQLException::class.java)
     }
 
@@ -326,8 +316,8 @@ class BalanceDataTest {
         val expectedToBalance = 2.23
 
         // Assert
-        val updatedFromBalance = sut.getBalance(testFromAccount.id).ok()
-        val updatedToBalance = sut.getBalance(testToAccount.id).ok()
+        val updatedFromBalance = sut.getBalance(testFromAccount.id).get()
+        val updatedToBalance = sut.getBalance(testToAccount.id).get()
 
         assertEquals(Ok(true), actual)
         assertEquals(expectedFromBalance, updatedFromBalance?.balance)
@@ -354,9 +344,7 @@ class BalanceDataTest {
         val actual = sut.transferBalance(input)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(Err::class.java)
-            .extracting { (it as Err).error }
+        assertThat(actual.getError())
             .isInstanceOf(SQLException::class.java)
     }
 }

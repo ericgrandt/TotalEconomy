@@ -2,7 +2,7 @@ package com.ericgrandt.totaleconomy.command
 
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.game.CommonPlayer
-import com.ericgrandt.totaleconomy.result.Ok
+import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

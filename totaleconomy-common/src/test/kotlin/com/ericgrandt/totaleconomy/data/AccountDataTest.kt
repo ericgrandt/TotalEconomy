@@ -1,11 +1,7 @@
 package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.TestUtils
-import com.github.michaelbull.result.Err
-import com.ericgrandt.totaleconomy.result.Ok as OkOld
-import com.ericgrandt.totaleconomy.result.Err as ErrOld
 import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.asErr
 import com.github.michaelbull.result.getError
 import com.zaxxer.hikari.HikariDataSource
 import io.mockk.MockKAnnotations
@@ -14,13 +10,11 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.assertAll
 import java.sql.SQLException
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class AccountDataTest {
     @MockK
@@ -74,7 +68,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithSuccess_ShouldReturnAccountOld() {
+    fun getAccount_WithSuccess_ShouldReturnAccount() {
         // Arrange
         TestUtils.resetDb()
         val testAccount = TestUtils.seedAccount()
@@ -85,8 +79,8 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.getAccountOld(testAccount.id)
-        val expected = OkOld(testAccount)
+        val actual = sut.getAccount(testAccount.id)
+        val expected = Ok(testAccount)
 
         // Assert
         assertEquals(expected, actual)
@@ -94,7 +88,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithNoAccountOldFound_ShouldReturnAnInfoResult() {
+    fun getAccount_WithNoAccountFound_ShouldReturnAnInfoResult() {
         // Arrange
         TestUtils.resetDb()
 
@@ -104,8 +98,8 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.getAccountOld(UUID.randomUUID())
-        val expected = OkOld(null)
+        val actual = sut.getAccount(UUID.randomUUID())
+        val expected = Ok(null)
 
         // Assert
         assertEquals(expected, actual)
@@ -113,7 +107,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_Old_WithSQLException_ShouldReturnError() {
+    fun getAccount_WithSQLException_ShouldReturnError() {
         // Arrange
         TestUtils.resetDb()
         val testAccount = TestUtils.seedAccount()
@@ -125,12 +119,10 @@ class AccountDataTest {
         val sut = AccountData(databaseMock);
 
         // Act
-        val actual = sut.getAccountOld(testAccount.id)
+        val actual = sut.getAccount(testAccount.id)
 
         // Assert
-        assertThat(actual)
-            .isInstanceOf(ErrOld::class.java)
-            .extracting { (it as ErrOld).error }
+        assertThat(actual.getError())
             .isInstanceOf(SQLException::class.java)
     }
 }

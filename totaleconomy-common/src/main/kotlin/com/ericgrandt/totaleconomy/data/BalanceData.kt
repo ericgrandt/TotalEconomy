@@ -5,8 +5,8 @@ import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
-import com.ericgrandt.totaleconomy.result.Result
-import com.ericgrandt.totaleconomy.result.runOrCatch
+import com.github.michaelbull.result.runCatching
+import com.github.michaelbull.result.Result
 import java.sql.SQLException
 import java.util.UUID
 import kotlin.use
@@ -21,7 +21,7 @@ class BalanceData {
     fun getBalance(accountId: UUID): Result<Balance?, Throwable> {
         val getBalanceQuery = "SELECT b.id, b.account_id, b.balance FROM te_balance b WHERE b.account_id = ?"
 
-        return runOrCatch {
+        return runCatching {
             database.dataSource.connection.use { conn ->
                 conn.prepareStatement(getBalanceQuery).use { stmt ->
                     stmt.setString(1, accountId.toString())
@@ -45,7 +45,7 @@ class BalanceData {
     fun setBalance(input: SetBalance): Result<Int, Throwable> {
         val setBalanceQuery = "UPDATE te_balance b SET b.balance = ? WHERE b.account_id = ?"
 
-        return runOrCatch {
+        return runCatching {
             database.dataSource.connection.use { conn ->
                 conn.prepareStatement(setBalanceQuery).use { stmt ->
                     stmt.setDouble(1, input.balance)
@@ -60,7 +60,7 @@ class BalanceData {
     fun withdrawFromBalance(input: WithdrawFromBalance): Result<Int, Throwable> {
         val setBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance - ? WHERE b.account_id = ?"
 
-        return runOrCatch {
+        return runCatching {
             database.dataSource.connection.use { conn ->
                 conn.prepareStatement(setBalanceQuery).use { stmt ->
                     stmt.setDouble(1, input.amount)
@@ -75,7 +75,7 @@ class BalanceData {
     fun depositIntoBalance(input: DepositIntoBalance): Result<Int, Throwable> {
         val setBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance + ? WHERE b.account_id = ?"
 
-        return runOrCatch {
+        return runCatching {
             database.dataSource.connection.use { conn ->
                 conn.prepareStatement(setBalanceQuery).use { stmt ->
                     stmt.setDouble(1, input.amount)
@@ -91,7 +91,7 @@ class BalanceData {
         val withdrawBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance - ? WHERE b.account_id = ?"
         val depositBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance + ? WHERE b.account_id = ?"
 
-        return runOrCatch {
+        return runCatching {
             database.dataSource.connection.use { conn ->
                 conn.autoCommit = false
 
