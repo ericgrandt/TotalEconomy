@@ -7,13 +7,14 @@ import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.DomainError
-import com.ericgrandt.totaleconomy.model.ErrorMessage
+import com.ericgrandt.totaleconomy.model.InsufficientBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.getOr
 import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
@@ -121,7 +122,7 @@ class CommonEconomy {
                     return Err(BalanceNotFoundInDatabase)
                 }
 
-                return Ok(it)
+                Ok(it)
             },
             failure = {
                 logger.log(Level.SEVERE, "error getting balance", it)
@@ -130,9 +131,22 @@ class CommonEconomy {
         )
     }
 
-    fun transferBalance(input: TransferBalance): Result<Boolean, ErrorMessage> {
+    fun transferBalance(input: TransferBalance): Result<Boolean, DomainError> {
         // TODO: Verify fromBalance has enough for transfer
-        return Ok(true)
+        val fromBalance = balanceData.getBalance(input.fromAccountId).mapBoth(
+            success = {
+                it?.balance ?: 0.00
+            },
+            failure = {
+                logger.log(Level.SEVERE, "error getting from balance", it)
+                return Err(DatabaseError)
+            }
+        )
+        if (fromBalance < input.amount) {
+            return Err(InsufficientBalance)
+        }
+
+        return Ok(balanceData.transferBalance(input).getOr(false))
     }
 
     fun format(amount: Double): Component {

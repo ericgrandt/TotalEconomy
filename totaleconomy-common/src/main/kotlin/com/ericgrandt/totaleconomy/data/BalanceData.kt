@@ -112,7 +112,7 @@ class BalanceData {
 
                     conn.commit()
                 } catch (e: SQLException) {
-                    runCatching { conn.rollback() }
+                    conn.rollback()
                     throw e
                 }
             }
