@@ -33,7 +33,7 @@ class BalanceCommand : CommonCommand {
     }
 
     private fun execute(player: CommonPlayer) {
-        economy.getBalance(player.uniqueId).mapBoth(
+        economy.getBalance(player.getUniqueID()).mapBoth(
             success = {
                 player.sendMessage(Component.text("You have ").append(economy.format(it)))
             },

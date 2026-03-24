@@ -132,7 +132,6 @@ class CommonEconomy {
     }
 
     fun transferBalance(input: TransferBalance): Result<Boolean, DomainError> {
-        // TODO: Verify fromBalance has enough for transfer
         val fromBalance = balanceData.getBalance(input.fromAccountId).mapBoth(
             success = {
                 it?.balance ?: 0.00
@@ -146,7 +145,10 @@ class CommonEconomy {
             return Err(InsufficientBalance)
         }
 
-        return Ok(balanceData.transferBalance(input).getOr(false))
+        return balanceData.transferBalance(input).mapError{
+            logger.log(Level.SEVERE, "error transferring balance")
+            DatabaseError
+        }
     }
 
     fun format(amount: Double): Component {
