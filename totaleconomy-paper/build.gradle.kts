@@ -23,6 +23,8 @@ dependencies {
     testImplementation("com.github.MilkBowl:VaultAPI:1.7.1")
     testImplementation("io.mockk:mockk:1.14.5")
     testImplementation("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation(project(":totaleconomy-common"))
 }
 
 tasks {

@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data
 
-import com.ericgrandt.totaleconomy.TestUtils
+import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.getError
 import com.zaxxer.hikari.HikariDataSource

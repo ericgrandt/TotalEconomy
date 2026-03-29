@@ -1,4 +1,4 @@
-package com.ericgrandt.totaleconomy.data
+package com.ericgrandt.totaleconomy.testutils
 
 class TestSqlScripts {
     companion object {

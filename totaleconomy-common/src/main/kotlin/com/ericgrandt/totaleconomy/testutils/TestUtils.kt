@@ -1,6 +1,5 @@
-package com.ericgrandt.totaleconomy
+package com.ericgrandt.totaleconomy.testutils
 
-import com.ericgrandt.totaleconomy.data.TestSqlScripts
 import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.zaxxer.hikari.HikariConfig
@@ -8,7 +7,6 @@ import com.zaxxer.hikari.HikariDataSource
 import java.sql.Connection
 import java.time.Instant
 import java.util.UUID
-import kotlin.use
 
 class TestUtils {
     companion object {

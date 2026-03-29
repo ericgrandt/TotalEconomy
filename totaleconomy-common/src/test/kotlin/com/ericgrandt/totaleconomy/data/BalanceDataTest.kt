@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data
 
-import com.ericgrandt.totaleconomy.TestUtils
+import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
