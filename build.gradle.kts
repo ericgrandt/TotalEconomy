@@ -2,7 +2,6 @@ plugins {
     id("java-library")
     id("com.gradleup.shadow") version "8.3.0"
     kotlin("jvm") version "2.2.21"
-    checkstyle
 }
 
 repositories {
@@ -12,7 +11,6 @@ repositories {
 subprojects {
     plugins.apply("java-library")
     plugins.apply("com.gradleup.shadow")
-    plugins.apply("checkstyle")
     plugins.apply("kotlin")
 
     repositories {
