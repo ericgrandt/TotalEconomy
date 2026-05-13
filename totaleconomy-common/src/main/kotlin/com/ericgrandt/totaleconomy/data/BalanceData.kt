@@ -5,8 +5,8 @@ import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.runCatching
 import java.sql.SQLException
 import java.util.UUID
 import kotlin.use
@@ -31,7 +31,7 @@ class BalanceData {
                             Balance(
                                 UUID.fromString(rs.getString("id")),
                                 UUID.fromString(rs.getString("account_id")),
-                                rs.getDouble("balance")
+                                rs.getDouble("balance"),
                             )
                         } else {
                             null
