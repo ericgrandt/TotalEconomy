@@ -14,15 +14,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
     implementation(project(":totaleconomy-common", configuration = "shadow"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     testImplementation("com.github.MilkBowl:VaultAPI:1.7.1")
-    testImplementation("io.mockk:mockk:1.14.5")
-    testImplementation("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    testImplementation("io.mockk:mockk:1.14.9")
+    testImplementation("io.papermc.paper:paper-api:26.1.2.build.+")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation(project(":totaleconomy-common"))
 }

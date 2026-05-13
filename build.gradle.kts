@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
-    id("com.gradleup.shadow") version "8.3.0"
-    kotlin("jvm") version "2.2.21"
+    id("com.gradleup.shadow") version "9.4.1"
+    kotlin("jvm") version "2.3.21"
 }
 
 repositories {
@@ -18,9 +18,9 @@ subprojects {
     }
 
     dependencies {
-        implementation("com.michael-bull.kotlin-result:kotlin-result:2.1.0")
+        implementation("com.michael-bull.kotlin-result:kotlin-result:2.3.1")
 
-        testImplementation("com.h2database:h2:2.2.224")
+        testImplementation("com.h2database:h2:2.4.240")
         testImplementation("com.zaxxer:HikariCP:5.1.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
         testImplementation("org.mockito:mockito-core:5.12.0")
@@ -32,7 +32,7 @@ subprojects {
     }
 
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 
     tasks {
