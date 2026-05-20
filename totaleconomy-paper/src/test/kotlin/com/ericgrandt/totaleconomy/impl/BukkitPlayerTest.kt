@@ -1,6 +1,5 @@
 package com.ericgrandt.totaleconomy.impl
 
-import com.ericgrandt.totaleconomy.game.CommonPlayer
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -39,7 +38,7 @@ class BukkitPlayerTest {
     fun getName_ShouldReturnName() {
         // Arrange
         val name = "NiceName"
-        every {playerMock.name } returns name
+        every { playerMock.name } returns name
 
         val sut = BukkitPlayer(playerMock)
 

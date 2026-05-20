@@ -20,14 +20,14 @@ class PayCommand : CommonCommand {
     override fun runAsync(
         scope: CoroutineScope,
         sender: CommonSender,
-        args: MutableMap<String, CommonParameter<*>>
+        args: Map<String, CommonParameter>,
     ): Boolean {
-        if (sender !is CommonPlayer || args["toPlayer"]?.value !is CommonPlayer || args["amount"]?.value !is Double) {
+        var toPlayer = (args["toPlayer"] as? CommonParameter.PlayerParam)?.value
+        var amount = (args["amount"] as? CommonParameter.DoubleParam)?.value
+
+        if (sender !is CommonPlayer || toPlayer == null || amount == null) {
             return false
         }
-
-        val toPlayer = args["toPlayer"]?.value as CommonPlayer
-        val amount = args["amount"]?.value as Double
 
         scope.launch {
             execute(sender, toPlayer, amount)
@@ -36,17 +36,26 @@ class PayCommand : CommonCommand {
         return true
     }
 
-    private fun execute(fromPlayer: CommonPlayer, toPlayer: CommonPlayer, amount: Double) {
+    private fun execute(
+        fromPlayer: CommonPlayer,
+        toPlayer: CommonPlayer,
+        amount: Double,
+    ) {
         val input = TransferBalance(fromPlayer.getUniqueID(), toPlayer.getUniqueID(), amount)
         economy.transferBalance(input).mapBoth(
             success = {
                 fromPlayer.sendMessage(Component.text("You paid " + toPlayer.getName() + " ").append(economy.format(amount)))
-                toPlayer.sendMessage(Component.text("You received ").append(economy.format(amount)).append(Component.text(" from " + fromPlayer.getName())))
+                toPlayer.sendMessage(
+                    Component.text("You received ").append(economy.format(amount)).append(
+                        Component.text(" from " + fromPlayer.getName()),
+                    ),
+                )
             },
-            failure = { // TODO: Test
+            failure = {
+                // TODO: Test
                 val userMessage = errorToUserMessage(it)
                 fromPlayer.sendMessage(Component.text(userMessage))
-            }
+            },
         )
     }
 }

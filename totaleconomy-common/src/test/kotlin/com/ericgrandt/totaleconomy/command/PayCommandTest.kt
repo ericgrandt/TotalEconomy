@@ -32,52 +32,77 @@ class PayCommandTest {
 
     @Test
     @Tag("Unit")
-    fun runAsync_WithSuccess_ShouldSendCorrectMessages() = runTest {
-        // Arrange
-        every { econMock.transferBalance(any()) } returns Ok(true)
-        every { econMock.format(10.51) } returns Component.text("10.51 Diamonds")
-        every { fromPlayerMock.getUniqueID() } returns UUID.randomUUID()
-        every { fromPlayerMock.getName() } returns "From Player"
-        every { toPlayerMock.getUniqueID() } returns UUID.randomUUID()
-        every { toPlayerMock.getName() } returns "To Player"
+    fun runAsync_WithSuccess_ShouldSendCorrectMessages() =
+        runTest {
+            // Arrange
+            every { econMock.transferBalance(any()) } returns Ok(true)
+            every { econMock.format(10.51) } returns Component.text("10.51 Diamonds")
+            every { fromPlayerMock.getUniqueID() } returns UUID.randomUUID()
+            every { fromPlayerMock.getName() } returns "From Player"
+            every { toPlayerMock.getUniqueID() } returns UUID.randomUUID()
+            every { toPlayerMock.getName() } returns "To Player"
 
-        val sut = PayCommand(econMock)
+            val sut = PayCommand(econMock)
 
-        // Act
-        val actual = sut.runAsync(this, fromPlayerMock, mutableMapOf("toPlayer" to CommonParameter(toPlayerMock), "amount" to CommonParameter(10.51)))
+            // Act
+            val actual =
+                sut.runAsync(
+                    this,
+                    fromPlayerMock,
+                    mapOf(
+                        "toPlayer" to CommonParameter.PlayerParam(toPlayerMock),
+                        "amount" to CommonParameter.DoubleParam(10.51),
+                    ),
+                )
 
-        // Assert
-        testScheduler.advanceUntilIdle()
+            // Assert
+            testScheduler.advanceUntilIdle()
 
-        assertTrue(actual)
-        verify(exactly = 1) { fromPlayerMock.sendMessage(Component.text("You paid To Player ").append(Component.text("10.51 Diamonds"))) }
-        verify(exactly = 1) {
-            toPlayerMock.sendMessage(Component.text("You received ")
-                .append(Component.text("10.51 Diamonds"))
-                .append(Component.text(" from From Player")))
+            assertTrue(actual)
+            verify(exactly = 1) {
+                fromPlayerMock.sendMessage(
+                    Component.text("You paid To Player ").append(Component.text("10.51 Diamonds")),
+                )
+            }
+            verify(exactly = 1) {
+                toPlayerMock.sendMessage(
+                    Component
+                        .text("You received ")
+                        .append(Component.text("10.51 Diamonds"))
+                        .append(Component.text(" from From Player")),
+                )
+            }
         }
-    }
 
     @Test
     @Tag("Unit")
-    fun runAsync_WithFailure_ShouldSendErrorMessageToSender() = runTest {
-        // Arrange
-        every { econMock.transferBalance(any()) } returns Err(InsufficientBalance)
-        every { econMock.format(10.51) } returns Component.text("10.51 Diamonds")
-        every { fromPlayerMock.getUniqueID() } returns UUID.randomUUID()
-        every { fromPlayerMock.getName() } returns "From Player"
-        every { toPlayerMock.getUniqueID() } returns UUID.randomUUID()
-        every { toPlayerMock.getName() } returns "To Player"
+    fun runAsync_WithFailure_ShouldSendErrorMessageToSender() =
+        runTest {
+            // Arrange
+            every { econMock.transferBalance(any()) } returns Err(InsufficientBalance)
+            every { econMock.format(10.51) } returns Component.text("10.51 Diamonds")
+            every { fromPlayerMock.getUniqueID() } returns UUID.randomUUID()
+            every { fromPlayerMock.getName() } returns "From Player"
+            every { toPlayerMock.getUniqueID() } returns UUID.randomUUID()
+            every { toPlayerMock.getName() } returns "To Player"
 
-        val sut = PayCommand(econMock)
+            val sut = PayCommand(econMock)
 
-        // Act
-        val actual = sut.runAsync(this, fromPlayerMock, mutableMapOf("toPlayer" to CommonParameter(toPlayerMock), "amount" to CommonParameter(10.51)))
+            // Act
+            val actual =
+                sut.runAsync(
+                    this,
+                    fromPlayerMock,
+                    mutableMapOf(
+                        "toPlayer" to CommonParameter.PlayerParam(toPlayerMock),
+                        "amount" to CommonParameter.DoubleParam(10.51),
+                    ),
+                )
 
-        // Assert
-        testScheduler.advanceUntilIdle()
+            // Assert
+            testScheduler.advanceUntilIdle()
 
-        assertTrue(actual)
-        verify(exactly = 1) { fromPlayerMock.sendMessage(Component.text("Insufficient balance")) }
-    }
+            assertTrue(actual)
+            verify(exactly = 1) { fromPlayerMock.sendMessage(Component.text("Insufficient balance")) }
+        }
 }

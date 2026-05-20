@@ -19,7 +19,7 @@ class BalanceCommand : CommonCommand {
     override fun runAsync(
         scope: CoroutineScope,
         sender: CommonSender,
-        args: MutableMap<String, CommonParameter<*>>
+        args: Map<String, CommonParameter>,
     ): Boolean {
         if (sender !is CommonPlayer) {
             return false
@@ -40,7 +40,7 @@ class BalanceCommand : CommonCommand {
             failure = {
                 val userMessage = errorToUserMessage(it)
                 player.sendMessage(Component.text(userMessage))
-            }
+            },
         )
     }
 }

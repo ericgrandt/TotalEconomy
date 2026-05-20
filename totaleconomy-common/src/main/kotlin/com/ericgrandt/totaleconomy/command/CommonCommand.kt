@@ -4,5 +4,9 @@ import com.ericgrandt.totaleconomy.game.CommonSender
 import kotlinx.coroutines.CoroutineScope
 
 interface CommonCommand {
-    fun runAsync(scope: CoroutineScope, sender: CommonSender, args: MutableMap<String, CommonParameter<*>>): Boolean
+    fun runAsync(
+        scope: CoroutineScope,
+        sender: CommonSender,
+        args: Map<String, CommonParameter>,
+    ): Boolean
 }

@@ -11,10 +11,12 @@ import io.mockk.impl.annotations.MockK
 import net.kyori.adventure.text.Component
 import net.milkbowl.vault.economy.EconomyResponse
 import org.bukkit.OfflinePlayer
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.BeforeTest
+import kotlin.test.assertEquals
 
 class EconomyImplTest {
     @MockK
@@ -43,7 +45,7 @@ class EconomyImplTest {
     @Test
     fun getName_ShouldReturnTotalEconomy() {
         // Act
-        val actual =  sut.name
+        val actual = sut.name
 
         // Assert
         assertEquals("Total Economy", actual)
@@ -261,7 +263,8 @@ class EconomyImplTest {
 
         // Act
         val actual = sut.withdrawPlayer(playerMock, 5.0)
-        val expected = EconomyResponse(5.0, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to withdraw from balance")
+        val expected =
+            EconomyResponse(5.0, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to withdraw from balance")
 
         // Assert
         assertEquals(expected.amount, actual.amount)
@@ -278,7 +281,8 @@ class EconomyImplTest {
 
         // Act
         val actual = sut.withdrawPlayer(playerMock, 0.0)
-        val expected = EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+        val expected =
+            EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
 
         // Assert
         assertEquals(expected.amount, actual.amount)
@@ -295,7 +299,8 @@ class EconomyImplTest {
 
         // Act
         val actual = sut.withdrawPlayer(playerMock, -0.1)
-        val expected = EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+        val expected =
+            EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
 
         // Assert
         assertEquals(expected.amount, actual.amount)
@@ -347,7 +352,8 @@ class EconomyImplTest {
 
         // Act
         val actual = sut.depositPlayer(playerMock, 0.0)
-        val expected = EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
+        val expected =
+            EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
 
         // Assert
         assertEquals(expected.amount, actual.amount)
@@ -364,7 +370,8 @@ class EconomyImplTest {
 
         // Act
         val actual = sut.depositPlayer(playerMock, -0.1)
-        val expected = EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
+        val expected =
+            EconomyResponse(-0.1, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
 
         // Assert
         assertEquals(expected.amount, actual.amount)
