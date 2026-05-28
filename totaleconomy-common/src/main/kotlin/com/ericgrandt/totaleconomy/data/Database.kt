@@ -1,7 +1,11 @@
 package com.ericgrandt.totaleconomy.data
 
+import com.ericgrandt.totaleconomy.data.table.AccountTable
+import com.ericgrandt.totaleconomy.data.table.BalanceTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class Database {
     val url: String
@@ -27,12 +31,8 @@ class Database {
     }
 
     fun initDatabase() {
-        this.dataSource.connection.use { conn ->
-            SqlScripts.initScripts.forEach { script ->
-                conn.prepareStatement(script).use { pst ->
-                    pst.execute()
-                }
-            }
+        transaction {
+            SchemaUtils.create(AccountTable, BalanceTable)
         }
     }
 }

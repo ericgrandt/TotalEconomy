@@ -2,38 +2,53 @@ package com.ericgrandt.totaleconomy.testutils
 
 import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
+import com.ericgrandt.totaleconomy.data.table.AccountTable
+import com.ericgrandt.totaleconomy.data.table.BalanceTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.Connection
-import java.time.Instant
 import java.util.UUID
+import kotlin.time.Instant
 
 class TestUtils {
     companion object {
-        val config = HikariConfig()
-        val ds: HikariDataSource
+        val d: HikariDataSource
+        val c = HikariConfig()
 
         const val TEST_DATE = "2025-01-01T00:00:00Z"
 
         init {
-            config.jdbcUrl = "jdbc:h2:mem:totaleconomy;MODE=MySQL";
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            ds = HikariDataSource(config);
-            setupDb();
+            c.jdbcUrl = "jdbc:h2:mem:totaleconomy;MODE=MySQL"
+            c.addDataSourceProperty("cachePrepStmts", "true")
+            c.addDataSourceProperty("prepStmtCacheSize", "250")
+            c.addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
+            d = HikariDataSource(c)
         }
 
-        fun getConnection(): Connection {
-            return ds.connection
+        fun getConnection(): Connection = d.connection
+
+        fun connectToTestDb(runInit: Boolean = true) {
+            val config = HikariConfig()
+            config.jdbcUrl = "jdbc:h2:mem:${UUID.randomUUID()};MODE=MySQL"
+
+            Database.connect(HikariDataSource(config))
+
+            if (runInit) {
+                initDb()
+            }
         }
 
         fun resetDb() {
-            val queries = arrayOf(
-                "DELETE FROM te_account"
-            )
+            val queries =
+                arrayOf(
+                    "DELETE FROM te_account",
+                )
 
-            this.ds.connection.use { conn ->
+            this.d.connection.use { conn ->
                 queries.forEach { query ->
                     conn.prepareStatement(query).use { stmt ->
                         stmt.execute()
@@ -42,44 +57,47 @@ class TestUtils {
             }
         }
 
-        fun seedAccount() : Account {
-            val query = "INSERT INTO te_account VALUES(?, ?)"
-
-            val toInsert = Account(UUID.randomUUID(), Instant.parse(TEST_DATE))
-
-            getConnection().use { conn ->
-                conn.prepareStatement(query).use { stmt ->
-                    stmt.setString(1, toInsert.id.toString())
-                    stmt.setObject(2, toInsert.createdAt)
-                    stmt.execute()
+        fun seedAccount(): Account {
+            val account = Account(UUID.randomUUID(), Instant.parse(TEST_DATE))
+            transaction {
+                AccountTable.insert {
+                    it[AccountTable.id] = account.id.toString()
+                    it[AccountTable.createdAt] = account.createdAt
                 }
             }
-            return toInsert
+            return account
         }
 
-        fun seedBalance(accountId: UUID, balance: Balance?) : Balance {
-            val query = "INSERT INTO te_balance VALUES(?, ?, ?)"
-
+        fun seedBalance(
+            accountId: UUID,
+            balance: Balance?,
+        ): Balance {
             val toInsert = balance ?: Balance(UUID.randomUUID(), accountId, 1.23)
 
-            getConnection().use { conn ->
-                conn.prepareStatement(query).use { stmt ->
-                    stmt.setString(1, toInsert.id.toString())
-                    stmt.setString(2, toInsert.accountId.toString())
-                    stmt.setDouble(3, toInsert.balance)
-                    stmt.execute()
+            transaction {
+                BalanceTable.insert {
+                    it[BalanceTable.id] = toInsert.id.toString()
+                    it[BalanceTable.accountId] = toInsert.accountId.toString()
+                    it[BalanceTable.balance] = toInsert.balance
                 }
             }
+
             return toInsert
         }
 
         private fun setupDb() {
             TestSqlScripts.initScripts.forEach { script ->
-                this.ds.connection.use { conn ->
+                this.d.connection.use { conn ->
                     conn.prepareStatement(script).use { pst ->
                         pst.execute()
                     }
                 }
+            }
+        }
+
+        private fun initDb() {
+            transaction {
+                SchemaUtils.create(AccountTable, BalanceTable)
             }
         }
     }

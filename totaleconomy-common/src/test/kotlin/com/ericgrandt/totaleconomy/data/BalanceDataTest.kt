@@ -1,10 +1,10 @@
 package com.ericgrandt.totaleconomy.data
 
-import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
+import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getError
@@ -14,8 +14,10 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.Tag
 import java.sql.SQLException
+import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,130 +33,114 @@ class BalanceDataTest {
     @Tag("Integration")
     fun getBalance_WithBalance_ShouldReturnBalance() {
         // Arrange
-        TestUtils.resetDb()
+        TestUtils.connectToTestDb()
         val testAccount = TestUtils.seedAccount()
         val testBalance = TestUtils.seedBalance(testAccount.id, null)
 
-        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
+        val sut = BalanceData(databaseMock)
 
-        val sut = BalanceData(databaseMock);
+        // Act/Assert
+        transaction {
+            val actual = sut.getBalance(testAccount.id)
+            val expected = Ok(testBalance)
 
-        // Act
-        val actual = sut.getBalance(testAccount.id)
-        val expected = Ok(testBalance)
-
-        // Assert
-        assertEquals(expected, actual)
+            assertEquals(expected, actual)
+        }
     }
 
-    //@Test
+    @Test
     @Tag("Integration")
     fun getBalance_WithNoBalance_ShouldReturnNull() {
         // Arrange
-        TestUtils.resetDb()
+        TestUtils.connectToTestDb()
         val testAccount = TestUtils.seedAccount()
 
-        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
+        val sut = BalanceData(databaseMock)
 
-        val sut = BalanceData(databaseMock);
+        // Act/Assert
+        transaction {
+            val actual = sut.getBalance(testAccount.id)
+            val expected = Ok(null)
 
-        // Act
-        val actual = sut.getBalance(testAccount.id)
-        val expected = Ok(null)
-
-        // Assert
-        assertEquals(expected, actual)
+            assertEquals(expected, actual)
+        }
     }
 
     @Test
     @Tag("Integration")
     fun getBalance_WithSqlException_ShouldReturnErrResult() {
         // Arrange
-        TestUtils.resetDb()
-        val testAccount = TestUtils.seedAccount()
+        TestUtils.connectToTestDb(false)
 
-        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
-        every { databaseMock.dataSource.connection.prepareStatement(any()) } throws SQLException()
+        val sut = BalanceData(databaseMock)
 
-        val sut = BalanceData(databaseMock);
+        // Act/Assert
+        transaction {
+            val actual = sut.getBalance(UUID.randomUUID())
 
-        // Act
-        val actual = sut.getBalance(testAccount.id)
-
-        // Assert
-        assertThat(actual.getError())
-            .isInstanceOf(SQLException::class.java)
+            assertThat(actual.getError())
+                .isInstanceOf(SQLException::class.java)
+        }
     }
 
     @Test
     @Tag("Integration")
     fun setBalance_WithUpdatedRow_ShouldReturnOne() {
         // Arrange
-        TestUtils.resetDb()
+        TestUtils.connectToTestDb()
         val testAccount = TestUtils.seedAccount()
         TestUtils.seedBalance(testAccount.id, null)
 
-        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
-
         val input = SetBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
-        // Act
-        val actual = sut.setBalance(input)
-        val expected = Ok(1)
+        // Act/Assert
+        transaction {
+            val actual = sut.setBalance(input)
+            val expected = Ok(1)
 
-        // Assert
-        assertEquals(expected, actual)
+            assertEquals(expected, actual)
+        }
     }
 
     @Test
     @Tag("Integration")
     fun setBalance_WithNoUpdatedRow_ShouldReturnZero() {
         // Arrange
-        TestUtils.resetDb()
+        TestUtils.connectToTestDb()
         val testAccount = TestUtils.seedAccount()
-
-        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
 
         val input = SetBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
-        // Act
-        val actual = sut.setBalance(input)
-        val expected = Ok(0)
+        // Act/Assert
+        transaction {
+            val actual = sut.setBalance(input)
+            val expected = Ok(0)
 
-        // Assert
-        assertEquals(expected, actual)
+            assertEquals(expected, actual)
+        }
     }
 
     @Test
     @Tag("Integration")
     fun setBalance_WithSqlException_ShouldReturnErrResult() {
         // Arrange
-        TestUtils.resetDb()
-        val testAccount = TestUtils.seedAccount()
+        TestUtils.connectToTestDb(false)
 
-        every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-        every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
-        every { databaseMock.dataSource.connection.prepareStatement(any()) } throws SQLException()
+        val input = SetBalance(UUID.randomUUID(), 10.0)
 
-        val input = SetBalance(testAccount.id, 10.0)
+        val sut = BalanceData(databaseMock)
 
-        val sut = BalanceData(databaseMock);
+        // Act/Assert
+        transaction {
+            val actual = sut.setBalance(input)
 
-        // Act
-        val actual = sut.setBalance(input)
-
-        // Assert
-        assertThat(actual.getError())
-            .isInstanceOf(SQLException::class.java)
+            assertThat(actual.getError())
+                .isInstanceOf(SQLException::class.java)
+        }
     }
 
     @Test
@@ -170,7 +156,7 @@ class BalanceDataTest {
 
         val input = WithdrawFromBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.withdrawFromBalance(input)
@@ -192,7 +178,7 @@ class BalanceDataTest {
 
         val input = WithdrawFromBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.withdrawFromBalance(input)
@@ -215,7 +201,7 @@ class BalanceDataTest {
 
         val input = WithdrawFromBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.withdrawFromBalance(input)
@@ -238,7 +224,7 @@ class BalanceDataTest {
 
         val input = DepositIntoBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.depositIntoBalance(input)
@@ -260,7 +246,7 @@ class BalanceDataTest {
 
         val input = DepositIntoBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.depositIntoBalance(input)
@@ -283,7 +269,7 @@ class BalanceDataTest {
 
         val input = DepositIntoBalance(testAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.depositIntoBalance(input)
@@ -308,7 +294,7 @@ class BalanceDataTest {
 
         val input = TransferBalance(testFromAccount.id, testToAccount.id, 1.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.transferBalance(input)
@@ -338,7 +324,7 @@ class BalanceDataTest {
 
         val input = TransferBalance(testFromAccount.id, testToAccount.id, 10.0)
 
-        val sut = BalanceData(databaseMock);
+        val sut = BalanceData(databaseMock)
 
         // Act
         val actual = sut.transferBalance(input)
