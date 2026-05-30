@@ -7,14 +7,12 @@ import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.DomainError
-import com.ericgrandt.totaleconomy.model.InsufficientBalance
 import com.ericgrandt.totaleconomy.model.SetBalance
 import com.ericgrandt.totaleconomy.model.TransferBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.getOr
 import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
@@ -36,56 +34,48 @@ class CommonEconomy {
         this.balanceData = balanceData
     }
 
-    fun currencyNamePlural(): String {
-        return "Diamonds"
-    }
+    fun currencyNamePlural(): String = "Diamonds"
 
-    fun currencyNameSingular(): String {
-        return "Diamond"
-    }
+    fun currencyNameSingular(): String = "Diamond"
 
-    fun createAccount(uuid: UUID): Result<Int, DomainError> {
-        return accountData.createAccount(uuid).mapError {
+    fun createAccount(uuid: UUID): Result<Int, DomainError> =
+        accountData.createAccount(uuid).mapError {
             logger.log(Level.SEVERE, "error creating account", it)
             DatabaseError
         }
-    }
 
-    fun hasAccount(uuid: UUID): Result<Boolean, DomainError> {
-        return accountData.getAccount(uuid).mapBoth(
+    fun hasAccount(uuid: UUID): Result<Boolean, DomainError> =
+        accountData.getAccount(uuid).mapBoth(
             success = {
                 Ok(it != null)
             },
             failure = {
                 logger.log(Level.SEVERE, "error getting account", it)
                 Err(DatabaseError)
-            }
+            },
         )
-    }
 
-    fun getBalance(uuid: UUID): Result<Double, DomainError> {
-        return balanceData.getBalance(uuid).mapBoth(
+    fun getBalance(uuid: UUID): Result<Double, DomainError> =
+        balanceData.getBalance(uuid).mapBoth(
             success = {
                 Ok(it?.balance ?: 0.00)
             },
             failure = {
                 logger.log(Level.SEVERE, "error getting balance", it)
                 Err(DatabaseError)
-            }
+            },
         )
-    }
 
-    fun setBalance(input: SetBalance): Result<Int, DomainError> {
-        return balanceData.setBalance(input).mapBoth(
+    fun setBalance(input: SetBalance): Result<Int, DomainError> =
+        balanceData.setBalance(input).mapBoth(
             success = {
                 Ok(it)
             },
             failure = {
                 logger.log(Level.SEVERE, "error setting balance", it)
                 Err(DatabaseError)
-            }
+            },
         )
-    }
 
     fun withdrawFromBalance(input: WithdrawFromBalance): Result<Balance, DomainError> {
         // TODO: Add a check to make sure a row was actually updated?
@@ -105,7 +95,7 @@ class CommonEconomy {
             failure = {
                 logger.log(Level.SEVERE, "error getting balance", it)
                 Err(DatabaseError)
-            }
+            },
         )
     }
 
@@ -127,29 +117,54 @@ class CommonEconomy {
             failure = {
                 logger.log(Level.SEVERE, "error getting balance", it)
                 Err(DatabaseError)
-            }
+            },
         )
     }
 
     fun transferBalance(input: TransferBalance): Result<Boolean, DomainError> {
-        val fromBalance = balanceData.getBalance(input.fromAccountId).mapBoth(
-            success = {
-                it?.balance ?: 0.00
-            },
-            failure = {
-                logger.log(Level.SEVERE, "error getting from balance", it)
-                return Err(DatabaseError)
-            }
-        )
-        if (fromBalance < input.amount) {
-            return Err(InsufficientBalance)
-        }
+        return Ok(true)
+        // val fromBalance =
+        //    balanceData.getBalance(input.fromAccountId).mapBoth(
+        //        success = {
+        //            it?.balance ?: 0.00
+        //        },
+        //        failure = {
+        //            logger.log(Level.SEVERE, "error getting from balance", it)
+        //            return Err(DatabaseError)
+        //        },
+        //    )
+        // if (fromBalance < input.amount) {
+        //    return Err(InsufficientBalance)
+        // }
 
-        return balanceData.transferBalance(input).mapError{
-            logger.log(Level.SEVERE, "error transferring balance")
-            DatabaseError
-        }
+        // return balanceData.transferBalance(input).mapError {
+        //    logger.log(Level.SEVERE, "error transferring balance", it)
+        //    DatabaseError
+        // }
     }
+
+    // fun transferBalanceNew(input: TransferBalance): Result<Boolean, DomainError> {
+    //    return transaction {
+    //        val fromBalance =
+    //            balanceData.getBalance(input.fromAccountId).mapBoth(
+    //                success = {
+    //                    it?.balance ?: 0.00
+    //                },
+    //                failure = {
+    //                    logger.log(Level.SEVERE, "error getting from balance", it)
+    //                    DatabaseError
+    //                },
+    //            ) as Double
+    //        if (fromBalance < input.amount) {
+    //            return@transaction Err(InsufficientBalance)
+    //        }
+
+    //        return@transaction balanceData.transferBalance(input).mapError {
+    //            logger.log(Level.SEVERE, "error transferring balance", it)
+    //            DatabaseError
+    //        }
+    //    }
+    // }
 
     fun format(amount: Double): Component {
         var currencyName = currencyNamePlural()

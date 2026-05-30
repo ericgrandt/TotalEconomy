@@ -8,4 +8,8 @@ object BalanceTable : Table("te_budget") {
     val balance = double("balance")
 
     override val primaryKey = PrimaryKey(AccountTable.id)
+
+    init {
+        uniqueIndex("uk_account_id", accountId)
+    }
 }

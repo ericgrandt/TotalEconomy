@@ -22,8 +22,8 @@ class PayCommand : CommonCommand {
         sender: CommonSender,
         args: Map<String, CommonParameter>,
     ): Boolean {
-        var toPlayer = (args["toPlayer"] as? CommonParameter.PlayerParam)?.value
-        var amount = (args["amount"] as? CommonParameter.DoubleParam)?.value
+        val toPlayer = (args["toPlayer"] as? CommonParameter.PlayerParam)?.value
+        val amount = (args["amount"] as? CommonParameter.DoubleParam)?.value
 
         if (sender !is CommonPlayer || toPlayer == null || amount == null) {
             return false
@@ -44,7 +44,9 @@ class PayCommand : CommonCommand {
         val input = TransferBalance(fromPlayer.getUniqueID(), toPlayer.getUniqueID(), amount)
         economy.transferBalance(input).mapBoth(
             success = {
-                fromPlayer.sendMessage(Component.text("You paid " + toPlayer.getName() + " ").append(economy.format(amount)))
+                fromPlayer.sendMessage(
+                    Component.text("You paid " + toPlayer.getName() + " ").append(economy.format(amount)),
+                )
                 toPlayer.sendMessage(
                     Component.text("You received ").append(economy.format(amount)).append(
                         Component.text(" from " + fromPlayer.getName()),
