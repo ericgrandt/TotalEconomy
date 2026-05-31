@@ -4,6 +4,7 @@ import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.BalanceData
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.testutils.TestUtils
+import com.github.michaelbull.result.getOr
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -17,6 +18,7 @@ import org.bukkit.entity.Player
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.test.BeforeTest
+import kotlin.test.assertEquals
 
 class PayCommandExecutorTest {
     @MockK
@@ -72,6 +74,12 @@ class PayCommandExecutorTest {
                         .append(Component.text(" from fromPlayer")),
                 )
             }
+
+            val fromPlayerBalance = economy.getBalance(fromAccount.id).getOr(-1.0)
+            assertEquals(0.0, fromPlayerBalance)
+
+            val toPlayerBalance = economy.getBalance(toAccount.id).getOr(-1.0)
+            assertEquals(2.46, toPlayerBalance)
         }
     }
 }
