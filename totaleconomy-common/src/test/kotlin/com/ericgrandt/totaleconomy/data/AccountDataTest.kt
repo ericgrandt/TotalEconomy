@@ -3,25 +3,18 @@ package com.ericgrandt.totaleconomy.data
 import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.getError
-import io.mockk.MockKAnnotations
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.Tag
 import java.sql.SQLException
 import java.util.UUID
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class AccountDataTest {
-    @BeforeTest
-    fun setUp() {
-        MockKAnnotations.init(this, relaxUnitFun = true)
-    }
-
     @Test
     @Tag("Integration")
-    fun createAccount_WithSuccess_ShouldReturnBoolean() {
+    fun createAccount_WithSuccess_ShouldReturnCreatedRowCount() {
         // Arrange
         TestUtils.connectToTestDb()
 

@@ -6,20 +6,49 @@ import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.getError
-import io.mockk.MockKAnnotations
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.Tag
 import java.sql.SQLException
 import java.util.UUID
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class BalanceDataTest {
-    @BeforeTest
-    fun setUp() {
-        MockKAnnotations.init(this, relaxUnitFun = true)
+    @Test
+    @Tag("Integration")
+    fun createBalance_WithSuccess_ShouldReturnCreatedRowCount() {
+        // Arrange
+        TestUtils.connectToTestDb()
+        val testAccount = TestUtils.seedAccount()
+
+        val sut = BalanceData()
+
+        // Act/Assert
+        transaction {
+            val actual = sut.createBalance(testAccount.id)
+            val expected = Ok(1)
+
+            assertEquals(expected, actual)
+        }
+    }
+
+    @Test
+    @Tag("Integration")
+    fun createBalance_WithSQLException_ShouldReturnErrorResult() {
+        // Arrange
+        TestUtils.connectToTestDb(false)
+
+        val sut = BalanceData()
+
+        // Act/Assert
+        transaction {
+            val actual = sut.createBalance(UUID.randomUUID())
+
+            // Assert
+            assertThat(actual.getError())
+                .isInstanceOf(SQLException::class.java)
+        }
     }
 
     @Test

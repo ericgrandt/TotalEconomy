@@ -54,7 +54,6 @@ class PayCommand : CommonCommand {
                 )
             },
             failure = {
-                // TODO: Test
                 val userMessage = errorToUserMessage(it)
                 fromPlayer.sendMessage(Component.text(userMessage))
             },

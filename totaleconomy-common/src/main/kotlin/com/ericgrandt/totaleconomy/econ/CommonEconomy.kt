@@ -42,78 +42,89 @@ class CommonEconomy {
         return "Diamond"
     }
 
-    fun createAccount(uuid: UUID): Result<Int, DomainError> =
-        transaction {
+    fun createAccount(uuid: UUID): Result<Int, DomainError> {
+        return transaction {
             accountData.createAccount(uuid).mapError {
                 logger.log(Level.SEVERE, "error creating account", it)
-                DatabaseError
+                return@transaction Err(DatabaseError)
+            }
+
+            balanceData.createBalance(uuid).mapError {
+                logger.log(Level.SEVERE, "error creating balance", it)
+                return@transaction Err(DatabaseError)
             }
         }
+    }
 
-    fun hasAccount(uuid: UUID): Result<Boolean, DomainError> =
-        transaction {
+    fun hasAccount(uuid: UUID): Result<Boolean, DomainError> {
+        return transaction {
             accountData.getAccount(uuid).mapBoth(
                 success = {
                     Ok(it != null)
                 },
                 failure = {
                     logger.log(Level.SEVERE, "error getting account", it)
-                    Err(DatabaseError)
+                    return@transaction Err(DatabaseError)
                 },
             )
         }
+    }
 
-    fun getBalance(uuid: UUID): Result<Double, DomainError> =
-        transaction {
+    fun getBalance(uuid: UUID): Result<Double, DomainError> {
+        return transaction {
             balanceData.getBalance(uuid).mapBoth(
                 success = {
                     Ok(it?.balance ?: 0.00)
                 },
                 failure = {
                     logger.log(Level.SEVERE, "error getting balance", it)
-                    Err(DatabaseError)
+                    return@transaction Err(DatabaseError)
                 },
             )
         }
+    }
 
-    fun setBalance(input: SetBalance): Result<Int, DomainError> =
-        transaction {
+    fun setBalance(input: SetBalance): Result<Int, DomainError> {
+        return transaction {
             balanceData.setBalance(input).mapBoth(
                 success = {
                     Ok(it)
                 },
                 failure = {
                     logger.log(Level.SEVERE, "error setting balance", it)
-                    Err(DatabaseError)
+                    return@transaction Err(DatabaseError)
                 },
             )
         }
+    }
 
-    fun withdrawFromBalance(input: WithdrawFromBalance): Result<Int, DomainError> =
-        transaction {
+    fun withdrawFromBalance(input: WithdrawFromBalance): Result<Int, DomainError> {
+        return transaction {
             balanceData.withdrawFromBalance(input).mapBoth(
                 success = {
                     Ok(it)
                 },
                 failure = {
                     logger.log(Level.SEVERE, "error withdrawing from balance", it)
-                    Err(DatabaseError)
+                    return@transaction Err(DatabaseError)
                 },
             )
         }
+    }
 
-    fun depositIntoBalance(input: DepositIntoBalance): Result<Int, DomainError> =
-        transaction {
+    fun depositIntoBalance(input: DepositIntoBalance): Result<Int, DomainError> {
+        return transaction {
             balanceData.depositIntoBalance(input).mapBoth(
                 success = {
                     Ok(it)
                 },
                 failure = {
                     logger.log(Level.SEVERE, "error depositing into balance", it)
-                    Err(DatabaseError)
+                    return@transaction Err(DatabaseError)
                 },
             )
         }
+    }
 
     fun transferBalance(input: TransferBalance): Result<Boolean, DomainError> {
         return transaction {
@@ -123,6 +134,7 @@ class CommonEconomy {
                         if (it == null) {
                             return@transaction Err(BalanceNotFoundInDatabase)
                         }
+
                         it.balance
                     },
                     failure = {

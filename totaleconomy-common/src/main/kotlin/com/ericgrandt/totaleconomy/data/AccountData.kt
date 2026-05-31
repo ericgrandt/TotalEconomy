@@ -10,16 +10,17 @@ import org.jetbrains.exposed.v1.jdbc.select
 import java.util.UUID
 
 class AccountData {
-    fun createAccount(accountId: UUID): Result<Int, Throwable> =
-        runCatching {
+    fun createAccount(accountId: UUID): Result<Int, Throwable> {
+        return runCatching {
             AccountTable
                 .insertIgnore {
                     it[id] = accountId.toString()
                 }.insertedCount
         }
+    }
 
-    fun getAccount(accountId: UUID): Result<Account?, Throwable> =
-        runCatching {
+    fun getAccount(accountId: UUID): Result<Account?, Throwable> {
+        return runCatching {
             AccountTable
                 .select(AccountTable.id, AccountTable.createdAt)
                 .where { AccountTable.id eq accountId.toString() }
@@ -27,4 +28,5 @@ class AccountData {
                 .singleOrNull()
                 ?.let { Account.fromRow(it) }
         }
+    }
 }

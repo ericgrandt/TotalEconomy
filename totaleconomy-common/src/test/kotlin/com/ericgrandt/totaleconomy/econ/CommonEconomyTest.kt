@@ -68,6 +68,7 @@ class CommonEconomyTest {
     fun createAccount_WithSuccessResultFromAccountData_ShouldReturnTrue() {
         // Arrange
         every { accountDataMock.createAccount(any()) } returns Ok(1)
+        every { balanceDataMock.createBalance(any()) } returns Ok(1)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 
@@ -83,6 +84,22 @@ class CommonEconomyTest {
     fun createAccount_WithErrorFromAccountData_ShouldReturnDatabaseError() {
         // Arrange
         every { accountDataMock.createAccount(any()) } returns Err(SQLException())
+
+        val sut = CommonEconomy(accountDataMock, balanceDataMock)
+
+        // Act
+        val actual = sut.createAccount(UUID.randomUUID())
+        val expected = Err(DatabaseError)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun createAccount_WithErrorFromBalanceData_ShouldReturnDatabaseError() {
+        // Arrange
+        every { accountDataMock.createAccount(any()) } returns Ok(1)
+        every { balanceDataMock.createBalance(any()) } returns Err(SQLException())
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock)
 

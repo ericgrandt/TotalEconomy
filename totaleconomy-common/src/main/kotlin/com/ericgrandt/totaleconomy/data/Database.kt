@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.data
 
 import com.ericgrandt.totaleconomy.data.table.AccountTable
 import com.ericgrandt.totaleconomy.data.table.BalanceTable
+import com.ericgrandt.totaleconomy.data.table.BankTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -32,7 +33,7 @@ class Database {
 
     fun initDatabase() {
         transaction {
-            SchemaUtils.create(AccountTable, BalanceTable)
+            SchemaUtils.create(AccountTable, BalanceTable, BankTable)
         }
     }
 }

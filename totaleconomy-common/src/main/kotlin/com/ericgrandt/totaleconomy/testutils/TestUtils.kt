@@ -4,6 +4,7 @@ import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.data.table.AccountTable
 import com.ericgrandt.totaleconomy.data.table.BalanceTable
+import com.ericgrandt.totaleconomy.data.table.BankTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -87,7 +88,7 @@ class TestUtils {
 
         private fun initDb() {
             transaction {
-                SchemaUtils.create(AccountTable, BalanceTable)
+                SchemaUtils.create(AccountTable, BalanceTable, BankTable)
             }
         }
     }
