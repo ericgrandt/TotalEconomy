@@ -15,7 +15,9 @@ import kotlin.test.assertEquals
 
 class AccountDataTest {
     @BeforeTest
-    fun setUp() = MockKAnnotations.init(this, relaxUnitFun = true)
+    fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+    }
 
     @Test
     @Tag("Integration")

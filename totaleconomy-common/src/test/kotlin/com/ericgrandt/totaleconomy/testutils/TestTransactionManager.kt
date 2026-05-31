@@ -25,12 +25,15 @@ class TestTransactionManager : JdbcTransactionManager {
         isolation: Int,
         readOnly: Boolean,
         outerTransaction: JdbcTransaction?,
-    ): JdbcTransaction = transaction()
+    ): JdbcTransaction {
+        return transaction()
+    }
 
-    fun transaction(): JdbcTransaction =
-        mockk(relaxed = true) {
+    fun transaction(): JdbcTransaction {
+        return mockk(relaxed = true) {
             every { db } returns mockDb
         }
+    }
 
     fun apply() {
         TransactionManager.registerManager(mockDb, this@TestTransactionManager)

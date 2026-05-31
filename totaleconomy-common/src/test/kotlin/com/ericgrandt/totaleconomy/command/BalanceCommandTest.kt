@@ -25,45 +25,57 @@ class BalanceCommandTest {
     lateinit var playerMock: CommonPlayer
 
     @BeforeTest
-    fun setUp() = MockKAnnotations.init(this, relaxUnitFun = true)
-
-    @Test
-    @Tag("Unit")
-    fun runAsync_WithSuccess_ShouldSendCorrectMessage() = runTest {
-        // Arrange
-        every { econMock.getBalance(any()) } returns Ok(1.23)
-        every { econMock.format(1.23) } returns Component.text("1.23 Diamonds")
-        every { playerMock.getUniqueID() } returns UUID.randomUUID()
-
-        val sut = BalanceCommand(econMock)
-
-        // Act
-        val actual = sut.runAsync(this, playerMock, mutableMapOf())
-
-        // Assert
-        testScheduler.advanceUntilIdle()
-
-        assertTrue(actual)
-        verify(exactly = 1) { playerMock.sendMessage(Component.text("You have ").append(Component.text("1.23 Diamonds"))) }
+    fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
     }
 
     @Test
     @Tag("Unit")
-    fun runAsync_WithFailure_ShouldSendErrorMessageToSender() = runTest {
-        // Arrange
-        every { econMock.getBalance(any()) } returns Err(DatabaseError)
-        every { econMock.format(1.23) } returns Component.text("1.23 Diamonds")
-        every { playerMock.getUniqueID() } returns UUID.randomUUID()
+    fun runAsync_WithSuccess_ShouldSendCorrectMessage() {
+        return runTest {
+            // Arrange
+            every { econMock.getBalance(any()) } returns Ok(1.23)
+            every { econMock.format(1.23) } returns Component.text("1.23 Diamonds")
+            every { playerMock.getUniqueID() } returns UUID.randomUUID()
 
-        val sut = BalanceCommand(econMock)
+            val sut = BalanceCommand(econMock)
 
-        // Act
-        val actual = sut.runAsync(this, playerMock, mutableMapOf())
+            // Act
+            val actual = sut.runAsync(this, playerMock, mutableMapOf())
 
-        // Assert
-        testScheduler.advanceUntilIdle()
+            // Assert
+            testScheduler.advanceUntilIdle()
 
-        assertTrue(actual)
-        verify(exactly = 1) { playerMock.sendMessage(Component.text("An error occurred. Please contact an administrator.")) }
+            assertTrue(actual)
+            verify(exactly = 1) {
+                playerMock.sendMessage(
+                    Component.text("You have ").append(Component.text("1.23 Diamonds")),
+                )
+            }
+        }
+    }
+
+    @Test
+    @Tag("Unit")
+    fun runAsync_WithFailure_ShouldSendErrorMessageToSender() {
+        return runTest {
+            // Arrange
+            every { econMock.getBalance(any()) } returns Err(DatabaseError)
+            every { econMock.format(1.23) } returns Component.text("1.23 Diamonds")
+            every { playerMock.getUniqueID() } returns UUID.randomUUID()
+
+            val sut = BalanceCommand(econMock)
+
+            // Act
+            val actual = sut.runAsync(this, playerMock, mutableMapOf())
+
+            // Assert
+            testScheduler.advanceUntilIdle()
+
+            assertTrue(actual)
+            verify(
+                exactly = 1,
+            ) { playerMock.sendMessage(Component.text("An error occurred. Please contact an administrator.")) }
+        }
     }
 }

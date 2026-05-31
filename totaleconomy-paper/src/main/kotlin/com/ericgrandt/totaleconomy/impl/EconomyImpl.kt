@@ -18,21 +18,37 @@ class EconomyImpl : Economy {
         this.econ = econ
     }
 
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean {
+        return true
+    }
 
-    override fun getName(): String = "Total Economy"
+    override fun getName(): String {
+        return "Total Economy"
+    }
 
-    override fun hasBankSupport(): Boolean = false
+    override fun hasBankSupport(): Boolean {
+        return false
+    }
 
-    override fun fractionalDigits(): Int = 2
+    override fun fractionalDigits(): Int {
+        return 2
+    }
 
-    override fun format(amount: Double): String = PlainTextComponentSerializer.plainText().serialize(econ.format(amount))
+    override fun format(amount: Double): String {
+        return PlainTextComponentSerializer.plainText().serialize(econ.format(amount))
+    }
 
-    override fun currencyNamePlural(): String = econ.currencyNamePlural()
+    override fun currencyNamePlural(): String {
+        return econ.currencyNamePlural()
+    }
 
-    override fun currencyNameSingular(): String = econ.currencyNameSingular()
+    override fun currencyNameSingular(): String {
+        return econ.currencyNameSingular()
+    }
 
-    override fun hasAccount(player: OfflinePlayer): Boolean = econ.hasAccount(player.uniqueId).getOr(false)
+    override fun hasAccount(player: OfflinePlayer): Boolean {
+        return econ.hasAccount(player.uniqueId).getOr(false)
+    }
 
     override fun hasAccount(
         player: OfflinePlayer,
@@ -41,7 +57,9 @@ class EconomyImpl : Economy {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(player: OfflinePlayer): Double = econ.getBalance(player.uniqueId).getOr(0.0)
+    override fun getBalance(player: OfflinePlayer): Double {
+        return econ.getBalance(player.uniqueId).getOr(0.0)
+    }
 
     override fun getBalance(
         player: OfflinePlayer,

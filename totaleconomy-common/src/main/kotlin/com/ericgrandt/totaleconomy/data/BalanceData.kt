@@ -45,41 +45,4 @@ class BalanceData {
                 it[BalanceTable.balance] = BalanceTable.balance + input.amount
             }
         }
-
-    // TODO: Create the transaction here and call the db queries (using the data layer functions) within it.
-    //  This means we wouldn't have runCatching or transaction within the data layer functions.
-    // TODO: Maybe just get rid of this. Since we're using transactions we can just call the withdraw and deposit functions
-    // fun transferBalance(input: TransferBalance): Result<Boolean, Throwable> {
-    //    val withdrawBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance - ? WHERE b.account_id = ?"
-    //    val depositBalanceQuery = "UPDATE te_balance b SET b.balance = b.balance + ? WHERE b.account_id = ?"
-
-    //    return runCatching {
-    //        database.dataSource.connection.use { conn ->
-    //            conn.autoCommit = false
-
-    //            try {
-    //                conn.prepareStatement(withdrawBalanceQuery).use { stmt ->
-    //                    stmt.setDouble(1, input.amount)
-    //                    stmt.setString(2, input.fromAccountId.toString())
-
-    //                    stmt.executeUpdate()
-    //                }
-
-    //                conn.prepareStatement(depositBalanceQuery).use { stmt ->
-    //                    stmt.setDouble(1, input.amount)
-    //                    stmt.setString(2, input.toAccountId.toString())
-
-    //                    stmt.executeUpdate()
-    //                }
-
-    //                conn.commit()
-    //            } catch (e: SQLException) {
-    //                conn.rollback()
-    //                throw e
-    //            }
-    //        }
-
-    //        true
-    //    }
-    // }
 }

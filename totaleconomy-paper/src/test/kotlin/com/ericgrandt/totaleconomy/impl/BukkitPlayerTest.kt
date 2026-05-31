@@ -15,7 +15,9 @@ class BukkitPlayerTest {
     lateinit var playerMock: Player
 
     @BeforeTest
-    fun setUp() = MockKAnnotations.init(this, relaxUnitFun = true)
+    fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+    }
 
     @Test
     @Tag("Unit")

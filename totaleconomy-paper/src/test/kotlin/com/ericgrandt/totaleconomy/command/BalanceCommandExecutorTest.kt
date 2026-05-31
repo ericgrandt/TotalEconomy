@@ -24,12 +24,14 @@ class BalanceCommandExecutorTest {
     lateinit var commandMock: Command
 
     @BeforeTest
-    fun setup() = MockKAnnotations.init(this, relaxUnitFun = true)
+    fun setup() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+    }
 
     @Test
     @Tag("Integration")
-    fun onCommand_ShouldSendMessageWithBalanceToPlayer() =
-        runTest {
+    fun onCommand_ShouldSendMessageWithBalanceToPlayer() {
+        return runTest {
             // Arrange
             TestUtils.connectToTestDb()
             val account = TestUtils.seedAccount()
@@ -54,4 +56,5 @@ class BalanceCommandExecutorTest {
                 )
             }
         }
+    }
 }

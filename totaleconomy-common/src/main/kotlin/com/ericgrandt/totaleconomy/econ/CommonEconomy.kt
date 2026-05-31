@@ -34,9 +34,13 @@ class CommonEconomy {
         this.balanceData = balanceData
     }
 
-    fun currencyNamePlural(): String = "Diamonds"
+    fun currencyNamePlural(): String {
+        return "Diamonds"
+    }
 
-    fun currencyNameSingular(): String = "Diamond"
+    fun currencyNameSingular(): String {
+        return "Diamond"
+    }
 
     fun createAccount(uuid: UUID): Result<Int, DomainError> =
         transaction {

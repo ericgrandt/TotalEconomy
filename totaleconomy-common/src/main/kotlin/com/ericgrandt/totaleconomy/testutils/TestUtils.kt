@@ -85,16 +85,6 @@ class TestUtils {
             return toInsert
         }
 
-        private fun setupDb() {
-            TestSqlScripts.initScripts.forEach { script ->
-                this.d.connection.use { conn ->
-                    conn.prepareStatement(script).use { pst ->
-                        pst.execute()
-                    }
-                }
-            }
-        }
-
         private fun initDb() {
             transaction {
                 SchemaUtils.create(AccountTable, BalanceTable)

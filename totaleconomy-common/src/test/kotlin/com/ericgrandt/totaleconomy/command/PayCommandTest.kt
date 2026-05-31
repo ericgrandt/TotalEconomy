@@ -28,12 +28,14 @@ class PayCommandTest {
     lateinit var toPlayerMock: CommonPlayer
 
     @BeforeTest
-    fun setUp() = MockKAnnotations.init(this, relaxUnitFun = true)
+    fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+    }
 
     @Test
     @Tag("Unit")
-    fun runAsync_WithSuccess_ShouldSendCorrectMessages() =
-        runTest {
+    fun runAsync_WithSuccess_ShouldSendCorrectMessages() {
+        return runTest {
             // Arrange
             every { econMock.transferBalance(any()) } returns Ok(true)
             every { econMock.format(10.51) } returns Component.text("10.51 Diamonds")
@@ -73,11 +75,12 @@ class PayCommandTest {
                 )
             }
         }
+    }
 
     @Test
     @Tag("Unit")
-    fun runAsync_WithFailure_ShouldSendErrorMessageToSender() =
-        runTest {
+    fun runAsync_WithFailure_ShouldSendErrorMessageToSender() {
+        return runTest {
             // Arrange
             every { econMock.transferBalance(any()) } returns Err(InsufficientBalance)
             every { econMock.format(10.51) } returns Component.text("10.51 Diamonds")
@@ -105,4 +108,5 @@ class PayCommandTest {
             assertTrue(actual)
             verify(exactly = 1) { fromPlayerMock.sendMessage(Component.text("Insufficient balance")) }
         }
+    }
 }

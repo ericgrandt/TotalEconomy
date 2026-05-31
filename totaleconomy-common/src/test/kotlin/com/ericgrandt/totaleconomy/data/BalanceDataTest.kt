@@ -18,7 +18,9 @@ import kotlin.test.assertEquals
 
 class BalanceDataTest {
     @BeforeTest
-    fun setUp() = MockKAnnotations.init(this, relaxUnitFun = true)
+    fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+    }
 
     @Test
     @Tag("Integration")
@@ -253,59 +255,4 @@ class BalanceDataTest {
                 .isInstanceOf(SQLException::class.java)
         }
     }
-
-    // @Test
-    // @Tag("Integration")
-    // fun transferBalance_WithSuccess_ShouldUpdateBalance() {
-    //    // Arrange
-    //    TestUtils.resetDb()
-    //    val testFromAccount = TestUtils.seedAccount()
-    //    TestUtils.seedBalance(testFromAccount.id, null)
-    //    val testToAccount = TestUtils.seedAccount()
-    //    TestUtils.seedBalance(testToAccount.id, null)
-
-    //    every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-    //    every { databaseMock.dataSource.connection } answers { TestUtils.getConnection() }
-
-    //    val input = TransferBalance(testFromAccount.id, testToAccount.id, 1.0)
-
-    //    val sut = BalanceData(databaseMock)
-
-    //    // Act
-    //    val actual = sut.transferBalance(input)
-    //    val expectedFromBalance = 0.23
-    //    val expectedToBalance = 2.23
-
-    //    // Assert
-    //    val updatedFromBalance = sut.getBalance(testFromAccount.id).get()
-    //    val updatedToBalance = sut.getBalance(testToAccount.id).get()
-
-    //    assertEquals(Ok(true), actual)
-    //    assertEquals(expectedFromBalance, updatedFromBalance?.balance)
-    //    assertEquals(expectedToBalance, updatedToBalance?.balance)
-    // }
-
-    // @Test
-    // @Tag("Integration")
-    // fun transferBalance_WithSqlException_ShouldReturnErrResult() {
-    //    // Arrange
-    //    TestUtils.resetDb()
-    //    val testFromAccount = TestUtils.seedAccount()
-    //    val testToAccount = TestUtils.seedAccount()
-
-    //    every { databaseMock.dataSource } returns mockk<HikariDataSource>()
-    //    every { databaseMock.dataSource.connection } returns TestUtils.getConnection()
-    //    every { databaseMock.dataSource.connection.prepareStatement(any()) } throws SQLException()
-
-    //    val input = TransferBalance(testFromAccount.id, testToAccount.id, 10.0)
-
-    //    val sut = BalanceData(databaseMock)
-
-    //    // Act
-    //    val actual = sut.transferBalance(input)
-
-    //    // Assert
-    //    assertThat(actual.getError())
-    //        .isInstanceOf(SQLException::class.java)
-    // }
 }
