@@ -1,12 +1,7 @@
-package com.ericgrandt.totaleconomy.commands
+package com.ericgrandt.totaleconomy.command
 
-import com.ericgrandt.totaleconomy.command.BalanceCommand
-import com.ericgrandt.totaleconomy.command.CommonParameter
-import com.ericgrandt.totaleconomy.game.CommonPlayer
-import com.ericgrandt.totaleconomy.game.CommonSender
 import com.ericgrandt.totaleconomy.impl.BukkitPlayer
 import kotlinx.coroutines.CoroutineScope
-import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender

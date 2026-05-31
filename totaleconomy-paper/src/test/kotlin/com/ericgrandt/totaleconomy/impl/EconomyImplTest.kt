@@ -1,6 +1,5 @@
 package com.ericgrandt.totaleconomy.impl
 
-import com.ericgrandt.totaleconomy.data.entity.Balance
 import com.ericgrandt.totaleconomy.econ.CommonEconomy
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.github.michaelbull.result.Err
@@ -240,8 +239,8 @@ class EconomyImplTest {
     @Test
     fun withdrawPlayer_WithSuccessWithdrawing_ShouldReturnSuccessResponse() {
         // Arrange
-        val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 15.0)
-        every { econMock.withdrawFromBalance(any()) } returns Ok(mockBalance)
+        every { econMock.withdrawFromBalance(any()) } returns Ok(1)
+        every { econMock.getBalance(any()) } returns Ok(15.0)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act
@@ -312,8 +311,8 @@ class EconomyImplTest {
     @Test
     fun depositPlayer_WithSuccessDepositing_ShouldReturnSuccessResponse() {
         // Arrange
-        val mockBalance = Balance(UUID.randomUUID(), UUID.randomUUID(), 15.0)
-        every { econMock.depositIntoBalance(any()) } returns Ok(mockBalance)
+        every { econMock.depositIntoBalance(any()) } returns Ok(1)
+        every { econMock.getBalance(any()) } returns Ok(15.0)
         every { playerMock.uniqueId } returns UUID.randomUUID()
 
         // Act

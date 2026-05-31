@@ -1,7 +1,5 @@
-package com.ericgrandt.totaleconomy.commands
+package com.ericgrandt.totaleconomy.command
 
-import com.ericgrandt.totaleconomy.command.CommonParameter
-import com.ericgrandt.totaleconomy.command.PayCommand
 import com.ericgrandt.totaleconomy.impl.BukkitPlayer
 import kotlinx.coroutines.CoroutineScope
 import org.bukkit.Bukkit
@@ -25,14 +23,14 @@ class PayCommandExecutor : CommandExecutor {
         label: String,
         args: Array<out String>,
     ): Boolean {
-        var toPlayer = Bukkit.getPlayer(args[0])
-        var amount = args[1].toDoubleOrNull()
+        val toPlayer = Bukkit.getPlayer(args[0])
+        val amount = args[1].toDoubleOrNull()
 
         if (sender !is Player || toPlayer == null || amount == null) {
             return false
         }
 
-        var argMap = mutableMapOf<String, CommonParameter>()
+        val argMap = mutableMapOf<String, CommonParameter>()
         argMap["toPlayer"] = CommonParameter.PlayerParam(BukkitPlayer(toPlayer))
         argMap["amount"] = CommonParameter.DoubleParam(amount)
 

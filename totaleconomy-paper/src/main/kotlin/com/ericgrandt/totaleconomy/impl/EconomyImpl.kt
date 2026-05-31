@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.model.DepositIntoBalance
 import com.ericgrandt.totaleconomy.model.WithdrawFromBalance
 import com.github.michaelbull.result.getOr
 import com.github.michaelbull.result.mapBoth
+import com.github.michaelbull.result.mapError
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.milkbowl.vault.economy.Economy
 import net.milkbowl.vault.economy.EconomyResponse
@@ -17,51 +18,42 @@ class EconomyImpl : Economy {
         this.econ = econ
     }
 
-    override fun isEnabled(): Boolean {
-        return true
-    }
+    override fun isEnabled(): Boolean = true
 
-    override fun getName(): String {
-        return "Total Economy"
-    }
+    override fun getName(): String = "Total Economy"
 
-    override fun hasBankSupport(): Boolean {
-        return false
-    }
+    override fun hasBankSupport(): Boolean = false
 
-    override fun fractionalDigits(): Int {
-        return 2
-    }
+    override fun fractionalDigits(): Int = 2
 
-    override fun format(amount: Double): String {
-        return PlainTextComponentSerializer.plainText().serialize(econ.format(amount))
-    }
+    override fun format(amount: Double): String = PlainTextComponentSerializer.plainText().serialize(econ.format(amount))
 
-    override fun currencyNamePlural(): String {
-        return econ.currencyNamePlural()
-    }
+    override fun currencyNamePlural(): String = econ.currencyNamePlural()
 
-    override fun currencyNameSingular(): String {
-        return econ.currencyNameSingular()
-    }
+    override fun currencyNameSingular(): String = econ.currencyNameSingular()
 
-    override fun hasAccount(player: OfflinePlayer): Boolean {
-        return econ.hasAccount(player.uniqueId).getOr(false)
-    }
+    override fun hasAccount(player: OfflinePlayer): Boolean = econ.hasAccount(player.uniqueId).getOr(false)
 
-    override fun hasAccount(player: OfflinePlayer, world: String): Boolean {
+    override fun hasAccount(
+        player: OfflinePlayer,
+        world: String,
+    ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(player: OfflinePlayer): Double {
-        return econ.getBalance(player.uniqueId).getOr(0.0)
-    }
+    override fun getBalance(player: OfflinePlayer): Double = econ.getBalance(player.uniqueId).getOr(0.0)
 
-    override fun getBalance(player: OfflinePlayer, world: String): Double {
+    override fun getBalance(
+        player: OfflinePlayer,
+        world: String,
+    ): Double {
         TODO("Not yet implemented")
     }
 
-    override fun has(player: OfflinePlayer, amount: Double): Boolean {
+    override fun has(
+        player: OfflinePlayer,
+        amount: Double,
+    ): Boolean {
         if (amount <= 0) {
             return false
         }
@@ -69,101 +61,151 @@ class EconomyImpl : Economy {
         return econ.getBalance(player.uniqueId).getOr(0.0) >= amount
     }
 
-    override fun has(player: OfflinePlayer, world: String, amount: Double): Boolean {
+    override fun has(
+        player: OfflinePlayer,
+        world: String,
+        amount: Double,
+    ): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun withdrawPlayer(
         player: OfflinePlayer,
-        amount: Double
+        amount: Double,
     ): EconomyResponse {
         if (amount <= 0) {
-            return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "withdraw amount must be greater than 0")
+            return EconomyResponse(
+                amount,
+                0.0,
+                EconomyResponse.ResponseType.FAILURE,
+                "withdraw amount must be greater than 0",
+            )
         }
 
         val input = WithdrawFromBalance(player.uniqueId, amount)
-        return econ.withdrawFromBalance(input).mapBoth(
+        econ.withdrawFromBalance(input).mapError {
+            return EconomyResponse(
+                amount,
+                0.0,
+                EconomyResponse.ResponseType.FAILURE,
+                "unable to withdraw from balance",
+            )
+        }
+        return econ.getBalance(input.accountId).mapBoth(
             success = {
-                EconomyResponse(amount, it.balance, EconomyResponse.ResponseType.SUCCESS, "")
+                EconomyResponse(amount, it, EconomyResponse.ResponseType.SUCCESS, "")
             },
             failure = {
-                EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to withdraw from balance")
-            }
+                return EconomyResponse(
+                    amount,
+                    0.0,
+                    EconomyResponse.ResponseType.FAILURE,
+                    "unable to get updated balance",
+                )
+            },
         )
     }
 
     override fun withdrawPlayer(
         player: OfflinePlayer,
         world: String,
-        amount: Double
+        amount: Double,
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun depositPlayer(
         player: OfflinePlayer,
-        amount: Double
+        amount: Double,
     ): EconomyResponse {
         if (amount <= 0) {
-            return EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "deposit amount must be greater than 0")
+            return EconomyResponse(
+                amount,
+                0.0,
+                EconomyResponse.ResponseType.FAILURE,
+                "deposit amount must be greater than 0",
+            )
         }
 
         val input = DepositIntoBalance(player.uniqueId, amount)
-        return econ.depositIntoBalance(input).mapBoth(
+        econ.depositIntoBalance(input).mapError {
+            return EconomyResponse(
+                amount,
+                0.0,
+                EconomyResponse.ResponseType.FAILURE,
+                "unable to deposit into balance",
+            )
+        }
+
+        return econ.getBalance(input.accountId).mapBoth(
             success = {
-                EconomyResponse(amount, it.balance, EconomyResponse.ResponseType.SUCCESS, "")
+                EconomyResponse(amount, it, EconomyResponse.ResponseType.SUCCESS, "")
             },
             failure = {
-                EconomyResponse(amount, 0.0, EconomyResponse.ResponseType.FAILURE, "unable to deposit into balance")
-            }
+                return EconomyResponse(
+                    amount,
+                    0.0,
+                    EconomyResponse.ResponseType.FAILURE,
+                    "unable to get updated balance",
+                )
+            },
         )
     }
 
     override fun depositPlayer(
         player: OfflinePlayer,
         world: String,
-        amount: Double
+        amount: Double,
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun createBank(
-        p0: String,
-        p1: OfflinePlayer
+        bankName: String,
+        player: OfflinePlayer,
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun deleteBank(p0: String): EconomyResponse {
+    override fun deleteBank(bankName: String): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankBalance(p0: String): EconomyResponse {
+    override fun bankBalance(bankName: String): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankHas(p0: String, p1: Double): EconomyResponse {
+    override fun bankHas(
+        bankName: String,
+        amount: Double,
+    ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankWithdraw(p0: String, p1: Double): EconomyResponse {
+    override fun bankWithdraw(
+        bankName: String,
+        amount: Double,
+    ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
-    override fun bankDeposit(p0: String, p1: Double): EconomyResponse {
+    override fun bankDeposit(
+        bankName: String,
+        amount: Double,
+    ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun isBankOwner(
-        p0: String,
-        p1: OfflinePlayer
+        bankName: String,
+        player: OfflinePlayer,
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
 
     override fun isBankMember(
-        p0: String,
-        p1: OfflinePlayer
+        bankName: String,
+        player: OfflinePlayer,
     ): EconomyResponse {
         TODO("Not yet implemented")
     }
@@ -172,16 +214,20 @@ class EconomyImpl : Economy {
         TODO("Not yet implemented")
     }
 
-    override fun createPlayerAccount(player: OfflinePlayer): Boolean {
-        return econ.createAccount(player.uniqueId).getOr(0) == 1
-    }
+    override fun createPlayerAccount(player: OfflinePlayer): Boolean = econ.createAccount(player.uniqueId).getOr(0) == 1
 
-    override fun createPlayerAccount(p0: OfflinePlayer, p1: String): Boolean {
+    override fun createPlayerAccount(
+        player: OfflinePlayer,
+        world: String,
+    ): Boolean {
         TODO("Not yet implemented")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("hasAccount(OfflinePlayer)"))
-    override fun hasAccount(p0: String, p1: String): Boolean {
+    override fun hasAccount(
+        p0: String,
+        p1: String,
+    ): Boolean {
         TODO("Not implemented due to deprecation")
     }
 
@@ -196,22 +242,35 @@ class EconomyImpl : Economy {
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("getBalance(OfflinePlayer, String)"))
-    override fun getBalance(p0: String, p1: String): Double {
+    override fun getBalance(
+        p0: String,
+        p1: String,
+    ): Double {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("has(OfflinePlayer, Double)"))
-    override fun has(p0: String, p1: Double): Boolean {
+    override fun has(
+        p0: String,
+        p1: Double,
+    ): Boolean {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("has(OfflinePlayer, String, Double)"))
-    override fun has(p0: String, p1: String, p2: Double): Boolean {
+    override fun has(
+        p0: String,
+        p1: String,
+        p2: Double,
+    ): Boolean {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("withdrawPlayer(OfflinePlayer, Double)"))
-    override fun withdrawPlayer(p0: String, p1: Double): EconomyResponse {
+    override fun withdrawPlayer(
+        p0: String,
+        p1: Double,
+    ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
@@ -219,13 +278,16 @@ class EconomyImpl : Economy {
     override fun withdrawPlayer(
         p0: String,
         p1: String,
-        p2: Double
+        p2: Double,
     ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("depositPlayer(OfflinePlayer, Double)"))
-    override fun depositPlayer(p0: String, p1: Double): EconomyResponse {
+    override fun depositPlayer(
+        p0: String,
+        p1: Double,
+    ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
@@ -233,23 +295,32 @@ class EconomyImpl : Economy {
     override fun depositPlayer(
         p0: String,
         p1: String,
-        p2: Double
+        p2: Double,
     ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("createBank(String, OfflinePlayer)"))
-    override fun createBank(p0: String, p1: String): EconomyResponse {
+    override fun createBank(
+        p0: String,
+        p1: String,
+    ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("isBankOwner(String, OfflinePlayer)"))
-    override fun isBankOwner(p0: String, p1: String): EconomyResponse {
+    override fun isBankOwner(
+        p0: String,
+        p1: String,
+    ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("isBankMember(String, OfflinePlayer)"))
-    override fun isBankMember(p0: String, p1: String): EconomyResponse {
+    override fun isBankMember(
+        p0: String,
+        p1: String,
+    ): EconomyResponse {
         TODO("Not implemented due to deprecation")
     }
 
@@ -259,7 +330,10 @@ class EconomyImpl : Economy {
     }
 
     @Deprecated(message = "Deprecated", replaceWith = ReplaceWith("createPlayerAccount(OfflinePlayer, String)"))
-    override fun createPlayerAccount(p0: String, p1: String): Boolean {
+    override fun createPlayerAccount(
+        p0: String,
+        p1: String,
+    ): Boolean {
         TODO("Not implemented due to deprecation")
     }
 }
