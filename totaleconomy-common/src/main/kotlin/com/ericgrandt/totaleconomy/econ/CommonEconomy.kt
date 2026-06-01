@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.econ
 import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.BalanceData
 import com.ericgrandt.totaleconomy.data.BankData
+import com.ericgrandt.totaleconomy.data.entity.Bank
 import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
@@ -166,14 +167,14 @@ class CommonEconomy {
         }
     }
 
-    fun getBankBalance(uuid: UUID): Result<Double, DomainError> {
+    fun getBank(uuid: UUID): Result<Bank?, DomainError> {
         return transaction {
             bankData.getBank(uuid).mapBoth(
                 success = {
-                    Ok(it?.balance ?: 0.00)
+                    Ok(it)
                 },
                 failure = {
-                    logger.log(Level.SEVERE, "error getting bank balance", it)
+                    logger.log(Level.SEVERE, "error getting bank", it)
                     return@transaction Err(DatabaseError)
                 },
             )

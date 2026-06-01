@@ -417,46 +417,30 @@ class CommonEconomyTest {
     }
 
     @Test
-    fun getBankBalance_WithSuccess_ShouldReturnBankBalance() {
+    fun getBank_WithSuccess_ShouldReturnBank() {
         // Arrange
         val bankMock = mockk<Bank>()
-        every { bankMock.balance } returns 2.23
         every { bankDataMock.getBank(any()) } returns Ok(bankMock)
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock, bankDataMock)
 
         // Act
-        val actual = sut.getBankBalance(UUID.randomUUID())
-        val expected = Ok(2.23)
+        val actual = sut.getBank(UUID.randomUUID())
+        val expected = Ok(bankMock)
 
         // Assert
         assertEquals(expected, actual)
     }
 
     @Test
-    fun getBankBalance_WithNullBankBalance_ShouldReturnZeroBalance() {
-        // Arrange
-        every { bankDataMock.getBank(any()) } returns Ok(null)
-
-        val sut = CommonEconomy(accountDataMock, balanceDataMock, bankDataMock)
-
-        // Act
-        val actual = sut.getBankBalance(UUID.randomUUID())
-        val expected = Ok(0.00)
-
-        // Assert
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun getBankBalance_WithErrorGettingBankBalance_ShouldReturnDatabaseError() {
+    fun getBank_WithErrorGettingBank_ShouldReturnDatabaseError() {
         // Arrange
         every { bankDataMock.getBank(any()) } returns Err(SQLException())
 
         val sut = CommonEconomy(accountDataMock, balanceDataMock, bankDataMock)
 
         // Act
-        val actual = sut.getBankBalance(UUID.randomUUID())
+        val actual = sut.getBank(UUID.randomUUID())
         val expected = Err(DatabaseError)
 
         // Assert

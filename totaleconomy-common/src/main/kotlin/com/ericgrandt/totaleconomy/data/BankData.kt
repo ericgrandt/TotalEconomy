@@ -23,7 +23,7 @@ class BankData {
     fun getBank(accountId: UUID): Result<Bank?, Throwable> {
         return runCatching {
             BankTable
-                .select(BankTable.id, BankTable.accountId, BankTable.balance)
+                .select(BankTable.id, BankTable.accountId, BankTable.name, BankTable.balance)
                 .where { BankTable.accountId eq accountId.toString() }
                 .limit(1)
                 .singleOrNull()

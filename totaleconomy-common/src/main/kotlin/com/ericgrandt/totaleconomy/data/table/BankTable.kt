@@ -7,6 +7,7 @@ import org.jetbrains.exposed.v1.datetime.datetime
 object BankTable : Table("te_bank") {
     val id = varchar("id", length = 36)
     val accountId = reference("account_id", AccountTable.id)
+    val name = varchar("name", length = 50)
     val balance = double("balance").default(0.0)
     val createdAt = datetime("created_at").defaultExpression(CurrentDateTime)
 

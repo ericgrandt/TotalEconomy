@@ -232,7 +232,9 @@ class EconomyImpl : Economy {
         TODO("Not yet implemented")
     }
 
-    override fun createPlayerAccount(player: OfflinePlayer): Boolean = econ.createAccount(player.uniqueId).getOr(0) == 1
+    override fun createPlayerAccount(player: OfflinePlayer): Boolean {
+        return econ.createAccount(player.uniqueId).getOr(0) == 1
+    }
 
     override fun createPlayerAccount(
         player: OfflinePlayer,
