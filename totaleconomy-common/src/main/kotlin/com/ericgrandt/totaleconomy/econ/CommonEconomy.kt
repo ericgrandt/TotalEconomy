@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.econ
 
 import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.BalanceData
+import com.ericgrandt.totaleconomy.data.BankData
 import com.ericgrandt.totaleconomy.model.BalanceNotFoundInDatabase
 import com.ericgrandt.totaleconomy.model.DatabaseError
 import com.ericgrandt.totaleconomy.model.DepositIntoBalance
@@ -24,14 +25,16 @@ import java.util.logging.Logger
 class CommonEconomy {
     val accountData: AccountData
     val balanceData: BalanceData
+    val bankData: BankData
 
     companion object {
         val logger: Logger = Logger.getLogger(CommonEconomy::class.java.name)
     }
 
-    constructor(accountData: AccountData, balanceData: BalanceData) {
+    constructor(accountData: AccountData, balanceData: BalanceData, bankData: BankData) {
         this.accountData = accountData
         this.balanceData = balanceData
+        this.bankData = bankData
     }
 
     fun currencyNamePlural(): String {
@@ -160,6 +163,20 @@ class CommonEconomy {
             }
 
             Ok(true)
+        }
+    }
+
+    fun getBankBalance(uuid: UUID): Result<Double, DomainError> {
+        return transaction {
+            bankData.getBank(uuid).mapBoth(
+                success = {
+                    Ok(it?.balance ?: 0.00)
+                },
+                failure = {
+                    logger.log(Level.SEVERE, "error getting bank balance", it)
+                    return@transaction Err(DatabaseError)
+                },
+            )
         }
     }
 
