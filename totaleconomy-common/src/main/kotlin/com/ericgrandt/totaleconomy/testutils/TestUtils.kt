@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.testutils
 
 import com.ericgrandt.totaleconomy.data.entity.Account
 import com.ericgrandt.totaleconomy.data.entity.Balance
+import com.ericgrandt.totaleconomy.data.entity.Bank
 import com.ericgrandt.totaleconomy.data.table.AccountTable
 import com.ericgrandt.totaleconomy.data.table.BalanceTable
 import com.ericgrandt.totaleconomy.data.table.BankTable
@@ -80,6 +81,23 @@ class TestUtils {
                     it[BalanceTable.id] = toInsert.id.toString()
                     it[BalanceTable.accountId] = toInsert.accountId.toString()
                     it[BalanceTable.balance] = toInsert.balance
+                }
+            }
+
+            return toInsert
+        }
+
+        fun seedBank(
+            accountId: UUID,
+            bank: Bank?,
+        ): Bank {
+            val toInsert = bank ?: Bank(UUID.randomUUID(), accountId, 1.23)
+
+            transaction {
+                BankTable.insert {
+                    it[BankTable.id] = toInsert.id.toString()
+                    it[BankTable.accountId] = toInsert.accountId.toString()
+                    it[BankTable.balance] = toInsert.balance
                 }
             }
 
