@@ -43,7 +43,6 @@ class AccountDataTest {
         transaction {
             val actual = sut.createAccountOld(uuid)
 
-            // Assert
             assertThat(actual.getError())
                 .isInstanceOf(SQLException::class.java)
         }

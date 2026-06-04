@@ -12,7 +12,6 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.sql.Connection
 import java.util.UUID
 import kotlin.time.Instant
 
@@ -31,8 +30,6 @@ class TestUtils {
             d = HikariDataSource(c)
         }
 
-        fun getConnection(): Connection = d.connection
-
         fun connectToTestDb(runInit: Boolean = true) {
             val config = HikariConfig()
             config.jdbcUrl = "jdbc:h2:mem:${UUID.randomUUID()};MODE=MySQL"
@@ -41,21 +38,6 @@ class TestUtils {
 
             if (runInit) {
                 initDb()
-            }
-        }
-
-        fun resetDb() {
-            val queries =
-                arrayOf(
-                    "DELETE FROM te_account",
-                )
-
-            this.d.connection.use { conn ->
-                queries.forEach { query ->
-                    conn.prepareStatement(query).use { stmt ->
-                        stmt.execute()
-                    }
-                }
             }
         }
 

@@ -22,13 +22,15 @@ subprojects {
 
         testImplementation("com.h2database:h2:2.4.240")
         testImplementation("com.zaxxer:HikariCP:5.1.0")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:6.1.0")
         testImplementation("org.mockito:mockito-core:5.12.0")
         testImplementation("org.mockito:mockito-inline:5.2.0")
-        testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
+        testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
+        testImplementation("io.mockk:mockk:1.14.11")
+        testImplementation("org.assertj:assertj-core:3.27.7")
         testImplementation(kotlin("test"))
 
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.1.0")
     }
 
     kotlin {

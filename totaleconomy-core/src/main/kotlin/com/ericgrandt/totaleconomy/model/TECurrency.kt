@@ -7,7 +7,7 @@ data class TECurrency(
     override val code: String,
     override val name: String,
     override val pluralName: String,
-    override val symbol: String,
+    override val symbol: String?,
     override val fractionalDigits: Int,
     override val isDefault: Boolean,
 ) : Currency {

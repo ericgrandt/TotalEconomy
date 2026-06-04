@@ -28,9 +28,12 @@ interface Currency {
     /**
      * Symbol representing the currency.
      *
-     * Examples: $, €, ¥, or an empty string
+     * This value can be null or empty, which allows the [format] function to fall back to using the [name] or
+     * [pluralName] instead of the symbol.
+     *
+     * Examples: $, €, ¥, or null
      */
-    val symbol: String
+    val symbol: String?
 
     /**
      * Number of decimal places used for the currency.
@@ -49,7 +52,7 @@ interface Currency {
     /**
      * Formats an amount into a [Component] for displaying.
      *
-     * This is used for rendering currency amounts within user interfaces. If the [symbol] is an empty string, this
+     * This is used for rendering currency amounts within user interfaces. If the [symbol] is null or empty, this
      * should fall back to using the [name] or [pluralName]. The amount should be formatted using the [fractionalDigits]
      * defined on the currency.
      *

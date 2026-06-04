@@ -9,12 +9,12 @@ import java.util.UUID
  * Each account holds the balance for a single currency. If multiple currencies exist, a player will have multiple
  * accounts (one per currency).
  *
- * @property id the unique identifier attached to the player's Minecraft account
- * @property currencyCode the [Currency.code] associated with this account
+ * @property playerId the [UUID] attached to the player's Minecraft account
+ * @property currencyCode the [Currency.code] associated with the account
  * @property balance the current account balance
  */
 interface Account {
-    val id: UUID
+    val playerId: UUID
     val currencyCode: String
     val balance: BigDecimal
 }
