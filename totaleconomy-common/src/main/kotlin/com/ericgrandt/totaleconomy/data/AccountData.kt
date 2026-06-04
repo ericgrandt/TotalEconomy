@@ -6,16 +6,27 @@ import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.runCatching
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.select
 import java.util.UUID
 
 class AccountData {
-    fun createAccount(accountId: UUID): Result<Int, Throwable> {
+    fun createAccountOld(accountId: UUID): Result<Int, Throwable> {
         return runCatching {
             AccountTable
                 .insertIgnore {
                     it[id] = accountId.toString()
                 }.insertedCount
+        }
+    }
+
+    fun createAccount(accountId: UUID): Result<Account?, Throwable> {
+        return runCatching {
+            AccountTable
+                .insertReturning(ignoreErrors = true) {
+                    it[id] = accountId.toString()
+                }.single()
+                .let { Account.fromRow(it) }
         }
     }
 

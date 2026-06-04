@@ -48,7 +48,7 @@ class CommonEconomy {
 
     fun createAccount(uuid: UUID): Result<Int, DomainError> {
         return transaction {
-            accountData.createAccount(uuid).mapError {
+            accountData.createAccountOld(uuid).mapError {
                 logger.log(Level.SEVERE, "error creating account", it)
                 return@transaction Err(DatabaseError)
             }

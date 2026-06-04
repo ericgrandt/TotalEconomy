@@ -178,6 +178,17 @@ class EconomyImpl : Economy {
         TODO("Not yet implemented")
     }
 
+    override fun createPlayerAccount(player: OfflinePlayer): Boolean {
+        return econ.createAccount(player.uniqueId).getOr(0) == 1
+    }
+
+    override fun createPlayerAccount(
+        player: OfflinePlayer,
+        world: String,
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun createBank(
         bankName: String,
         player: OfflinePlayer,
@@ -229,17 +240,6 @@ class EconomyImpl : Economy {
     }
 
     override fun getBanks(): List<String> {
-        TODO("Not yet implemented")
-    }
-
-    override fun createPlayerAccount(player: OfflinePlayer): Boolean {
-        return econ.createAccount(player.uniqueId).getOr(0) == 1
-    }
-
-    override fun createPlayerAccount(
-        player: OfflinePlayer,
-        world: String,
-    ): Boolean {
         TODO("Not yet implemented")
     }
 

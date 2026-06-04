@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
 class AccountDataTest {
     @Test
     @Tag("Integration")
-    fun createAccount_WithSuccess_ShouldReturnCreatedRowCount() {
+    fun createAccountOld_WithSuccess_ShouldReturnCreatedRowCount() {
         // Arrange
         TestUtils.connectToTestDb()
 
@@ -22,7 +22,7 @@ class AccountDataTest {
 
         // Act/Assert
         transaction {
-            val actual = sut.createAccount(UUID.randomUUID())
+            val actual = sut.createAccountOld(UUID.randomUUID())
             val expected = Ok(1)
 
             assertEquals(expected, actual)
@@ -31,7 +31,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun createAccount_WithSQLException_ShouldReturnErrorResult() {
+    fun createAccountOld_WithSQLException_ShouldReturnErrorResult() {
         // Arrange
         TestUtils.connectToTestDb(false)
 
@@ -41,7 +41,7 @@ class AccountDataTest {
 
         // Act/Assert
         transaction {
-            val actual = sut.createAccount(uuid)
+            val actual = sut.createAccountOld(uuid)
 
             // Assert
             assertThat(actual.getError())
