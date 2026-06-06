@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.testutils
 
+import com.ericgrandt.totaleconomy.data.entity.AccountEntity
 import com.ericgrandt.totaleconomy.data.entity.CurrencyEntity
 import com.ericgrandt.totaleconomy.data.table.AccountTable
 import com.ericgrandt.totaleconomy.data.table.CurrencyTable
@@ -41,38 +42,45 @@ class TestUtils {
         fun seedCurrency(): CurrencyEntity {
             val currency =
                 CurrencyEntity(
-                    UUID.randomUUID(),
+                    1,
                     "USD",
                     "Dollar",
                     "Dollars",
-                    null,
+                    "$",
                     2,
                     true,
                     Instant.parse(TEST_DATE),
                 )
             transaction {
                 CurrencyTable.insert {
+                    it[CurrencyTable.id] = currency.id
                     it[CurrencyTable.code] = currency.code
                     it[CurrencyTable.name] = currency.name
                     it[CurrencyTable.pluralName] = currency.pluralName
                     it[CurrencyTable.symbol] = currency.symbol
                     it[CurrencyTable.fractionalDigits] = currency.fractionalDigits
                     it[CurrencyTable.isDefault] = currency.isDefault
+                    it[CurrencyTable.createdAt] = currency.createdAt
                 }
             }
             return currency
         }
 
-        // fun seedAccount(): AccountEntity {
-        //    val account = AccountEntity(UUID.randomUUID(), Instant.parse(TEST_DATE))
-        //    transaction {
-        //        AccountTable.insert {
-        //            it[AccountTable.id] = account.id.toString()
-        //            it[AccountTable.createdAt] = account.createdAt
-        //        }
-        //    }
-        //    return account
-        // }
+        fun seedAccount(currencyCode: String): AccountEntity {
+            val account = AccountEntity(1, UUID.randomUUID(), currencyCode, 10.0, Instant.parse(TEST_DATE))
+            transaction {
+                AccountTable
+                    .insert {
+                        it[AccountTable.id] = account.id
+                        it[AccountTable.playerId] = account.playerId.toString()
+                        it[AccountTable.currencyCode] = account.currencyCode
+                        it[AccountTable.balance] = account.balance
+                        it[AccountTable.createdAt] = account.createdAt
+                    }
+            }
+
+            return account
+        }
 
         // fun seedBalance(
         //    accountId: UUID,

@@ -1,10 +1,9 @@
 package com.ericgrandt.totaleconomy.data.entity
 
-import java.util.UUID
 import kotlin.time.Instant
 
 data class CurrencyEntity(
-    val id: UUID,
+    val id: Int,
     val code: String,
     val name: String,
     val pluralName: String,

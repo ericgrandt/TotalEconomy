@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data
 
-import com.ericgrandt.totaleconomy.model.TECurrency
+import com.ericgrandt.totaleconomy.model.TEAccount
 import com.ericgrandt.totaleconomy.testutils.TestUtils
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.getError
@@ -8,32 +8,26 @@ import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Tag
+import java.math.BigDecimal
 import java.sql.SQLException
+import java.util.UUID
 import kotlin.test.Test
 
-class CurrencyDataTest {
+class AccountDataTest {
     @Test
     @Tag("Integration")
-    fun getCurrencyList_WithSuccess_ShouldReturnCurrencyList() {
+    fun createAccount_WithSuccess_ShouldReturnAccount() {
         // Arrange
         TestUtils.connectToTestDb()
-        TestUtils.seedCurrency()
+        val currency = TestUtils.seedCurrency()
+        val playerId = UUID.randomUUID()
 
-        val sut = CurrencyData()
+        val sut = AccountData()
 
         // Act/Assert
         transaction {
-            val actual = sut.getCurrencyList()
-            val expectedTECurrency =
-                TECurrency(
-                    "USD",
-                    "Dollar",
-                    "Dollars",
-                    "$",
-                    2,
-                    true,
-                )
-            val expected = Ok(listOf(expectedTECurrency))
+            val actual = sut.createAccount(playerId, currency.code, BigDecimal.TEN)
+            val expected = Ok(TEAccount(playerId, currency.code, BigDecimal.valueOf(10.0)))
 
             assertEquals(expected, actual)
         }
@@ -41,15 +35,15 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    fun getCurrencyList_WithError_ShouldReturnErrorResult() {
+    fun createAccount_WithError_ShouldReturnErrorResult() {
         // Arrange
         TestUtils.connectToTestDb(false)
 
-        val sut = CurrencyData()
+        val sut = AccountData()
 
         // Act/Assert
         transaction {
-            val actual = sut.getCurrencyList()
+            val actual = sut.createAccount(UUID.randomUUID(), "", BigDecimal.TEN)
 
             assertThat(actual.getError())
                 .isInstanceOf(SQLException::class.java)
