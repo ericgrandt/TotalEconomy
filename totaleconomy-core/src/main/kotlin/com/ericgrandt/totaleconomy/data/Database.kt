@@ -4,6 +4,7 @@ import com.ericgrandt.totaleconomy.data.table.AccountTable
 import com.ericgrandt.totaleconomy.data.table.CurrencyTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -34,5 +35,9 @@ class Database {
         transaction {
             SchemaUtils.create(CurrencyTable, AccountTable)
         }
+    }
+
+    fun connect() {
+        Database.connect(dataSource)
     }
 }

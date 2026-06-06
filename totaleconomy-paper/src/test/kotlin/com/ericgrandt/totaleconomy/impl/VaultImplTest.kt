@@ -17,19 +17,19 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
-class EconomyImplTest {
+class VaultImplTest {
     @MockK
     lateinit var econMock: CommonEconomy
 
     @MockK
     lateinit var playerMock: OfflinePlayer
 
-    private lateinit var sut: EconomyImpl
+    private lateinit var sut: VaultImpl
 
     @BeforeTest
     fun setUp() {
         MockKAnnotations.init(this, relaxUnitFun = true)
-        sut = EconomyImpl(econMock)
+        sut = VaultImpl(econMock)
     }
 
     @Test

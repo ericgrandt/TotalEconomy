@@ -1,41 +1,36 @@
 package com.ericgrandt.totaleconomy
 
-import com.ericgrandt.totaleconomy.command.BalanceCommand
-import com.ericgrandt.totaleconomy.command.BalanceCommandExecutor
-import com.ericgrandt.totaleconomy.data.AccountData
-import com.ericgrandt.totaleconomy.data.BalanceData
-import com.ericgrandt.totaleconomy.econ.CommonEconomy
+import com.ericgrandt.totaleconomy.data.Database
+import com.ericgrandt.totaleconomy.impl.EconomyImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
-import org.jetbrains.exposed.v1.jdbc.Database
 import java.sql.SQLException
 import java.util.logging.Level
 import java.util.logging.Logger
-import com.ericgrandt.totaleconomy.data.Database as TEDatabase
 
 class TotalEconomy :
     JavaPlugin(),
     Listener {
     private val pluginScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val logger: Logger = Logger.getLogger("Total Economy")
-    private lateinit var economy: CommonEconomy
+    private lateinit var economy: EconomyImpl
 
     override fun onEnable() {
         saveDefaultConfig()
 
         val database =
-            TEDatabase(
+            Database(
                 config.getString("database.url").toString(),
                 config.getString("database.user").toString(),
                 config.getString("database.password").toString(),
             )
 
         try {
-            Database.connect(database.dataSource)
+            database.connect()
             database.initDatabase()
         } catch (e: SQLException) {
             logger.log(
@@ -47,11 +42,11 @@ class TotalEconomy :
             return
         }
 
-        val accountData = AccountData()
-        val balanceData = BalanceData()
-        economy = CommonEconomy(accountData, balanceData)
+        // val accountData = AccountData()
+        // val balanceData = BalanceData()
+        // economy = VaultImpl(accountData, balanceData)
 
-        registerCommands()
+        // registerCommands()
     }
 
     override fun onDisable() {
@@ -59,6 +54,6 @@ class TotalEconomy :
     }
 
     private fun registerCommands() {
-        getCommand("balance")?.setExecutor(BalanceCommandExecutor(pluginScope, BalanceCommand(economy)))
+        // getCommand("balance")?.setExecutor(BalanceCommandExecutor(pluginScope, BalanceCommand(economy)))
     }
 }
