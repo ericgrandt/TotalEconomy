@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class Database {
@@ -34,6 +35,15 @@ class Database {
     fun initDatabase() {
         transaction {
             SchemaUtils.create(CurrencyTable, AccountTable)
+
+            CurrencyTable.insertIgnore {
+                it[CurrencyTable.code] = "USD"
+                it[CurrencyTable.name] = "Dollar"
+                it[CurrencyTable.pluralName] = "Dollars"
+                it[CurrencyTable.symbol] = "$"
+                it[CurrencyTable.fractionalDigits] = 2
+                it[CurrencyTable.isDefault] = true
+            }
         }
     }
 

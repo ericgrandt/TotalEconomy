@@ -1,7 +1,9 @@
 package com.ericgrandt.totaleconomy
 
-import com.ericgrandt.totaleconomy.exception.AccountCreationException
+import com.ericgrandt.totaleconomy.exception.AccountNotFoundException
+import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException
 import com.ericgrandt.totaleconomy.model.Account
+import com.ericgrandt.totaleconomy.model.Currency
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -16,22 +18,45 @@ interface EconomyProvider {
     // addCurrency(currency: Currency): Currency
 
     /**
+     * Retrieve the default currency
+     *
+     * @return the default [Currency]
+     *
+     * @throws CurrencyNotFoundException if the default currency is not found
+     */
+    fun getDefaultCurrency(): Currency
+
+    /**
      * Creates a new account for a player.
      *
-     * @param accountId the unique identifier of the player
+     * @param playerId the unique identifier of the player
      * @param currencyCode the currencyCode to attach to this account
      * @param startingBalance optional starting balance
      *
      * @return the created [Account]
      *
-     * @throws AccountCreationException
+     * @throws AccountNotFoundException if the account is not found after successful creation
      */
-    @Throws(AccountCreationException::class)
+    @Throws(AccountNotFoundException::class)
     fun createAccount(
-        accountId: UUID,
+        playerId: UUID,
         currencyCode: String,
         startingBalance: BigDecimal = BigDecimal.ZERO,
     ): Account
 
-    // getAccount(accountId: UUID, currencyCode: String): Account?
+    /**
+     * Retrieve the player's account for the provided currency.
+     *
+     * @param playerId the unique identifier of this player
+     * @param currencyCode the currencyCode for this account
+     *
+     * @return the [Account]
+     *
+     * @throws AccountNotFoundException if no account exists for the given [playerId] and [currencyCode]
+     */
+    @Throws(AccountNotFoundException::class)
+    fun getAccount(
+        playerId: UUID,
+        currencyCode: String,
+    ): Account
 }

@@ -5,7 +5,7 @@ import java.math.BigDecimal
 
 interface Currency {
     /**
-     * Unique identifier for this currency.
+     * Unique identifier for the currency.
      *
      * Examples: USD, EUR, DIAMOND, COINS, etc.
      */

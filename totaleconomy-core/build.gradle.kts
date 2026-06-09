@@ -5,7 +5,7 @@ plugins {
 dependencies {
     compileOnly(libs.adventure)
 
-    implementation(project(":totaleconomy-api"))
+    api(project(":totaleconomy-api"))
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.kotlin.datetime)

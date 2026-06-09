@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.mapper.toTEAccount
 import com.ericgrandt.totaleconomy.model.TEAccount
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.runCatching
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -30,6 +31,20 @@ class AccountData {
                 .selectAll()
                 .where { AccountTable.id eq insertedRow[AccountTable.id] }
                 .single()
+                .toTEAccount()
+        }
+    }
+
+    fun getAccount(
+        playerId: UUID,
+        currencyCode: String,
+    ): Result<TEAccount, Throwable> {
+        return runCatching {
+            AccountTable
+                .selectAll()
+                .where {
+                    (AccountTable.playerId eq playerId.toString()) and (AccountTable.currencyCode eq currencyCode)
+                }.single()
                 .toTEAccount()
         }
     }

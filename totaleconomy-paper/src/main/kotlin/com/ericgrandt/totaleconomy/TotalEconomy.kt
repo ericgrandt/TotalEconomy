@@ -1,23 +1,24 @@
 package com.ericgrandt.totaleconomy
 
+import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.Database
-import com.ericgrandt.totaleconomy.impl.EconomyImpl
+import com.ericgrandt.totaleconomy.economy.Economy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.sql.SQLException
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class TotalEconomy :
     JavaPlugin(),
     Listener {
     private val pluginScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val logger: Logger = Logger.getLogger("Total Economy")
-    private lateinit var economy: EconomyImpl
+    private val logger: Logger = LoggerFactory.getLogger("Total Economy")
+    private lateinit var economy: Economy
 
     override fun onEnable() {
         saveDefaultConfig()
@@ -33,18 +34,13 @@ class TotalEconomy :
             database.connect()
             database.initDatabase()
         } catch (e: SQLException) {
-            logger.log(
-                Level.SEVERE,
-                "[Total Economy] Error initializing database",
-                e,
-            )
+            logger.error("Error initializing database", e)
             server.pluginManager.disablePlugin(this)
             return
         }
 
-        // val accountData = AccountData()
-        // val balanceData = BalanceData()
-        // economy = VaultImpl(accountData, balanceData)
+        val accountData = AccountData()
+        economy = Economy(logger, accountData)
 
         // registerCommands()
     }

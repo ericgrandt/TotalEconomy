@@ -49,4 +49,40 @@ class AccountDataTest {
                 .isInstanceOf(SQLException::class.java)
         }
     }
+
+    @Test
+    @Tag("Integration")
+    fun getAccount_WithSuccess_ShouldReturnAccount() {
+        // Arrange
+        TestUtils.connectToTestDb()
+        val currency = TestUtils.seedCurrency()
+        val account = TestUtils.seedAccount(currency.code)
+
+        val sut = AccountData()
+
+        // Act/Assert
+        transaction {
+            val actual = sut.getAccount(account.playerId, currency.code)
+            val expected = Ok(TEAccount(account.playerId, currency.code, BigDecimal.valueOf(10.0)))
+
+            assertEquals(expected, actual)
+        }
+    }
+
+    @Test
+    @Tag("Integration")
+    fun getAccount_WithError_ShouldReturnErrorResult() {
+        // Arrange
+        TestUtils.connectToTestDb(false)
+
+        val sut = AccountData()
+
+        // Act/Assert
+        transaction {
+            val actual = sut.getAccount(UUID.randomUUID(), "")
+
+            assertThat(actual.getError())
+                .isInstanceOf(SQLException::class.java)
+        }
+    }
 }
