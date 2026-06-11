@@ -58,6 +58,50 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
+    fun getCurrency_WithSuccess_ShouldReturnCurrency() {
+        // Arrange
+        TestUtils.connectToTestDb()
+        TestUtils.seedCurrency()
+
+        val sut = CurrencyData()
+
+        // Act/Assert
+        transaction {
+            val actual = sut.getCurrency("USD")
+            val expectedTECurrency =
+                TECurrency(
+                    "USD",
+                    "Dollar",
+                    "Dollars",
+                    "$",
+                    2,
+                    true,
+                )
+            val expected = Ok(expectedTECurrency)
+
+            assertEquals(expected, actual)
+        }
+    }
+
+    @Test
+    @Tag("Integration")
+    fun getCurrency_WithError_ShouldReturnErrorResult() {
+        // Arrange
+        TestUtils.connectToTestDb(false)
+
+        val sut = CurrencyData()
+
+        // Act/Assert
+        transaction {
+            val actual = sut.getCurrency("")
+
+            assertThat(actual.getError())
+                .isInstanceOf(SQLException::class.java)
+        }
+    }
+
+    @Test
+    @Tag("Integration")
     fun getCurrencyList_WithSuccess_ShouldReturnCurrencyList() {
         // Arrange
         TestUtils.connectToTestDb()

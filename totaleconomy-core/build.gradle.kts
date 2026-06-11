@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+val adventure = libs.adventure
+
 dependencies {
     compileOnly(libs.adventure)
 
@@ -20,6 +22,8 @@ dependencies {
     testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines)
+    testApi(libs.adventure)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

@@ -6,8 +6,10 @@ import com.ericgrandt.totaleconomy.economy.Economy
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException
 import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException
 import com.ericgrandt.totaleconomy.exception.DatabaseException
+import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException
 import com.ericgrandt.totaleconomy.model.TEAccount
 import com.ericgrandt.totaleconomy.model.TECurrency
+import com.ericgrandt.totaleconomy.testutils.mockTransaction
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
@@ -38,6 +40,7 @@ class EconomyTest {
     @BeforeTest
     fun setUp() {
         MockKAnnotations.init(this, relaxUnitFun = true)
+        mockTransaction()
         sut = Economy(loggerMock, accountDataMock, currencyDataMock)
     }
 
@@ -55,12 +58,12 @@ class EconomyTest {
     }
 
     @Test
-    fun getDefaultCurrency_WithNoSuchElementException_ShouldThrowCurrencyNotFoundException() {
+    fun getDefaultCurrency_WithNoSuchElementException_ShouldThrowMissingDefaultCurrencyException() {
         // Arrange
         every { currencyDataMock.getDefaultCurrency() } returns Err(NoSuchElementException())
 
         // Act
-        assertThrows<CurrencyNotFoundException> {
+        assertThrows<MissingDefaultCurrencyException> {
             sut.getDefaultCurrency()
         }
         verify {
@@ -79,6 +82,47 @@ class EconomyTest {
         }
         verify {
             loggerMock.error("database exception when getting default currency", any<SQLException>())
+        }
+    }
+
+    @Test
+    fun getCurrency_WithSuccess_ShouldReturnCurrency() {
+        // Arrange
+        val currency = TECurrency("USD", "Dollar", "Dollars", "$", 2, true)
+        every { currencyDataMock.getCurrency("USD") } returns Ok(currency)
+
+        // Act
+        val actual = sut.getCurrency("USD")
+
+        // Assert
+        assertEquals(currency, actual)
+    }
+
+    @Test
+    fun getCurrency_WithNoSuchElementException_ShouldThrowCurrencyNotFoundException() {
+        // Arrange
+        every { currencyDataMock.getCurrency("USD") } returns Err(NoSuchElementException())
+
+        // Act
+        assertThrows<CurrencyNotFoundException> {
+            sut.getCurrency("USD")
+        }
+        verify {
+            loggerMock.error("currency not found", any<NoSuchElementException>())
+        }
+    }
+
+    @Test
+    fun getCurrency_WithSQLException_ShouldLogAndThrowDatabaseException() {
+        // Arrange
+        every { currencyDataMock.getCurrency("USD") } returns Err(SQLException())
+
+        // Act
+        assertThrows<DatabaseException> {
+            sut.getCurrency("USD")
+        }
+        verify {
+            loggerMock.error("database exception when getting currency", any<SQLException>())
         }
     }
 

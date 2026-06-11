@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy
 
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException
 import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException
+import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException
 import com.ericgrandt.totaleconomy.model.Account
 import com.ericgrandt.totaleconomy.model.Currency
 import java.math.BigDecimal
@@ -22,9 +23,18 @@ interface EconomyProvider {
      *
      * @return the default [Currency]
      *
-     * @throws CurrencyNotFoundException if the default currency is not found
+     * @throws MissingDefaultCurrencyException if the default currency is not found
      */
     fun getDefaultCurrency(): Currency
+
+    /**
+     * Retrieve a a currency by code
+     *
+     * @return the [Currency]
+     *
+     * @throws CurrencyNotFoundException if a currency with the [currencyCode] is not found
+     */
+    fun getCurrency(currencyCode: String): Currency
 
     /**
      * Creates a new account for a player.

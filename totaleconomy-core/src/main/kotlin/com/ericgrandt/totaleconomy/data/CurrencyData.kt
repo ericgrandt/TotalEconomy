@@ -19,6 +19,16 @@ class CurrencyData {
         }
     }
 
+    fun getCurrency(currencyCode: String): Result<TECurrency, Throwable> {
+        return runCatching {
+            CurrencyTable
+                .selectAll()
+                .where { CurrencyTable.code eq currencyCode }
+                .single()
+                .toTECurrency()
+        }
+    }
+
     fun getCurrencyList(): Result<List<TECurrency>, Throwable> {
         return runCatching {
             CurrencyTable.selectAll().map {

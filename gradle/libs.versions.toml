@@ -30,6 +30,7 @@ h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlin-result = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlin-result" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito-inline" }

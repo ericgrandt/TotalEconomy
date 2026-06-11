@@ -4,6 +4,10 @@ sealed class CurrencyException(
     cause: Throwable? = null,
 ) : Exception(cause)
 
+class MissingDefaultCurrencyException(
+    override val cause: Throwable? = null,
+) : CurrencyException(cause)
+
 class CurrencyNotFoundException(
     override val cause: Throwable? = null,
 ) : CurrencyException(cause)

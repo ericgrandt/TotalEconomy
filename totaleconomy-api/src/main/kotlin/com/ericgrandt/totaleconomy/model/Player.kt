@@ -4,18 +4,14 @@ import java.util.UUID
 
 interface Player : Sender {
     /**
-     * Retrieve the player's unique identifier.
+     * The player's unique identifier.
      *
-     * This UUID should correspond to the identifier provided by Minecraft.
-     *
-     * @return the [UUID] of the player
+     * This UUID corresponds to the identifier provided by Minecraft.
      */
-    fun getUniqueID(): UUID
+    val uniqueId: UUID
 
     /**
-     * Retrieve the player's name.
-     *
-     * @return the player's name as a [String]
+     * The player's name.
      */
-    fun getName(): String
+    val name: String
 }
