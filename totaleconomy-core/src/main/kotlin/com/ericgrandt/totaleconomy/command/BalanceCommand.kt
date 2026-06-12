@@ -11,7 +11,6 @@ import net.kyori.adventure.text.Component
 class BalanceCommand(
     private val economy: Economy,
 ) : Command {
-    // TODO: Test
     override suspend fun execute(
         sender: Sender,
         args: Map<String, CommandArgument>,

@@ -1,6 +1,9 @@
 package com.ericgrandt.totaleconomy
 
+import com.ericgrandt.totaleconomy.command.BalanceCommand
+import com.ericgrandt.totaleconomy.command.BalanceCommandExecutor
 import com.ericgrandt.totaleconomy.data.AccountData
+import com.ericgrandt.totaleconomy.data.CurrencyData
 import com.ericgrandt.totaleconomy.data.Database
 import com.ericgrandt.totaleconomy.economy.Economy
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +19,7 @@ import java.sql.SQLException
 class TotalEconomy :
     JavaPlugin(),
     Listener {
-    private val pluginScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val pluginScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val logger: Logger = LoggerFactory.getLogger("Total Economy")
     private lateinit var economy: Economy
 
@@ -40,9 +43,10 @@ class TotalEconomy :
         }
 
         val accountData = AccountData()
-        economy = Economy(logger, accountData)
+        val currencyData = CurrencyData()
+        economy = Economy(logger, accountData, currencyData)
 
-        // registerCommands()
+        registerCommands()
     }
 
     override fun onDisable() {
@@ -50,6 +54,6 @@ class TotalEconomy :
     }
 
     private fun registerCommands() {
-        // getCommand("balance")?.setExecutor(BalanceCommandExecutor(pluginScope, BalanceCommand(economy)))
+        getCommand("balance")?.setExecutor(BalanceCommandExecutor(pluginScope, BalanceCommand(economy)))
     }
 }

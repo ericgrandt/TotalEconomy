@@ -13,7 +13,8 @@ mockito-core = "5.12.0"
 mockito-inline = "5.2.0"
 mockito-junit-jupiter = "5.23.0"
 mockk = "1.14.11"
-run-paper = "2.3.1"
+paper = "26.1.2.build.+"
+run-paper = "3.0.2"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -36,3 +37,4 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-cor
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito-inline" }
 mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito-junit-jupiter" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }

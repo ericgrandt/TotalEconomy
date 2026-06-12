@@ -1,5 +1,6 @@
 plugins {
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    alias(libs.plugins.run.paper)
+    alias(libs.plugins.shadow)
 }
 
 repositories {
@@ -14,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
+    compileOnly(libs.paper)
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
     implementation(project(":totaleconomy-core", configuration = "shadow"))
@@ -25,16 +26,19 @@ dependencies {
     testImplementation(project(":totaleconomy-core"))
 }
 
-// tasks {
-//    runServer {
-//        dependsOn(shadowJar)
-//        minecraftVersion("1.21.4")
-//    }
-//
-//    shadowJar {
-//        mergeServiceFiles()
-//
-//        // Exclude net.kyori packages to avoid interfering with the one bundled with Paper
-//        exclude("net/kyori/**/*")
-//    }
-// }
+tasks {
+    test {
+        enabled = false
+    }
+    runServer {
+        dependsOn(shadowJar)
+        minecraftVersion("26.1.2")
+    }
+
+    shadowJar {
+        mergeServiceFiles()
+
+        // Exclude net.kyori packages to avoid interfering with the one bundled with Paper
+        exclude("net/kyori/**/*")
+    }
+}

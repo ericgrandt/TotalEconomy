@@ -1,10 +1,13 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    // alias(libs.plugins.shadow)
 }
 
 repositories {
     mavenCentral()
+}
+
+kotlin {
+    jvmToolchain(25)
 }
 
 subprojects {
@@ -32,7 +35,7 @@ subprojects {
     //        enabled = true
     //    }
     //    build {
-    //        // dependsOn(shadowJar)
+    //        dependsOn(shadowJar)
     //    }
     //    test {
     //        useJUnitPlatform()
