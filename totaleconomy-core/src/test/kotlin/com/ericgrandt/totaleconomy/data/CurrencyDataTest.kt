@@ -14,7 +14,7 @@ import kotlin.test.Test
 class CurrencyDataTest {
     @Test
     @Tag("Integration")
-    fun getDefault_WithSuccess_ShouldReturnDefaultCurrency() {
+    fun `getDefaultCurrency with success should return default currency`() {
         // Arrange
         TestUtils.connectToTestDb()
         TestUtils.seedCurrency()
@@ -41,7 +41,7 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    fun getDefaultCurrency_WithError_ShouldReturnErrorResult() {
+    fun `getDefaultCurrency with error should return error result`() {
         // Arrange
         TestUtils.connectToTestDb(false)
 
@@ -58,7 +58,7 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    fun getCurrency_WithSuccess_ShouldReturnCurrency() {
+    fun `getCurrency with success should return currency`() {
         // Arrange
         TestUtils.connectToTestDb()
         TestUtils.seedCurrency()
@@ -85,7 +85,7 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    fun getCurrency_WithError_ShouldReturnErrorResult() {
+    fun `getCurrency with error should return error result`() {
         // Arrange
         TestUtils.connectToTestDb(false)
 
@@ -102,7 +102,7 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    fun getCurrencyList_WithSuccess_ShouldReturnCurrencyList() {
+    fun `getCurrencyList with success should return currency list`() {
         // Arrange
         TestUtils.connectToTestDb()
         TestUtils.seedCurrency()
@@ -129,7 +129,7 @@ class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    fun getCurrencyList_WithError_ShouldReturnErrorResult() {
+    fun `getCurrencyList with error should return error result`() {
         // Arrange
         TestUtils.connectToTestDb(false)
 

@@ -45,7 +45,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() {
+    fun `getDefaultCurrency with success should return default currency`() {
         // Arrange
         val currency = TECurrency("USD", "Dollar", "Dollars", "$", 2, true)
         every { currencyDataMock.getDefaultCurrency() } returns Ok(currency)
@@ -58,7 +58,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getDefaultCurrency_WithNoSuchElementException_ShouldThrowMissingDefaultCurrencyException() {
+    fun `getDefaultCurrency with NoSuchElementException should throw MissingDefaultCurrencyException`() {
         // Arrange
         every { currencyDataMock.getDefaultCurrency() } returns Err(NoSuchElementException())
 
@@ -72,7 +72,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getDefaultCurrency_WithSQLException_ShouldLogAndThrowDatabaseException() {
+    fun `getDefaultCurrency with SQLException should log and throw DatabaseException`() {
         // Arrange
         every { currencyDataMock.getDefaultCurrency() } returns Err(SQLException())
 
@@ -86,7 +86,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getCurrency_WithSuccess_ShouldReturnCurrency() {
+    fun `getCurrency with success should return currency`() {
         // Arrange
         val currency = TECurrency("USD", "Dollar", "Dollars", "$", 2, true)
         every { currencyDataMock.getCurrency("USD") } returns Ok(currency)
@@ -99,7 +99,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getCurrency_WithNoSuchElementException_ShouldThrowCurrencyNotFoundException() {
+    fun `getCurrency with NoSuchElementException should log and throw CurrencyNotFoundException`() {
         // Arrange
         every { currencyDataMock.getCurrency("USD") } returns Err(NoSuchElementException())
 
@@ -113,7 +113,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getCurrency_WithSQLException_ShouldLogAndThrowDatabaseException() {
+    fun `getCurrency with SQLException should log and throw DatabaseException`() {
         // Arrange
         every { currencyDataMock.getCurrency("USD") } returns Err(SQLException())
 
@@ -127,7 +127,7 @@ class EconomyTest {
     }
 
     @Test
-    fun createAccount_WithSuccess_ShouldReturnAccount() {
+    fun `createAccount with success should return account`() {
         // Arrange
         val account = TEAccount(UUID.randomUUID(), "", BigDecimal.TEN)
         every { accountDataMock.createAccount(any(), any(), any()) } returns Ok(account)
@@ -140,7 +140,7 @@ class EconomyTest {
     }
 
     @Test
-    fun createAccount_WithNoSuchElementException_ShouldLogAndThrowAccountNotFoundException() {
+    fun `createAccount with NoSuchElementException should log and throw AccountNotFoundException`() {
         // Arrange
         val account = TEAccount(UUID.randomUUID(), "", BigDecimal.TEN)
         every { accountDataMock.createAccount(any(), any(), any()) } returns Err(NoSuchElementException())
@@ -155,7 +155,7 @@ class EconomyTest {
     }
 
     @Test
-    fun createAccount_WithSQLException_ShouldLogAndThrowDatabaseException() {
+    fun `createAccount with SQLException should log and throw DatabaseException`() {
         // Arrange
         val account = TEAccount(UUID.randomUUID(), "", BigDecimal.TEN)
         every { accountDataMock.createAccount(any(), any(), any()) } returns Err(SQLException())
@@ -170,7 +170,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getAccount_WithSuccess_ShouldReturnAccount() {
+    fun `getAccount with success should return account`() {
         // Arrange
         val account = TEAccount(UUID.randomUUID(), "", BigDecimal.TEN)
         every { accountDataMock.getAccount(any(), any()) } returns Ok(account)
@@ -183,7 +183,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getAccount_WithNoSuchElementException_ShouldLogAndThrowAccountNotFoundException() {
+    fun `getAccount with NoSuchElementException should log and throw AccountNotFoundException`() {
         // Arrange
         val account = TEAccount(UUID.randomUUID(), "", BigDecimal.TEN)
         every { accountDataMock.getAccount(any(), any()) } returns Err(NoSuchElementException())
@@ -198,7 +198,7 @@ class EconomyTest {
     }
 
     @Test
-    fun getAccount_WithSQLException_ShouldLogAndThrowDatabaseException() {
+    fun `getAccount with SQLException should log and throw DatabaseException`() {
         // Arrange
         val account = TEAccount(UUID.randomUUID(), "", BigDecimal.TEN)
         every { accountDataMock.getAccount(any(), any()) } returns Err(SQLException())

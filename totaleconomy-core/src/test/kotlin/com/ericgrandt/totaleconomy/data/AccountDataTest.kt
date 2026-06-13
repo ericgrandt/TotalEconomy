@@ -16,7 +16,7 @@ import kotlin.test.Test
 class AccountDataTest {
     @Test
     @Tag("Integration")
-    fun createAccount_WithSuccess_ShouldReturnAccount() {
+    fun `createAccount with success should return account`() {
         // Arrange
         TestUtils.connectToTestDb()
         val currency = TestUtils.seedCurrency()
@@ -35,7 +35,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun createAccount_WithError_ShouldReturnErrorResult() {
+    fun `createAccount with error should return error result`() {
         // Arrange
         TestUtils.connectToTestDb(false)
 
@@ -52,7 +52,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithSuccess_ShouldReturnAccount() {
+    fun `getAccount with success should return account`() {
         // Arrange
         TestUtils.connectToTestDb()
         val currency = TestUtils.seedCurrency()
@@ -71,7 +71,7 @@ class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    fun getAccount_WithError_ShouldReturnErrorResult() {
+    fun `getAccount with error should return error result`() {
         // Arrange
         TestUtils.connectToTestDb(false)
 
