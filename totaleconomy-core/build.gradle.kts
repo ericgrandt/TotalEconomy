@@ -2,12 +2,9 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-val adventure = libs.adventure
-
 dependencies {
-    compileOnly(libs.adventure)
-
-    api(project(":totaleconomy-api"))
+    implementation(project(":totaleconomy-api"))
+    implementation(libs.adventure)
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.kotlin.datetime)
@@ -23,7 +20,7 @@ dependencies {
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines)
-    testApi(libs.adventure)
+    testImplementation(libs.adventure)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

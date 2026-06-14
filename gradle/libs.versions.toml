@@ -15,6 +15,7 @@ mockito-junit-jupiter = "5.23.0"
 mockk = "1.14.11"
 paper = "26.1.2.build.+"
 run-paper = "3.0.2"
+vault = "1.7.1"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -38,3 +39,4 @@ mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito
 mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito-junit-jupiter" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+vault = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vault" }

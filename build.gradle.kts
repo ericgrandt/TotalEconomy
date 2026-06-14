@@ -20,25 +20,4 @@ subprojects {
     kotlin {
         jvmToolchain(25)
     }
-
-    // tasks {
-    //    shadowJar {
-    //        archiveClassifier.set("")
-    //        archiveFileName.set("TotalEconomy-${project.version}.jar")
-
-    //        minimize {
-    //            exclude(project(":totaleconomy-core"))
-    //            exclude(project(":totaleconomy-api"))
-    //        }
-    //    }
-    //    jar {
-    //        enabled = true
-    //    }
-    //    build {
-    //        dependsOn(shadowJar)
-    //    }
-    //    test {
-    //        useJUnitPlatform()
-    //    }
-    // }
 }

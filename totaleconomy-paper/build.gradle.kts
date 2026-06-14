@@ -16,29 +16,49 @@ repositories {
 
 dependencies {
     compileOnly(libs.paper)
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    compileOnly(libs.vault)
 
-    implementation(project(":totaleconomy-core", configuration = "shadow"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation(project(":totaleconomy-api"))
+    implementation(project(":totaleconomy-core"))
+    implementation(libs.kotlinx.coroutines)
 
-    testImplementation("io.mockk:mockk:1.14.9")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
-    testImplementation(project(":totaleconomy-core"))
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.kotlinx.coroutines)
+    testImplementation(libs.mockk)
+    testImplementation(libs.paper)
 }
 
 tasks {
     test {
         enabled = false
     }
+
     runServer {
         dependsOn(shadowJar)
         minecraftVersion("26.1.2")
     }
 
     shadowJar {
+        archiveClassifier.set("")
+        archiveFileName.set("TotalEconomyPaper-${project.version}.jar")
+
         mergeServiceFiles()
 
         // Exclude net.kyori packages to avoid interfering with the one bundled with Paper
         exclude("net/kyori/**/*")
+
+        minimize {
+            exclude(project(":totaleconomy-core"))
+            exclude(project(":totaleconomy-api"))
+        }
+
+        // Relocate libraries to plugin package
+        relocate("com.zaxxer.hikari", "com.ericgrandt.totaleconomy.libs.hikari")
+        relocate("org.jetbrains.exposed", "com.ericgrandt.totaleconomy.libs.jetbrains.exposed")
+    }
+
+    jar {
+        enabled = false
     }
 }
