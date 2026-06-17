@@ -15,7 +15,7 @@ class PaperPlayerTest {
     @MockK
     lateinit var playerMock: PlayerEntity
 
-    val uuid = UUID.randomUUID()
+    val uuid: UUID = UUID.randomUUID()
 
     @BeforeTest
     fun setUp() {
