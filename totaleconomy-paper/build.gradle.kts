@@ -27,13 +27,11 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines)
     testImplementation(libs.mockk)
     testImplementation(libs.paper)
+
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks {
-    test {
-        enabled = false
-    }
-
     runServer {
         dependsOn(shadowJar)
         minecraftVersion("26.1.2")
@@ -60,5 +58,9 @@ tasks {
 
     jar {
         enabled = false
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }

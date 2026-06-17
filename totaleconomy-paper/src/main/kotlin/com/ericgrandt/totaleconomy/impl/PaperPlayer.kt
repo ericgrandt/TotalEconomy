@@ -6,7 +6,7 @@ import java.util.UUID
 import org.bukkit.entity.Player as PlayerEntity
 
 class PaperPlayer(
-    private var player: PlayerEntity,
+    private val player: PlayerEntity,
 ) : Player {
     override val uniqueId: UUID = player.uniqueId
     override val name: String = player.name
