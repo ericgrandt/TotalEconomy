@@ -19,6 +19,7 @@ class TestUtils {
         val c = HikariConfig()
 
         const val TEST_DATE = "2025-01-01T00:00:00Z"
+        val TEST_ACCOUNT_ID_ONE: UUID = UUID.randomUUID()
 
         init {
             c.jdbcUrl = "jdbc:h2:mem:totaleconomy;MODE=MySQL"
@@ -39,7 +40,7 @@ class TestUtils {
             }
         }
 
-        fun seedCurrency(): CurrencyEntity {
+        fun seedDefaultCurrency(): CurrencyEntity {
             val currency =
                 CurrencyEntity(
                     1,
@@ -66,12 +67,38 @@ class TestUtils {
             return currency
         }
 
+        fun seedNonDefaultCurrency(): CurrencyEntity {
+            val currency =
+                CurrencyEntity(
+                    2,
+                    "COIN",
+                    "Coin",
+                    "Coins",
+                    null,
+                    0,
+                    false,
+                    Instant.parse(TEST_DATE),
+                )
+            transaction {
+                CurrencyTable.insert {
+                    it[CurrencyTable.id] = currency.id
+                    it[CurrencyTable.code] = currency.code
+                    it[CurrencyTable.name] = currency.name
+                    it[CurrencyTable.pluralName] = currency.pluralName
+                    it[CurrencyTable.symbol] = currency.symbol
+                    it[CurrencyTable.fractionalDigits] = currency.fractionalDigits
+                    it[CurrencyTable.isDefault] = currency.isDefault
+                    it[CurrencyTable.createdAt] = currency.createdAt
+                }
+            }
+            return currency
+        }
+
         fun seedAccount(currencyCode: String): AccountEntity {
-            val account = AccountEntity(1, UUID.randomUUID(), currencyCode, 10.0, Instant.parse(TEST_DATE))
+            val account = AccountEntity(1, TEST_ACCOUNT_ID_ONE, currencyCode, 10.0, Instant.parse(TEST_DATE))
             transaction {
                 AccountTable
                     .insert {
-                        it[AccountTable.id] = account.id
                         it[AccountTable.playerId] = account.playerId.toString()
                         it[AccountTable.currencyCode] = account.currencyCode
                         it[AccountTable.balance] = account.balance
@@ -81,40 +108,6 @@ class TestUtils {
 
             return account
         }
-
-        // fun seedBalance(
-        //    accountId: UUID,
-        //    balance: Balance?,
-        // ): Balance {
-        //    val toInsert = balance ?: Balance(UUID.randomUUID(), accountId, 1.23)
-
-        //    transaction {
-        //        BalanceTable.insert {
-        //            it[BalanceTable.id] = toInsert.id.toString()
-        //            it[BalanceTable.accountId] = toInsert.accountId.toString()
-        //            it[BalanceTable.balance] = toInsert.balance
-        //        }
-        //    }
-
-        //    return toInsert
-        // }
-
-        // fun seedBank(
-        //    accountId: UUID,
-        //    bank: Bank?,
-        // ): Bank {
-        //    val toInsert = bank ?: Bank(UUID.randomUUID(), accountId, 1.23)
-
-        //    transaction {
-        //        BankTable.insert {
-        //            it[BankTable.id] = toInsert.id.toString()
-        //            it[BankTable.accountId] = toInsert.accountId.toString()
-        //            it[BankTable.balance] = toInsert.balance
-        //        }
-        //    }
-
-        //    return toInsert
-        // }
 
         private fun initDb() {
             transaction {

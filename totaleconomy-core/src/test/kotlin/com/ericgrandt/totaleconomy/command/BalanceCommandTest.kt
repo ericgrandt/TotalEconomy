@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.command
 
-import com.ericgrandt.totaleconomy.economy.Economy
+import com.ericgrandt.totaleconomy.economy.EconomyProvider
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException
 import com.ericgrandt.totaleconomy.model.Player
 import com.ericgrandt.totaleconomy.model.TEAccount
@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 
 class BalanceCommandTest {
     @MockK
-    lateinit var econMock: Economy
+    lateinit var econMock: EconomyProvider
 
     @MockK
     lateinit var playerMock: Player

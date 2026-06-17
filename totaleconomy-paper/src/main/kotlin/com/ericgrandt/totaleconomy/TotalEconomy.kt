@@ -5,7 +5,7 @@ import com.ericgrandt.totaleconomy.command.BalanceCommandExecutor
 import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.CurrencyData
 import com.ericgrandt.totaleconomy.data.Database
-import com.ericgrandt.totaleconomy.economy.Economy
+import com.ericgrandt.totaleconomy.economy.EconomyProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,7 +21,7 @@ class TotalEconomy :
     Listener {
     private val pluginScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val logger: Logger = LoggerFactory.getLogger("Total Economy")
-    private lateinit var economy: Economy
+    private lateinit var economy: EconomyProvider
 
     override fun onEnable() {
         saveDefaultConfig()
@@ -44,7 +44,7 @@ class TotalEconomy :
 
         val accountData = AccountData()
         val currencyData = CurrencyData()
-        economy = Economy(logger, accountData, currencyData)
+        economy = EconomyProvider(logger, accountData, currencyData)
 
         registerCommands()
     }

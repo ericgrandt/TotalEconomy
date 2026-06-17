@@ -1,15 +1,17 @@
 package com.ericgrandt.totaleconomy.command
 
-import com.ericgrandt.totaleconomy.economy.Economy
+import com.ericgrandt.totaleconomy.economy.EconomyProvider
 import com.ericgrandt.totaleconomy.mapper.getMessage
 import com.ericgrandt.totaleconomy.model.Player
 import com.ericgrandt.totaleconomy.model.Sender
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 
 class BalanceCommand(
-    private val economy: Economy,
+    private val economy: EconomyProvider,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : Command {
     override suspend fun execute(
         sender: Sender,
@@ -17,7 +19,7 @@ class BalanceCommand(
     ): CommandResult {
         val player = sender as? Player ?: return CommandResult.FAILURE
 
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             try {
                 val currencyCodeParam = (args["currencyCode"] as? CommandArgument.StringParam)?.value
                 val currency =

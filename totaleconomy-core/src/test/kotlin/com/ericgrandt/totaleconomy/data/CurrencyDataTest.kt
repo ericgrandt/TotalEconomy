@@ -17,7 +17,7 @@ class CurrencyDataTest {
     fun `getDefaultCurrency with success should return default currency`() {
         // Arrange
         TestUtils.connectToTestDb()
-        TestUtils.seedCurrency()
+        TestUtils.seedDefaultCurrency()
 
         val sut = CurrencyData()
 
@@ -61,7 +61,7 @@ class CurrencyDataTest {
     fun `getCurrency with success should return currency`() {
         // Arrange
         TestUtils.connectToTestDb()
-        TestUtils.seedCurrency()
+        TestUtils.seedDefaultCurrency()
 
         val sut = CurrencyData()
 
@@ -105,7 +105,7 @@ class CurrencyDataTest {
     fun `getCurrencyList with success should return currency list`() {
         // Arrange
         TestUtils.connectToTestDb()
-        TestUtils.seedCurrency()
+        TestUtils.seedDefaultCurrency()
 
         val sut = CurrencyData()
 

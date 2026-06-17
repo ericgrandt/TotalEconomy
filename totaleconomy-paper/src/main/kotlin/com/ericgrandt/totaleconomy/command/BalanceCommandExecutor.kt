@@ -22,8 +22,17 @@ class BalanceCommandExecutor(
             return false
         }
 
+        // TODO: Double check this logic first before calling it done
+        var commandArgs = emptyMap<String, CommandArgument>()
+        if (!args.isEmpty()) {
+            commandArgs =
+                mapOf(
+                    "currencyCode" to CommandArgument.StringParam(args[0]),
+                )
+        }
+
         scope.launch {
-            balanceCommand.execute(PaperPlayer(sender), mapOf())
+            balanceCommand.execute(PaperPlayer(sender), commandArgs)
         }
 
         return true

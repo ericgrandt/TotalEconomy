@@ -19,7 +19,7 @@ class AccountDataTest {
     fun `createAccount with success should return account`() {
         // Arrange
         TestUtils.connectToTestDb()
-        val currency = TestUtils.seedCurrency()
+        val currency = TestUtils.seedDefaultCurrency()
         val playerId = UUID.randomUUID()
 
         val sut = AccountData()
@@ -55,7 +55,7 @@ class AccountDataTest {
     fun `getAccount with success should return account`() {
         // Arrange
         TestUtils.connectToTestDb()
-        val currency = TestUtils.seedCurrency()
+        val currency = TestUtils.seedDefaultCurrency()
         val account = TestUtils.seedAccount(currency.code)
 
         val sut = AccountData()

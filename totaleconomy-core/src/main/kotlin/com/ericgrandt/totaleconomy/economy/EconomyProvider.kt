@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.economy
 
-import com.ericgrandt.totaleconomy.EconomyProvider
+import com.ericgrandt.totaleconomy.Economy
 import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.CurrencyData
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException
@@ -15,11 +15,11 @@ import org.slf4j.Logger
 import java.math.BigDecimal
 import java.util.UUID
 
-class Economy(
+class EconomyProvider(
     private val logger: Logger,
     private val accountData: AccountData,
     private val currencyData: CurrencyData,
-) : EconomyProvider {
+) : Economy {
     override fun getDefaultCurrency(): Currency {
         return transaction {
             currencyData.getDefaultCurrency().mapBoth(

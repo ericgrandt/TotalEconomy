@@ -8,7 +8,7 @@ import com.ericgrandt.totaleconomy.model.Currency
 import java.math.BigDecimal
 import java.util.UUID
 
-interface EconomyProvider {
+interface Economy {
     // /**
     // * Lists the available currencies.
     // *

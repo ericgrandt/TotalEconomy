@@ -2,7 +2,7 @@ package com.ericgrandt.totaleconomy.impl
 
 import com.ericgrandt.totaleconomy.data.AccountData
 import com.ericgrandt.totaleconomy.data.CurrencyData
-import com.ericgrandt.totaleconomy.economy.Economy
+import com.ericgrandt.totaleconomy.economy.EconomyProvider
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException
 import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException
 import com.ericgrandt.totaleconomy.exception.DatabaseException
@@ -25,7 +25,7 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class EconomyTest {
+class EconomyProviderTest {
     @MockK
     lateinit var loggerMock: Logger
 
@@ -35,13 +35,13 @@ class EconomyTest {
     @MockK
     lateinit var currencyDataMock: CurrencyData
 
-    private lateinit var sut: Economy
+    private lateinit var sut: EconomyProvider
 
     @BeforeTest
     fun setUp() {
         MockKAnnotations.init(this, relaxUnitFun = true)
         mockTransaction()
-        sut = Economy(loggerMock, accountDataMock, currencyDataMock)
+        sut = EconomyProvider(loggerMock, accountDataMock, currencyDataMock)
     }
 
     @Test

@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines)
 
     testImplementation(kotlin("test"))
+    testImplementation(libs.h2)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.kotlinx.coroutines)
     testImplementation(libs.mockk)
