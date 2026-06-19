@@ -1,23 +1,15 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    java
 }
 
 repositories {
     mavenCentral()
 }
 
-kotlin {
-    jvmToolchain(25)
-}
-
 subprojects {
-    plugins.apply("kotlin")
+    plugins.apply("java")
 
     repositories {
         mavenCentral()
-    }
-
-    kotlin {
-        jvmToolchain(25)
     }
 }

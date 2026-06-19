@@ -1,0 +1,79 @@
+package com.ericgrandt.totaleconomy.testutils;
+
+import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
+import com.ericgrandt.totaleconomy.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.data.entity.CurrencyEntity;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.UUID;
+
+public class TestUtils {
+    public static final HikariDataSource d;
+    public static final HikariConfig c = new HikariConfig();
+    public static final TransactionUtil transaction;
+
+    private static final String TEST_DATE = "2025-01-01T00:00:00Z";
+    private static final UUID TEST_ACCOUNT_ID_ONE = UUID.randomUUID();
+
+    static {
+        c.setJdbcUrl("jdbc:h2:mem:totaleconomy;MODE=MySQL");
+        c.addDataSourceProperty("cachePrepStmts", "true");
+        c.addDataSourceProperty("prepStmtCacheSize", "250");
+        c.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        d = new HikariDataSource(c);
+        transaction = new TransactionUtil(d);
+    }
+
+    public static void startTestDb(boolean runInit) throws SQLException {
+        var config = new HikariConfig();
+        config.setJdbcUrl("jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=MySQL");
+
+        var conn = d.getConnection();
+        if (runInit) {
+            DatabaseBootstrapper.initSchema(conn);
+        }
+    }
+
+    public static CurrencyEntity seedDefaultCurrency() throws SQLException {
+        CurrencyEntity currency = new CurrencyEntity(
+            1,
+            "USD",
+            "Dollar",
+            "Dollars",
+            "$",
+            2,
+            true,
+            Instant.parse(TEST_DATE)
+        );
+        String query = """
+            INSERT IGNORE INTO te_currency (
+                code,
+                name,
+                plural_name,
+                symbol,
+                fractional_digits,
+                is_default
+            ) VALUES ('%s', '%s', '%s', '%s', %d, %b)"""
+            .formatted(
+                currency.code(),
+                currency.name(),
+                currency.pluralName(),
+                currency.symbol(),
+                currency.fractionalDigits(),
+                currency.isDefault()
+            );
+
+
+        try (Connection conn = d.getConnection()) {
+            try (var stmt = conn.createStatement()) {
+                stmt.execute(query);
+            }
+        }
+
+        return currency;
+    }
+}

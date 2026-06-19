@@ -38,7 +38,7 @@ class BalanceCommandExecutorTest {
     fun `onCommand with no currency code argument should send default balance to player`() {
         runTest {
             // Arrange
-            TestUtils.connectToTestDb()
+            TestUtils.startTestDb()
             val currency = TestUtils.seedDefaultCurrency()
             val account = TestUtils.seedAccount(currency.code)
 
@@ -68,7 +68,7 @@ class BalanceCommandExecutorTest {
     fun `onCommand with currency code argument should send currency balance to player`() {
         runTest {
             // Arrange
-            TestUtils.connectToTestDb()
+            TestUtils.startTestDb()
             val defaultCurrency = TestUtils.seedDefaultCurrency()
             val currency = TestUtils.seedNonDefaultCurrency()
             val defaultAccount = TestUtils.seedAccount(defaultCurrency.code)
