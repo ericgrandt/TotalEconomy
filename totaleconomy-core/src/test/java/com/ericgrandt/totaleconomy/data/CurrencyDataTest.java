@@ -17,9 +17,9 @@ public class CurrencyDataTest {
     @Tag("Integration")
     void getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() throws SQLException {
         // Arrange
-        TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency();
-        var util = new TransactionUtil(TestUtils.d);
+        var dataSource = TestUtils.startTestDb(true);
+        TestUtils.seedDefaultCurrency(dataSource);
+        var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
 
@@ -38,21 +38,6 @@ public class CurrencyDataTest {
             assertEquals(expected, actual);
             return null;
         });
-        //transaction {
-        //    val actual = sut.getDefaultCurrency()
-        //    val expectedTECurrency =
-        //            TECurrency(
-        //                    "USD",
-        //                    "Dollar",
-        //                    "Dollars",
-        //                    "$",
-        //                    2,
-        //                    true,
-        //                    )
-        //    val expected = Ok(expectedTECurrency)
-
-        //    assertEquals(expected, actual)
-        //}
     }
 
 }

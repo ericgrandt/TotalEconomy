@@ -1,7 +1,6 @@
 package com.ericgrandt.totaleconomy.testutils;
 
 import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
-import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.data.entity.CurrencyEntity;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -12,33 +11,23 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class TestUtils {
-    public static final HikariDataSource d;
-    public static final HikariConfig c = new HikariConfig();
-    public static final TransactionUtil transaction;
-
     private static final String TEST_DATE = "2025-01-01T00:00:00Z";
     private static final UUID TEST_ACCOUNT_ID_ONE = UUID.randomUUID();
 
-    static {
-        c.setJdbcUrl("jdbc:h2:mem:totaleconomy;MODE=MySQL");
-        c.addDataSourceProperty("cachePrepStmts", "true");
-        c.addDataSourceProperty("prepStmtCacheSize", "250");
-        c.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        d = new HikariDataSource(c);
-        transaction = new TransactionUtil(d);
-    }
-
-    public static void startTestDb(boolean runInit) throws SQLException {
+    public static HikariDataSource startTestDb(boolean runInit) throws SQLException {
         var config = new HikariConfig();
         config.setJdbcUrl("jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=MySQL");
 
-        var conn = d.getConnection();
+        var dataSource = new HikariDataSource(config);
+        var conn = dataSource.getConnection();
         if (runInit) {
             DatabaseBootstrapper.initSchema(conn);
         }
+
+        return dataSource;
     }
 
-    public static CurrencyEntity seedDefaultCurrency() throws SQLException {
+    public static CurrencyEntity seedDefaultCurrency(HikariDataSource dataSource) throws SQLException {
         CurrencyEntity currency = new CurrencyEntity(
             1,
             "USD",
@@ -68,7 +57,7 @@ public class TestUtils {
             );
 
 
-        try (Connection conn = d.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try (var stmt = conn.createStatement()) {
                 stmt.execute(query);
             }
