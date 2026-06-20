@@ -15,7 +15,7 @@ public class TransactionUtil {
     public interface Transaction<T> {
         T execute(Connection conn) throws SQLException;
     }
-
+    
     public <T> T runInTransaction(Transaction<T> transaction) throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);

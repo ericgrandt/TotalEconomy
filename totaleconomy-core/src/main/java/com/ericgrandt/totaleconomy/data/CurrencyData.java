@@ -29,21 +29,25 @@ public class CurrencyData {
         throw new EntityNotFoundException("Default currency not found");
     }
 
-    //fun getCurrency(currencyCode: String): Result<TECurrency, Throwable> {
-    //    return runCatching {
-    //        CurrencyTable
-    //                .selectAll()
-    //                .where { CurrencyTable.code eq currencyCode }
-    //            .single()
-    //                .toTECurrency()
-    //    }
-    //}
+    public TECurrency getCurrency(Connection conn, String currencyCode) throws SQLException {
+        var query = "SELECT code, name, plural_name, symbol, fractional_digits, is_default FROM te_currency WHERE code = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, currencyCode);
 
-    //fun getCurrencyList(): Result<List<TECurrency>, Throwable> {
-    //    return runCatching {
-    //        CurrencyTable.selectAll().map {
-    //            it.toTECurrency()
-    //        }
-    //    }
-    //}
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new TECurrency(
+                        rs.getString("code"),
+                        rs.getString("name"),
+                        rs.getString("plural_name"),
+                        rs.getString("symbol"),
+                        rs.getInt("fractional_digits"),
+                        rs.getBoolean("is_default")
+                    );
+                }
+            }
+        }
+
+        throw new EntityNotFoundException("Currency not found");
+    }
 }

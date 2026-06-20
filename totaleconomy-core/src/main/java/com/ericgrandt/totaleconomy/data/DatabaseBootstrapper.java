@@ -7,6 +7,9 @@ public class DatabaseBootstrapper {
     public static void initSchema(Connection conn) throws SQLException {
         createCurrencyTable(conn);
         createAccountTable(conn);
+    }
+
+    public static void initData(Connection conn) throws SQLException {
         seedDefaultCurrency(conn);
     }
 

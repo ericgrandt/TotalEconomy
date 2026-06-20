@@ -34,6 +34,7 @@ public class Database {
     public void initDatabase() throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseBootstrapper.initSchema(conn);
+            DatabaseBootstrapper.initData(conn);
         }
     }
 }
