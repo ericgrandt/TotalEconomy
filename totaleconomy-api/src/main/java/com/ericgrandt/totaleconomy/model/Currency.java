@@ -13,7 +13,7 @@ public interface Currency {
      *
      * @return the unique code
      */
-    String getCode();
+    String code();
 
     /**
      * Singular form of the currency name.
@@ -23,7 +23,7 @@ public interface Currency {
      *
      * @return the singular name of the currency
      */
-    String getName();
+    String name();
 
     /**
      * Plural form of the currency name.
@@ -33,13 +33,13 @@ public interface Currency {
      *
      * @return the plural name of the currency
      */
-    String getPluralName();
+    String pluralName();
 
     /**
      * Returns the symbol representing the currency.
      * <p>
      * This value can be {@code null} or empty, which allows the {@link #format(BigDecimal)} function to fall back to
-     * using the {@link #getName()} or {@link #getPluralName()} instead of the symbol.
+     * using the {@link #name()} or {@link #pluralName()} instead of the symbol.
      * </p>
      * <p>
      * Examples: "$", "€", "¥", or {@code null}.
@@ -47,7 +47,7 @@ public interface Currency {
      *
      * @return the symbol, or {@code null} if not set
      */
-    String getSymbol();
+    String symbol();
 
     /**
      * Returns the number of decimal places used for the currency.
@@ -57,7 +57,7 @@ public interface Currency {
      *
      * @return the number of fractional digits
      */
-    int getFractionalDigits();
+    int fractionalDigits();
 
     /**
      * Indicates whether the currency is the default.
