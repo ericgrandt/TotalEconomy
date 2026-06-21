@@ -1,35 +1,45 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
+import com.ericgrandt.totaleconomy.dto.GetAccountRequest;
+import com.ericgrandt.totaleconomy.exception.EntityNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class AccountData {
-    public TEAccount createAccount(Connection conn, CreateAccountRequest request) throws SQLException {
+    public TEAccount createAccount(Connection conn, CreateAccountRequest req) throws SQLException {
         var insertQuery = "INSERT INTO te_account(player_id, currency_code, balance) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
-            stmt.setString(1, request.playerId().toString());
-            stmt.setString(2, request.currencyCode());
-            stmt.setBigDecimal(3, request.balance());
+            stmt.setString(1, req.playerId().toString());
+            stmt.setString(2, req.currencyCode());
+            stmt.setBigDecimal(3, req.balance());
             stmt.executeUpdate();
         }
-        return new TEAccount(request.playerId(), request.currencyCode(), request.balance());
+        return new TEAccount(req.playerId(), req.currencyCode(), req.balance());
     }
 
-//    fun getAccount(
-//        playerId: UUID,
-//        currencyCode: String,
-//    ): Result<TEAccount, Throwable> {
-//        return runCatching {
-//            AccountTable
-//                .selectAll()
-//                .where {
-//                    (AccountTable.playerId eq playerId.toString()) and (AccountTable.currencyCode eq currencyCode)
-//                }.single()
-//                .toTEAccount()
-//        }
-//    }
+    public TEAccount getAccount(Connection conn, GetAccountRequest req) throws SQLException {
+        var query = "SELECT player_id, currency_code, balance FROM te_account WHERE player_id = ? AND currency_code = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, req.playerId().toString());
+            stmt.setString(2, req.currencyCode());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new TEAccount(
+                        UUID.fromString(rs.getString("player_id")),
+                        rs.getString("currency_code"),
+                        rs.getBigDecimal("balance")
+                    );
+                }
+            }
+        }
+
+        throw new EntityNotFoundException("Account not found");
+    }
 }

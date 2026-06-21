@@ -1,10 +1,12 @@
 package com.ericgrandt.totaleconomy.testutils;
 
 import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
+import com.ericgrandt.totaleconomy.data.entity.AccountEntity;
 import com.ericgrandt.totaleconomy.data.entity.CurrencyEntity;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -64,5 +66,35 @@ public class TestUtils {
         }
 
         return currency;
+    }
+
+    public static AccountEntity seedAccount(HikariDataSource dataSource) throws SQLException {
+        AccountEntity account = new AccountEntity(
+            1,
+            UUID.randomUUID().toString(),
+            "USD",
+            BigDecimal.TEN,
+            Instant.parse(TEST_DATE)
+        );
+        String query = """
+            INSERT IGNORE INTO te_account (
+                player_id,
+                currency_code,
+                balance
+            ) VALUES ('%s', '%s', %f)"""
+            .formatted(
+                account.playerId(),
+                account.currencyCode(),
+                account.balance()
+            );
+
+
+        try (Connection conn = dataSource.getConnection()) {
+            try (var stmt = conn.createStatement()) {
+                stmt.execute(query);
+            }
+        }
+
+        return account;
     }
 }
