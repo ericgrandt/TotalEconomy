@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
 import com.ericgrandt.totaleconomy.dto.GetAccountRequest;
+import com.ericgrandt.totaleconomy.exception.EntityNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AccountDataTest {
     @Test
@@ -81,6 +83,29 @@ public class AccountDataTest {
                 .ignoringFields("balance")
                 .isEqualTo(actual);
             assertEquals(0, expected.balance().compareTo(actual.balance().setScale(2, RoundingMode.DOWN)));
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void getAccount_WithAccountNotFound_ShouldThrowEntityNotFoundException() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true);
+        TestUtils.seedDefaultCurrency(dataSource);
+        var util = new TransactionUtil(dataSource);
+
+        var getAccountReq = new GetAccountRequest(
+            UUID.randomUUID(),
+            "USD"
+        );
+
+        var sut = new AccountData();
+
+        //// Act/Assert
+        util.runInTransaction(c -> {
+            assertThrows(EntityNotFoundException.class, () -> sut.getAccount(c, getAccountReq));
+
             return null;
         });
     }
