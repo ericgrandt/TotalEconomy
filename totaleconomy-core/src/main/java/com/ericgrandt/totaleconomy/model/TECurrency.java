@@ -14,9 +14,9 @@ public record TECurrency(
 
         if (symbol == null) {
             var suffix = balance.compareTo(BigDecimal.ONE) == 0 ? name : pluralName;
-            return Component.text("Balance: %s %s".formatted(balance.toPlainString(), suffix));
+            return Component.text("%s %s".formatted(balance.toPlainString(), suffix));
         }
 
-        return Component.text("Balance: %s%s".formatted(symbol, balance.toPlainString()));
+        return Component.text("%s%s".formatted(symbol, balance.toPlainString()));
     }
 }

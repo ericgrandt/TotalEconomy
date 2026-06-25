@@ -16,19 +16,19 @@ public interface Account {
      *
      * @return the UUID attached to the player's Minecraft account
      */
-    UUID getPlayerId();
+    UUID playerId();
 
     /**
      * Gets the currency type for this account.
      *
      * @return the currency code associated with the account (e.g., "USD", "EUR")
      */
-    String getCurrencyCode();
+    String currencyCode();
 
     /**
      * Gets the current balance for this account.
      *
      * @return the current account balance
      */
-    BigDecimal getBalance();
+    BigDecimal balance();
 }

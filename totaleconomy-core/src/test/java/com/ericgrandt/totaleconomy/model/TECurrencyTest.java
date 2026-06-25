@@ -24,7 +24,7 @@ public class TECurrencyTest {
 
         // Act
         var actual = currency.format(BigDecimal.TEN);
-        var expected = Component.text("Balance: $10.00");
+        var expected = Component.text("$10.00");
 
         // Assert
         assertEquals(expected, actual);
@@ -45,7 +45,7 @@ public class TECurrencyTest {
 
         // Act
         var actual = currency.format(BigDecimal.ONE);
-        var expected = Component.text("Balance: 1.00 Dollar");
+        var expected = Component.text("1.00 Dollar");
 
         // Assert
         assertEquals(expected, actual);
@@ -66,7 +66,7 @@ public class TECurrencyTest {
 
         // Act
         var actual = currency.format(BigDecimal.TEN);
-        var expected = Component.text("Balance: 10.00 Dollars");
+        var expected = Component.text("10.00 Dollars");
 
         // Assert
         assertEquals(expected, actual);

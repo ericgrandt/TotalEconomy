@@ -7,5 +7,5 @@ public record TEAccount(
     UUID playerId,
     String currencyCode,
     BigDecimal balance
-) {
+) implements Account {
 }

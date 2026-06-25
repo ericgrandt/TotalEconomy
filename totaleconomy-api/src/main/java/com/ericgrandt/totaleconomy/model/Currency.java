@@ -72,9 +72,9 @@ public interface Currency {
     /**
      * Formats an amount into a {@link Component} for displaying.
      * <p>
-     * This is used for rendering currency amounts within user interfaces. If the {@link #getSymbol()} is {@code null}
-     * or empty, this should fall back to using the {@link #getName()} or {@link #getPluralName()}. The amount should be
-     * formatted using the {@link #getFractionalDigits()} defined on the currency.
+     * This is used for rendering currency amounts within user interfaces. If the {@link #symbol()} is {@code null} or
+     * empty, this should fall back to using the {@link #name()} or {@link #pluralName()}. The amount should be
+     * formatted using the {@link #fractionalDigits()} defined on the currency.
      * </p>
      *
      * @param amount the amount to format

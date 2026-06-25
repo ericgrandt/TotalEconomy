@@ -11,16 +11,16 @@ public interface Player extends Sender {
      *
      * @return the player's unique {@link UUID}
      */
-    UUID getUniqueId();
+    UUID uniqueId();
 
     /**
      * The player's username.
      * <p>
      * This name can change over time if the player updates their username. For a permanent identifier, use
-     * {@link #getUniqueId()}.
+     * {@link #uniqueId()}.
      * </p>
      *
      * @return the player's current username
      */
-    String getName();
+    String name();
 }
