@@ -2,8 +2,8 @@ package com.ericgrandt.totaleconomy.command;
 
 import com.ericgrandt.totaleconomy.economy.EconomyProvider;
 import com.ericgrandt.totaleconomy.mapper.ExceptionMapper;
-import com.ericgrandt.totaleconomy.model.Player;
 import com.ericgrandt.totaleconomy.model.Sender;
+import com.ericgrandt.totaleconomy.model.TEPlayer;
 import net.kyori.adventure.text.Component;
 
 import java.util.Map;
@@ -17,7 +17,7 @@ public class BalanceCommand implements Command {
 
     @Override
     public CommandResult execute(Sender sender, Map<String, CommandArgument> args) {
-        if (!(sender instanceof Player player)) {
+        if (!(sender instanceof TEPlayer player)) {
             return CommandResult.FAILURE;
         }
 

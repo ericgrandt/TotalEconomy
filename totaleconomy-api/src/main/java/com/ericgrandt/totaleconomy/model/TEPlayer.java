@@ -2,7 +2,7 @@ package com.ericgrandt.totaleconomy.model;
 
 import java.util.UUID;
 
-public interface Player extends Sender {
+public interface TEPlayer extends Sender {
     /**
      * The player's unique identifier.
      * <p>

@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    java
     alias(libs.plugins.run.paper)
     alias(libs.plugins.shadow)
 }
@@ -15,24 +15,17 @@ repositories {
     }
 }
 
-kotlin {
-    jvmToolchain(25)
-}
-
 dependencies {
     compileOnly(libs.paper)
     compileOnly(libs.vault)
 
     implementation(project(":totaleconomy-api"))
     implementation(project(":totaleconomy-core"))
-    implementation(libs.kotlinx.coroutines.core)
 
-    testImplementation(kotlin("test"))
-    testImplementation(libs.h2)
-    testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk)
-    testImplementation(libs.paper)
+    // testImplementation(libs.h2)
+    // testImplementation(libs.junit.jupiter.api)
+    // testImplementation(libs.mockito)
+    // testImplementation(libs.paper)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
@@ -49,12 +42,8 @@ tasks {
 
         mergeServiceFiles()
 
-        // Exclude net.kyori packages to avoid interfering with the one bundled with Paper
-        exclude("net/kyori/**/*")
-
         // Relocate libraries to plugin package
-        relocate("com.zaxxer.hikari", "com.ericgrandt.totaleconomy.libs.hikari")
-        relocate("org.jetbrains.exposed", "com.ericgrandt.totaleconomy.libs.jetbrains.exposed")
+        // relocate("com.zaxxer.hikari", "com.ericgrandt.totaleconomy.libs.hikari")
 
         minimize {
             exclude(project(":totaleconomy-core"))

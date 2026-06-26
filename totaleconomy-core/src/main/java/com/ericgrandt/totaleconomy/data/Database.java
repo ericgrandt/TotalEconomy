@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.data;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -10,7 +11,7 @@ public class Database {
     private final String url;
     private final String username;
     private final String password;
-    private final HikariDataSource dataSource;
+    private final DataSource dataSource;
 
     public Database(String url, String username, String password) {
         this.url = url;
@@ -36,5 +37,9 @@ public class Database {
             DatabaseBootstrapper.initSchema(conn);
             DatabaseBootstrapper.initData(conn);
         }
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
     }
 }

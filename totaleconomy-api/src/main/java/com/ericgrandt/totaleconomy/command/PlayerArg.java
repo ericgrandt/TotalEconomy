@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.command;
 
-import com.ericgrandt.totaleconomy.model.Player;
+import com.ericgrandt.totaleconomy.model.TEPlayer;
 
-public record PlayerArg(Player value) implements CommandArgument {
+public record PlayerArg(TEPlayer value) implements CommandArgument {
 }

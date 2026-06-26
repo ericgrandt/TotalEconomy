@@ -11,6 +11,7 @@ import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -57,6 +58,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() throws SQLException {
         // Arrange
         var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, true);
@@ -71,6 +73,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getDefaultCurrency_WithEntityNotFoundException_ShouldThrowMissingDefaultCurrencyException() throws SQLException {
         // Arrange
         when(currencyDataMock.getDefaultCurrency(any())).thenThrow(EntityNotFoundException.class);
@@ -85,6 +88,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getDefaultCurrency_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
         // Arrange
         when(currencyDataMock.getDefaultCurrency(any())).thenThrow(SQLException.class);
@@ -99,6 +103,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getCurrency_WithSuccess_ShouldReturnCurrency() throws SQLException {
         // Arrange
         var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, true);
@@ -113,6 +118,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getCurrency_WithEntityNotFoundException_ShouldThrowCurrencyNotFoundException() throws SQLException {
         // Arrange
         when(currencyDataMock.getCurrency(any(), any())).thenThrow(EntityNotFoundException.class);
@@ -127,6 +133,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getCurrency_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
         // Arrange
         when(currencyDataMock.getCurrency(any(), any())).thenThrow(SQLException.class);
@@ -141,6 +148,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void createAccount_WithSuccess_ShouldReturnAccount() throws SQLException {
         // Arrange
         var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
@@ -155,6 +163,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void createAccount_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
         // Arrange
         when(accountDataMock.createAccount(any(), any())).thenThrow(SQLException.class);
@@ -169,6 +178,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getAccount_WithSuccess_ShouldReturnAccount() throws SQLException {
         // Arrange
         var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
@@ -183,6 +193,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getAccount_WithEntityNotFoundException_ShouldThrowAccountNotFoundException() throws SQLException {
         // Arrange
         when(accountDataMock.getAccount(any(), any())).thenThrow(EntityNotFoundException.class);
@@ -197,6 +208,7 @@ public class EconomyProviderTest {
     }
 
     @Test
+    @Tag("Unit")
     public void getAccount_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
         // Arrange
         when(accountDataMock.getAccount(any(), any())).thenThrow(SQLException.class);
