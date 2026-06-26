@@ -34,5 +34,4 @@ public class BalanceCommand implements Command {
 
         return CommandResult.SUCCESS;
     }
-
 }

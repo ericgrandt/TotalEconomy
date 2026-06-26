@@ -6,6 +6,7 @@ import org.bukkit.OfflinePlayer;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class VaultImpl implements Economy {
     @Override
     public boolean isEnabled() {
@@ -43,6 +44,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean hasAccount(String playerName) {
         return false;
     }
@@ -53,6 +55,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean hasAccount(String playerName, String worldName) {
         return false;
     }
@@ -63,6 +66,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public double getBalance(String playerName) {
         return 0;
     }
@@ -73,6 +77,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public double getBalance(String playerName, String world) {
         return 0;
     }
@@ -83,6 +88,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean has(String playerName, double amount) {
         return false;
     }
@@ -93,6 +99,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean has(String playerName, String worldName, double amount) {
         return false;
     }
@@ -103,6 +110,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse withdrawPlayer(String playerName, double amount) {
         return null;
     }
@@ -113,6 +121,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse withdrawPlayer(String playerName, String worldName, double amount) {
         return null;
     }
@@ -123,6 +132,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse depositPlayer(String playerName, double amount) {
         return null;
     }
@@ -133,6 +143,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse depositPlayer(String playerName, String worldName, double amount) {
         return null;
     }
@@ -178,6 +189,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse isBankOwner(String name, String playerName) {
         return null;
     }
@@ -188,6 +200,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse isBankMember(String name, String playerName) {
         return null;
     }
@@ -203,6 +216,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean createPlayerAccount(String playerName) {
         return false;
     }
@@ -213,6 +227,7 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean createPlayerAccount(String playerName, String worldName) {
         return false;
     }
