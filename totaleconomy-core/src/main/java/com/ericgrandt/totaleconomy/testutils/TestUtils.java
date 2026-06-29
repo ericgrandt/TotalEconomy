@@ -14,7 +14,6 @@ import java.util.UUID;
 
 public class TestUtils {
     private static final String TEST_DATE = "2025-01-01T00:00:00Z";
-    private static final UUID TEST_ACCOUNT_ID_ONE = UUID.randomUUID();
 
     public static HikariDataSource startTestDb(boolean runInit) throws SQLException {
         var config = new HikariConfig();
@@ -68,11 +67,47 @@ public class TestUtils {
         return currency;
     }
 
-    public static AccountEntity seedAccount(HikariDataSource dataSource) throws SQLException {
+    public static CurrencyEntity seedCurrency(HikariDataSource dataSource) throws SQLException {
+        CurrencyEntity currency = new CurrencyEntity(
+            2,
+            "COIN",
+            "Coin",
+            "Coins",
+            null,
+            0,
+            false,
+            Instant.parse(TEST_DATE)
+        );
+        String query = """
+            INSERT IGNORE INTO te_currency (
+                code,
+                name,
+                plural_name,
+                symbol,
+                fractional_digits,
+                is_default
+            ) VALUES (?, ?, ?, ?, ?, ?)""";
+
+        try (Connection conn = dataSource.getConnection()) {
+            try (var stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, currency.code());
+                stmt.setString(2, currency.name());
+                stmt.setString(3, currency.pluralName());
+                stmt.setString(4, currency.symbol());
+                stmt.setInt(5, currency.fractionalDigits());
+                stmt.setBoolean(6, currency.isDefault());
+                stmt.execute();
+            }
+        }
+
+        return currency;
+    }
+
+    public static AccountEntity seedAccount(HikariDataSource dataSource, String currencyCode) throws SQLException {
         AccountEntity account = new AccountEntity(
             1,
             UUID.randomUUID().toString(),
-            "USD",
+            currencyCode == null ? "USD" : currencyCode,
             BigDecimal.TEN,
             Instant.parse(TEST_DATE)
         );
@@ -81,17 +116,14 @@ public class TestUtils {
                 player_id,
                 currency_code,
                 balance
-            ) VALUES ('%s', '%s', %f)"""
-            .formatted(
-                account.playerId(),
-                account.currencyCode(),
-                account.balance()
-            );
-
+            ) VALUES (?, ?, ?)""";
 
         try (Connection conn = dataSource.getConnection()) {
-            try (var stmt = conn.createStatement()) {
-                stmt.execute(query);
+            try (var stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, account.playerId());
+                stmt.setString(2, account.currencyCode());
+                stmt.setBigDecimal(3, account.balance());
+                stmt.execute();
             }
         }
 

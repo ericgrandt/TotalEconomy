@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.exception.EntityNotFoundException;
+import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException;
+import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 
 import java.sql.Connection;
@@ -26,7 +27,7 @@ public class CurrencyData {
             }
         }
 
-        throw new EntityNotFoundException("Default currency not found");
+        throw new MissingDefaultCurrencyException();
     }
 
     public TECurrency getCurrency(Connection conn, String currencyCode) throws SQLException {
@@ -48,6 +49,6 @@ public class CurrencyData {
             }
         }
 
-        throw new EntityNotFoundException("Currency not found");
+        throw new CurrencyNotFoundException();
     }
 }

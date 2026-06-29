@@ -1,8 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
-import com.ericgrandt.totaleconomy.dto.GetAccountRequest;
-import com.ericgrandt.totaleconomy.exception.EntityNotFoundException;
+import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;
@@ -59,19 +58,14 @@ public class AccountDataTest {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
         TestUtils.seedDefaultCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource);
+        var account = TestUtils.seedAccount(dataSource, null);
         var util = new TransactionUtil(dataSource);
-
-        var getAccountReq = new GetAccountRequest(
-            UUID.fromString(account.playerId()),
-            account.currencyCode()
-        );
 
         var sut = new AccountData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
-            var actual = sut.getAccount(c, getAccountReq);
+            var actual = sut.getAccount(c, UUID.fromString(account.playerId()), account.currencyCode());
             var expected = new TEAccount(
                 UUID.fromString(account.playerId()),
                 "USD",
@@ -89,22 +83,17 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void getAccount_WithAccountNotFound_ShouldThrowEntityNotFoundException() throws SQLException {
+    void getAccount_WithAccountNotFound_ShouldThrowAccountNotFoundException() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
         TestUtils.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
-        var getAccountReq = new GetAccountRequest(
-            UUID.randomUUID(),
-            "USD"
-        );
-
         var sut = new AccountData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
-            assertThrows(EntityNotFoundException.class, () -> sut.getAccount(c, getAccountReq));
+            assertThrows(AccountNotFoundException.class, () -> sut.getAccount(c, UUID.randomUUID(), "USD"));
 
             return null;
         });

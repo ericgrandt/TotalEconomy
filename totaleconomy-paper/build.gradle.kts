@@ -22,12 +22,15 @@ dependencies {
     implementation(project(":totaleconomy-api"))
     implementation(project(":totaleconomy-core"))
 
-    // testImplementation(libs.h2)
-    // testImplementation(libs.junit.jupiter.api)
-    // testImplementation(libs.mockito)
-    // testImplementation(libs.paper)
+    testImplementation(libs.h2)
+    testImplementation(libs.hikari)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.junit.jupiter)
+    testImplementation(libs.paper)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks {
@@ -43,7 +46,9 @@ tasks {
         mergeServiceFiles()
 
         // Relocate libraries to plugin package
-        // relocate("com.zaxxer.hikari", "com.ericgrandt.totaleconomy.libs.hikari")
+        relocate("com.zaxxer.hikari", "com.ericgrandt.totaleconomy.libs.hikari")
+
+        exclude("net/kyori/**/*")
 
         minimize {
             exclude(project(":totaleconomy-core"))

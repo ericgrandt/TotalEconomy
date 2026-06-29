@@ -1,19 +1,27 @@
 package com.ericgrandt.totaleconomy;
 
+import com.ericgrandt.totaleconomy.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
-import com.ericgrandt.totaleconomy.economy.EconomyProvider;
+import com.ericgrandt.totaleconomy.mapper.ExceptionMapper;
+import com.ericgrandt.totaleconomy.service.EconomyService;
+import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
+import com.ericgrandt.totaleconomy.util.PaperAsyncTaskRunner;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class TotalEconomy extends JavaPlugin {
     private final Logger logger = LoggerFactory.getLogger("Total Economy");
-    private EconomyProvider economy;
+    private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
+
+    private ExceptionMapper exceptionMapper;
+    private EconomyService economyService;
 
     @Override
     public void onEnable() {
@@ -36,12 +44,18 @@ public class TotalEconomy extends JavaPlugin {
         var transactionUtil = new TransactionUtil(database.getDataSource());
         var accountData = new AccountData();
         var currencyData = new CurrencyData();
-        economy = new EconomyProvider(logger, transactionUtil, currencyData, accountData);
+        exceptionMapper = new ExceptionMapper(logger);
+        economyService = new EconomyService(transactionUtil, currencyData, accountData);
 
         registerCommands();
     }
 
     private void registerCommands() {
-        //getCommand("balance").setExecutor(BalanceCommandExecutor(pluginScope, BalanceCommand(economy)))
+        Objects.requireNonNull(getCommand("balance")).setExecutor(new BalanceCommand(
+            this,
+            taskRunner,
+            exceptionMapper,
+            economyService
+        ));
     }
 }

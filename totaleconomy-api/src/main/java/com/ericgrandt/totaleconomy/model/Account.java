@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 public interface Account {
     /**
-     * Gets the unique identifier for this account.
+     * Gets the player's unique identifier attached to this account.
      *
      * @return the UUID attached to the player's Minecraft account
      */

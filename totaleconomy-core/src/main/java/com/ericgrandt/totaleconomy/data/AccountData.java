@@ -1,8 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
-import com.ericgrandt.totaleconomy.dto.GetAccountRequest;
-import com.ericgrandt.totaleconomy.exception.EntityNotFoundException;
+import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 
 import java.sql.Connection;
@@ -23,11 +22,11 @@ public class AccountData {
         return new TEAccount(req.playerId(), req.currencyCode(), req.balance());
     }
 
-    public TEAccount getAccount(Connection conn, GetAccountRequest req) throws SQLException {
+    public TEAccount getAccount(Connection conn, UUID playerId, String currencyCode) throws SQLException {
         var query = "SELECT player_id, currency_code, balance FROM te_account WHERE player_id = ? AND currency_code = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, req.playerId().toString());
-            stmt.setString(2, req.currencyCode());
+            stmt.setString(1, playerId.toString());
+            stmt.setString(2, currencyCode);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -40,6 +39,6 @@ public class AccountData {
             }
         }
 
-        throw new EntityNotFoundException("Account not found");
+        throw new AccountNotFoundException();
     }
 }

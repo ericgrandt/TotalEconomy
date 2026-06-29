@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.exception.EntityNotFoundException;
+import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException;
+import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;
@@ -41,17 +42,17 @@ public class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    void getDefaultCurrency_WithNoDefaultCurrency_ShouldThrowEntityNotFoundException() throws SQLException {
+    void getDefaultCurrency_WithNoDefaultCurrency_ShouldThrowMissingDefaultCurrencyException() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
             assertThrows(
-                EntityNotFoundException.class,
+                MissingDefaultCurrencyException.class,
                 () -> sut.getDefaultCurrency(c)
             );
             return null;
@@ -87,7 +88,7 @@ public class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    void getCurrency_WithNoCurrencyFoundForCode_ShouldThrowEntityNotFoundException() throws SQLException {
+    void getCurrency_WithNoCurrencyFoundForCode_ShouldThrowCurrencyNotFoundException() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
         TestUtils.seedDefaultCurrency(dataSource);
@@ -98,7 +99,7 @@ public class CurrencyDataTest {
         //// Act/Assert
         util.runInTransaction(c -> {
             assertThrows(
-                EntityNotFoundException.class,
+                CurrencyNotFoundException.class,
                 () -> sut.getCurrency(c, "COIN")
             );
             return null;
