@@ -7,6 +7,7 @@ import com.ericgrandt.totaleconomy.mapper.ExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
+import com.ericgrandt.totaleconomy.util.TestTaskRunner;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import util.TestTaskRunner;
 
 import java.sql.SQLException;
 import java.util.UUID;

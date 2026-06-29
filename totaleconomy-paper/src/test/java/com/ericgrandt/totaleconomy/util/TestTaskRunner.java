@@ -1,6 +1,5 @@
-package util;
+package com.ericgrandt.totaleconomy.util;
 
-import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import org.bukkit.plugin.Plugin;
 
 public class TestTaskRunner implements AsyncTaskRunner {
