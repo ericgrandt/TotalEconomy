@@ -18,14 +18,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
  * Verify that we're only logging for actual system errors, and not user caused errors
  */
 @ExtendWith(MockitoExtension.class)
-public class ExceptionMapperTest {
+public class CommandExceptionMapperTest {
     @Mock
     private Logger loggerMock;
 
     @Test
     public void handleException_WithCurrencyNotFoundException_ShouldNotLog() {
         // Arrange
-        var sut = new ExceptionMapper(loggerMock);
+        var sut = new CommandExceptionMapper(loggerMock);
 
         // Act
         sut.handleException(new CurrencyNotFoundException());
@@ -37,7 +37,7 @@ public class ExceptionMapperTest {
     @Test
     public void handleException_WithAccountNotFoundException_ShouldNotLog() {
         // Arrange
-        var sut = new ExceptionMapper(loggerMock);
+        var sut = new CommandExceptionMapper(loggerMock);
 
         // Act
         sut.handleException(new AccountNotFoundException());
@@ -49,7 +49,7 @@ public class ExceptionMapperTest {
     @Test
     public void handleException_WithMissingDefaultCurrencyException_ShouldLog() {
         // Arrange
-        var sut = new ExceptionMapper(loggerMock);
+        var sut = new CommandExceptionMapper(loggerMock);
 
         // Act
         sut.handleException(new MissingDefaultCurrencyException());
@@ -61,7 +61,7 @@ public class ExceptionMapperTest {
     @Test
     public void handleException_WithUnhandledException_ShouldLog() {
         // Arrange
-        var sut = new ExceptionMapper(loggerMock);
+        var sut = new CommandExceptionMapper(loggerMock);
 
         // Act
         sut.handleException(new IllegalArgumentException());

@@ -5,7 +5,8 @@ import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
-import com.ericgrandt.totaleconomy.mapper.ExceptionMapper;
+import com.ericgrandt.totaleconomy.listener.JoinListener;
+import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.PaperAsyncTaskRunner;
@@ -16,12 +17,11 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Objects;
 
-// TODO: Create defaultCurrency account for player on join
 public class TotalEconomy extends JavaPlugin {
     private final Logger logger = LoggerFactory.getLogger("Total Economy");
     private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
 
-    private ExceptionMapper exceptionMapper;
+    private CommandExceptionMapper exceptionMapper;
     private EconomyService economyService;
 
     @Override
@@ -45,10 +45,11 @@ public class TotalEconomy extends JavaPlugin {
         var transactionUtil = new TransactionUtil(database.getDataSource());
         var accountData = new AccountData();
         var currencyData = new CurrencyData();
-        exceptionMapper = new ExceptionMapper(logger);
+        exceptionMapper = new CommandExceptionMapper(logger);
         economyService = new EconomyService(transactionUtil, currencyData, accountData);
 
         registerCommands();
+        registerListeners();
     }
 
     private void registerCommands() {
@@ -58,5 +59,16 @@ public class TotalEconomy extends JavaPlugin {
             exceptionMapper,
             economyService
         ));
+    }
+
+    private void registerListeners() {
+        getServer().getPluginManager().registerEvents(
+            new JoinListener(
+                this,
+                taskRunner,
+                logger,
+                economyService
+            ), this
+        );
     }
 }

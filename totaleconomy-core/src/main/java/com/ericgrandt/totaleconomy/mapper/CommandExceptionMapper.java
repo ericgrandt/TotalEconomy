@@ -7,10 +7,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.slf4j.Logger;
 
-public class ExceptionMapper {
+public class CommandExceptionMapper {
     private final Logger logger;
 
-    public ExceptionMapper(Logger logger) {
+    public CommandExceptionMapper(Logger logger) {
         this.logger = logger;
     }
 

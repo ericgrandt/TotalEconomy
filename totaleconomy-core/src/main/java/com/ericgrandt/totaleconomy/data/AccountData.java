@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class AccountData {
     public TEAccount createAccount(Connection conn, CreateAccountRequest req) throws SQLException {
-        var insertQuery = "INSERT INTO te_account(player_id, currency_code, balance) VALUES (?, ?, ?)";
+        var insertQuery = "INSERT IGNORE INTO te_account(player_id, currency_code, balance) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
             stmt.setString(1, req.playerId().toString());
             stmt.setString(2, req.currencyCode());

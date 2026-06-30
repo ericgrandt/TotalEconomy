@@ -3,7 +3,7 @@ package com.ericgrandt.totaleconomy.command;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
-import com.ericgrandt.totaleconomy.mapper.ExceptionMapper;
+import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
@@ -53,7 +53,7 @@ public class BalanceCommandTest {
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString(account.playerId()));
 
         var transactionUtil = new TransactionUtil(dataSource);
-        var exceptionMapper = new ExceptionMapper(loggerMock);
+        var exceptionMapper = new CommandExceptionMapper(loggerMock);
         var economyService = new EconomyService(transactionUtil, currencyData, accountData);
 
         var sut = new BalanceCommand(pluginMock, taskRunner, exceptionMapper, economyService);
@@ -77,7 +77,7 @@ public class BalanceCommandTest {
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString(account.playerId()));
 
         var transactionUtil = new TransactionUtil(dataSource);
-        var exceptionMapper = new ExceptionMapper(loggerMock);
+        var exceptionMapper = new CommandExceptionMapper(loggerMock);
         var economyService = new EconomyService(transactionUtil, currencyData, accountData);
 
         var sut = new BalanceCommand(pluginMock, taskRunner, exceptionMapper, economyService);

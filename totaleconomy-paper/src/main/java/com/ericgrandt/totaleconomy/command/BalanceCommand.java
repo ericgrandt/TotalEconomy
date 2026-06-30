@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.command;
 
-import com.ericgrandt.totaleconomy.mapper.ExceptionMapper;
+import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import org.bukkit.command.Command;
@@ -13,13 +13,13 @@ import org.jetbrains.annotations.NotNull;
 public class BalanceCommand implements CommandExecutor {
     private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
-    private final ExceptionMapper exceptionMapper;
+    private final CommandExceptionMapper exceptionMapper;
     private final EconomyService economyService;
 
     public BalanceCommand(
         Plugin plugin,
         AsyncTaskRunner taskRunner,
-        ExceptionMapper exceptionMapper,
+        CommandExceptionMapper exceptionMapper,
         EconomyService economyService
     ) {
         this.plugin = plugin;
