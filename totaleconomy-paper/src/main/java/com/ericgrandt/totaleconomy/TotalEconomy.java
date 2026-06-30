@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Objects;
 
+// TODO: Create defaultCurrency account for player on join
 public class TotalEconomy extends JavaPlugin {
     private final Logger logger = LoggerFactory.getLogger("Total Economy");
     private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
