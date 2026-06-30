@@ -7,5 +7,3 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: totaleconomy
-    volumes:
-      - ./totaleconomy-common/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/1.sql

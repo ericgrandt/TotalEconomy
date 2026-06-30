@@ -1,5 +1,5 @@
 rootProject.name = "TotalEconomy"
 
-include("totaleconomy-common")
-include("totaleconomy-bukkit")
-include("totaleconomy-sponge")
+include("totaleconomy-paper")
+include("totaleconomy-api")
+include("totaleconomy-core")

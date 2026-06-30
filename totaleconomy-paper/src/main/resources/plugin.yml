@@ -1,0 +1,11 @@
+name: TotalEconomy
+version: 1.0.0-alpha
+main: com.ericgrandt.totaleconomy.TotalEconomy
+description: All in one economy plugin for Minecraft
+author: Eric
+api-version: 26.1.2
+commands:
+  balance:
+    description: Retrieve the player's balance
+    usage: /<command>
+    permission: totaleconomy.balance

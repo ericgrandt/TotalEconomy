@@ -1,0 +1,29 @@
+[versions]
+adventure = "4.26.1"
+assertj-core = "3.27.7"
+h2 = "2.4.240"
+hikari = "7.0.2"
+junit = "6.1.0"
+junit-platform = "6.1.0"
+shadow = "9.4.1"
+mockito = "5.+"
+paper = "26.1.2.build.+"
+run-paper = "3.0.2"
+vault = "1.7.1"
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
+
+[libraries]
+adventure = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj-core" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+vault = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vault" }
