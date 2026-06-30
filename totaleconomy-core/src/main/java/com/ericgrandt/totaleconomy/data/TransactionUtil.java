@@ -15,7 +15,7 @@ public class TransactionUtil {
     public interface Transaction<T> {
         T execute(Connection conn) throws SQLException;
     }
-    
+
     public <T> T runInTransaction(Transaction<T> transaction) throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
@@ -23,16 +23,13 @@ public class TransactionUtil {
                 T result = transaction.execute(conn);
                 conn.commit();
                 return result;
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            } catch (RuntimeException | Error ex) {
+            } catch (Exception e) {
                 try {
                     conn.rollback();
-                } catch (SQLException ignored) {
+                } catch (SQLException rollbackEx) {
+                    e.addSuppressed(rollbackEx);
                 }
-
-                throw ex;
+                throw e;
             }
         }
     }
