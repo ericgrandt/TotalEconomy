@@ -49,6 +49,31 @@ public class EconomyServiceTest {
 
     @Test
     @Tag("Unit")
+    public void getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+
+        when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
+
+        // Act
+        var actual = sut.getDefaultCurrency();
+
+        // Assert
+        assertEquals(currency, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getDefaultCurrency_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        when(currencyDataMock.getDefaultCurrency(any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(DatabaseException.class, () -> sut.getDefaultCurrency());
+    }
+
+    @Test
+    @Tag("Unit")
     public void getAccountBalance_WithNoCurrencyCodeAndSuccess_ShouldReturnBalanceForDefaultCurrency() throws SQLException {
         // Arrange
         var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);

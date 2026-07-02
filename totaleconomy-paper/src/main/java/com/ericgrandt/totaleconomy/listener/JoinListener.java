@@ -33,7 +33,8 @@ public class JoinListener implements Listener {
             plugin, () -> {
                 try {
                     // TODO: Hardcoded for now, though should grab the default currency
-                    economyService.createAccount(player.getUniqueId(), "USD");
+                    var defaultCurrency = economyService.getDefaultCurrency();
+                    economyService.createAccount(player.getUniqueId(), defaultCurrency.code());
                 } catch (Exception e) {
                     logger.error("failed to create an account on player join", e);
                 }
