@@ -1,8 +1,8 @@
 package com.ericgrandt.totaleconomy.data.entity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
-// TODO: Add a default balance field
 public record CurrencyEntity(
     int id,
     String code,
@@ -10,6 +10,7 @@ public record CurrencyEntity(
     String pluralName,
     String symbol,
     int fractionalDigits,
+    BigDecimal startingBalance,
     boolean isDefault,
     Instant createdAt
 ) {

@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
+import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
@@ -26,7 +26,7 @@ public class AccountDataTest {
         var util = new TransactionUtil(dataSource);
 
         var playerId = UUID.randomUUID();
-        var createAccountReq = new CreateAccountRequest(
+        var createAccountDto = new CreateAccountDto(
             playerId,
             "USD",
             BigDecimal.ONE
@@ -36,7 +36,7 @@ public class AccountDataTest {
 
         //// Act/Assert
         util.runInTransaction(c -> {
-            var actual = sut.createAccount(c, createAccountReq);
+            var actual = sut.createAccount(c, createAccountDto);
             var expected = new TEAccount(
                 playerId,
                 "USD",

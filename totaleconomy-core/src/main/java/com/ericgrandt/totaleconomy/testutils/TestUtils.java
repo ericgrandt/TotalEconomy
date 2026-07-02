@@ -36,6 +36,7 @@ public class TestUtils {
             "Dollars",
             "$",
             2,
+            BigDecimal.ZERO,
             true,
             Instant.parse(TEST_DATE)
         );
@@ -46,21 +47,20 @@ public class TestUtils {
                 plural_name,
                 symbol,
                 fractional_digits,
+                starting_balance,
                 is_default
-            ) VALUES ('%s', '%s', '%s', '%s', %d, %b)"""
-            .formatted(
-                currency.code(),
-                currency.name(),
-                currency.pluralName(),
-                currency.symbol(),
-                currency.fractionalDigits(),
-                currency.isDefault()
-            );
-
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)""";
 
         try (Connection conn = dataSource.getConnection()) {
-            try (var stmt = conn.createStatement()) {
-                stmt.execute(query);
+            try (var stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, currency.code());
+                stmt.setString(2, currency.name());
+                stmt.setString(3, currency.pluralName());
+                stmt.setString(4, currency.symbol());
+                stmt.setInt(5, currency.fractionalDigits());
+                stmt.setBigDecimal(6, currency.startingBalance());
+                stmt.setBoolean(7, currency.isDefault());
+                stmt.execute();
             }
         }
 
@@ -75,6 +75,7 @@ public class TestUtils {
             "Coins",
             null,
             0,
+            BigDecimal.TEN,
             false,
             Instant.parse(TEST_DATE)
         );
@@ -85,8 +86,9 @@ public class TestUtils {
                 plural_name,
                 symbol,
                 fractional_digits,
+                starting_balance,
                 is_default
-            ) VALUES (?, ?, ?, ?, ?, ?)""";
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)""";
 
         try (Connection conn = dataSource.getConnection()) {
             try (var stmt = conn.prepareStatement(query)) {
@@ -95,7 +97,8 @@ public class TestUtils {
                 stmt.setString(3, currency.pluralName());
                 stmt.setString(4, currency.symbol());
                 stmt.setInt(5, currency.fractionalDigits());
-                stmt.setBoolean(6, currency.isDefault());
+                stmt.setBigDecimal(6, currency.startingBalance());
+                stmt.setBoolean(7, currency.isDefault());
                 stmt.execute();
             }
         }

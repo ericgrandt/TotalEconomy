@@ -22,6 +22,7 @@ public class DatabaseBootstrapper {
                 plural_name VARCHAR(21) NOT NULL UNIQUE,
                 symbol VARCHAR(4),
                 fractional_digits INT NOT NULL,
+                starting_balance DECIMAL(10, 4) NOT NULL DEFAULT 0,
                 is_default BOOLEAN NOT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
@@ -58,6 +59,7 @@ public class DatabaseBootstrapper {
                 plural_name,
                 symbol,
                 fractional_digits,
+                starting_balance,
                 is_default
             ) VALUES (
                 'USD',
@@ -65,6 +67,7 @@ public class DatabaseBootstrapper {
                 'Dollars',
                 '$',
                 2,
+                0,
                 true
             )
             """;

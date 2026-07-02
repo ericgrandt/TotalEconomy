@@ -6,7 +6,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public record TECurrency(
-    String code, String name, String pluralName, String symbol, int fractionalDigits, boolean isDefault
+    String code,
+    String name,
+    String pluralName,
+    String symbol,
+    int fractionalDigits,
+    BigDecimal startingBalance,
+    boolean isDefault
 ) implements Currency {
     @Override
     public Component format(BigDecimal amount) {

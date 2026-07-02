@@ -7,8 +7,11 @@ import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -23,7 +26,7 @@ public class CurrencyDataTest {
 
         var sut = new CurrencyData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
             var actual = sut.getDefaultCurrency(c);
             var expected = new TECurrency(
@@ -32,10 +35,18 @@ public class CurrencyDataTest {
                 "Dollars",
                 "$",
                 2,
+                BigDecimal.ZERO,
                 true
             );
 
-            assertEquals(expected, actual);
+            assertThat(expected)
+                .usingRecursiveComparison()
+                .ignoringFields("startingBalance")
+                .isEqualTo(actual);
+            assertEquals(
+                0,
+                expected.startingBalance().compareTo(actual.startingBalance().setScale(2, RoundingMode.DOWN))
+            );
             return null;
         });
     }
@@ -69,7 +80,7 @@ public class CurrencyDataTest {
 
         var sut = new CurrencyData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
             var actual = sut.getCurrency(c, "USD");
             var expected = new TECurrency(
@@ -78,10 +89,18 @@ public class CurrencyDataTest {
                 "Dollars",
                 "$",
                 2,
+                BigDecimal.ZERO,
                 true
             );
 
-            assertEquals(expected, actual);
+            assertThat(expected)
+                .usingRecursiveComparison()
+                .ignoringFields("startingBalance")
+                .isEqualTo(actual);
+            assertEquals(
+                0,
+                expected.startingBalance().compareTo(actual.startingBalance().setScale(2, RoundingMode.DOWN))
+            );
             return null;
         });
     }
@@ -96,7 +115,7 @@ public class CurrencyDataTest {
 
         var sut = new CurrencyData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
             assertThrows(
                 CurrencyNotFoundException.class,

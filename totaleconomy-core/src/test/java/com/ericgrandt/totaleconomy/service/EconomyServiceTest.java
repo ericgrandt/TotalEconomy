@@ -51,7 +51,7 @@ public class EconomyServiceTest {
     @Tag("Unit")
     public void getAccountBalance_WithNoCurrencyCodeAndSuccess_ShouldReturnBalanceForDefaultCurrency() throws SQLException {
         // Arrange
-        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, true);
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
         var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
 
         when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
@@ -69,7 +69,7 @@ public class EconomyServiceTest {
     @Tag("Unit")
     public void getAccountBalance_WithCurrencyCodeAndSuccess_ShouldReturnBalanceForCurrency() throws SQLException {
         // Arrange
-        var currency = new TECurrency("COIN", "Coin", "Coins", null, 0, false);
+        var currency = new TECurrency("COIN", "Coin", "Coins", null, 0, BigDecimal.TEN, false);
         var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
 
         when(currencyDataMock.getCurrency(any(), any())).thenReturn(currency);
@@ -91,5 +91,32 @@ public class EconomyServiceTest {
 
         // Act/Assert
         assertThrows(DatabaseException.class, () -> sut.getAccountBalance(UUID.randomUUID(), "USD"));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void createAccount_WithSuccess_ShouldReturnCreatedAccount() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(currency);
+        when(accountDataMock.createAccount(any(), any())).thenReturn(account);
+
+        // Act
+        var actual = sut.createAccount(UUID.randomUUID(), "USD");
+
+        // Assert
+        assertEquals(account, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void createAccount_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        when(currencyDataMock.getCurrency(any(), any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(DatabaseException.class, () -> sut.createAccount(UUID.randomUUID(), "USD"));
     }
 }

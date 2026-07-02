@@ -19,6 +19,7 @@ public class TECurrencyTest {
             "Dollars",
             "$",
             2,
+            BigDecimal.TEN,
             true
         );
 
@@ -40,6 +41,7 @@ public class TECurrencyTest {
             "Dollars",
             null,
             2,
+            BigDecimal.TEN,
             true
         );
 
@@ -61,6 +63,7 @@ public class TECurrencyTest {
             "Dollars",
             null,
             2,
+            BigDecimal.TEN,
             true
         );
 

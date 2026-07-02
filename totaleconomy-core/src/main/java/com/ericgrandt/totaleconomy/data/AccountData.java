@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
+import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 
@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class AccountData {
-    public TEAccount createAccount(Connection conn, CreateAccountRequest req) throws SQLException {
+    public TEAccount createAccount(Connection conn, CreateAccountDto req) throws SQLException {
         var insertQuery = "INSERT IGNORE INTO te_account(player_id, currency_code, balance) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
             stmt.setString(1, req.playerId().toString());

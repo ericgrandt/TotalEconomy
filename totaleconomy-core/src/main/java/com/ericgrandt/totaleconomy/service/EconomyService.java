@@ -3,12 +3,11 @@ package com.ericgrandt.totaleconomy.service;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
-import com.ericgrandt.totaleconomy.dto.CreateAccountRequest;
+import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -23,15 +22,13 @@ public class EconomyService {
         this.accountData = accountData;
     }
 
-    // TODO: Any reason to return a *Result dto here? Or are we good with just TEAccount?
-    // TODO: Test
     public TEAccount createAccount(UUID playerId, String currencyCode) {
         try {
             return transactionUtil.runInTransaction(conn -> {
-                // TODO: Think about ditching the request dto here and just passing in the values?
+                var startingBalance = currencyData.getCurrency(conn, currencyCode).startingBalance();
                 return accountData.createAccount(
                     conn,
-                    new CreateAccountRequest(playerId, currencyCode, BigDecimal.ZERO)
+                    new CreateAccountDto(playerId, currencyCode, startingBalance)
                 );
             });
         } catch (SQLException e) {
