@@ -34,7 +34,7 @@ public class AccountDataTest {
 
         var sut = new AccountData();
 
-        //// Act/Assert
+        // Act/Assert
         util.runInTransaction(c -> {
             var actual = sut.createAccount(c, createAccountDto);
             var expected = new TEAccount(
