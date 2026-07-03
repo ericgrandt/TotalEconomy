@@ -49,16 +49,27 @@ public class AccountData {
         Connection conn,
         UUID playerId,
         String currencyCode,
-        BigDecimal amount
+        BigDecimal amount,
+        boolean enforceMinimumBalance
     ) throws SQLException {
         var query = "UPDATE te_account SET balance = balance - ? WHERE player_id = ? AND currency_code = ?";
+        if (enforceMinimumBalance) {
+            query = query + " AND balance >= ?";
+        }
+
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setBigDecimal(1, amount);
             stmt.setString(2, playerId.toString());
             stmt.setString(3, currencyCode);
 
+            if (enforceMinimumBalance) {
+                stmt.setBigDecimal(4, amount);
+            }
+
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
+                // TODO: This doesn't provide super descriptive reasoning as it could be because of a missing account
+                //  or because of an insufficient balance. Handle this.
                 throw new AccountWithdrawException();
             }
 

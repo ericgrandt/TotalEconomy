@@ -121,12 +121,47 @@ public class AccountDataTest {
                 conn,
                 UUID.fromString(account.playerId()),
                 currency.code(),
-                BigDecimal.TWO
+                BigDecimal.TWO,
+                true
             );
             var expected = 1;
 
             var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
             var expectedBalance = BigDecimal.valueOf(8).setScale(2, RoundingMode.DOWN);
+
+            assertEquals(expected, actual);
+            assertEquals(
+                expectedBalance,
+                actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
+            );
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void withdraw_WithEnforceMinimumBalanceOfFalse_ShouldReturnAnAffectedRowCountOfOneAndWithdrawFromAccount() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var account = TestUtils.seedAccount(dataSource, null);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.withdraw(
+                conn,
+                UUID.fromString(account.playerId()),
+                currency.code(),
+                BigDecimal.valueOf(15),
+                false
+            );
+            var expected = 1;
+
+            var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
+            var expectedBalance = BigDecimal.valueOf(-5).setScale(2, RoundingMode.DOWN);
 
             assertEquals(expected, actual);
             assertEquals(
@@ -151,7 +186,7 @@ public class AccountDataTest {
         util.runInTransaction(conn -> {
             assertThrows(
                 AccountWithdrawException.class,
-                () -> sut.withdraw(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO)
+                () -> sut.withdraw(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO, true)
             );
             return null;
         });
