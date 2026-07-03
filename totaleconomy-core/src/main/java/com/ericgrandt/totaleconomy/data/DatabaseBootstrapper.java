@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.data;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+// TODO: Look into creating a DB dialect interface that supports other DBs besides MySQL
 public class DatabaseBootstrapper {
     public static void initSchema(Connection conn) throws SQLException {
         createCurrencyTable(conn);
@@ -22,7 +23,7 @@ public class DatabaseBootstrapper {
                 plural_name VARCHAR(21) NOT NULL UNIQUE,
                 symbol VARCHAR(4),
                 fractional_digits INT NOT NULL,
-                starting_balance DECIMAL(10, 4) NOT NULL DEFAULT 0,
+                starting_balance DECIMAL(19, 4) NOT NULL DEFAULT 0,
                 is_default BOOLEAN NOT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
@@ -39,7 +40,7 @@ public class DatabaseBootstrapper {
                 id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 player_id VARCHAR(36) NOT NULL,
                 currency_code VARCHAR(10) NOT NULL,
-                balance DECIMAL(10, 4) NOT NULL DEFAULT 0,
+                balance DECIMAL(19, 4) NOT NULL DEFAULT 0,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (currency_code) REFERENCES te_currency(code) ON DELETE CASCADE,
                 UNIQUE KEY uk_te_account_player_currency (player_id, currency_code)
