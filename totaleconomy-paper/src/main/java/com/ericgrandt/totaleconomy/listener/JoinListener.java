@@ -32,7 +32,6 @@ public class JoinListener implements Listener {
         taskRunner.runAsync(
             plugin, () -> {
                 try {
-                    // TODO: Hardcoded for now, though should grab the default currency
                     var defaultCurrency = economyService.getDefaultCurrency();
                     economyService.createAccount(player.getUniqueId(), defaultCurrency.code());
                 } catch (Exception e) {

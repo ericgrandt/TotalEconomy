@@ -1,7 +1,9 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
+import com.ericgrandt.totaleconomy.exception.AccountDepositException;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
+import com.ericgrandt.totaleconomy.exception.AccountWithdrawException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;
@@ -22,24 +24,24 @@ public class AccountDataTest {
     void createAccount_WithSuccess_ShouldReturnCreatedAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var playerId = UUID.randomUUID();
         var createAccountDto = new CreateAccountDto(
             playerId,
-            "USD",
+            currency.code(),
             BigDecimal.ONE
         );
 
         var sut = new AccountData();
 
         // Act/Assert
-        util.runInTransaction(c -> {
-            var actual = sut.createAccount(c, createAccountDto);
+        util.runInTransaction(conn -> {
+            var actual = sut.createAccount(conn, createAccountDto);
             var expected = new TEAccount(
                 playerId,
-                "USD",
+                currency.code(),
                 BigDecimal.ONE
             );
 
@@ -57,18 +59,18 @@ public class AccountDataTest {
     void getAccount_WithSuccess_ShouldReturnAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
         var account = TestUtils.seedAccount(dataSource, null);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
 
         // Act/Assert
-        util.runInTransaction(c -> {
-            var actual = sut.getAccount(c, UUID.fromString(account.playerId()), account.currencyCode());
+        util.runInTransaction(conn -> {
+            var actual = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
             var expected = new TEAccount(
                 UUID.fromString(account.playerId()),
-                "USD",
+                currency.code(),
                 BigDecimal.TEN
             );
 
@@ -86,15 +88,124 @@ public class AccountDataTest {
     void getAccount_WithAccountNotFound_ShouldThrowAccountNotFoundException() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
 
         // Act/Assert
-        util.runInTransaction(c -> {
-            assertThrows(AccountNotFoundException.class, () -> sut.getAccount(c, UUID.randomUUID(), "USD"));
+        util.runInTransaction(conn -> {
+            assertThrows(
+                AccountNotFoundException.class,
+                () -> sut.getAccount(conn, UUID.randomUUID(), currency.code())
+            );
 
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void withdraw_WithSuccess_ShouldReturnAnAffectedRowCountOfOneAndWithdrawFromAccount() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var account = TestUtils.seedAccount(dataSource, null);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.withdraw(
+                conn,
+                UUID.fromString(account.playerId()),
+                currency.code(),
+                BigDecimal.TWO
+            );
+            var expected = 1;
+
+            var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
+            var expectedBalance = BigDecimal.valueOf(8).setScale(2, RoundingMode.DOWN);
+
+            assertEquals(expected, actual);
+            assertEquals(
+                expectedBalance,
+                actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
+            );
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void withdraw_WithNoRowsUpdated_ShouldThrowAccountWithdrawException() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            assertThrows(
+                AccountWithdrawException.class,
+                () -> sut.withdraw(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO)
+            );
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void deposit_WithSuccess_ShouldReturnAnAffectedRowCountOfOneAndDepositIntoAccount() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var account = TestUtils.seedAccount(dataSource, null);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.deposit(
+                conn,
+                UUID.fromString(account.playerId()),
+                currency.code(),
+                BigDecimal.TWO
+            );
+            var expected = 1;
+
+            var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
+            var expectedBalance = BigDecimal.valueOf(12).setScale(2, RoundingMode.DOWN);
+
+            assertEquals(expected, actual);
+            assertEquals(
+                expectedBalance,
+                actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
+            );
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void deposit_WithNoRowsUpdated_ShouldThrowAccountDepositException() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true);
+        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            assertThrows(
+                AccountDepositException.class,
+                () -> sut.deposit(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO)
+            );
             return null;
         });
     }
