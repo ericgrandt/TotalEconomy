@@ -1,9 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
-import com.ericgrandt.totaleconomy.exception.AccountDepositException;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
-import com.ericgrandt.totaleconomy.exception.AccountWithdrawException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;
@@ -16,7 +14,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AccountDataTest {
     @Test
@@ -124,12 +124,11 @@ public class AccountDataTest {
                 BigDecimal.TWO,
                 true
             );
-            var expected = 1;
 
             var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
             var expectedBalance = BigDecimal.valueOf(8).setScale(2, RoundingMode.DOWN);
 
-            assertEquals(expected, actual);
+            assertTrue(actual);
             assertEquals(
                 expectedBalance,
                 actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
@@ -158,12 +157,11 @@ public class AccountDataTest {
                 BigDecimal.valueOf(15),
                 false
             );
-            var expected = 1;
 
             var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
             var expectedBalance = BigDecimal.valueOf(-5).setScale(2, RoundingMode.DOWN);
 
-            assertEquals(expected, actual);
+            assertTrue(actual);
             assertEquals(
                 expectedBalance,
                 actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
@@ -174,7 +172,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void withdraw_WithNoRowsUpdated_ShouldThrowAccountWithdrawException() throws SQLException {
+    void withdraw_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
         var currency = TestUtils.seedDefaultCurrency(dataSource);
@@ -184,10 +182,10 @@ public class AccountDataTest {
 
         // Act/Assert
         util.runInTransaction(conn -> {
-            assertThrows(
-                AccountWithdrawException.class,
-                () -> sut.withdraw(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO, true)
-            );
+            var actual = sut.withdraw(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO, true);
+
+            assertFalse(actual);
+
             return null;
         });
     }
@@ -211,12 +209,11 @@ public class AccountDataTest {
                 currency.code(),
                 BigDecimal.TWO
             );
-            var expected = 1;
 
             var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code());
             var expectedBalance = BigDecimal.valueOf(12).setScale(2, RoundingMode.DOWN);
 
-            assertEquals(expected, actual);
+            assertTrue(actual);
             assertEquals(
                 expectedBalance,
                 actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
@@ -227,7 +224,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void deposit_WithNoRowsUpdated_ShouldThrowAccountDepositException() throws SQLException {
+    void deposit_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
         var currency = TestUtils.seedDefaultCurrency(dataSource);
@@ -237,10 +234,10 @@ public class AccountDataTest {
 
         // Act/Assert
         util.runInTransaction(conn -> {
-            assertThrows(
-                AccountDepositException.class,
-                () -> sut.deposit(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO)
-            );
+            var actual = sut.deposit(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO);
+
+            assertFalse(actual);
+
             return null;
         });
     }

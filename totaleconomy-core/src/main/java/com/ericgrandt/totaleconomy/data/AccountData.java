@@ -1,9 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
-import com.ericgrandt.totaleconomy.exception.AccountDepositException;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
-import com.ericgrandt.totaleconomy.exception.AccountWithdrawException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 
 import java.math.BigDecimal;
@@ -45,7 +43,7 @@ public class AccountData {
         throw new AccountNotFoundException();
     }
 
-    public int withdraw(
+    public boolean withdraw(
         Connection conn,
         UUID playerId,
         String currencyCode,
@@ -66,18 +64,11 @@ public class AccountData {
                 stmt.setBigDecimal(4, amount);
             }
 
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                // TODO: This doesn't provide super descriptive reasoning as it could be because of a missing account
-                //  or because of an insufficient balance. Handle this.
-                throw new AccountWithdrawException();
-            }
-
-            return rowsAffected;
+            return stmt.executeUpdate() > 0;
         }
     }
 
-    public int deposit(
+    public boolean deposit(
         Connection conn,
         UUID playerId,
         String currencyCode,
@@ -89,12 +80,7 @@ public class AccountData {
             stmt.setString(2, playerId.toString());
             stmt.setString(3, currencyCode);
 
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new AccountDepositException();
-            }
-
-            return rowsAffected;
+            return stmt.executeUpdate() > 0;
         }
     }
 }
