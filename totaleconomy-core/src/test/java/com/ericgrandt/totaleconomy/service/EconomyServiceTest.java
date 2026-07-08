@@ -5,6 +5,8 @@ import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
+import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
+import com.ericgrandt.totaleconomy.exception.SelfTransferException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,9 +21,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +45,7 @@ public class EconomyServiceTest {
 
     @BeforeEach
     public void setUp() throws SQLException {
-        when(transactionUtilMock.runInTransaction(any())).thenAnswer(invocation -> {
+        lenient().when(transactionUtilMock.runInTransaction(any())).thenAnswer(invocation -> {
             TransactionUtil.Transaction<?> tx = invocation.getArgument(0);
             return tx.execute(mock(Connection.class));
         });
@@ -74,24 +79,6 @@ public class EconomyServiceTest {
 
     @Test
     @Tag("Unit")
-    public void getAccountBalance_WithNoCurrencyCodeAndSuccess_ShouldReturnBalanceForDefaultCurrency() throws SQLException {
-        // Arrange
-        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
-        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
-
-        when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
-        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(account);
-
-        // Act
-        var actual = sut.getAccountBalance(UUID.randomUUID(), null);
-        var expected = new GetAccountBalanceResult(currency, BigDecimal.TEN);
-
-        // Assert
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Tag("Unit")
     public void getAccountBalance_WithCurrencyCodeAndSuccess_ShouldReturnBalanceForCurrency() throws SQLException {
         // Arrange
         var currency = new TECurrency("COIN", "Coin", "Coins", null, 0, BigDecimal.TEN, false);
@@ -110,12 +97,41 @@ public class EconomyServiceTest {
 
     @Test
     @Tag("Unit")
-    public void getAccountBalance_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
+    public void getAccountBalance_WithCurrencyCodeAndSQLException_ShouldThrowDatabaseException() throws SQLException {
         // Arrange
         when(currencyDataMock.getCurrency(any(), any())).thenThrow(SQLException.class);
 
         // Act/Assert
         assertThrows(DatabaseException.class, () -> sut.getAccountBalance(UUID.randomUUID(), "USD"));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccountBalance_WithDefaultCurrencyCodeAndSuccess_ShouldReturnBalanceForDefaultCurrency() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+
+        when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
+        when(currencyDataMock.getCurrency(any(), eq(currency.code()))).thenReturn(currency);
+        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(account);
+
+        // Act
+        var actual = sut.getAccountBalance(UUID.randomUUID());
+        var expected = new GetAccountBalanceResult(currency, BigDecimal.TEN);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccountBalance_WithDefaultCurrencyAndSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        when(currencyDataMock.getDefaultCurrency(any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(DatabaseException.class, () -> sut.getAccountBalance(UUID.randomUUID()));
     }
 
     @Test
@@ -143,5 +159,135 @@ public class EconomyServiceTest {
 
         // Act/Assert
         assertThrows(DatabaseException.class, () -> sut.createAccount(UUID.randomUUID(), "USD"));
+    }
+
+    @Test
+    @Tag("Unit")
+    public void transfer_WithCurrencyCodeAndSuccess_ShouldNotThrow() throws SQLException {
+        // TODO: Test
+    }
+
+    @Test
+    @Tag("Unit")
+    public void transfer_WithCurrencyCodeAndSameFromAndToPlayerID_ShouldThrowSelfTransferException() {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var fromAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+
+        // Act/Assert
+        assertThrows(
+            SelfTransferException.class,
+            () -> sut.transfer(fromAccount.playerId(), fromAccount.playerId(), currency.code(), BigDecimal.TEN)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void transfer_WithCurrencyCodeAndInsufficientFunds_ShouldThrowInsufficientFundsException() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var fromAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        var toAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ONE);
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(currency);
+        when(accountDataMock.getAccount(
+            any(),
+            eq(fromAccount.playerId()),
+            eq(currency.code())
+        )).thenReturn(fromAccount);
+        when(accountDataMock.getAccount(
+            any(),
+            eq(toAccount.playerId()),
+            eq(currency.code())
+        )).thenReturn(fromAccount);
+        when(accountDataMock.withdraw(
+            any(),
+            eq(fromAccount.playerId()),
+            eq(currency.code()),
+            any(),
+            eq(true)
+        )).thenReturn(false);
+
+        // Act/Assert
+        assertThrows(
+            InsufficientFundsException.class,
+            () -> sut.transfer(fromAccount.playerId(), toAccount.playerId(), currency.code(), BigDecimal.TEN)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void transfer_WithCurrencyCodeAndSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var fromAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        var toAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ONE);
+        when(currencyDataMock.getCurrency(any(), any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(
+            DatabaseException.class,
+            () -> sut.transfer(fromAccount.playerId(), toAccount.playerId(), currency.code(), BigDecimal.TEN)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void transfer_WithDefaultCurrencyCodeAndSuccess_ShouldNotThrow() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var fromAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        var toAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ONE);
+        when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(currency);
+        when(accountDataMock.getAccount(
+            any(),
+            eq(fromAccount.playerId()),
+            eq(currency.code())
+        )).thenReturn(fromAccount);
+        when(accountDataMock.getAccount(
+            any(),
+            eq(toAccount.playerId()),
+            eq(currency.code())
+        )).thenReturn(fromAccount);
+        when(accountDataMock.withdraw(
+            any(),
+            eq(fromAccount.playerId()),
+            eq(currency.code()),
+            any(),
+            eq(true)
+        )).thenReturn(true);
+        when(accountDataMock.deposit(
+            any(),
+            eq(toAccount.playerId()),
+            eq(currency.code()),
+            any()
+        )).thenReturn(true);
+
+        // Act/Assert
+        assertDoesNotThrow(() -> sut.transfer(
+                fromAccount.playerId(),
+                toAccount.playerId(),
+                BigDecimal.TEN
+            )
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void transfer_WithDefaultCurrencyCodeAndSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        var fromAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        var toAccount = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ONE);
+        when(currencyDataMock.getDefaultCurrency(any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(
+            DatabaseException.class,
+            () -> sut.transfer(
+                fromAccount.playerId(),
+                toAccount.playerId(),
+                BigDecimal.TEN
+            )
+        );
     }
 }

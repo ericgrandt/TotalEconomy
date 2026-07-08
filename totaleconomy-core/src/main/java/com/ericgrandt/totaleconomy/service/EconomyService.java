@@ -51,10 +51,7 @@ public class EconomyService {
     public GetAccountBalanceResult getAccountBalance(UUID playerId, String currencyCode) {
         try {
             return transactionUtil.runInTransaction(conn -> {
-                var currency = currencyCode != null ? currencyData.getCurrency(
-                    conn,
-                    currencyCode
-                ) : currencyData.getDefaultCurrency(conn);
+                var currency = currencyData.getCurrency(conn, currencyCode);
                 var account = accountData.getAccount(conn, playerId, currency.code());
 
                 return new GetAccountBalanceResult(currency, account.balance());
@@ -64,7 +61,17 @@ public class EconomyService {
         }
     }
 
-    // TODO: Test
+    public GetAccountBalanceResult getAccountBalance(UUID playerId) {
+        try {
+            var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
+            return getAccountBalance(playerId, currency.code());
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while getting an account balance", e);
+        }
+    }
+
+    // NOTE: For now there's no use case to return anything but void here. In the future it may be beneficial
+    //  to return the updated balances.
     public void transfer(UUID fromPlayerId, UUID toPlayerId, String currencyCode, BigDecimal amount) {
         if (fromPlayerId.equals(toPlayerId)) {
             throw new SelfTransferException();
@@ -72,19 +79,30 @@ public class EconomyService {
 
         try {
             transactionUtil.runInTransaction(conn -> {
-                // Verify sending and receiving accounts actually exist
-                accountData.getAccount(conn, fromPlayerId, currencyCode);
-                accountData.getAccount(conn, toPlayerId, currencyCode);
+                var currency = currencyData.getCurrency(conn, currencyCode);
 
-                var success = accountData.withdraw(conn, fromPlayerId, currencyCode, amount, true);
+                // Verify sending and receiving accounts actually exist
+                accountData.getAccount(conn, fromPlayerId, currency.code());
+                accountData.getAccount(conn, toPlayerId, currency.code());
+
+                var success = accountData.withdraw(conn, fromPlayerId, currency.code(), amount, true);
                 if (!success) {
                     throw new InsufficientFundsException();
                 }
 
-                accountData.deposit(conn, toPlayerId, currencyCode, amount);
+                accountData.deposit(conn, toPlayerId, currency.code(), amount);
 
                 return null;
             });
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while performing transfer", e);
+        }
+    }
+
+    public void transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount) {
+        try {
+            var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
+            transfer(fromPlayerId, toPlayerId, currency.code(), amount);
         } catch (SQLException e) {
             throw new DatabaseException("database exception while performing transfer", e);
         }
