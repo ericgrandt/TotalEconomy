@@ -39,12 +39,16 @@ public class BalanceCommand implements CommandExecutor {
             return false;
         }
 
-        var currencyCode = args.length == 0 ? null : args[0];
+        var hasCurrencyCode = args.length > 0;
 
         taskRunner.runAsync(
             plugin, () -> {
                 try {
-                    var balanceResult = economyService.getAccountBalance(player.getUniqueId(), currencyCode);
+                    var balanceResult = hasCurrencyCode ?
+                        economyService.getAccountBalance(
+                            player.getUniqueId(),
+                            args[0]
+                        ) : economyService.getAccountBalance(player.getUniqueId());
                     var formattedBalance = balanceResult.currency().format(balanceResult.balance());
 
                     player.sendMessage(Messages.balance(formattedBalance));
