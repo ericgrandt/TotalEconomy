@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.command;
 
+import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
@@ -9,6 +10,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public class BalanceCommand implements CommandExecutor {
     private final Plugin plugin;
@@ -39,16 +42,10 @@ public class BalanceCommand implements CommandExecutor {
             return false;
         }
 
-        var hasCurrencyCode = args.length > 0;
-
         taskRunner.runAsync(
             plugin, () -> {
                 try {
-                    var balanceResult = hasCurrencyCode ?
-                        economyService.getAccountBalance(
-                            player.getUniqueId(),
-                            args[0]
-                        ) : economyService.getAccountBalance(player.getUniqueId());
+                    var balanceResult = getAccountBalanceResult(player.getUniqueId(), args);
                     var formattedBalance = balanceResult.currency().format(balanceResult.balance());
 
                     player.sendMessage(Messages.balance(formattedBalance));
@@ -59,5 +56,12 @@ public class BalanceCommand implements CommandExecutor {
         );
 
         return true;
+    }
+
+    private GetAccountBalanceResult getAccountBalanceResult(UUID playerId, String[] args) {
+        return args.length > 0
+            ? economyService.getAccountBalance(playerId, args[0])
+            : economyService.getAccountBalance(playerId);
+
     }
 }
