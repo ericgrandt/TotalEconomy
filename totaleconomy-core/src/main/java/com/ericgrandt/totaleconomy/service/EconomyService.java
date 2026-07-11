@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
+import com.ericgrandt.totaleconomy.dto.TransferResult;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
 import com.ericgrandt.totaleconomy.exception.SelfTransferException;
@@ -70,15 +71,13 @@ public class EconomyService {
         }
     }
 
-    // NOTE: For now there's no use case to return anything but void here. In the future it may be beneficial
-    //  to return the updated balances.
-    public void transfer(UUID fromPlayerId, UUID toPlayerId, String currencyCode, BigDecimal amount) {
+    public TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, String currencyCode, BigDecimal amount) {
         if (fromPlayerId.equals(toPlayerId)) {
             throw new SelfTransferException();
         }
 
         try {
-            transactionUtil.runInTransaction(conn -> {
+            return transactionUtil.runInTransaction(conn -> {
                 var currency = currencyData.getCurrency(conn, currencyCode);
 
                 // Verify sending and receiving accounts actually exist
@@ -92,17 +91,17 @@ public class EconomyService {
 
                 accountData.deposit(conn, toPlayerId, currency.code(), amount);
 
-                return null;
+                return new TransferResult(currency, amount);
             });
         } catch (SQLException e) {
             throw new DatabaseException("database exception while performing transfer", e);
         }
     }
 
-    public void transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount) {
+    public TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount) {
         try {
             var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
-            transfer(fromPlayerId, toPlayerId, currency.code(), amount);
+            return transfer(fromPlayerId, toPlayerId, currency.code(), amount);
         } catch (SQLException e) {
             throw new DatabaseException("database exception while performing transfer", e);
         }

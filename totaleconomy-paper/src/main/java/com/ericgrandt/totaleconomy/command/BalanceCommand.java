@@ -40,6 +40,7 @@ public class BalanceCommand {
             .build();
     }
 
+    // TODO: These two execute functions need to be deduped
     int executeWithCurrency(CommandContext<CommandSourceStack> ctx) {
         var player = (Player) ctx.getSource().getSender();
         var currencyCode = ctx.getArgument("currency", String.class);

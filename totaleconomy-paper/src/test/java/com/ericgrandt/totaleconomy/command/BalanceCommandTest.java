@@ -8,6 +8,7 @@ import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.TestTaskRunner;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import java.sql.SQLException;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,13 +68,11 @@ public class BalanceCommandTest {
 
         // Act
         var actual = sut.executeWithDefault(ctx);
+        var expected = Command.SINGLE_SUCCESS;
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
         verify(playerMock).sendMessage(Messages.balance(Component.text("$10.00")));
-    }
-
-    private void assertTrue(int actual) {
     }
 
     @Test
@@ -100,9 +100,10 @@ public class BalanceCommandTest {
 
         // Act
         var actual = sut.executeWithCurrency(ctx);
+        var expected = Command.SINGLE_SUCCESS;
 
         // Assert
-        assertTrue(actual);
+        assertEquals(expected, actual);
         verify(playerMock).sendMessage(Messages.balance(Component.text("10 Coins")));
     }
 }
