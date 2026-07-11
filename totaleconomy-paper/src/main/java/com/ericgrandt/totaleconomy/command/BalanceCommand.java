@@ -1,19 +1,18 @@
 package com.ericgrandt.totaleconomy.command;
 
-import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
-public class BalanceCommand implements CommandExecutor {
+public class BalanceCommand {
     private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
     private final CommandExceptionMapper exceptionMapper;
@@ -31,21 +30,24 @@ public class BalanceCommand implements CommandExecutor {
         this.economyService = economyService;
     }
 
-    @Override
-    public boolean onCommand(
-        @NotNull CommandSender sender,
-        @NotNull Command command,
-        @NotNull String label,
-        @NotNull String @NotNull [] args
-    ) {
-        if (!(sender instanceof Player player)) {
-            return false;
-        }
+    public LiteralCommandNode<CommandSourceStack> build() {
+        return Commands.literal("balance")
+            .requires(source -> source.getSender() instanceof Player)
+            .then(Commands.argument("currency", StringArgumentType.string())
+                //.suggests(this::listCurrencies) // TODO: Add this eventually
+                .executes(this::executeWithCurrency)
+            ).executes(this::executeWithDefault)
+            .build();
+    }
+
+    private int executeWithCurrency(CommandContext<CommandSourceStack> ctx) {
+        var player = (Player) ctx.getSource().getSender();
+        var currency = ctx.getArgument("currency", String.class);
 
         taskRunner.runAsync(
             plugin, () -> {
                 try {
-                    var balanceResult = getAccountBalanceResult(player.getUniqueId(), args);
+                    var balanceResult = economyService.getAccountBalance(player.getUniqueId(), currency);
                     var formattedBalance = balanceResult.currency().format(balanceResult.balance());
 
                     player.sendMessage(Messages.balance(formattedBalance));
@@ -55,13 +57,25 @@ public class BalanceCommand implements CommandExecutor {
             }
         );
 
-        return true;
+        return Command.SINGLE_SUCCESS;
     }
 
-    private GetAccountBalanceResult getAccountBalanceResult(UUID playerId, String[] args) {
-        return args.length > 0
-            ? economyService.getAccountBalance(playerId, args[0])
-            : economyService.getAccountBalance(playerId);
+    private int executeWithDefault(CommandContext<CommandSourceStack> ctx) {
+        var player = (Player) ctx.getSource().getSender();
 
+        taskRunner.runAsync(
+            plugin, () -> {
+                try {
+                    var balanceResult = economyService.getAccountBalance(player.getUniqueId());
+                    var formattedBalance = balanceResult.currency().format(balanceResult.balance());
+
+                    player.sendMessage(Messages.balance(formattedBalance));
+                } catch (Exception e) {
+                    player.sendMessage(exceptionMapper.handleException(e));
+                }
+            }
+        );
+
+        return Command.SINGLE_SUCCESS;
     }
 }

@@ -10,12 +10,12 @@ import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.PaperAsyncTaskRunner;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class TotalEconomy extends JavaPlugin {
     private final Logger logger = LoggerFactory.getLogger("Total Economy");
@@ -53,12 +53,12 @@ public class TotalEconomy extends JavaPlugin {
     }
 
     private void registerCommands() {
-        Objects.requireNonNull(getCommand("balance")).setExecutor(new BalanceCommand(
-            this,
-            taskRunner,
-            exceptionMapper,
-            economyService
-        ));
+        var balanceCommand = new BalanceCommand(this, taskRunner, exceptionMapper, economyService);
+        this.getLifecycleManager().registerEventHandler(
+            LifecycleEvents.COMMANDS, commands -> {
+                commands.registrar().register(balanceCommand.build());
+            }
+        );
     }
 
     private void registerListeners() {
