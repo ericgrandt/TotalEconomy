@@ -40,14 +40,14 @@ public class BalanceCommand {
             .build();
     }
 
-    private int executeWithCurrency(CommandContext<CommandSourceStack> ctx) {
+    int executeWithCurrency(CommandContext<CommandSourceStack> ctx) {
         var player = (Player) ctx.getSource().getSender();
-        var currency = ctx.getArgument("currency", String.class);
+        var currencyCode = ctx.getArgument("currency", String.class);
 
         taskRunner.runAsync(
             plugin, () -> {
                 try {
-                    var balanceResult = economyService.getAccountBalance(player.getUniqueId(), currency);
+                    var balanceResult = economyService.getAccountBalance(player.getUniqueId(), currencyCode);
                     var formattedBalance = balanceResult.currency().format(balanceResult.balance());
 
                     player.sendMessage(Messages.balance(formattedBalance));
@@ -60,7 +60,7 @@ public class BalanceCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int executeWithDefault(CommandContext<CommandSourceStack> ctx) {
+    int executeWithDefault(CommandContext<CommandSourceStack> ctx) {
         var player = (Player) ctx.getSource().getSender();
 
         taskRunner.runAsync(

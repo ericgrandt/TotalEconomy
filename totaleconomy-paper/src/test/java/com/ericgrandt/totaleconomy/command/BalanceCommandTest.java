@@ -8,8 +8,9 @@ import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.TestTaskRunner;
+import com.mojang.brigadier.context.CommandContext;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.junit.jupiter.api.Tag;
@@ -22,7 +23,6 @@ import org.slf4j.Logger;
 import java.sql.SQLException;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +44,7 @@ public class BalanceCommandTest {
 
     @Test
     @Tag("Integration")
+    @SuppressWarnings("unchecked")
     public void onCommand_WithNoCurrencyCodeArgument_ShouldSendBalanceForDefaultCurrency() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
@@ -56,18 +57,27 @@ public class BalanceCommandTest {
         var exceptionMapper = new CommandExceptionMapper(loggerMock);
         var economyService = new EconomyService(transactionUtil, currencyData, accountData);
 
+        var ctx = mock(CommandContext.class);
+        var source = mock(CommandSourceStack.class);
+        when(ctx.getSource()).thenReturn(source);
+        when(source.getSender()).thenReturn(playerMock);
+
         var sut = new BalanceCommand(pluginMock, taskRunner, exceptionMapper, economyService);
 
         // Act
-        var actual = sut.onCommand(playerMock, mock(Command.class), "", new String[0]);
+        var actual = sut.executeWithDefault(ctx);
 
         // Assert
         assertTrue(actual);
         verify(playerMock).sendMessage(Messages.balance(Component.text("$10.00")));
     }
 
+    private void assertTrue(int actual) {
+    }
+
     @Test
     @Tag("Integration")
+    @SuppressWarnings("unchecked")
     public void onCommand_WithCurrencyCodeArgument_ShouldSendBalanceForCurrency() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
@@ -80,10 +90,16 @@ public class BalanceCommandTest {
         var exceptionMapper = new CommandExceptionMapper(loggerMock);
         var economyService = new EconomyService(transactionUtil, currencyData, accountData);
 
+        var ctx = mock(CommandContext.class);
+        var source = mock(CommandSourceStack.class);
+        when(ctx.getSource()).thenReturn(source);
+        when(ctx.getArgument("currency", String.class)).thenReturn("COIN");
+        when(source.getSender()).thenReturn(playerMock);
+
         var sut = new BalanceCommand(pluginMock, taskRunner, exceptionMapper, economyService);
 
         // Act
-        var actual = sut.onCommand(playerMock, mock(Command.class), "", new String[]{"COIN"});
+        var actual = sut.executeWithCurrency(ctx);
 
         // Assert
         assertTrue(actual);
