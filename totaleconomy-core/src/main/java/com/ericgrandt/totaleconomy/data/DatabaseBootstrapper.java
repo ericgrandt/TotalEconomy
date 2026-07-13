@@ -1,5 +1,7 @@
 package com.ericgrandt.totaleconomy.data;
 
+import com.ericgrandt.totaleconomy.model.Config;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -10,8 +12,8 @@ public class DatabaseBootstrapper {
         createAccountTable(conn);
     }
 
-    public static void initData(Connection conn) throws SQLException {
-        seedDefaultCurrency(conn);
+    public static void initData(Connection conn, Config config) throws SQLException {
+        seedDefaultCurrency(conn, config);
     }
 
     private static void createCurrencyTable(Connection conn) throws SQLException {
@@ -52,7 +54,7 @@ public class DatabaseBootstrapper {
         }
     }
 
-    private static void seedDefaultCurrency(Connection conn) throws SQLException {
+    private static void seedDefaultCurrency(Connection conn, Config config) throws SQLException {
         String sql = """
             INSERT IGNORE INTO te_currency (
                 code,
@@ -63,18 +65,24 @@ public class DatabaseBootstrapper {
                 starting_balance,
                 is_default
             ) VALUES (
-                'USD',
-                'Dollar',
-                'Dollars',
-                '$',
-                2,
-                0,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
                 true
             )
             """;
 
-        try (var stmt = conn.createStatement()) {
-            stmt.execute(sql);
+        try (var stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, config.defaultCurrency().code());
+            stmt.setString(2, config.defaultCurrency().name());
+            stmt.setString(3, config.defaultCurrency().pluralName());
+            stmt.setString(4, config.defaultCurrency().symbol());
+            stmt.setInt(5, config.defaultCurrency().fractionalDigits());
+            stmt.setBigDecimal(6, config.defaultCurrency().startingBalance());
+            stmt.execute();
         }
     }
 }

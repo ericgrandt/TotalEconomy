@@ -16,12 +16,12 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public class EconomyService {
+public class TEEconomyService implements EconomyService {
     private final TransactionUtil transactionUtil;
     private final CurrencyData currencyData;
     private final AccountData accountData;
 
-    public EconomyService(TransactionUtil transactionUtil, CurrencyData currencyData, AccountData accountData) {
+    public TEEconomyService(TransactionUtil transactionUtil, CurrencyData currencyData, AccountData accountData) {
         this.transactionUtil = transactionUtil;
         this.currencyData = currencyData;
         this.accountData = accountData;

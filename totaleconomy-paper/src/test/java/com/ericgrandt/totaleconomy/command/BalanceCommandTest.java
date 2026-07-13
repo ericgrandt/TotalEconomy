@@ -4,7 +4,7 @@ import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.service.EconomyService;
+import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.TestTaskRunner;
@@ -57,7 +57,7 @@ public class BalanceCommandTest {
 
         var transactionUtil = new TransactionUtil(dataSource);
         var exceptionMapper = new CommandExceptionMapper(loggerMock);
-        var economyService = new EconomyService(transactionUtil, currencyData, accountData);
+        var economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
 
         var ctx = mock(CommandContext.class);
         var source = mock(CommandSourceStack.class);
@@ -88,7 +88,7 @@ public class BalanceCommandTest {
 
         var transactionUtil = new TransactionUtil(dataSource);
         var exceptionMapper = new CommandExceptionMapper(loggerMock);
-        var economyService = new EconomyService(transactionUtil, currencyData, accountData);
+        var economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
 
         var ctx = mock(CommandContext.class);
         var source = mock(CommandSourceStack.class);

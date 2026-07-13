@@ -1,7 +1,7 @@
 package com.ericgrandt.totaleconomy.command;
 
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.service.EconomyService;
+import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
@@ -22,13 +22,13 @@ public class PayCommand {
     private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
     private final CommandExceptionMapper exceptionMapper;
-    private final EconomyService economyService;
+    private final TEEconomyService economyService;
 
     public PayCommand(
         Plugin plugin,
         AsyncTaskRunner taskRunner,
         CommandExceptionMapper exceptionMapper,
-        EconomyService economyService
+        TEEconomyService economyService
     ) {
         this.plugin = plugin;
         this.taskRunner = taskRunner;

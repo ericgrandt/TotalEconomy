@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
+import com.ericgrandt.totaleconomy.model.Config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -32,10 +33,10 @@ public class Database {
         return new HikariDataSource(config);
     }
 
-    public void initDatabase() throws SQLException {
+    public void initDatabase(Config config) throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseBootstrapper.initSchema(conn);
-            DatabaseBootstrapper.initData(conn);
+            DatabaseBootstrapper.initData(conn, config);
         }
     }
 

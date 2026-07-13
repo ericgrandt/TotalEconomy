@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.listener;
 
-import com.ericgrandt.totaleconomy.service.EconomyService;
+import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,13 +12,13 @@ public class JoinListener implements Listener {
     private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
     private final Logger logger;
-    private final EconomyService economyService;
+    private final TEEconomyService economyService;
 
     public JoinListener(
         Plugin plugin,
         AsyncTaskRunner taskRunner,
         Logger logger,
-        EconomyService economyService
+        TEEconomyService economyService
     ) {
         this.plugin = plugin;
         this.taskRunner = taskRunner;
@@ -26,6 +26,7 @@ public class JoinListener implements Listener {
         this.economyService = economyService;
     }
 
+    // TODO: Test
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         var player = event.getPlayer();

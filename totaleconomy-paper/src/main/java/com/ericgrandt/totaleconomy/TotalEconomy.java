@@ -2,13 +2,14 @@ package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.command.PayCommand;
+import com.ericgrandt.totaleconomy.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.listener.JoinListener;
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.service.EconomyService;
+import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.PaperAsyncTaskRunner;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -23,20 +24,21 @@ public class TotalEconomy extends JavaPlugin {
     private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
 
     private CommandExceptionMapper exceptionMapper;
-    private EconomyService economyService;
+    private TEEconomyService economyService;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
 
+        var config = ConfigLoader.from(getConfig());
         var database = new Database(
-            getConfig().getString("database.url"),
-            getConfig().getString("database.user"),
-            getConfig().getString("database.password")
+            config.database().url(),
+            config.database().user(),
+            config.database().password()
         );
 
         try {
-            database.initDatabase();
+            database.initDatabase(config);
         } catch (SQLException e) {
             logger.error("Error initializing database", e);
             getServer().getPluginManager().disablePlugin(this);
@@ -47,7 +49,7 @@ public class TotalEconomy extends JavaPlugin {
         var accountData = new AccountData();
         var currencyData = new CurrencyData();
         exceptionMapper = new CommandExceptionMapper(logger);
-        economyService = new EconomyService(transactionUtil, currencyData, accountData);
+        economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
 
         registerCommands();
         registerListeners();

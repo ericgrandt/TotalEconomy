@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class EconomyServiceTest {
+public class TEEconomyServiceTest {
     @Mock
     private TransactionUtil transactionUtilMock;
 
@@ -41,7 +41,7 @@ public class EconomyServiceTest {
     @Mock
     private AccountData accountDataMock;
 
-    private EconomyService sut;
+    private TEEconomyService sut;
 
     @BeforeEach
     public void setUp() throws SQLException {
@@ -49,7 +49,7 @@ public class EconomyServiceTest {
             TransactionUtil.Transaction<?> tx = invocation.getArgument(0);
             return tx.execute(mock(Connection.class));
         });
-        sut = new EconomyService(transactionUtilMock, currencyDataMock, accountDataMock);
+        sut = new TEEconomyService(transactionUtilMock, currencyDataMock, accountDataMock);
     }
 
     @Test
