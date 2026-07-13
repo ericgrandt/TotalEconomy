@@ -1,6 +1,7 @@
 package com.ericgrandt.totaleconomy;
 
 import com.ericgrandt.totaleconomy.command.BalanceCommand;
+import com.ericgrandt.totaleconomy.command.PayCommand;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
@@ -54,9 +55,12 @@ public class TotalEconomy extends JavaPlugin {
 
     private void registerCommands() {
         var balanceCommand = new BalanceCommand(this, taskRunner, exceptionMapper, economyService);
+        var payCommand = new PayCommand(this, taskRunner, exceptionMapper, economyService);
+
         this.getLifecycleManager().registerEventHandler(
             LifecycleEvents.COMMANDS, commands -> {
                 commands.registrar().register(balanceCommand.build());
+                commands.registrar().register(payCommand.build());
             }
         );
     }
