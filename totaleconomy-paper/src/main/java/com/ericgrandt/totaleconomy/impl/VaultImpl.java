@@ -1,21 +1,33 @@
 package com.ericgrandt.totaleconomy.impl;
 
+import com.ericgrandt.totaleconomy.model.Currency;
+import com.ericgrandt.totaleconomy.service.EconomyService;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class VaultImpl implements Economy {
+    private final EconomyService economyService;
+    private final Currency currency;
+
+    public VaultImpl(EconomyService economyService) {
+        this.economyService = economyService;
+        this.currency = economyService.getDefaultCurrency();
+    }
+
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
 
     @Override
     public String getName() {
-        return "";
+        return "Total Economy";
     }
 
     @Override
@@ -25,22 +37,23 @@ public class VaultImpl implements Economy {
 
     @Override
     public int fractionalDigits() {
-        return 0;
+        return currency.fractionalDigits();
     }
 
     @Override
     public String format(double amount) {
-        return "";
+        var component = currency.format(BigDecimal.valueOf(amount));
+        return PlainTextComponentSerializer.plainText().serialize(component);
     }
 
     @Override
     public String currencyNamePlural() {
-        return "";
+        return currency.pluralName();
     }
 
     @Override
     public String currencyNameSingular() {
-        return "";
+        return currency.name();
     }
 
     @Override

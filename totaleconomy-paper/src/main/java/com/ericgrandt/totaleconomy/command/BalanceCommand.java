@@ -1,7 +1,7 @@
 package com.ericgrandt.totaleconomy.command;
 
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.service.TEEconomyService;
+import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -16,13 +16,13 @@ public class BalanceCommand {
     private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
     private final CommandExceptionMapper exceptionMapper;
-    private final TEEconomyService economyService;
+    private final EconomyService economyService;
 
     public BalanceCommand(
         Plugin plugin,
         AsyncTaskRunner taskRunner,
         CommandExceptionMapper exceptionMapper,
-        TEEconomyService economyService
+        EconomyService economyService
     ) {
         this.plugin = plugin;
         this.taskRunner = taskRunner;

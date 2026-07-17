@@ -9,10 +9,12 @@ import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.listener.JoinListener;
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
+import com.ericgrandt.totaleconomy.service.EconomyService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.PaperAsyncTaskRunner;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +26,7 @@ public class TotalEconomy extends JavaPlugin {
     private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
 
     private CommandExceptionMapper exceptionMapper;
-    private TEEconomyService economyService;
+    private EconomyService economyService;
 
     @Override
     public void onEnable() {
@@ -50,6 +52,13 @@ public class TotalEconomy extends JavaPlugin {
         var currencyData = new CurrencyData();
         exceptionMapper = new CommandExceptionMapper(logger);
         economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
+
+        getServer().getServicesManager().register(
+            EconomyService.class,
+            economyService,
+            this,
+            ServicePriority.Normal
+        );
 
         registerCommands();
         registerListeners();
