@@ -8,7 +8,7 @@ package com.ericgrandt.totaleconomy.exception;
  * catch the specific subclasses for more focused error handling and logging.
  * </p>
  */
-public abstract class CurrencyException extends RuntimeException {
+public abstract class CurrencyException extends TotalEconomyException {
     public CurrencyException() {
         super();
     }

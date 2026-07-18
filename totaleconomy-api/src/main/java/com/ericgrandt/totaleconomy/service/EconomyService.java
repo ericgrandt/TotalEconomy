@@ -35,6 +35,7 @@ public interface EconomyService {
      * @param playerId     the unique identifier of the player
      * @param currencyCode the currency code of the account to retrieve the balance for
      * @return the {@link GetAccountBalanceResult} containing the account balance
+     * @throws AccountNotFoundException if no account exists for the given playerId
      */
     GetAccountBalanceResult getAccountBalance(UUID playerId, String currencyCode);
 
@@ -43,6 +44,7 @@ public interface EconomyService {
      *
      * @param playerId the unique identifier of the player
      * @return the {@link GetAccountBalanceResult} containing the account balance
+     * @throws AccountNotFoundException if no account exists for the given playerId
      */
     GetAccountBalanceResult getAccountBalance(UUID playerId);
 

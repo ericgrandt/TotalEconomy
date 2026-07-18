@@ -12,12 +12,8 @@ package com.ericgrandt.totaleconomy.exception;
  * (e.g., database or config file).
  * </p>
  */
-public class MissingDefaultCurrencyException extends CurrencyException {
+public class MissingDefaultCurrencyException extends TotalEconomyException {
     public MissingDefaultCurrencyException() {
         super();
-    }
-
-    public MissingDefaultCurrencyException(Throwable cause) {
-        super(cause);
     }
 }

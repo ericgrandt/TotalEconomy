@@ -7,12 +7,8 @@ package com.ericgrandt.totaleconomy.exception;
  * don't have an account.
  * </p>
  */
-public class AccountNotFoundException extends AccountException {
+public class AccountNotFoundException extends TotalEconomyException {
     public AccountNotFoundException() {
         super();
-    }
-
-    public AccountNotFoundException(Throwable cause) {
-        super(cause);
     }
 }
