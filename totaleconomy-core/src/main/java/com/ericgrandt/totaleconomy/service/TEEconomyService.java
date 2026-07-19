@@ -6,6 +6,7 @@ import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.dto.TransferResult;
+import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
 import com.ericgrandt.totaleconomy.exception.SelfTransferException;
@@ -27,6 +28,7 @@ public class TEEconomyService implements EconomyService {
         this.accountData = accountData;
     }
 
+    @Override
     public TECurrency getDefaultCurrency() {
         try {
             return transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
@@ -35,6 +37,7 @@ public class TEEconomyService implements EconomyService {
         }
     }
 
+    @Override
     public TEAccount createAccount(UUID playerId, String currencyCode) {
         try {
             return transactionUtil.runInTransaction(conn -> {
@@ -49,11 +52,14 @@ public class TEEconomyService implements EconomyService {
         }
     }
 
+    @Override
     public GetAccountBalanceResult getAccountBalance(UUID playerId, String currencyCode) {
         try {
             return transactionUtil.runInTransaction(conn -> {
                 var currency = currencyData.getCurrency(conn, currencyCode);
-                var account = accountData.getAccount(conn, playerId, currency.code());
+                var account = accountData.getAccount(conn, playerId, currency.code()).orElseThrow(
+                    AccountNotFoundException::new
+                );
 
                 return new GetAccountBalanceResult(currency, account.balance());
             });
@@ -62,6 +68,7 @@ public class TEEconomyService implements EconomyService {
         }
     }
 
+    @Override
     public GetAccountBalanceResult getAccountBalance(UUID playerId) {
         try {
             var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
@@ -71,6 +78,7 @@ public class TEEconomyService implements EconomyService {
         }
     }
 
+    @Override
     public TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, String currencyCode, BigDecimal amount) {
         if (fromPlayerId.equals(toPlayerId)) {
             throw new SelfTransferException();
@@ -98,6 +106,7 @@ public class TEEconomyService implements EconomyService {
         }
     }
 
+    @Override
     public TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount) {
         try {
             var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);

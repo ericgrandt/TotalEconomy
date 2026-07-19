@@ -1,7 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
-import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 
 import java.math.BigDecimal;
@@ -9,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
 public class AccountData {
@@ -23,7 +23,7 @@ public class AccountData {
         return new TEAccount(req.playerId(), req.currencyCode(), req.balance());
     }
 
-    public TEAccount getAccount(Connection conn, UUID playerId, String currencyCode) throws SQLException {
+    public Optional<TEAccount> getAccount(Connection conn, UUID playerId, String currencyCode) throws SQLException {
         var query = "SELECT player_id, currency_code, balance FROM te_account WHERE player_id = ? AND currency_code = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, playerId.toString());
@@ -31,16 +31,18 @@ public class AccountData {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new TEAccount(
-                        UUID.fromString(rs.getString("player_id")),
-                        rs.getString("currency_code"),
-                        rs.getBigDecimal("balance")
+                    return Optional.of(
+                        new TEAccount(
+                            UUID.fromString(rs.getString("player_id")),
+                            rs.getString("currency_code"),
+                            rs.getBigDecimal("balance")
+                        )
                     );
                 }
             }
         }
 
-        throw new AccountNotFoundException();
+        return Optional.empty();
     }
 
     public boolean withdraw(

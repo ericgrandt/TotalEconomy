@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.dto.TransferResult;
+import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
 import com.ericgrandt.totaleconomy.exception.SelfTransferException;
@@ -20,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,7 +87,7 @@ public class TEEconomyServiceTest {
         var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
 
         when(currencyDataMock.getCurrency(any(), any())).thenReturn(currency);
-        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(account);
+        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(Optional.of(account));
 
         // Act
         var actual = sut.getAccountBalance(UUID.randomUUID(), currency.code());
@@ -93,6 +95,19 @@ public class TEEconomyServiceTest {
 
         // Assert
         assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void getAccountBalance_WithCurrencyCodeAndNoAccount_ShouldThrowAccountNotFoundException() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("COIN", "Coin", "Coins", null, 0, BigDecimal.TEN, false);
+
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(currency);
+        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(Optional.empty());
+
+        // Act/Assert
+        assertThrows(AccountNotFoundException.class, () -> sut.getAccountBalance(UUID.randomUUID(), currency.code()));
     }
 
     @Test
@@ -114,7 +129,7 @@ public class TEEconomyServiceTest {
 
         when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
         when(currencyDataMock.getCurrency(any(), eq(currency.code()))).thenReturn(currency);
-        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(account);
+        when(accountDataMock.getAccount(any(), any(), any())).thenReturn(Optional.of(account));
 
         // Act
         var actual = sut.getAccountBalance(UUID.randomUUID());
@@ -173,12 +188,12 @@ public class TEEconomyServiceTest {
             any(),
             eq(fromAccount.playerId()),
             eq(currency.code())
-        )).thenReturn(fromAccount);
+        )).thenReturn(Optional.of(fromAccount));
         when(accountDataMock.getAccount(
             any(),
             eq(toAccount.playerId()),
             eq(currency.code())
-        )).thenReturn(fromAccount);
+        )).thenReturn(Optional.of(toAccount));
         when(accountDataMock.withdraw(
             any(),
             eq(fromAccount.playerId()),
@@ -227,12 +242,12 @@ public class TEEconomyServiceTest {
             any(),
             eq(fromAccount.playerId()),
             eq(currency.code())
-        )).thenReturn(fromAccount);
+        )).thenReturn(Optional.of(fromAccount));
         when(accountDataMock.getAccount(
             any(),
             eq(toAccount.playerId()),
             eq(currency.code())
-        )).thenReturn(fromAccount);
+        )).thenReturn(Optional.of(toAccount));
         when(accountDataMock.withdraw(
             any(),
             eq(fromAccount.playerId()),
@@ -277,12 +292,12 @@ public class TEEconomyServiceTest {
             any(),
             eq(fromAccount.playerId()),
             eq(currency.code())
-        )).thenReturn(fromAccount);
+        )).thenReturn(Optional.of(fromAccount));
         when(accountDataMock.getAccount(
             any(),
             eq(toAccount.playerId()),
             eq(currency.code())
-        )).thenReturn(fromAccount);
+        )).thenReturn(Optional.of(toAccount));
         when(accountDataMock.withdraw(
             any(),
             eq(fromAccount.playerId()),
