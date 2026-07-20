@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     implementation(project(":totaleconomy-api"))
     implementation(libs.adventure)
@@ -15,6 +16,8 @@ dependencies {
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.adventure)
 
+    mockitoAgent(libs.mockito.core) { isTransitive = false }
+
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
@@ -22,5 +25,9 @@ dependencies {
 tasks {
     test {
         useJUnitPlatform()
+
+        doFirst {
+            jvmArgs("-javaagent:${mockitoAgent.singleFile.absolutePath}")
+        }
     }
 }

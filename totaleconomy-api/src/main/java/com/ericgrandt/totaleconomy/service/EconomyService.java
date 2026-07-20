@@ -2,8 +2,11 @@ package com.ericgrandt.totaleconomy.service;
 
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.dto.TransferResult;
+import com.ericgrandt.totaleconomy.dto.WithdrawResult;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
+import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
 import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
+import com.ericgrandt.totaleconomy.exception.SelfTransferException;
 import com.ericgrandt.totaleconomy.model.Account;
 import com.ericgrandt.totaleconomy.model.Currency;
 
@@ -49,6 +52,28 @@ public interface EconomyService {
     GetAccountBalanceResult getAccountBalance(UUID playerId);
 
     /**
+     * Withdraws an amount from a player's account in the specified currency.
+     *
+     * @param playerId     the unique identifier of the player
+     * @param currencyCode the currency code of the accounts to transfer between
+     * @param amount       the amount to withdraw
+     * @return the {@link WithdrawResult} describing the outcome of the withdrawal
+     * @throws InsufficientFundsException if account has an insufficient balance to cover the withdrawal
+     */
+    WithdrawResult withdraw(UUID playerId, String currencyCode, BigDecimal amount);
+
+    /**
+     * Withdraws an amount from a player's account in the default currency.
+     *
+     * @param playerId the unique identifier of the player
+     * @param amount   the amount to withdraw
+     * @return the {@link WithdrawResult} describing the outcome of the withdrawal
+     * @throws AccountNotFoundException   if account is not found
+     * @throws InsufficientFundsException if account has an insufficient balance to cover the withdrawal
+     */
+    WithdrawResult withdraw(UUID playerId, BigDecimal amount);
+
+    /**
      * Transfers an amount from one player to another in the specified currency.
      *
      * @param fromPlayerId the unique identifier of the sending player
@@ -56,6 +81,9 @@ public interface EconomyService {
      * @param currencyCode the currency code of the accounts to transfer between
      * @param amount       the amount to transfer
      * @return the {@link TransferResult} describing the outcome of the transfer
+     * @throws SelfTransferException      if sender and receiver are the same
+     * @throws AccountNotFoundException   if sender or receiver are not found
+     * @throws InsufficientFundsException if sender has an insufficient balance to cover the transfer
      */
     TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, String currencyCode, BigDecimal amount);
 
@@ -66,6 +94,8 @@ public interface EconomyService {
      * @param toPlayerId   the unique identifier of the receiving player
      * @param amount       the amount to transfer
      * @return the {@link TransferResult} describing the outcome of the transfer
+     * @throws SelfTransferException      if sender and receiver are the same
+     * @throws InsufficientFundsException if sender has an insufficient balance to cover the transfer
      */
     TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount);
 }

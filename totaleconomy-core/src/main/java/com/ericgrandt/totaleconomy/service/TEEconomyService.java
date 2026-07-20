@@ -6,6 +6,7 @@ import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.dto.TransferResult;
+import com.ericgrandt.totaleconomy.dto.WithdrawResult;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
@@ -79,6 +80,36 @@ public class TEEconomyService implements EconomyService {
     }
 
     @Override
+    public WithdrawResult withdraw(UUID playerId, String currencyCode, BigDecimal amount) {
+        try {
+            return transactionUtil.runInTransaction(conn -> {
+                var currency = currencyData.getCurrency(conn, currencyCode);
+
+                accountData.getAccount(conn, playerId, currency.code()).orElseThrow(AccountNotFoundException::new);
+
+                var success = accountData.withdraw(conn, playerId, currency.code(), amount, true);
+                if (!success) {
+                    throw new InsufficientFundsException();
+                }
+
+                return new WithdrawResult(currency, amount);
+            });
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while withdrawing from account", e);
+        }
+    }
+
+    @Override
+    public WithdrawResult withdraw(UUID playerId, BigDecimal amount) {
+        try {
+            var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
+            return withdraw(playerId, currency.code(), amount);
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while withdrawing from account", e);
+        }
+    }
+
+    @Override
     public TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, String currencyCode, BigDecimal amount) {
         if (fromPlayerId.equals(toPlayerId)) {
             throw new SelfTransferException();
@@ -88,9 +119,8 @@ public class TEEconomyService implements EconomyService {
             return transactionUtil.runInTransaction(conn -> {
                 var currency = currencyData.getCurrency(conn, currencyCode);
 
-                // Verify sending and receiving accounts actually exist
-                accountData.getAccount(conn, fromPlayerId, currency.code());
-                accountData.getAccount(conn, toPlayerId, currency.code());
+                accountData.getAccount(conn, fromPlayerId, currency.code()).orElseThrow(AccountNotFoundException::new);
+                accountData.getAccount(conn, toPlayerId, currency.code()).orElseThrow(AccountNotFoundException::new);
 
                 var success = accountData.withdraw(conn, fromPlayerId, currency.code(), amount, true);
                 if (!success) {

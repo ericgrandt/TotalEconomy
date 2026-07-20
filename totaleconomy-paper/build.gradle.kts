@@ -15,6 +15,7 @@ repositories {
     }
 }
 
+val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     compileOnly(libs.paper)
     compileOnly(libs.vault)
@@ -29,6 +30,8 @@ dependencies {
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.paper)
     testImplementation(libs.vault)
+
+    mockitoAgent(libs.mockito.core) { isTransitive = false }
 
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
@@ -63,5 +66,9 @@ tasks {
 
     test {
         useJUnitPlatform()
+
+        doFirst {
+            jvmArgs("-javaagent:${mockitoAgent.singleFile.absolutePath}")
+        }
     }
 }

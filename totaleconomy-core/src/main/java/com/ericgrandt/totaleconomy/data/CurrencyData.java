@@ -31,6 +31,7 @@ public class CurrencyData {
         throw new MissingDefaultCurrencyException();
     }
 
+    // TODO: Return an Optional<TECurrency> instead of throwing the exception
     public TECurrency getCurrency(Connection conn, String currencyCode) throws SQLException {
         var query = "SELECT code, name, plural_name, symbol, fractional_digits, starting_balance, is_default FROM te_currency WHERE code = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
