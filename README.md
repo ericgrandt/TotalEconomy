@@ -1,25 +1,102 @@
+<div align="center">
+
 # Total Economy
 
-Total Economy is a Minecraft plugin that aims to provide a full-fledged economy for your server. Each feature can be 
-enabled/disabled and configured to your liking.
+**A modular economy plugin for Minecraft.**
 
-## Downloads
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+[![Paper](https://img.shields.io/badge/Paper-compatible-blue.svg)](https://papermc.io)
+[![Vault](https://img.shields.io/badge/Vault-compatible-green.svg)](https://www.spigotmc.org/resources/vault.34315/)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/RHwfNWap)](https://modrinth.com/plugin/total-economy)
+[![GitHub Stars](https://img.shields.io/github/stars/ericgrandt/TotalEconomy?style=social)](https://github.com/ericgrandt/TotalEconomy)
 
-- [Bukkit/Paper/Spigot](https://modrinth.com/plugin/total-economy/versions?l=bukkit&l=paper&l=spigot)
-- [Sponge](https://modrinth.com/plugin/total-economy/versions?l=sponge)
+</div>
+
+> **A large overhaul is currently in the works.** The `1.0.0-alpha` release is the first release in a complete rewrite
+> with a temporary slimmed-down feature set. Additional modules (jobs, shops, achievements, web UI, and more) will be
+> released as separate add-on plugins that extend Total Economy.
+
+## Overview
+
+Total Economy is a Minecraft plugin that provides a full-fledged economy for your server. Rather than packing every
+feature into a single plugin with toggles, Total Economy takes a modular approach: a lightweight core handles the
+essentials, and additional features are added as separate plugins that hook into the core API. Install only what your
+server needs, and skip what it doesn't.
 
 ## Features
 
-- Vault support to allow easy integration with multiple plugins
-- Easily pay other players
-- Ability to enable/disable individual features
-- Jobs and the ability to create your own jobs
-- Shops (future version)
-- Achievements (future version)
-- Web UI for easy management (future version)
+- **Multi-Currency Support** - Define multiple currencies with configurable starting balances
+- **Player Accounts** - Automatic player account creation for each currency **(currently only creates the default
+  currency account)**
+- **Money Transfers** - Send and receive payments between players in any currency
+- **Extensible API** - Build custom add-on plugins that extend core functionality
+- **Vault Integration** - Full Vault API implementation for compatibility with many plugins
 
-## Discussion
+## Planned Add-Ons
 
-If you have any feature ideas or questions, please head over to the [Discussion](https://github.com/ericgrandt/TotalEconomy/discussions) page on GitHub as we'd love to hear them.
+Additional features are being developed as separate plugins that extend the core Total Economy plugin:
 
-If you encounter any issues while using Total Economy, please feel free to create an [Issue](https://github.com/ericgrandt/TotalEconomy/issues) on GitHub and we'll take a look.
+| Add-On       | Status  | Description                                                           |
+|--------------|---------|-----------------------------------------------------------------------|
+| Jobs         | Planned | Assign roles to players with configurable rewards for in-game actions |
+| Shops        | Planned | Buy and sell items through player-run or server-controlled shops      |
+| Achievements | Planned | Economy-linked achievement tracking with milestone rewards            |
+| Web UI       | Planned | Browser-based dashboard for managing data and viewing analytics       |
+
+## Installation
+
+1. Download the latest release from [Modrinth](https://modrinth.com/plugin/total-economy/versions)
+2. Place the JAR file in your server's `plugins/` directory
+3. Start (or restart) your server
+    - This will fail on initial run; modify your config.yml to point to your database
+4. Configure `plugins/TotalEconomy/config.yml` to your liking
+5. Restart to apply changes
+
+### Minimum Requirements
+
+These are the current versions that the latest release was tested against. Older/Newer versions may still work.
+
+| Requirement | Version      |
+|-------------|--------------|
+| Minecraft   | 26.1.2       |
+| Java        | 25+          |
+| Server      | Paper 26.1.2 |
+| MySQL       | 8.0+         |
+
+## Building from Source
+
+**Requirements:** Java 25+, Gradle 9+
+
+```bash
+git clone https://github.com/ericgrandt/TotalEconomy.git
+cd TotalEconomy
+./gradlew :totaleconomy-paper:shadowJar
+```
+
+The built JAR will be in `totaleconomy-paper/build/libs/TotalEconomyPaper-{version}.jar`.
+
+## Project Structure
+
+```
+TotalEconomy/
+├── totaleconomy-api/      # Public API for add-on plugins
+├── totaleconomy-core/     # Shared economy logic and data layer
+├── totaleconomy-paper/    # Paper platform implementation
+└── docs/                  # Documentation site (Jekyll)
+```
+
+## Documentation
+
+- [Documentation](https://ericgrandt.github.io/TotalEconomy/) - Guides and configuration reference
+- [Issues](https://github.com/ericgrandt/TotalEconomy/issues) - Bug reports and feature requests
+- [Discussions](https://github.com/ericgrandt/TotalEconomy/discussions) - Questions, ideas, and community talk
+
+## Contributing
+
+Contributions are welcome! Fork the repo, create a feature branch, and open a pull request. If you're planning a larger
+change, consider starting a [discussion](https://github.com/ericgrandt/TotalEconomy/discussions) first so we can align
+on direction.
+
+## License
+
+Total Economy is released under the [MIT License](LICENSE.md).

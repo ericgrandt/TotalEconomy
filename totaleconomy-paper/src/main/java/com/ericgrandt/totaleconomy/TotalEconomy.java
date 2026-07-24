@@ -7,6 +7,7 @@ import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.impl.VaultImpl;
 import com.ericgrandt.totaleconomy.listener.JoinListener;
 import com.ericgrandt.totaleconomy.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.EconomyService;
@@ -14,6 +15,7 @@ import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.util.PaperAsyncTaskRunner;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
@@ -56,6 +58,12 @@ public class TotalEconomy extends JavaPlugin {
         getServer().getServicesManager().register(
             EconomyService.class,
             economyService,
+            this,
+            ServicePriority.Normal
+        );
+        getServer().getServicesManager().register(
+            Economy.class,
+            new VaultImpl(logger, economyService),
             this,
             ServicePriority.Normal
         );
