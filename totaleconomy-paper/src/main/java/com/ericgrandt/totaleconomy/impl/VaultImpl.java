@@ -1,7 +1,9 @@
 package com.ericgrandt.totaleconomy.impl;
 
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
+import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException;
 import com.ericgrandt.totaleconomy.exception.DatabaseException;
+import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
 import com.ericgrandt.totaleconomy.model.Currency;
 import com.ericgrandt.totaleconomy.service.EconomyService;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -66,10 +68,89 @@ public class VaultImpl implements Economy {
     public boolean hasAccount(OfflinePlayer player) {
         try {
             return economyService.getAccountBalance(player.getUniqueId()) != null;
-        } catch (AccountNotFoundException e) {
+        } catch (CurrencyNotFoundException | AccountNotFoundException e) {
             return false;
         } catch (DatabaseException e) {
             logger.error("error while checking for account existence", e);
+            return false;
+        }
+    }
+
+    @Override
+    public double getBalance(OfflinePlayer player) {
+        try {
+            return economyService.getAccountBalance(player.getUniqueId()).balance().doubleValue();
+        } catch (CurrencyNotFoundException | AccountNotFoundException e) {
+            return 0;
+        } catch (DatabaseException e) {
+            logger.error("error while getting balance", e);
+            return 0;
+        }
+    }
+
+    @Override
+    public boolean has(OfflinePlayer player, double amount) {
+        try {
+            return economyService.getAccountBalance(player.getUniqueId()).balance().doubleValue() >= amount;
+        } catch (CurrencyNotFoundException | AccountNotFoundException e) {
+            return false;
+        } catch (DatabaseException e) {
+            logger.error("error while checking if player has sufficient funds", e);
+            return false;
+        }
+    }
+
+    @Override
+    public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
+        try {
+            var result = economyService.withdraw(player.getUniqueId(), BigDecimal.valueOf(amount));
+            return new EconomyResponse(
+                amount,
+                result.balance().doubleValue(),
+                EconomyResponse.ResponseType.SUCCESS,
+                ""
+            );
+        } catch (CurrencyNotFoundException e) {
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "currency not found");
+        } catch (AccountNotFoundException e) {
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "account not found");
+        } catch (InsufficientFundsException e) {
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "insufficient funds");
+        } catch (DatabaseException e) {
+            logger.error("error while withdrawing from player", e);
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "internal server error");
+        }
+    }
+
+    @Override
+    public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
+        try {
+            var result = economyService.deposit(player.getUniqueId(), BigDecimal.valueOf(amount));
+            return new EconomyResponse(
+                amount,
+                result.balance().doubleValue(),
+                EconomyResponse.ResponseType.SUCCESS,
+                ""
+            );
+        } catch (CurrencyNotFoundException e) {
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "currency not found");
+        } catch (AccountNotFoundException e) {
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "account not found");
+        } catch (DatabaseException e) {
+            logger.error("error while withdrawing from player", e);
+            return new EconomyResponse(amount, 0, EconomyResponse.ResponseType.FAILURE, "internal server error");
+        }
+    }
+
+    @Override
+    public boolean createPlayerAccount(OfflinePlayer player) {
+        try {
+            economyService.createAccount(player.getUniqueId(), currency.code());
+            return true;
+        } catch (CurrencyNotFoundException e) {
+            return false;
+        } catch (DatabaseException e) {
+            logger.error("error while creating player account", e);
             return false;
         }
     }
@@ -80,32 +161,8 @@ public class VaultImpl implements Economy {
     }
 
     @Override
-    public double getBalance(OfflinePlayer player) {
-        try {
-            return economyService.getAccountBalance(player.getUniqueId()).balance().doubleValue();
-        } catch (AccountNotFoundException e) {
-            return 0;
-        } catch (DatabaseException e) {
-            logger.error("error while getting balance", e);
-            return 0;
-        }
-    }
-
-    @Override
     public double getBalance(OfflinePlayer player, String world) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean has(OfflinePlayer player, double amount) {
-        try {
-            return economyService.getAccountBalance(player.getUniqueId()).balance().doubleValue() >= amount;
-        } catch (AccountNotFoundException e) {
-            return false;
-        } catch (DatabaseException e) {
-            logger.error("error while checking if player has sufficient funds", e);
-            return false;
-        }
     }
 
     @Override
@@ -114,18 +171,8 @@ public class VaultImpl implements Economy {
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-        return null;
-    }
-
-    @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, String worldName, double amount) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-        return null;
     }
 
     @Override
@@ -134,57 +181,52 @@ public class VaultImpl implements Economy {
     }
 
     @Override
+    public boolean createPlayerAccount(OfflinePlayer player, String worldName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public EconomyResponse createBank(String name, OfflinePlayer player) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse deleteBank(String name) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse bankBalance(String name) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse bankHas(String name, double amount) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse bankWithdraw(String name, double amount) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse bankDeposit(String name, double amount) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse isBankOwner(String name, OfflinePlayer player) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public EconomyResponse isBankMember(String name, OfflinePlayer player) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<String> getBanks() {
-        return List.of();
-    }
-
-    @Override
-    public boolean createPlayerAccount(OfflinePlayer player) {
-        return false;
-    }
-
-    @Override
-    public boolean createPlayerAccount(OfflinePlayer player, String worldName) {
         throw new UnsupportedOperationException();
     }
 

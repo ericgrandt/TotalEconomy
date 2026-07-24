@@ -1,9 +1,11 @@
 package com.ericgrandt.totaleconomy.service;
 
+import com.ericgrandt.totaleconomy.dto.DepositResult;
 import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
 import com.ericgrandt.totaleconomy.dto.TransferResult;
 import com.ericgrandt.totaleconomy.dto.WithdrawResult;
 import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
+import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException;
 import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
 import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.exception.SelfTransferException;
@@ -28,7 +30,7 @@ public interface EconomyService {
      * @param playerId     the unique identifier of the player
      * @param currencyCode the currency to attach to this account
      * @return the created {@link Account}
-     * @throws AccountNotFoundException if the account is not found after successful creation
+     * @throws CurrencyNotFoundException if the currency is not found
      */
     Account createAccount(UUID playerId, String currencyCode);
 
@@ -38,7 +40,8 @@ public interface EconomyService {
      * @param playerId     the unique identifier of the player
      * @param currencyCode the currency code of the account to retrieve the balance for
      * @return the {@link GetAccountBalanceResult} containing the account balance
-     * @throws AccountNotFoundException if no account exists for the given playerId
+     * @throws CurrencyNotFoundException if the currency is not found
+     * @throws AccountNotFoundException  if no account exists for the given playerId
      */
     GetAccountBalanceResult getAccountBalance(UUID playerId, String currencyCode);
 
@@ -47,7 +50,8 @@ public interface EconomyService {
      *
      * @param playerId the unique identifier of the player
      * @return the {@link GetAccountBalanceResult} containing the account balance
-     * @throws AccountNotFoundException if no account exists for the given playerId
+     * @throws CurrencyNotFoundException if the currency is not found
+     * @throws AccountNotFoundException  if no account exists for the given playerId
      */
     GetAccountBalanceResult getAccountBalance(UUID playerId);
 
@@ -58,6 +62,8 @@ public interface EconomyService {
      * @param currencyCode the currency code of the accounts to transfer between
      * @param amount       the amount to withdraw
      * @return the {@link WithdrawResult} describing the outcome of the withdrawal
+     * @throws CurrencyNotFoundException  if the currency is not found
+     * @throws AccountNotFoundException   if account is not found
      * @throws InsufficientFundsException if account has an insufficient balance to cover the withdrawal
      */
     WithdrawResult withdraw(UUID playerId, String currencyCode, BigDecimal amount);
@@ -68,10 +74,34 @@ public interface EconomyService {
      * @param playerId the unique identifier of the player
      * @param amount   the amount to withdraw
      * @return the {@link WithdrawResult} describing the outcome of the withdrawal
+     * @throws CurrencyNotFoundException  if the currency is not found
      * @throws AccountNotFoundException   if account is not found
      * @throws InsufficientFundsException if account has an insufficient balance to cover the withdrawal
      */
     WithdrawResult withdraw(UUID playerId, BigDecimal amount);
+
+    /**
+     * Deposits an amount into a player's account in the specified currency.
+     *
+     * @param playerId     the unique identifier of the player
+     * @param currencyCode the currency code of the accounts to transfer between
+     * @param amount       the amount to deposit
+     * @return the {@link DepositResult} describing the outcome of the deposit
+     * @throws CurrencyNotFoundException if the currency is not found
+     * @throws AccountNotFoundException  if account is not found
+     */
+    DepositResult deposit(UUID playerId, String currencyCode, BigDecimal amount);
+
+    /**
+     * Deposits an amount into a player's account in the default currency.
+     *
+     * @param playerId the unique identifier of the player
+     * @param amount   the amount to withdraw
+     * @return the {@link DepositResult} describing the outcome of the deposit
+     * @throws CurrencyNotFoundException if the currency is not found
+     * @throws AccountNotFoundException  if account is not found
+     */
+    DepositResult deposit(UUID playerId, BigDecimal amount);
 
     /**
      * Transfers an amount from one player to another in the specified currency.
@@ -82,6 +112,7 @@ public interface EconomyService {
      * @param amount       the amount to transfer
      * @return the {@link TransferResult} describing the outcome of the transfer
      * @throws SelfTransferException      if sender and receiver are the same
+     * @throws CurrencyNotFoundException  if the currency is not found
      * @throws AccountNotFoundException   if sender or receiver are not found
      * @throws InsufficientFundsException if sender has an insufficient balance to cover the transfer
      */
@@ -95,6 +126,8 @@ public interface EconomyService {
      * @param amount       the amount to transfer
      * @return the {@link TransferResult} describing the outcome of the transfer
      * @throws SelfTransferException      if sender and receiver are the same
+     * @throws CurrencyNotFoundException  if the currency is not found
+     * @throws AccountNotFoundException   if sender or receiver are not found
      * @throws InsufficientFundsException if sender has an insufficient balance to cover the transfer
      */
     TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount);

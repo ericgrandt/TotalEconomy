@@ -1,6 +1,5 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException;
 import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -82,7 +82,7 @@ public class CurrencyDataTest {
 
         // Act/Assert
         util.runInTransaction(c -> {
-            var actual = sut.getCurrency(c, "USD");
+            var actual = sut.getCurrency(c, "USD").orElseThrow();
             var expected = new TECurrency(
                 "USD",
                 "Dollar",
@@ -107,20 +107,19 @@ public class CurrencyDataTest {
 
     @Test
     @Tag("Integration")
-    void getCurrency_WithNoCurrencyFoundForCode_ShouldThrowCurrencyNotFoundException() throws SQLException {
+    void getCurrency_WithNoCurrencyFoundForCode_ShouldReturnEmptyOptional() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
 
         // Act/Assert
         util.runInTransaction(c -> {
-            assertThrows(
-                CurrencyNotFoundException.class,
-                () -> sut.getCurrency(c, "COIN")
-            );
+            var actual = sut.getCurrency(c, "USD");
+            var expected = Optional.empty();
+
+            assertEquals(expected, actual);
             return null;
         });
     }

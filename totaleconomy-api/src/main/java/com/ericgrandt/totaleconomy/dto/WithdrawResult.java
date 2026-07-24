@@ -4,5 +4,5 @@ import com.ericgrandt.totaleconomy.model.Currency;
 
 import java.math.BigDecimal;
 
-public record WithdrawResult(Currency currency, BigDecimal amount) {
+public record WithdrawResult(Currency currency, BigDecimal amount, BigDecimal balance) {
 }
