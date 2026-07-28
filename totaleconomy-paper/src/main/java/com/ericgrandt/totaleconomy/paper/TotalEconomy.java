@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.paper;
 
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.data.AccountData;
@@ -12,7 +13,6 @@ import com.ericgrandt.totaleconomy.paper.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.paper.impl.VaultImpl;
 import com.ericgrandt.totaleconomy.paper.listener.JoinListener;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.paper.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.paper.util.PaperAsyncTaskRunner;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -26,7 +26,7 @@ import java.sql.SQLException;
 
 public class TotalEconomy extends JavaPlugin {
     private final Logger logger = LoggerFactory.getLogger("Total Economy");
-    private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
+    private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner(this);
 
     private CommandExceptionMapper exceptionMapper;
     private EconomyService economyService;
@@ -65,6 +65,12 @@ public class TotalEconomy extends JavaPlugin {
         getServer().getServicesManager().register(
             DataSourceProvider.class,
             database,
+            this,
+            ServicePriority.Normal
+        );
+        getServer().getServicesManager().register(
+            AsyncTaskRunner.class,
+            taskRunner,
             this,
             ServicePriority.Normal
         );

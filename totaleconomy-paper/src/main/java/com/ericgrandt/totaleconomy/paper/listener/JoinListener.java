@@ -1,7 +1,7 @@
 package com.ericgrandt.totaleconomy.paper.listener;
 
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
-import com.ericgrandt.totaleconomy.paper.util.AsyncTaskRunner;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -31,7 +31,7 @@ public class JoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         var player = event.getPlayer();
         taskRunner.runAsync(
-            plugin, () -> {
+            () -> {
                 try {
                     var defaultCurrency = economyService.getDefaultCurrency();
                     economyService.createAccount(player.getUniqueId(), defaultCurrency.code());

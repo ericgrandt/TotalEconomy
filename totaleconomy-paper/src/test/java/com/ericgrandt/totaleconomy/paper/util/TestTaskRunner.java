@@ -1,10 +1,10 @@
 package com.ericgrandt.totaleconomy.paper.util;
 
-import org.bukkit.plugin.Plugin;
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 
 public class TestTaskRunner implements AsyncTaskRunner {
     @Override
-    public void runAsync(Plugin plugin, Runnable task) {
+    public void runAsync(Runnable task) {
         task.run();
     }
 }

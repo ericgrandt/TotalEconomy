@@ -1,10 +1,10 @@
 package com.ericgrandt.totaleconomy.paper.command;
 
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.paper.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.paper.util.TestTaskRunner;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;

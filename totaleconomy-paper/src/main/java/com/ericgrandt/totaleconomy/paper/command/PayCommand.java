@@ -1,8 +1,8 @@
 package com.ericgrandt.totaleconomy.paper.command;
 
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.paper.util.AsyncTaskRunner;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -58,7 +58,7 @@ public class PayCommand {
         var currency = ctx.getArgument("currency", String.class);
 
         taskRunner.runAsync(
-            plugin, () -> {
+            () -> {
                 try {
                     var transferResult = economyService.transfer(
                         fromPlayer.getUniqueId(),
@@ -88,7 +88,7 @@ public class PayCommand {
         var amount = BigDecimal.valueOf(amountDouble);
 
         taskRunner.runAsync(
-            plugin, () -> {
+            () -> {
                 try {
                     var transferResult = economyService.transfer(
                         fromPlayer.getUniqueId(),

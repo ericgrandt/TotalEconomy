@@ -1,8 +1,8 @@
 package com.ericgrandt.totaleconomy.paper.command;
 
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.paper.util.AsyncTaskRunner;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -46,7 +46,7 @@ public class BalanceCommand {
         var currencyCode = ctx.getArgument("currency", String.class);
 
         taskRunner.runAsync(
-            plugin, () -> {
+            () -> {
                 try {
                     var balanceResult = economyService.getAccountBalance(player.getUniqueId(), currencyCode);
                     var formattedBalance = balanceResult.currency().format(balanceResult.balance());
@@ -65,7 +65,7 @@ public class BalanceCommand {
         var player = (Player) ctx.getSource().getSender();
 
         taskRunner.runAsync(
-            plugin, () -> {
+            () -> {
                 try {
                     var balanceResult = economyService.getAccountBalance(player.getUniqueId());
                     var formattedBalance = balanceResult.currency().format(balanceResult.balance());
