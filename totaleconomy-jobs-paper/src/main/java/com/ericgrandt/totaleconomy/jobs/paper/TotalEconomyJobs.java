@@ -1,9 +1,9 @@
 package com.ericgrandt.totaleconomy.jobs.paper;
 
+import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.jobs.paper.config.ConfigLoader;
-import com.ericgrandt.totaleconomy.jobs.paper.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.jobs.paper.util.PaperAsyncTaskRunner;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class TotalEconomyJobs extends JavaPlugin {
     private final Logger logger = LoggerFactory.getLogger("Total Economy Jobs");
-    private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner();
+    private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner(this);
 
     @Override
     public void onEnable() {

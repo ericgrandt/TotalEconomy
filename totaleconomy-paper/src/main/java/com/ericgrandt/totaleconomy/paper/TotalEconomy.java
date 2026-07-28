@@ -69,12 +69,6 @@ public class TotalEconomy extends JavaPlugin {
             ServicePriority.Normal
         );
         getServer().getServicesManager().register(
-            AsyncTaskRunner.class,
-            taskRunner,
-            this,
-            ServicePriority.Normal
-        );
-        getServer().getServicesManager().register(
             Economy.class,
             new VaultImpl(logger, economyService),
             this,
