@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
+import com.ericgrandt.totaleconomy.api.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 
 import java.sql.Connection;

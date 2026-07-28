@@ -1,10 +1,10 @@
 package com.ericgrandt.totaleconomy.jobs.paper;
 
-import com.ericgrandt.totaleconomy.data.DataSourceProvider;
+import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
+import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.jobs.paper.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.jobs.paper.util.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.jobs.paper.util.PaperAsyncTaskRunner;
-import com.ericgrandt.totaleconomy.service.EconomyService;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

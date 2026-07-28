@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.exception.MissingDefaultCurrencyException;
+import com.ericgrandt.totaleconomy.api.exception.MissingDefaultCurrencyException;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import org.junit.jupiter.api.Tag;

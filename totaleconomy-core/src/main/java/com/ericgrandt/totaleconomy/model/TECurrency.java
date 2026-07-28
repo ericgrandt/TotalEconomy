@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.model;
 
+import com.ericgrandt.totaleconomy.api.model.Currency;
 import net.kyori.adventure.text.Component;
 
 import java.math.BigDecimal;

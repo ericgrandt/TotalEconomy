@@ -1,18 +1,19 @@
 package com.ericgrandt.totaleconomy.service;
 
+import com.ericgrandt.totaleconomy.api.dto.DepositResult;
+import com.ericgrandt.totaleconomy.api.dto.GetAccountBalanceResult;
+import com.ericgrandt.totaleconomy.api.dto.TransferResult;
+import com.ericgrandt.totaleconomy.api.dto.WithdrawResult;
+import com.ericgrandt.totaleconomy.api.exception.AccountNotFoundException;
+import com.ericgrandt.totaleconomy.api.exception.CurrencyNotFoundException;
+import com.ericgrandt.totaleconomy.api.exception.DatabaseException;
+import com.ericgrandt.totaleconomy.api.exception.InsufficientFundsException;
+import com.ericgrandt.totaleconomy.api.exception.SelfTransferException;
+import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
-import com.ericgrandt.totaleconomy.dto.DepositResult;
-import com.ericgrandt.totaleconomy.dto.GetAccountBalanceResult;
-import com.ericgrandt.totaleconomy.dto.TransferResult;
-import com.ericgrandt.totaleconomy.dto.WithdrawResult;
-import com.ericgrandt.totaleconomy.exception.AccountNotFoundException;
-import com.ericgrandt.totaleconomy.exception.CurrencyNotFoundException;
-import com.ericgrandt.totaleconomy.exception.DatabaseException;
-import com.ericgrandt.totaleconomy.exception.InsufficientFundsException;
-import com.ericgrandt.totaleconomy.exception.SelfTransferException;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 
