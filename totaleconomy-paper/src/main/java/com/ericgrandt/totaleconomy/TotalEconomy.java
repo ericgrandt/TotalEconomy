@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.command.PayCommand;
 import com.ericgrandt.totaleconomy.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
+import com.ericgrandt.totaleconomy.data.DataSourceProvider;
 import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.impl.VaultImpl;
@@ -58,6 +59,12 @@ public class TotalEconomy extends JavaPlugin {
         getServer().getServicesManager().register(
             EconomyService.class,
             economyService,
+            this,
+            ServicePriority.Normal
+        );
+        getServer().getServicesManager().register(
+            DataSourceProvider.class,
+            database,
             this,
             ServicePriority.Normal
         );

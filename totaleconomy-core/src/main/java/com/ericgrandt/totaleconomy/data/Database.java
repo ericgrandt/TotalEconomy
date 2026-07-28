@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.model.Config;
+import com.ericgrandt.totaleconomy.config.TEConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -8,24 +8,18 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class Database {
-    private final String url;
-    private final String username;
-    private final String password;
+public class Database implements DataSourceProvider {
     private final DataSource dataSource;
 
     public Database(String url, String username, String password) {
-        this.url = url;
-        this.username = username;
-        this.password = password;
-        this.dataSource = createDataSource();
+        this.dataSource = createDataSource(url, username, password);
     }
 
-    private HikariDataSource createDataSource() {
+    private HikariDataSource createDataSource(String url, String username, String password) {
         var config = new HikariConfig();
-        config.setJdbcUrl(this.url);
-        config.setUsername(this.username);
-        config.setPassword(this.password);
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
 
         config.setMinimumIdle(3);
         config.setMaximumPoolSize(10);
@@ -33,13 +27,14 @@ public class Database {
         return new HikariDataSource(config);
     }
 
-    public void initDatabase(Config config) throws SQLException {
+    public void initDatabase(TEConfig config) throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseBootstrapper.initSchema(conn);
             DatabaseBootstrapper.initData(conn, config);
         }
     }
 
+    @Override
     public DataSource getDataSource() {
         return dataSource;
     }

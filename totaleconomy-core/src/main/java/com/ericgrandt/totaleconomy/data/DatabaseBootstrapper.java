@@ -1,6 +1,6 @@
 package com.ericgrandt.totaleconomy.data;
 
-import com.ericgrandt.totaleconomy.model.Config;
+import com.ericgrandt.totaleconomy.config.TEConfig;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,7 +12,7 @@ public class DatabaseBootstrapper {
         createAccountTable(conn);
     }
 
-    public static void initData(Connection conn, Config config) throws SQLException {
+    public static void initData(Connection conn, TEConfig config) throws SQLException {
         seedDefaultCurrency(conn, config);
     }
 
@@ -54,7 +54,7 @@ public class DatabaseBootstrapper {
         }
     }
 
-    private static void seedDefaultCurrency(Connection conn, Config config) throws SQLException {
+    private static void seedDefaultCurrency(Connection conn, TEConfig config) throws SQLException {
         String sql = """
             INSERT IGNORE INTO te_currency (
                 code,

@@ -1,0 +1,8 @@
+name: TotalEconomyJobs
+version: 0.0.1
+main: com.ericgrandt.totaleconomy.jobs.paper.TotalEconomyJobs
+description: Jobs addon for Total Economy
+author: Eric
+api-version: 26.1.2
+depend:
+  - TotalEconomy
