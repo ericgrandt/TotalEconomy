@@ -1,26 +1,21 @@
-database:
-  url: jdbc:mysql://localhost:3306/totaleconomy
-  user: root
-  password: password
-
 jobs:
   miner:
     id: miner
     displayName: "Miner"
-    description: ""
+    description: "Mine ores"
     actions:
-      - type: BLOCK_BREAK
+      BLOCK_BREAK:
         entries:
-          - material: COAL_ORE
+          COAL_ORE:
             xp: 10
             payout: 3.0
 
 settings:
   maxLevel: 100
   xpCurve:
-    type: quadratic
-    baseXp: 100
+    type: QUADRATIC
+    baseXP: 100
   payoutMultiplier:
-    type: linear
+    type: LINEAR
     base: 1.0
     perLevel: 0.01
