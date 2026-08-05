@@ -2,9 +2,6 @@ plugins {
     id("java")
 }
 
-group = "com.ericgrandt.totaleconomy"
-version = "1.1.0-alpha"
-
 repositories {
     mavenCentral()
 }
