@@ -2,27 +2,32 @@ package com.ericgrandt.totaleconomy.paper.command;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
+import com.ericgrandt.totaleconomy.model.TECurrency;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.concurrent.CompletableFuture;
+
 public class BalanceCommand {
     private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
     private final CommandExceptionMapper exceptionMapper;
-    private final EconomyService economyService;
+    private final EconomyService<TECurrency> economyService;
 
     public BalanceCommand(
         Plugin plugin,
         AsyncTaskRunner taskRunner,
         CommandExceptionMapper exceptionMapper,
-        EconomyService economyService
+        EconomyService<TECurrency> economyService
     ) {
         this.plugin = plugin;
         this.taskRunner = taskRunner;
@@ -34,7 +39,7 @@ public class BalanceCommand {
         return Commands.literal("balance")
             .requires(source -> source.getSender() instanceof Player)
             .then(Commands.argument("currency", StringArgumentType.string())
-                //.suggests(this::listCurrencies) // TODO: Add this eventually
+                .suggests(this::listCurrencies)
                 .executes(this::executeWithCurrency)
             ).executes(this::executeWithDefault)
             .build();
@@ -78,5 +83,16 @@ public class BalanceCommand {
         );
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    private CompletableFuture<Suggestions> listCurrencies(
+        CommandContext<CommandSourceStack> ctx,
+        SuggestionsBuilder builder
+    ) {
+        for (var currencyCode : economyService.getSupportedCurrencies().keySet()) {
+            builder.suggest(currencyCode);
+        }
+
+        return builder.buildFuture();
     }
 }

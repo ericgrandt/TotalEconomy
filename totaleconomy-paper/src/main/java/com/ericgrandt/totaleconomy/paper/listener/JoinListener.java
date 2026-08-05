@@ -2,25 +2,22 @@ package com.ericgrandt.totaleconomy.paper.listener;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
+import com.ericgrandt.totaleconomy.model.TECurrency;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
 import org.slf4j.Logger;
 
 public class JoinListener implements Listener {
-    private final Plugin plugin;
     private final AsyncTaskRunner taskRunner;
     private final Logger logger;
-    private final EconomyService economyService;
+    private final EconomyService<TECurrency> economyService;
 
     public JoinListener(
-        Plugin plugin,
         AsyncTaskRunner taskRunner,
         Logger logger,
-        EconomyService economyService
+        EconomyService<TECurrency> economyService
     ) {
-        this.plugin = plugin;
         this.taskRunner = taskRunner;
         this.logger = logger;
         this.economyService = economyService;
@@ -33,10 +30,11 @@ public class JoinListener implements Listener {
         taskRunner.runAsync(
             () -> {
                 try {
-                    var defaultCurrency = economyService.getDefaultCurrency();
-                    economyService.createAccount(player.getUniqueId(), defaultCurrency.code());
+                    for (var entry : economyService.getSupportedCurrencies().entrySet()) {
+                        economyService.createAccount(player.getUniqueId(), entry.getKey());
+                    }
                 } catch (Exception e) {
-                    logger.error("failed to create an account on player join", e);
+                    logger.error("failed to create account on player join", e);
                 }
             }
         );

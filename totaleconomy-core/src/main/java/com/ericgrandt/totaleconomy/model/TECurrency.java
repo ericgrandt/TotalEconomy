@@ -19,7 +19,7 @@ public record TECurrency(
     public Component format(BigDecimal amount) {
         var balance = amount.setScale(fractionalDigits, RoundingMode.DOWN);
 
-        if (symbol == null) {
+        if (symbol == null || symbol.isEmpty()) {
             var suffix = balance.compareTo(BigDecimal.ONE) == 0 ? name : pluralName;
             return Component.text("%s %s".formatted(balance.toPlainString(), suffix));
         }

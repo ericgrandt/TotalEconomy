@@ -19,26 +19,35 @@ import com.ericgrandt.totaleconomy.model.TECurrency;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.UUID;
 
-public class TEEconomyService implements EconomyService {
+public class TEEconomyService implements EconomyService<TECurrency> {
     private final TransactionUtil transactionUtil;
+    private final CacheService cacheService;
     private final CurrencyData currencyData;
     private final AccountData accountData;
 
-    public TEEconomyService(TransactionUtil transactionUtil, CurrencyData currencyData, AccountData accountData) {
+    public TEEconomyService(
+        TransactionUtil transactionUtil,
+        CacheService cacheService,
+        CurrencyData currencyData,
+        AccountData accountData
+    ) {
         this.transactionUtil = transactionUtil;
+        this.cacheService = cacheService;
         this.currencyData = currencyData;
         this.accountData = accountData;
     }
 
     @Override
     public TECurrency getDefaultCurrency() {
-        try {
-            return transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
-        } catch (SQLException e) {
-            throw new DatabaseException("database exception while getting default currency", e);
-        }
+        return cacheService.getDefaultCurrency();
+    }
+
+    @Override
+    public Map<String, TECurrency> getSupportedCurrencies() {
+        return cacheService.getCurrencies();
     }
 
     @Override

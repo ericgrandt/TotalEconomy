@@ -2,11 +2,13 @@ package com.ericgrandt.totaleconomy.paper;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
+import com.ericgrandt.totaleconomy.api.infra.TransactionService;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.model.TECurrency;
 import com.ericgrandt.totaleconomy.paper.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.paper.command.PayCommand;
 import com.ericgrandt.totaleconomy.paper.config.ConfigLoader;
@@ -14,6 +16,7 @@ import com.ericgrandt.totaleconomy.paper.impl.VaultImpl;
 import com.ericgrandt.totaleconomy.paper.listener.JoinListener;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.paper.util.PaperAsyncTaskRunner;
+import com.ericgrandt.totaleconomy.service.CacheService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.milkbowl.vault.economy.Economy;
@@ -29,7 +32,7 @@ public class TotalEconomy extends JavaPlugin {
     private final AsyncTaskRunner taskRunner = new PaperAsyncTaskRunner(this);
 
     private CommandExceptionMapper exceptionMapper;
-    private EconomyService economyService;
+    private EconomyService<TECurrency> economyService;
 
     @Override
     public void onEnable() {
@@ -53,8 +56,11 @@ public class TotalEconomy extends JavaPlugin {
         var transactionUtil = new TransactionUtil(database.getDataSource());
         var accountData = new AccountData();
         var currencyData = new CurrencyData();
+        var cacheService = new CacheService(transactionUtil, currencyData);
         exceptionMapper = new CommandExceptionMapper(logger);
-        economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
+        economyService = new TEEconomyService(transactionUtil, cacheService, currencyData, accountData);
+
+        cacheService.initCache();
 
         getServer().getServicesManager().register(
             EconomyService.class,
@@ -69,11 +75,20 @@ public class TotalEconomy extends JavaPlugin {
             ServicePriority.Normal
         );
         getServer().getServicesManager().register(
-            Economy.class,
-            new VaultImpl(logger, economyService),
+            TransactionService.class,
+            transactionUtil,
             this,
             ServicePriority.Normal
         );
+
+        if (getServer().getPluginManager().isPluginEnabled("Vault")) {
+            getServer().getServicesManager().register(
+                Economy.class,
+                new VaultImpl(logger, economyService),
+                this,
+                ServicePriority.Normal
+            );
+        }
 
         registerCommands();
         registerListeners();
@@ -94,7 +109,6 @@ public class TotalEconomy extends JavaPlugin {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(
             new JoinListener(
-                this,
                 taskRunner,
                 logger,
                 economyService

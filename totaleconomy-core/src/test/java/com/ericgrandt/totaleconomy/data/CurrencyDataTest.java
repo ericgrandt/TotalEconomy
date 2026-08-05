@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +36,7 @@ public class CurrencyDataTest {
                 "Dollars",
                 "$",
                 2,
-                BigDecimal.ZERO,
+                BigDecimal.TEN,
                 true
             );
 
@@ -70,6 +71,7 @@ public class CurrencyDataTest {
         });
     }
 
+
     @Test
     @Tag("Integration")
     void getCurrency_WithSuccess_ShouldReturnCurrency() throws SQLException {
@@ -89,7 +91,7 @@ public class CurrencyDataTest {
                 "Dollars",
                 "$",
                 2,
-                BigDecimal.ZERO,
+                BigDecimal.TEN,
                 true
             );
 
@@ -101,6 +103,49 @@ public class CurrencyDataTest {
                 0,
                 expected.startingBalance().compareTo(actual.startingBalance().setScale(2, RoundingMode.DOWN))
             );
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void getSupportedCurrencies_WithSuccess_ShouldReturnSupportedCurrencies() throws SQLException {
+        var dataSource = TestUtils.startTestDb(true);
+        TestUtils.seedDefaultCurrency(dataSource);
+        TestUtils.seedCurrency(dataSource);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new CurrencyData();
+
+        // Act/Assert
+        util.runInTransaction(c -> {
+            var actual = sut.getSupportedCurrencies(c);
+            var expected = List.of(
+                new TECurrency(
+                    "USD",
+                    "Dollar",
+                    "Dollars",
+                    "$",
+                    2,
+                    BigDecimal.ZERO,
+                    true
+                ),
+                new TECurrency(
+                    "COIN",
+                    "Coin",
+                    "Coins",
+                    null,
+                    0,
+                    BigDecimal.TEN,
+                    false
+                )
+            );
+
+            assertThat(expected)
+                .usingRecursiveComparison()
+                .ignoringFields("startingBalance")
+                .isEqualTo(actual);
+
             return null;
         });
     }

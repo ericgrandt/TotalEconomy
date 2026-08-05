@@ -36,7 +36,7 @@ public class TestUtils {
             "Dollars",
             "$",
             2,
-            BigDecimal.ZERO,
+            BigDecimal.TEN,
             true,
             Instant.parse(TEST_DATE)
         );

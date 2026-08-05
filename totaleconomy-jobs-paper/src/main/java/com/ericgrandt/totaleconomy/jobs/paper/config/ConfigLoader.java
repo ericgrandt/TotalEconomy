@@ -8,14 +8,13 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-// job 'miner', field 'id': missing or invalid
-// job 'miner', action 'BLOCK_BREAK': missing 'entries' section
 // TODO: A lot of this should be shared. The only thing that will be unique is the validation of materials/entities
+// NOTE: This is a mess, I'm sorry. It works though.
 public class ConfigLoader {
-    // TODO: Handle errors better. Maybe collect list of errors and display all at the end.
     public static Config from(FileConfiguration fileConfig) {
         var errors = new ArrayList<String>();
 
@@ -35,18 +34,8 @@ public class ConfigLoader {
         var parsedJobResult = parseJobs(jobsSection);
         errors.addAll(parsedJobResult.errors());
 
-        var maxLevel = settingsSection.getInt("maxLevel");
-        var xpCurveType = JobEnums.XPCurveType.fromString(settingsSection.getString("xpCurve.type"));
-        if (xpCurveType.isEmpty()) {
-            throw new ConfigLoadException("invalid xpCurve type");
-        }
-
-        var payoutMultiplierType = JobEnums.PayoutMultiplierType.fromString(
-            settingsSection.getString("payoutMultiplier.type")
-        );
-        if (payoutMultiplierType.isEmpty()) {
-            throw new ConfigLoadException("invalid payoutMultiplier type");
-        }
+        var parsedSettingsResult = parseSettings(settingsSection);
+        errors.addAll(parsedSettingsResult.errors());
 
         if (!errors.isEmpty()) {
             throw new ConfigLoadException(String.join("\n", errors));
@@ -54,18 +43,7 @@ public class ConfigLoader {
 
         return new Config(
             parsedJobResult.result(),
-            new Config.Settings(
-                maxLevel,
-                new Config.Settings.XPCurve(
-                    xpCurveType.get(),
-                    settingsSection.getInt("xpCurve.baseXP")
-                ),
-                new Config.Settings.PayoutMultiplier(
-                    payoutMultiplierType.get(),
-                    settingsSection.getInt("payoutMultiplier.base"),
-                    settingsSection.getDouble("payoutMultiplier.perLevel")
-                )
-            )
+            parsedSettingsResult.result()
         );
     }
 
@@ -88,7 +66,8 @@ public class ConfigLoader {
                 errors.add("job '%s': invalid/missing 'actions' section".formatted(jobKey));
                 continue;
             }
-            parseJobActions(actionsSection, jobKey);
+            var parsedActionsResult = parseJobActions(actionsSection, jobKey);
+            errors.addAll(parsedActionsResult.errors());
 
             if (id == null || id.isBlank()) {
                 errors.add("job '%s': missing 'id' field".formatted(jobKey));
@@ -106,7 +85,7 @@ public class ConfigLoader {
                 continue;
             }
 
-            jobList.add(new Config.Job(id, displayName, description, List.of()));
+            jobList.add(new Config.Job(id, displayName, description, parsedActionsResult.result()));
         }
         return new ConfigParseResult<>(jobList, errors);
     }
@@ -117,6 +96,7 @@ public class ConfigLoader {
     ) {
         var errors = new ArrayList<String>();
 
+        var actions = new ArrayList<Config.Job.Action>();
         for (String actionKey : section.getKeys(false)) {
             var actionType = JobEnums.ActionType.fromString(actionKey);
             if (actionType.isEmpty()) {
@@ -132,34 +112,99 @@ public class ConfigLoader {
 
             var entries = new ArrayList<Config.Job.Action.Entry>();
             for (String entryKey : entriesSection.getKeys(false)) {
+                var validEntry = true;
                 if (actionType.get() == JobEnums.ActionType.BLOCK_BREAK) {
+
                     var material = Material.matchMaterial(entryKey);
                     if (material == null) {
-                        errors.add("job '%s', action '%s',: invalid material".formatted(jobId, entryKey));
-                        continue;
+                        errors.add("job '%s', action '%s', entry '%s': invalid entry".formatted(
+                            jobId,
+                            actionKey,
+                            entryKey
+                        ));
+                        validEntry = false;
                     }
                 }
 
-                var xp = entriesSection.getInt("%s.xp".formatted(entryKey));
-                var payout = entriesSection.getDouble("%s.payout".formatted(entryKey));
+                var xp = entriesSection.getInt("%s.xp".formatted(entryKey), -1);
+                if (xp < 0) {
+                    errors.add("job '%s', action '%s', entry '%s': invalid xp".formatted(jobId, actionKey, entryKey));
+                    validEntry = false;
+                }
+
+                var payout = entriesSection.getString("%s.payout".formatted(entryKey));
+                if (payout == null || payout.isBlank()) {
+                    errors.add("job '%s', action '%s', entry '%s': invalid payout".formatted(
+                        jobId,
+                        actionKey,
+                        entryKey
+                    ));
+                    validEntry = false;
+                }
+
+                if (!validEntry) {
+                    continue;
+                }
+
+                BigDecimal payoutBigDecimal;
+                try {
+                    payoutBigDecimal = new BigDecimal(payout);
+                } catch (NumberFormatException e) {
+                    errors.add("job '%s', action '%s', entry '%s': invalid payout".formatted(
+                        jobId,
+                        actionKey,
+                        entryKey
+                    ));
+                    continue;
+                }
+
+                entries.add(
+                    new Config.Job.Action.Entry(
+                        entryKey,
+                        xp,
+                        payoutBigDecimal
+                    )
+                );
             }
+
+            actions.add(
+                new Config.Job.Action(actionType.get(), entries)
+            );
         }
 
-        return new ConfigParseResult<>(new ArrayList<>(), errors);
+        return new ConfigParseResult<>(actions, errors);
     }
 
     private static ConfigParseResult<Config.Settings> parseSettings(ConfigurationSection section) {
         var errors = new ArrayList<String>();
-        var maxLevel = section.getInt("maxLevel");
+        var maxLevel = section.getInt("maxLevel", 0);
         if (maxLevel <= 0) {
-            errors.add("invalid 'maxLevel' field");
+            errors.add("settings: invalid max level, must be greater than 0");
+        }
+        var xpCurveType = JobEnums.XPCurveType.fromString(section.getString("xpCurve.type"));
+        if (xpCurveType.isEmpty()) {
+            errors.add("settings: invalid xpCurve type");
+        }
+
+        var payoutMultiplierType = JobEnums.PayoutMultiplierType.fromString(
+            section.getString("payoutMultiplier.type")
+        );
+        if (payoutMultiplierType.isEmpty()) {
+            errors.add("settings: invalid payoutMultiplier type");
         }
 
         return new ConfigParseResult<>(
             new Config.Settings(
                 maxLevel,
-                null,
-                null
+                new Config.Settings.XPCurve(
+                    xpCurveType.orElse(JobEnums.XPCurveType.QUADRATIC),
+                    section.getInt("xpCurve.baseXP")
+                ),
+                new Config.Settings.PayoutMultiplier(
+                    payoutMultiplierType.orElse(JobEnums.PayoutMultiplierType.LINEAR),
+                    section.getInt("payoutMultiplier.base"),
+                    section.getDouble("payoutMultiplier.perLevel")
+                )
             ), errors
         );
     }

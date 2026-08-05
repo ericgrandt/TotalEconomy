@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class CurrencyData {
@@ -29,6 +31,29 @@ public class CurrencyData {
         }
 
         throw new MissingDefaultCurrencyException();
+    }
+
+    public List<TECurrency> getSupportedCurrencies(Connection conn) throws SQLException {
+        var query = "SELECT code, name, plural_name, symbol, fractional_digits, starting_balance, is_default FROM te_currency";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                var supportedCurrencies = new ArrayList<TECurrency>();
+                while (rs.next()) {
+                    supportedCurrencies.add(
+                        new TECurrency(
+                            rs.getString("code"),
+                            rs.getString("name"),
+                            rs.getString("plural_name"),
+                            rs.getString("symbol"),
+                            rs.getInt("fractional_digits"),
+                            rs.getBigDecimal("starting_balance"),
+                            rs.getBoolean("is_default")
+                        )
+                    );
+                }
+                return supportedCurrencies;
+            }
+        }
     }
 
     public Optional<TECurrency> getCurrency(Connection conn, String currencyCode) throws SQLException {

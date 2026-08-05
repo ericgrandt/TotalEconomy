@@ -7,7 +7,7 @@ junit = "6.1.0"
 junit-platform = "6.1.0"
 shadow = "9.4.1"
 mockito = "5.+"
-paper = "26.1.2.build.+"
+paper = "26.2.build.+"
 run-paper = "3.0.2"
 vault = "1.7.1"
 

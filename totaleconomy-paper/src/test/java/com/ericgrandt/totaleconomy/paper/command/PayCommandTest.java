@@ -6,6 +6,7 @@ import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.paper.util.TestTaskRunner;
+import com.ericgrandt.totaleconomy.service.CacheService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
 import com.ericgrandt.totaleconomy.testutils.TestUtils;
 import com.mojang.brigadier.Command;
@@ -73,7 +74,8 @@ public class PayCommandTest {
 
         var transactionUtil = new TransactionUtil(dataSource);
         var exceptionMapper = new CommandExceptionMapper(loggerMock);
-        var economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
+        var cacheService = new CacheService(transactionUtil, currencyData);
+        var economyService = new TEEconomyService(transactionUtil, cacheService, currencyData, accountData);
 
         var ctx = mock(CommandContext.class);
         var source = mock(CommandSourceStack.class);
@@ -125,7 +127,8 @@ public class PayCommandTest {
 
         var transactionUtil = new TransactionUtil(dataSource);
         var exceptionMapper = new CommandExceptionMapper(loggerMock);
-        var economyService = new TEEconomyService(transactionUtil, currencyData, accountData);
+        var cacheService = new CacheService(transactionUtil, currencyData);
+        var economyService = new TEEconomyService(transactionUtil, cacheService, currencyData, accountData);
 
         var ctx = mock(CommandContext.class);
         var source = mock(CommandSourceStack.class);

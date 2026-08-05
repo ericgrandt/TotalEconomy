@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,6 +42,9 @@ public class TEEconomyServiceTest {
     private TransactionUtil transactionUtilMock;
 
     @Mock
+    private CacheService cacheServiceMock;
+
+    @Mock
     private CurrencyData currencyDataMock;
 
     @Mock
@@ -54,16 +58,16 @@ public class TEEconomyServiceTest {
             TransactionUtil.Transaction<?> tx = invocation.getArgument(0);
             return tx.execute(mock(Connection.class));
         });
-        sut = new TEEconomyService(transactionUtilMock, currencyDataMock, accountDataMock);
+        sut = new TEEconomyService(transactionUtilMock, cacheServiceMock, currencyDataMock, accountDataMock);
     }
 
     @Test
     @Tag("Unit")
-    public void getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() throws SQLException {
+    public void getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() {
         // Arrange
         var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
 
-        when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
+        when(cacheServiceMock.getDefaultCurrency()).thenReturn(currency);
 
         // Act
         var actual = sut.getDefaultCurrency();
@@ -74,12 +78,18 @@ public class TEEconomyServiceTest {
 
     @Test
     @Tag("Unit")
-    public void getDefaultCurrency_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
+    public void getSupportedCurrencies_WithSuccess_ShouldReturnListOfCurrencies() {
         // Arrange
-        when(currencyDataMock.getDefaultCurrency(any())).thenThrow(SQLException.class);
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
 
-        // Act/Assert
-        assertThrows(DatabaseException.class, () -> sut.getDefaultCurrency());
+        when(cacheServiceMock.getCurrencies()).thenReturn(Map.of(currency.code(), currency));
+
+        // Act
+        var actual = sut.getSupportedCurrencies();
+        var expected = Map.of(currency.code(), currency);
+
+        // Assert
+        assertEquals(expected, actual);
     }
 
     @Test

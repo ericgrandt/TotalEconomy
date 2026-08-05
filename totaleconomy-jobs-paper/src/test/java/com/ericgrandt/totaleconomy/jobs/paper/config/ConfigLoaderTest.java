@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,10 +19,17 @@ class ConfigLoaderTest {
         var config = buildTestConfig();
 
         // Act
+        var entries = List.of(new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.valueOf(3.0)));
+
         var actual = ConfigLoader.from(config);
         var expected = new Config(
             List.of(
-                new Config.Job("miner", "Miner", "Mine ores", List.of())
+                new Config.Job(
+                    "miner",
+                    "Miner",
+                    "Mine ores",
+                    List.of(new Config.Job.Action(JobEnums.ActionType.BLOCK_BREAK, entries))
+                )
             ),
             new Config.Settings(
                 100,
