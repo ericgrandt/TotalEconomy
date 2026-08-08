@@ -22,8 +22,7 @@ server needs, and skip what it doesn't.
 ## Features
 
 - **Multi-Currency Support** - Define multiple currencies with configurable starting balances
-- **Player Accounts** - Automatic player account creation for each currency **(currently only creates the default
-  currency account)**
+- **Player Accounts** - Automatic player account creation for each currency
 - **Money Transfers** - Send and receive payments between players in any currency
 - **Extensible API** - Build custom add-on plugins that extend core functionality
 - **Vault Integration** - Full Vault API implementation for compatibility with many plugins
@@ -75,10 +74,13 @@ The built JAR will be in `totaleconomy-paper/build/libs/TotalEconomyPaper-{versi
 
 ```
 TotalEconomy/
-├── totaleconomy-api/      # Public API for add-on plugins
-├── totaleconomy-core/     # Shared economy logic and data layer
-├── totaleconomy-paper/    # Paper platform implementation
-└── docs/                  # Documentation site (Jekyll)
+├── common/                   # Shared logic across all plugins 
+├── totaleconomy-api/         # Public API for add-on plugins
+├── totaleconomy-core/        # Shared logic for TotalEconomy
+├── totaleconomy-paper/       # Paper implementation for TotalEconomy
+├── totaleconomy-jobs-core/   # Shared logic for TotalEconomy-Jobs
+├── totaleconomy-jobs-paper/  # Paper implementation for TotalEconomy-Jobs
+└── docs/                     # Documentation site (Jekyll)
 ```
 
 ## Documentation
