@@ -1,8 +1,10 @@
 package com.ericgrandt.totaleconomy.data;
 
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.dto.CreateAccountDto;
 import com.ericgrandt.totaleconomy.model.TEAccount;
-import com.ericgrandt.totaleconomy.testutils.TestUtils;
+import com.ericgrandt.totaleconomy.utils.TestSeeder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -22,8 +24,8 @@ public class AccountDataTest {
     @Tag("Integration")
     void createAccount_WithSuccess_ShouldReturnCreatedAccount() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var playerId = UUID.randomUUID();
@@ -57,9 +59,9 @@ public class AccountDataTest {
     @Tag("Integration")
     void getAccount_WithSuccess_ShouldReturnAccount() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource, null);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, null);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
@@ -86,8 +88,8 @@ public class AccountDataTest {
     @Tag("Integration")
     void getAccount_WithAccountNotFound_ShouldReturnEmptyOptional() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
@@ -107,9 +109,9 @@ public class AccountDataTest {
     @Tag("Integration")
     void withdraw_WithSuccess_ShouldReturnAnAffectedRowCountOfOneAndWithdrawFromAccount() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource, null);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, null);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
@@ -141,9 +143,9 @@ public class AccountDataTest {
     @Tag("Integration")
     void withdraw_WithEnforceMinimumBalanceOfFalse_ShouldReturnAnAffectedRowCountOfOneAndWithdrawFromAccount() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource, null);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, null);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
@@ -175,8 +177,8 @@ public class AccountDataTest {
     @Tag("Integration")
     void withdraw_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
@@ -195,9 +197,9 @@ public class AccountDataTest {
     @Tag("Integration")
     void deposit_WithSuccess_ShouldReturnAnAffectedRowCountOfOneAndDepositIntoAccount() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource, null);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, null);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();
@@ -228,8 +230,8 @@ public class AccountDataTest {
     @Tag("Integration")
     void deposit_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedDefaultCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new AccountData();

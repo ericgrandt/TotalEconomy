@@ -2,12 +2,11 @@ package com.ericgrandt.totaleconomy.paper;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
-import com.ericgrandt.totaleconomy.api.infra.TransactionService;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
 import com.ericgrandt.totaleconomy.data.Database;
-import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 import com.ericgrandt.totaleconomy.paper.command.BalanceCommand;
 import com.ericgrandt.totaleconomy.paper.command.PayCommand;
@@ -71,12 +70,6 @@ public class TotalEconomy extends JavaPlugin {
         getServer().getServicesManager().register(
             DataSourceProvider.class,
             database,
-            this,
-            ServicePriority.Normal
-        );
-        getServer().getServicesManager().register(
-            TransactionService.class,
-            transactionUtil,
             this,
             ServicePriority.Normal
         );

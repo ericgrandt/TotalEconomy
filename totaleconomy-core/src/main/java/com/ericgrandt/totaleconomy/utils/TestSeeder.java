@@ -1,9 +1,7 @@
-package com.ericgrandt.totaleconomy.testutils;
+package com.ericgrandt.totaleconomy.utils;
 
-import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
 import com.ericgrandt.totaleconomy.data.entity.AccountEntity;
 import com.ericgrandt.totaleconomy.data.entity.CurrencyEntity;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.math.BigDecimal;
@@ -12,21 +10,8 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.UUID;
 
-public class TestUtils {
+public class TestSeeder {
     private static final String TEST_DATE = "2025-01-01T00:00:00Z";
-
-    public static HikariDataSource startTestDb(boolean runInit) throws SQLException {
-        var config = new HikariConfig();
-        config.setJdbcUrl("jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=MySQL");
-
-        var dataSource = new HikariDataSource(config);
-        var conn = dataSource.getConnection();
-        if (runInit) {
-            DatabaseBootstrapper.initSchema(conn);
-        }
-
-        return dataSource;
-    }
 
     public static CurrencyEntity seedDefaultCurrency(HikariDataSource dataSource) throws SQLException {
         CurrencyEntity currency = new CurrencyEntity(

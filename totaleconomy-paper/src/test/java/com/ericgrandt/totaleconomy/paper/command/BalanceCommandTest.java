@@ -1,14 +1,16 @@
 package com.ericgrandt.totaleconomy.paper.command;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.common.testutils.TestTaskRunner;
+import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
-import com.ericgrandt.totaleconomy.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.paper.util.TestTaskRunner;
 import com.ericgrandt.totaleconomy.service.CacheService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
-import com.ericgrandt.totaleconomy.testutils.TestUtils;
+import com.ericgrandt.totaleconomy.utils.TestSeeder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -50,9 +52,9 @@ public class BalanceCommandTest {
     @SuppressWarnings("unchecked")
     public void onCommand_WithNoCurrencyCodeArgument_ShouldSendBalanceForDefaultCurrency() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource, null);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        TestSeeder.seedDefaultCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, null);
 
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString(account.playerId()));
 
@@ -82,9 +84,9 @@ public class BalanceCommandTest {
     @SuppressWarnings("unchecked")
     public void onCommand_WithCurrencyCodeArgument_ShouldSendBalanceForCurrency() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedCurrency(dataSource);
-        var account = TestUtils.seedAccount(dataSource, currency.code());
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, currency.code());
 
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString(account.playerId()));
 

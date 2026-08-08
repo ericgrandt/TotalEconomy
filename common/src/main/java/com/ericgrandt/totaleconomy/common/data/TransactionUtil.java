@@ -1,19 +1,21 @@
-package com.ericgrandt.totaleconomy.data;
-
-import com.ericgrandt.totaleconomy.api.infra.TransactionService;
+package com.ericgrandt.totaleconomy.common.data;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class TransactionUtil implements TransactionService {
+public class TransactionUtil {
     private final DataSource dataSource;
 
     public TransactionUtil(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    @Override
+    @FunctionalInterface
+    public interface Transaction<T> {
+        T execute(Connection conn) throws SQLException;
+    }
+
     public <T> T runInTransaction(Transaction<T> transaction) throws SQLException {
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);

@@ -1,4 +1,4 @@
-package com.ericgrandt.totaleconomy.paper.util;
+package com.ericgrandt.totaleconomy.common.testutils;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 

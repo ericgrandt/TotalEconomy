@@ -6,6 +6,7 @@ plugins {
 val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     implementation(project(":totaleconomy-api"))
+    implementation(project(":common"))
     implementation(libs.adventure)
     implementation(libs.hikari)
 

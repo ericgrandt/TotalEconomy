@@ -1,8 +1,8 @@
 package com.ericgrandt.totaleconomy.service;
 
 import com.ericgrandt.totaleconomy.api.exception.DatabaseException;
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
-import com.ericgrandt.totaleconomy.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.model.TECurrency;
 
 import java.sql.SQLException;

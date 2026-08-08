@@ -1,14 +1,16 @@
 package com.ericgrandt.totaleconomy.paper.command;
 
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.common.testutils.TestTaskRunner;
+import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.data.AccountData;
 import com.ericgrandt.totaleconomy.data.CurrencyData;
-import com.ericgrandt.totaleconomy.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
-import com.ericgrandt.totaleconomy.paper.util.TestTaskRunner;
 import com.ericgrandt.totaleconomy.service.CacheService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
-import com.ericgrandt.totaleconomy.testutils.TestUtils;
+import com.ericgrandt.totaleconomy.utils.TestSeeder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -62,10 +64,10 @@ public class PayCommandTest {
     @SuppressWarnings("unchecked")
     public void onCommand_WithCurrencyCodeArgument_ShouldTransferCurrency() throws SQLException, CommandSyntaxException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        var currency = TestUtils.seedCurrency(dataSource);
-        var fromAccount = TestUtils.seedAccount(dataSource, currency.code());
-        var toAccount = TestUtils.seedAccount(dataSource, currency.code());
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedCurrency(dataSource);
+        var fromAccount = TestSeeder.seedAccount(dataSource, currency.code());
+        var toAccount = TestSeeder.seedAccount(dataSource, currency.code());
 
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString(fromAccount.playerId()));
         when(playerMock.getName()).thenReturn("FromPlayer");
@@ -115,10 +117,10 @@ public class PayCommandTest {
     @SuppressWarnings("unchecked")
     public void onCommand_WithNoCurrencyCodeArgument_ShouldTransferDefaultCurrency() throws SQLException, CommandSyntaxException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
-        var fromAccount = TestUtils.seedAccount(dataSource, null);
-        var toAccount = TestUtils.seedAccount(dataSource, null);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        TestSeeder.seedDefaultCurrency(dataSource);
+        var fromAccount = TestSeeder.seedAccount(dataSource, null);
+        var toAccount = TestSeeder.seedAccount(dataSource, null);
 
         when(playerMock.getUniqueId()).thenReturn(UUID.fromString(fromAccount.playerId()));
         when(playerMock.getName()).thenReturn("FromPlayer");

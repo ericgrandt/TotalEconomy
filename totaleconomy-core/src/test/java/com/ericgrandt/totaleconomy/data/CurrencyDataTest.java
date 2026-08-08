@@ -1,8 +1,10 @@
 package com.ericgrandt.totaleconomy.data;
 
 import com.ericgrandt.totaleconomy.api.exception.MissingDefaultCurrencyException;
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.model.TECurrency;
-import com.ericgrandt.totaleconomy.testutils.TestUtils;
+import com.ericgrandt.totaleconomy.utils.TestSeeder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -21,8 +23,8 @@ public class CurrencyDataTest {
     @Tag("Integration")
     void getDefaultCurrency_WithSuccess_ShouldReturnDefaultCurrency() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        TestSeeder.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
@@ -56,7 +58,7 @@ public class CurrencyDataTest {
     @Tag("Integration")
     void getDefaultCurrency_WithNoDefaultCurrency_ShouldThrowMissingDefaultCurrencyException() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
@@ -76,8 +78,8 @@ public class CurrencyDataTest {
     @Tag("Integration")
     void getCurrency_WithSuccess_ShouldReturnCurrency() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        TestSeeder.seedDefaultCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
@@ -110,9 +112,9 @@ public class CurrencyDataTest {
     @Test
     @Tag("Integration")
     void getSupportedCurrencies_WithSuccess_ShouldReturnSupportedCurrencies() throws SQLException {
-        var dataSource = TestUtils.startTestDb(true);
-        TestUtils.seedDefaultCurrency(dataSource);
-        TestUtils.seedCurrency(dataSource);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        TestSeeder.seedDefaultCurrency(dataSource);
+        TestSeeder.seedCurrency(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();
@@ -154,7 +156,7 @@ public class CurrencyDataTest {
     @Tag("Integration")
     void getCurrency_WithNoCurrencyFoundForCode_ShouldReturnEmptyOptional() throws SQLException {
         // Arrange
-        var dataSource = TestUtils.startTestDb(true);
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var util = new TransactionUtil(dataSource);
 
         var sut = new CurrencyData();

@@ -21,6 +21,7 @@ dependencies {
     compileOnly(libs.vault)
 
     implementation(project(":totaleconomy-api"))
+    implementation(project(":common"))
     implementation(project(":totaleconomy-core"))
 
     testImplementation(libs.h2)
