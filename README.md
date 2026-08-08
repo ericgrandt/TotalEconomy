@@ -12,10 +12,6 @@
 
 </div>
 
-> **A large overhaul is currently in the works.** The `1.0.0-alpha` release is the first release in a complete rewrite
-> with a temporary slimmed-down feature set. Additional modules (jobs, shops, achievements, web UI, and more) will be
-> released as separate add-on plugins that extend Total Economy.
-
 ## Overview
 
 Total Economy is a Minecraft plugin that provides a full-fledged economy for your server. Rather than packing every
