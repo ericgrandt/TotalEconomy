@@ -10,7 +10,7 @@ import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
 import com.ericgrandt.totaleconomy.paper.mapper.CommandExceptionMapper;
 import com.ericgrandt.totaleconomy.service.CacheService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
-import com.ericgrandt.totaleconomy.utils.TestSeeder;
+import com.ericgrandt.totaleconomy.testutils.TestSeeder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;

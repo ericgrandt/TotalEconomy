@@ -4,7 +4,7 @@ import com.ericgrandt.totaleconomy.api.exception.MissingDefaultCurrencyException
 import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
 import com.ericgrandt.totaleconomy.model.TECurrency;
-import com.ericgrandt.totaleconomy.utils.TestSeeder;
+import com.ericgrandt.totaleconomy.testutils.TestSeeder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 

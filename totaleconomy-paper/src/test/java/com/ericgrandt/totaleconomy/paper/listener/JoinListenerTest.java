@@ -10,7 +10,7 @@ import com.ericgrandt.totaleconomy.data.DatabaseBootstrapper;
 import com.ericgrandt.totaleconomy.model.TEAccount;
 import com.ericgrandt.totaleconomy.service.CacheService;
 import com.ericgrandt.totaleconomy.service.TEEconomyService;
-import com.ericgrandt.totaleconomy.utils.TestSeeder;
+import com.ericgrandt.totaleconomy.testutils.TestSeeder;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

@@ -8,8 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class PlayerActiveJobData {
-    public PlayerActiveJob UpsertPlayerActiveJob(Connection conn, UpsertPlayerActiveJobDto req) throws SQLException {
-        var insertQuery = "INSERT INTO te_player_active_job(player_id, job_id) VALUES (?, ?) AS alias ON DUPLICATE KEY UPDATE job_id = alias.job_id, joined_at = CURRENT_TIMESTAMP";
+    public PlayerActiveJob upsertPlayerActiveJob(Connection conn, UpsertPlayerActiveJobDto req) throws SQLException {
+        // NOTE: Need to use VALUES(job_id) instead of "AS alias ... = alias.job_id" for H2 compatibility. Not ideal, though it works for now.
+        var insertQuery = "INSERT INTO te_player_active_job(player_id, job_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE job_id = VALUES(job_id), joined_at = CURRENT_TIMESTAMP";
         try (PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
             stmt.setString(1, req.playerId().toString());
             stmt.setString(2, req.jobId());

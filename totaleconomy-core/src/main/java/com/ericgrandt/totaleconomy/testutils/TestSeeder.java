@@ -1,4 +1,4 @@
-package com.ericgrandt.totaleconomy.utils;
+package com.ericgrandt.totaleconomy.testutils;
 
 import com.ericgrandt.totaleconomy.data.entity.AccountEntity;
 import com.ericgrandt.totaleconomy.data.entity.CurrencyEntity;
