@@ -31,12 +31,11 @@ server needs, and skip what it doesn't.
 
 Additional features are being developed as separate plugins that extend the core Total Economy plugin:
 
-| Add-On       | Status  | Description                                                           |
-|--------------|---------|-----------------------------------------------------------------------|
-| Jobs         | Planned | Assign roles to players with configurable rewards for in-game actions |
-| Shops        | Planned | Buy and sell items through player-run or server-controlled shops      |
-| Achievements | Planned | Economy-linked achievement tracking with milestone rewards            |
-| Web UI       | Planned | Browser-based dashboard for managing data and viewing analytics       |
+| Add-On       | Status         | Description                                                           |
+|--------------|----------------|-----------------------------------------------------------------------|
+| Jobs         | In-development | Assign roles to players with configurable rewards for in-game actions |
+| Shops        | Planned        | Buy and sell items through player-run or server-controlled shops      |
+| Web UI       | Planned        | Browser-based dashboard for managing data and viewing analytics       |
 
 ## Installation
 
