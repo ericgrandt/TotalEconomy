@@ -2,8 +2,8 @@ package com.ericgrandt.totaleconomy.jobs.data;
 
 import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
-import com.ericgrandt.totaleconomy.jobs.dto.UpsertPlayerActiveJobDto;
-import com.ericgrandt.totaleconomy.jobs.model.PlayerActiveJob;
+import com.ericgrandt.totaleconomy.jobs.dto.UpsertActiveJobDto;
+import com.ericgrandt.totaleconomy.jobs.model.ActiveJob;
 import com.ericgrandt.totaleconomy.jobs.testutils.TestSeeder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -13,23 +13,23 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class PlayerActiveJobDataTest {
+public class ActiveJobDataTest {
     @Test
     @Tag("Integration")
-    void upsertPlayerActiveJob_WithInsert_ShouldReturnPlayerActiveJob() throws SQLException {
+    void upsertActiveJob_WithInsert_ShouldReturnActiveJob() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseSetup::init);
         var util = new TransactionUtil(dataSource);
 
         var playerId = UUID.randomUUID();
-        var upsertPlayerActiveJobDto = new UpsertPlayerActiveJobDto(playerId, "miner");
+        var upsertActiveJobDto = new UpsertActiveJobDto(playerId, "miner");
 
-        var sut = new PlayerActiveJobData();
+        var sut = new ActiveJobData();
 
         // Act/Assert
         util.runInTransaction(conn -> {
-            var actual = sut.upsertPlayerActiveJob(conn, upsertPlayerActiveJobDto);
-            var expected = new PlayerActiveJob(
+            var actual = sut.upsertActiveJob(conn, upsertActiveJobDto);
+            var expected = new ActiveJob(
                 playerId,
                 "miner"
             );
@@ -41,21 +41,21 @@ public class PlayerActiveJobDataTest {
 
     @Test
     @Tag("Integration")
-    void upsertPlayerActiveJob_WithUpdate_ShouldReturnPlayerActiveJob() throws SQLException {
+    void upsertActiveJob_WithUpdate_ShouldReturnActiveJob() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseSetup::init);
-        var playerActiveJob = TestSeeder.seedPlayerActiveJob(dataSource);
+        var playerActiveJob = TestSeeder.seedActiveJob(dataSource);
         var util = new TransactionUtil(dataSource);
 
         var playerId = UUID.fromString(playerActiveJob.playerId());
-        var upsertPlayerActiveJobDto = new UpsertPlayerActiveJobDto(playerId, "lumberjack");
+        var upsertActiveJobDto = new UpsertActiveJobDto(playerId, "lumberjack");
 
-        var sut = new PlayerActiveJobData();
+        var sut = new ActiveJobData();
 
         // Act/Assert
         util.runInTransaction(conn -> {
-            var actual = sut.upsertPlayerActiveJob(conn, upsertPlayerActiveJobDto);
-            var expected = new PlayerActiveJob(
+            var actual = sut.upsertActiveJob(conn, upsertActiveJobDto);
+            var expected = new ActiveJob(
                 playerId,
                 "lumberjack"
             );
