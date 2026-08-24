@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.jobs.data.DatabaseSetup;
 import com.ericgrandt.totaleconomy.jobs.paper.config.ConfigLoader;
+import com.ericgrandt.totaleconomy.jobs.paper.listener.BlockBreakListener;
 import com.ericgrandt.totaleconomy.jobs.paper.util.PaperAsyncTaskRunner;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
@@ -38,5 +39,8 @@ public class TotalEconomyJobs extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        // var blockBreakService = new BlockBreakService();
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
     }
 }
