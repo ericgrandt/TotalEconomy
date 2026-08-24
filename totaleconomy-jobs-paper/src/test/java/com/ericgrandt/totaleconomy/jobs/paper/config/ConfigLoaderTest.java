@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,7 +20,12 @@ class ConfigLoaderTest {
         var config = buildTestConfig();
 
         // Act
-        var entries = List.of(new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.valueOf(3.0)));
+        var entry = new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.valueOf(3.0));
+        var entryMap = Map.of("coal_ore", entry);
+        var actionMap = Map.of(
+            JobEnums.ActionType.BLOCK_BREAK,
+            new Config.Job.Action(JobEnums.ActionType.BLOCK_BREAK, entryMap)
+        );
 
         var actual = ConfigLoader.from(config);
         var expected = new Config(
@@ -28,7 +34,7 @@ class ConfigLoaderTest {
                     "miner",
                     "Miner",
                     "Mine ores",
-                    List.of(new Config.Job.Action(JobEnums.ActionType.BLOCK_BREAK, entries))
+                    actionMap
                 )
             ),
             new Config.Settings(

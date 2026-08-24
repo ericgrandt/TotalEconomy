@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,10 +20,12 @@ public class RewardCalculatorTest {
                 "miner",
                 "Miner",
                 "Mine ores",
-                List.of(new Config.Job.Action(
-                    JobEnums.ActionType.BLOCK_BREAK,
-                    List.of(new Config.Job.Action.Entry("coal_ore", 10, BigDecimal.ONE))
-                ))
+                Map.of(
+                    JobEnums.ActionType.BLOCK_BREAK, new Config.Job.Action(
+                        JobEnums.ActionType.BLOCK_BREAK,
+                        Map.of("coal_ore", new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.ONE))
+                    )
+                )
             )
         ),
         new Config.Settings(
@@ -66,14 +69,14 @@ public class RewardCalculatorTest {
     void getEntry_WithValidPath_ShouldReturnCorrectValue() {
         // Arrange
         var jobName = "miner";
-        var actionName = "BLOCK_BREAK";
+        var actionType = JobEnums.ActionType.BLOCK_BREAK;
         var materialName = "coal_ore";
 
         var sut = new RewardCalculator(config);
 
         // Act
-        var actual = sut.getEntry(jobName, actionName, materialName);
-        var expected = Optional.of(new Config.Job.Action.Entry(materialName, 10, BigDecimal.ONE));
+        var actual = sut.getEntry(jobName, actionType, materialName);
+        var expected = Optional.of(new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.ONE));
 
         // Assert
         assertTrue(actual.isPresent());
@@ -85,13 +88,13 @@ public class RewardCalculatorTest {
     void getEntry_WithInvalidJobName_ShouldReturnEmptyOptional() {
         // Arrange
         var jobName = "notAJob";
-        var actionName = "BLOCK_BREAK";
+        var actionType = JobEnums.ActionType.BLOCK_BREAK;
         var materialName = "coal_ore";
 
         var sut = new RewardCalculator(config);
 
         // Act
-        var actual = sut.getEntry(jobName, actionName, materialName);
+        var actual = sut.getEntry(jobName, actionType, materialName);
         var expected = Optional.empty();
 
         // Assert
@@ -99,37 +102,37 @@ public class RewardCalculatorTest {
         assertEquals(expected, actual);
     }
 
-    @Test
-    @Tag("Unit")
-    void getEntry_WithInvalidActionName_ShouldReturnEmptyOptional() {
-        // Arrange
-        var jobName = "miner";
-        var actionName = "NOT_AN_ACTION";
-        var materialName = "coal_ore";
+    //@Test
+    //@Tag("Unit")
+    //void getEntry_WithInvalidActionName_ShouldReturnEmptyOptional() {
+    //    // Arrange
+    //    var jobName = "miner";
+    //    var actionName = "NOT_AN_ACTION";
+    //    var materialName = "coal_ore";
 
-        var sut = new RewardCalculator(config);
+    //    var sut = new RewardCalculator(config);
 
-        // Act
-        var actual = sut.getEntry(jobName, actionName, materialName);
-        var expected = Optional.empty();
+    //    // Act
+    //    var actual = sut.getEntry(jobName, actionName, materialName);
+    //    var expected = Optional.empty();
 
-        // Assert
-        assertTrue(actual.isEmpty());
-        assertEquals(expected, actual);
-    }
+    //    // Assert
+    //    assertTrue(actual.isEmpty());
+    //    assertEquals(expected, actual);
+    //}
 
     @Test
     @Tag("Unit")
     void getEntry_WithInvalidMaterialName_ShouldReturnEmptyOptional() {
         // Arrange
         var jobName = "miner";
-        var actionName = "BLOCK_BREAK";
+        var actionType = JobEnums.ActionType.BLOCK_BREAK;
         var materialName = "not_a_material";
 
         var sut = new RewardCalculator(config);
 
         // Act
-        var actual = sut.getEntry(jobName, actionName, materialName);
+        var actual = sut.getEntry(jobName, actionType, materialName);
         var expected = Optional.empty();
 
         // Assert

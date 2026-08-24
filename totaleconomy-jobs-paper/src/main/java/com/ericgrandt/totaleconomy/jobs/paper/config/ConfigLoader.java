@@ -10,7 +10,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // TODO: A lot of this should be shared. The only thing that will be unique is the validation of materials/entities
 // NOTE: This is a mess, I'm sorry. It works though.
@@ -90,13 +92,13 @@ public class ConfigLoader {
         return new ConfigParseResult<>(jobList, errors);
     }
 
-    private static ConfigParseResult<List<Config.Job.Action>> parseJobActions(
+    private static ConfigParseResult<Map<JobEnums.ActionType, Config.Job.Action>> parseJobActions(
         ConfigurationSection section,
         String jobId
     ) {
         var errors = new ArrayList<String>();
+        var actionMap = new HashMap<JobEnums.ActionType, Config.Job.Action>();
 
-        var actions = new ArrayList<Config.Job.Action>();
         for (String actionKey : section.getKeys(false)) {
             var actionType = JobEnums.ActionType.fromString(actionKey);
             if (actionType.isEmpty()) {
@@ -110,69 +112,84 @@ public class ConfigLoader {
                 continue;
             }
 
-            var entries = new ArrayList<Config.Job.Action.Entry>();
-            for (String entryKey : entriesSection.getKeys(false)) {
-                var validEntry = true;
-                if (actionType.get() == JobEnums.ActionType.BLOCK_BREAK) {
+            var entryMap = parseActionEntries(entriesSection, jobId, actionType.get());
+            errors.addAll(entryMap.errors());
 
-                    var material = Material.matchMaterial(entryKey);
-                    if (material == null) {
-                        errors.add("job '%s', action '%s', entry '%s': invalid entry".formatted(
-                            jobId,
-                            actionKey,
-                            entryKey
-                        ));
-                        validEntry = false;
-                    }
-                }
+            actionMap.put(actionType.get(), new Config.Job.Action(actionType.get(), entryMap.result()));
+        }
 
-                var xp = entriesSection.getInt("%s.xp".formatted(entryKey), -1);
-                if (xp < 0) {
-                    errors.add("job '%s', action '%s', entry '%s': invalid xp".formatted(jobId, actionKey, entryKey));
-                    validEntry = false;
-                }
+        return new ConfigParseResult<>(actionMap, errors);
+    }
 
-                var payout = entriesSection.getString("%s.payout".formatted(entryKey));
-                if (payout == null || payout.isBlank()) {
-                    errors.add("job '%s', action '%s', entry '%s': invalid payout".formatted(
+    private static ConfigParseResult<Map<String, Config.Job.Action.Entry>> parseActionEntries(
+        ConfigurationSection section,
+        String jobId,
+        JobEnums.ActionType actionType
+    ) {
+        var errors = new ArrayList<String>();
+        var entryMap = new HashMap<String, Config.Job.Action.Entry>();
+
+        for (String entryKey : section.getKeys(false)) {
+            var validEntry = true;
+            if (actionType == JobEnums.ActionType.BLOCK_BREAK) {
+                var material = Material.matchMaterial(entryKey);
+                if (material == null) {
+                    errors.add("job '%s', action '%s', entry '%s': invalid entry".formatted(
                         jobId,
-                        actionKey,
+                        actionType.name(),
                         entryKey
                     ));
                     validEntry = false;
                 }
-
-                if (!validEntry) {
-                    continue;
-                }
-
-                BigDecimal payoutBigDecimal;
-                try {
-                    payoutBigDecimal = new BigDecimal(payout);
-                } catch (NumberFormatException e) {
-                    errors.add("job '%s', action '%s', entry '%s': invalid payout".formatted(
-                        jobId,
-                        actionKey,
-                        entryKey
-                    ));
-                    continue;
-                }
-
-                entries.add(
-                    new Config.Job.Action.Entry(
-                        entryKey,
-                        xp,
-                        payoutBigDecimal
-                    )
-                );
             }
 
-            actions.add(
-                new Config.Job.Action(actionType.get(), entries)
+            var xp = section.getInt("%s.xp".formatted(entryKey), -1);
+            if (xp < 0) {
+                errors.add("job '%s', action '%s', entry '%s': invalid xp".formatted(
+                    jobId,
+                    actionType.name(),
+                    entryKey
+                ));
+                validEntry = false;
+            }
+
+            var payout = section.getString("%s.payout".formatted(entryKey));
+            if (payout == null || payout.isBlank()) {
+                errors.add("job '%s', action '%s', entry '%s': invalid payout".formatted(
+                    jobId,
+                    actionType.name(),
+                    entryKey
+                ));
+                validEntry = false;
+            }
+
+            if (!validEntry) {
+                continue;
+            }
+
+            BigDecimal payoutBigDecimal;
+            try {
+                payoutBigDecimal = new BigDecimal(payout);
+            } catch (NumberFormatException e) {
+                errors.add("job '%s', action '%s', entry '%s': invalid payout number".formatted(
+                    jobId,
+                    actionType.name(),
+                    entryKey
+                ));
+                continue;
+            }
+
+            entryMap.put(
+                entryKey.toLowerCase(),
+                new Config.Job.Action.Entry(
+                    entryKey,
+                    xp,
+                    payoutBigDecimal
+                )
             );
         }
 
-        return new ConfigParseResult<>(actions, errors);
+        return new ConfigParseResult<>(entryMap, errors);
     }
 
     private static ConfigParseResult<Config.Settings> parseSettings(ConfigurationSection section) {
