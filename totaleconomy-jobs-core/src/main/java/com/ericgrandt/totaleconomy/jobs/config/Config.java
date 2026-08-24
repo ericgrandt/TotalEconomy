@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+// TODO: If it becomes an issue, List<Job> can become a Map for quicker/easier lookup
 public record Config(List<Job> jobs, Settings settings) {
     public record Job(
         String id,

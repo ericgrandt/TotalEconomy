@@ -17,7 +17,7 @@ import java.util.Map;
 // TODO: A lot of this should be shared. The only thing that will be unique is the validation of materials/entities
 // NOTE: This is a mess, I'm sorry. It works though.
 public class ConfigLoader {
-    public static Config from(FileConfiguration fileConfig) {
+    public Config from(FileConfiguration fileConfig) {
         var errors = new ArrayList<String>();
 
         var jobsSection = fileConfig.getConfigurationSection("jobs");
@@ -49,7 +49,7 @@ public class ConfigLoader {
         );
     }
 
-    private static ConfigParseResult<List<Config.Job>> parseJobs(ConfigurationSection section) {
+    private ConfigParseResult<List<Config.Job>> parseJobs(ConfigurationSection section) {
         var errors = new ArrayList<String>();
         var jobList = new ArrayList<Config.Job>();
         for (String jobKey : section.getKeys(false)) {
@@ -92,7 +92,7 @@ public class ConfigLoader {
         return new ConfigParseResult<>(jobList, errors);
     }
 
-    private static ConfigParseResult<Map<JobEnums.ActionType, Config.Job.Action>> parseJobActions(
+    private ConfigParseResult<Map<JobEnums.ActionType, Config.Job.Action>> parseJobActions(
         ConfigurationSection section,
         String jobId
     ) {
@@ -121,7 +121,7 @@ public class ConfigLoader {
         return new ConfigParseResult<>(actionMap, errors);
     }
 
-    private static ConfigParseResult<Map<String, Config.Job.Action.Entry>> parseActionEntries(
+    private ConfigParseResult<Map<String, Config.Job.Action.Entry>> parseActionEntries(
         ConfigurationSection section,
         String jobId,
         JobEnums.ActionType actionType
@@ -180,7 +180,7 @@ public class ConfigLoader {
             }
 
             entryMap.put(
-                entryKey.toLowerCase(),
+                entryKey.toUpperCase(), // Materials (block names, entity names, etc) are UPPER_CASE
                 new Config.Job.Action.Entry(
                     entryKey,
                     xp,
@@ -192,7 +192,7 @@ public class ConfigLoader {
         return new ConfigParseResult<>(entryMap, errors);
     }
 
-    private static ConfigParseResult<Config.Settings> parseSettings(ConfigurationSection section) {
+    private ConfigParseResult<Config.Settings> parseSettings(ConfigurationSection section) {
         var errors = new ArrayList<String>();
         var maxLevel = section.getInt("maxLevel", 0);
         if (maxLevel <= 0) {

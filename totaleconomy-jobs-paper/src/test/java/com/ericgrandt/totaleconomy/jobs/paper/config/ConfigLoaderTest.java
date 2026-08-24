@@ -18,16 +18,17 @@ class ConfigLoaderTest {
     public void from_ShouldParseConfig() throws InvalidConfigurationException {
         // Arrange
         var config = buildTestConfig();
+        var sut = new ConfigLoader();
 
         // Act
         var entry = new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.valueOf(3.0));
-        var entryMap = Map.of("coal_ore", entry);
+        var entryMap = Map.of("COAL_ORE", entry);
         var actionMap = Map.of(
             JobEnums.ActionType.BLOCK_BREAK,
             new Config.Job.Action(JobEnums.ActionType.BLOCK_BREAK, entryMap)
         );
 
-        var actual = ConfigLoader.from(config);
+        var actual = sut.from(config);
         var expected = new Config(
             List.of(
                 new Config.Job(

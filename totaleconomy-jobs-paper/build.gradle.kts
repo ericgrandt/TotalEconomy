@@ -1,5 +1,7 @@
 plugins {
     id("java")
+    alias(libs.plugins.run.paper)
+    alias(libs.plugins.shadow)
 }
 
 repositories {
@@ -27,6 +29,25 @@ dependencies {
 }
 
 tasks {
+    runServer {
+        dependsOn(shadowJar)
+        minecraftVersion("26.2")
+    }
+
+    shadowJar {
+        archiveClassifier.set("")
+        archiveFileName.set("TotalEconomyJobsPaper-${project.version}.jar")
+
+        mergeServiceFiles()
+
+        // Exclude the API so it falls back to using the TotalEconomy bundled API
+        exclude("com/ericgrandt/totaleconomy/api/**")
+
+        minimize {
+            exclude(project(":totaleconomy-jobs-core"))
+        }
+    }
+
     test {
         useJUnitPlatform()
     }

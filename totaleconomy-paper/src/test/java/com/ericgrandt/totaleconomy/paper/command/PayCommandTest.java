@@ -1,6 +1,5 @@
 package com.ericgrandt.totaleconomy.paper.command;
 
-import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.common.testutils.TestTaskRunner;
 import com.ericgrandt.totaleconomy.common.testutils.TestUtils;
@@ -55,7 +54,7 @@ public class PayCommandTest {
     @Mock
     private PlayerSelectorArgumentResolver resolverMock;
 
-    private final AsyncTaskRunner taskRunner = new TestTaskRunner();
+    private final TestTaskRunner taskRunner = new TestTaskRunner();
     private final CurrencyData currencyData = new CurrencyData();
     private final AccountData accountData = new AccountData();
 

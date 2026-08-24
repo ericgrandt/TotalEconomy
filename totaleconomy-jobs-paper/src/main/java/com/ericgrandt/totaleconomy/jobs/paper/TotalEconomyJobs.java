@@ -4,9 +4,11 @@ import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.jobs.data.DatabaseSetup;
+import com.ericgrandt.totaleconomy.jobs.job.RewardCalculator;
 import com.ericgrandt.totaleconomy.jobs.paper.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.jobs.paper.listener.BlockBreakListener;
 import com.ericgrandt.totaleconomy.jobs.paper.util.PaperAsyncTaskRunner;
+import com.ericgrandt.totaleconomy.jobs.service.BlockBreakService;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,8 @@ public class TotalEconomyJobs extends JavaPlugin {
         }
         saveDefaultConfig();
 
-        var config = ConfigLoader.from(getConfig());
+        var configLoader = new ConfigLoader();
+        var config = configLoader.from(getConfig());
         var dataSource = dataSourceProvider.getDataSource();
 
         try (Connection conn = dataSource.getConnection()) {
@@ -40,7 +43,8 @@ public class TotalEconomyJobs extends JavaPlugin {
             return;
         }
 
-        // var blockBreakService = new BlockBreakService();
-        getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
+        var rewardsCalculator = new RewardCalculator(config);
+        var blockBreakService = new BlockBreakService(rewardsCalculator);
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(rewardsCalculator), this);
     }
 }

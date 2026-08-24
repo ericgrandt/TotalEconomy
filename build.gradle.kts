@@ -1,5 +1,7 @@
 plugins {
     java
+    alias(libs.plugins.run.paper) apply false
+    alias(libs.plugins.shadow) apply false
 }
 
 repositories {
