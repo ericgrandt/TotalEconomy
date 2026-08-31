@@ -3,12 +3,16 @@ package com.ericgrandt.totaleconomy.jobs.paper;
 import com.ericgrandt.totaleconomy.api.infra.AsyncTaskRunner;
 import com.ericgrandt.totaleconomy.api.infra.DataSourceProvider;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
+import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.jobs.data.ActiveJobData;
 import com.ericgrandt.totaleconomy.jobs.data.DatabaseSetup;
-import com.ericgrandt.totaleconomy.jobs.job.RewardCalculator;
+import com.ericgrandt.totaleconomy.jobs.data.JobExperienceData;
+import com.ericgrandt.totaleconomy.jobs.job.JobCalculator;
 import com.ericgrandt.totaleconomy.jobs.paper.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.jobs.paper.listener.BlockBreakListener;
 import com.ericgrandt.totaleconomy.jobs.paper.util.PaperAsyncTaskRunner;
 import com.ericgrandt.totaleconomy.jobs.service.BlockBreakService;
+import com.ericgrandt.totaleconomy.jobs.service.JobService;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +47,18 @@ public class TotalEconomyJobs extends JavaPlugin {
             return;
         }
 
-        var rewardsCalculator = new RewardCalculator(config);
-        var blockBreakService = new BlockBreakService(rewardsCalculator);
-        getServer().getPluginManager().registerEvents(new BlockBreakListener(rewardsCalculator), this);
+        var transactionUtil = new TransactionUtil(dataSource);
+        var activeJobData = new ActiveJobData();
+        var jobService = new JobService(transactionUtil, activeJobData);
+        var rewardsCalculator = new JobCalculator(config);
+
+        var jobExperienceData = new JobExperienceData();
+        var blockBreakService = new BlockBreakService(
+            transactionUtil,
+            jobExperienceData,
+            economyService,
+            rewardsCalculator
+        );
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(blockBreakService, jobService), this);
     }
 }

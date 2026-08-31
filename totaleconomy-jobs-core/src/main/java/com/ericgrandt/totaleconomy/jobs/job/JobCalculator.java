@@ -5,10 +5,10 @@ import com.ericgrandt.totaleconomy.jobs.config.JobEnums;
 
 import java.util.Optional;
 
-public class RewardCalculator {
+public class JobCalculator {
     private final Config config;
 
-    public RewardCalculator(Config config) {
+    public JobCalculator(Config config) {
         this.config = config;
     }
 
@@ -18,6 +18,14 @@ public class RewardCalculator {
         return payoutMultiplier.base() + (normalizedLevel * payoutMultiplier.perLevel());
     }
 
+    public int calculateLevelFromExp(int experience) {
+        int baseExp = config.settings().xpCurve().baseXP();
+        int level = (int) Math.floor(Math.sqrt((double) experience / baseExp)) + 1;
+
+        return Math.min(config.settings().maxLevel(), level);
+    }
+
+    // TODO: This should be moved to the config package or Config class
     public Optional<Config.Job.Action.Entry> getEntry(
         String jobName,
         JobEnums.ActionType actionType,

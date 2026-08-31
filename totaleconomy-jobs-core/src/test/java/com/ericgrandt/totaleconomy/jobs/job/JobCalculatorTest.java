@@ -13,7 +13,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RewardCalculatorTest {
+public class JobCalculatorTest {
     private final Config config = new Config(
         List.of(
             new Config.Job(
@@ -39,7 +39,7 @@ public class RewardCalculatorTest {
     @Tag("Unit")
     void getPayoutMultiplier_WithLevelGreaterThanOne_ShouldReturnCorrectValue() {
         // Arrange
-        var sut = new RewardCalculator(config);
+        var sut = new JobCalculator(config);
 
         // Act
         var actual = sut.calculatePayout(3);
@@ -53,7 +53,7 @@ public class RewardCalculatorTest {
     @Tag("Unit")
     void getPayoutMultiplier_WithLevelLessThanOne_ShouldDefaultToLevelOneAndReturnCorrectValue() {
         // Arrange
-        var sut = new RewardCalculator(config);
+        var sut = new JobCalculator(config);
 
         // Act
         var actual = sut.calculatePayout(0);
@@ -63,6 +63,18 @@ public class RewardCalculatorTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    @Tag("Unit")
+    void calculateLevelFromExp_WithQuadraticCurve_ShouldReturnCorrectLevels() {
+        // Arrange
+        var sut = new JobCalculator(config);
+
+        // Act/Assert
+        assertEquals(1, sut.calculateLevelFromExp(0));
+        assertEquals(2, sut.calculateLevelFromExp(100));
+        assertEquals(50, sut.calculateLevelFromExp(249999));
+        assertEquals(51, sut.calculateLevelFromExp(250000));
+    }
 
     @Test
     @Tag("Unit")
@@ -72,7 +84,7 @@ public class RewardCalculatorTest {
         var actionType = JobEnums.ActionType.BLOCK_BREAK;
         var materialName = "coal_ore";
 
-        var sut = new RewardCalculator(config);
+        var sut = new JobCalculator(config);
 
         // Act
         var actual = sut.getEntry(jobName, actionType, materialName);
@@ -91,7 +103,7 @@ public class RewardCalculatorTest {
         var actionType = JobEnums.ActionType.BLOCK_BREAK;
         var materialName = "coal_ore";
 
-        var sut = new RewardCalculator(config);
+        var sut = new JobCalculator(config);
 
         // Act
         var actual = sut.getEntry(jobName, actionType, materialName);
@@ -129,7 +141,7 @@ public class RewardCalculatorTest {
         var actionType = JobEnums.ActionType.BLOCK_BREAK;
         var materialName = "not_a_material";
 
-        var sut = new RewardCalculator(config);
+        var sut = new JobCalculator(config);
 
         // Act
         var actual = sut.getEntry(jobName, actionType, materialName);

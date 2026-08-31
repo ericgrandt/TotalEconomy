@@ -15,6 +15,7 @@ val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     compileOnly(libs.paper)
     compileOnly(project(":totaleconomy-api"))
+    implementation(project(":common"))
     implementation(project(":totaleconomy-jobs-core"))
 
     mockitoAgent(libs.mockito.core) { isTransitive = false }

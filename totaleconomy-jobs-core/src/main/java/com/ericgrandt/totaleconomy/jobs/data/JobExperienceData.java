@@ -7,7 +7,6 @@ import com.ericgrandt.totaleconomy.jobs.model.JobExperience;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,11 +14,11 @@ import java.util.UUID;
 public class JobExperienceData {
     public Optional<JobExperience> getJobExperience(Connection conn, GetJobExperienceDto req) throws SQLException {
         var selectQuery = "SELECT player_id, job_id, xp FROM te_job_experience WHERE player_id = ? AND job_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+        try (var stmt = conn.prepareStatement(selectQuery)) {
             stmt.setString(1, req.playerId().toString());
             stmt.setString(2, req.jobId());
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (var rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(
                         new JobExperience(

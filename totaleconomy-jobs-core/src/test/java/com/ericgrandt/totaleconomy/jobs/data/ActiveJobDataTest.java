@@ -9,11 +9,56 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ActiveJobDataTest {
+    @Test
+    @Tag("Integration")
+    void getActiveJob_WithResult_ShouldReturnActiveJob() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true, DatabaseSetup::init);
+        var activeJob = TestSeeder.seedActiveJob(dataSource);
+        var util = new TransactionUtil(dataSource);
+
+        var playerId = UUID.fromString(activeJob.playerId());
+
+        var sut = new ActiveJobData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.getActiveJob(conn, playerId);
+            var expected = Optional.of(new ActiveJob(
+                playerId,
+                "miner"
+            ));
+
+            assertEquals(expected, actual);
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    void getActiveJob_WithNoResult_ShouldReturnEmptyOptional() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true, DatabaseSetup::init);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new ActiveJobData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.getActiveJob(conn, UUID.randomUUID());
+            var expected = Optional.empty();
+
+            assertEquals(expected, actual);
+            return null;
+        });
+    }
+
     @Test
     @Tag("Integration")
     void upsertActiveJob_WithInsert_ShouldReturnActiveJob() throws SQLException {
