@@ -34,7 +34,6 @@ public class BlockBreakService implements ActionService {
         this.jobCalculator = jobCalculator;
     }
 
-    // TODO: Test
     @Override
     public HandleActionDto handleAction(UUID playerId, String jobName, String blockName) {
         var entryOpt = jobCalculator.getEntry(jobName, JobEnums.ActionType.BLOCK_BREAK, blockName);

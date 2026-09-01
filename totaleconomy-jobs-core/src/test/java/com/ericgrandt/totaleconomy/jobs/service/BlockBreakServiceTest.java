@@ -1,5 +1,6 @@
 package com.ericgrandt.totaleconomy.jobs.service;
 
+import com.ericgrandt.totaleconomy.api.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.jobs.config.Config;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -60,12 +62,35 @@ public class BlockBreakServiceTest {
 
     @Test
     @Tag("Unit")
-    public void handleAction_WithSuccess_ShouldReturnCorrectHandleActionDto() {
+    public void handleAction_WithSuccess_ShouldReturnCorrectHandleActionDto() throws SQLException {
         // Arrange
+        var playerId = UUID.randomUUID();
+        var jobName = "testJob";
+        var blockName = "testBlock";
+
+        when(jobCalculatorMock.getEntry(
+            jobName,
+            JobEnums.ActionType.BLOCK_BREAK,
+            blockName
+        )).thenReturn(Optional.of(entry));
+        when(jobExperienceDataMock.getJobExperience(any(), any())).thenReturn(Optional.of(new JobExperience(
+            playerId,
+            jobName,
+            10
+        )));
+        when(jobExperienceDataMock.upsertJobExperience(
+            any(),
+            eq(new UpsertJobExperienceDto(playerId, jobName, 1))
+        )).thenReturn(new JobExperience(playerId, jobName, 11));
 
         // Act
+        var actual = sut.handleAction(playerId, jobName, blockName);
+        var expected = new HandleActionDto(Status.SUCCESS, entry.xp(), entry.payout(), false);
 
         // Assert
+        assertEquals(expected, actual);
+        verify(jobCalculatorMock).calculateLevelFromExp(10);
+        verify(jobCalculatorMock).calculateLevelFromExp(11);
     }
 
     @Test
@@ -119,7 +144,55 @@ public class BlockBreakServiceTest {
         verify(jobCalculatorMock).calculateLevelFromExp(1);
     }
 
-    // handleAction_WithLevelUp_ShouldReturnHandleActionDto()
-    // handleAction_WithNoLevelUp_ShouldReturnCorrectHandleActionDto()
-    // handleAction_WithSQLException_ShouldThrowDatabaseException()
+    @Test
+    @Tag("Unit")
+    public void handleAction_WithLevelUp_ShouldReturnHandleActionDto() throws SQLException {
+        // Arrange
+        var playerId = UUID.randomUUID();
+        var jobName = "testJob";
+        var blockName = "testBlock";
+
+        when(jobCalculatorMock.getEntry(
+            jobName,
+            JobEnums.ActionType.BLOCK_BREAK,
+            blockName
+        )).thenReturn(Optional.of(entry));
+        when(jobExperienceDataMock.getJobExperience(any(), any())).thenReturn(Optional.of(new JobExperience(
+            playerId,
+            jobName,
+            10
+        )));
+        when(jobExperienceDataMock.upsertJobExperience(
+            any(),
+            eq(new UpsertJobExperienceDto(playerId, jobName, 1))
+        )).thenReturn(new JobExperience(playerId, jobName, 11));
+        when(jobCalculatorMock.calculateLevelFromExp(10)).thenReturn(1);
+        when(jobCalculatorMock.calculateLevelFromExp(11)).thenReturn(2);
+
+        // Act
+        var actual = sut.handleAction(playerId, jobName, blockName);
+        var expected = new HandleActionDto(Status.SUCCESS, entry.xp(), entry.payout(), true);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void handleAction_WithSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        var playerId = UUID.randomUUID();
+        var jobName = "testJob";
+        var blockName = "testBlock";
+
+        when(jobCalculatorMock.getEntry(
+            jobName,
+            JobEnums.ActionType.BLOCK_BREAK,
+            blockName
+        )).thenReturn(Optional.of(entry));
+        when(jobExperienceDataMock.getJobExperience(any(), any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(DatabaseException.class, () -> sut.handleAction(playerId, jobName, blockName));
+    }
 }
