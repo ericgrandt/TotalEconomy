@@ -14,19 +14,23 @@ repositories {
 val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     compileOnly(libs.paper)
-    compileOnly(project(":totaleconomy-api"))
+
+    implementation(project(":totaleconomy-api"))
     implementation(project(":common"))
     implementation(project(":totaleconomy-jobs-core"))
 
-    mockitoAgent(libs.mockito.core) { isTransitive = false }
-
+    testImplementation(libs.h2)
+    testImplementation(libs.hikari)
     testImplementation(libs.paper)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(project(":totaleconomy-core"))
 
+    mockitoAgent(libs.mockito.core) { isTransitive = false }
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
@@ -51,5 +55,9 @@ tasks {
 
     test {
         useJUnitPlatform()
+
+        doFirst {
+            jvmArgs("-javaagent:${mockitoAgent.singleFile.absolutePath}")
+        }
     }
 }

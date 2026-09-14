@@ -10,6 +10,7 @@ import com.ericgrandt.totaleconomy.jobs.data.JobExperienceData;
 import com.ericgrandt.totaleconomy.jobs.job.JobCalculator;
 import com.ericgrandt.totaleconomy.jobs.paper.config.ConfigLoader;
 import com.ericgrandt.totaleconomy.jobs.paper.listener.BlockBreakListener;
+import com.ericgrandt.totaleconomy.jobs.paper.mapper.ExceptionMapper;
 import com.ericgrandt.totaleconomy.jobs.paper.util.PaperAsyncTaskRunner;
 import com.ericgrandt.totaleconomy.jobs.service.BlockBreakService;
 import com.ericgrandt.totaleconomy.jobs.service.JobService;
@@ -48,17 +49,19 @@ public class TotalEconomyJobs extends JavaPlugin {
         }
 
         var transactionUtil = new TransactionUtil(dataSource);
+        var exceptionMapper = new ExceptionMapper(logger);
         var activeJobData = new ActiveJobData();
-        var jobService = new JobService(transactionUtil, activeJobData);
+        var jobExperienceData = new JobExperienceData();
+        var jobService = new JobService(transactionUtil, activeJobData, jobExperienceData);
         var rewardsCalculator = new JobCalculator(config);
 
-        var jobExperienceData = new JobExperienceData();
         var blockBreakService = new BlockBreakService(
             transactionUtil,
             jobExperienceData,
             economyService,
             rewardsCalculator
         );
-        getServer().getPluginManager().registerEvents(new BlockBreakListener(blockBreakService, jobService), this);
+        getServer().getPluginManager()
+            .registerEvents(new BlockBreakListener(taskRunner, exceptionMapper, blockBreakService, jobService), this);
     }
 }

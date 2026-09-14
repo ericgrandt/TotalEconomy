@@ -12,10 +12,12 @@ import java.util.UUID;
 public class TestSeeder {
     private static final String TEST_DATE = "2025-01-01T00:00:00Z";
 
+    private static final UUID playerId = UUID.randomUUID();
+
     public static ActiveJobEntity seedActiveJob(HikariDataSource dataSource) throws SQLException {
         var activeJob = new ActiveJobEntity(
             1,
-            UUID.randomUUID().toString(),
+            playerId.toString(),
             "miner",
             Instant.parse(TEST_DATE)
         );
@@ -39,7 +41,7 @@ public class TestSeeder {
     public static JobExperienceEntity seedJobExperience(HikariDataSource dataSource) throws SQLException {
         var jobExperience = new JobExperienceEntity(
             1,
-            UUID.randomUUID().toString(),
+            playerId.toString(),
             "miner",
             10
         );

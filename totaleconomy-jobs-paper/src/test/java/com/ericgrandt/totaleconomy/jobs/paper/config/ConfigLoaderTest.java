@@ -17,7 +17,7 @@ class ConfigLoaderTest {
     @Test
     public void from_ShouldParseConfig() throws InvalidConfigurationException {
         // Arrange
-        var config = buildTestConfig();
+        var config = buildTestYamlConfig();
         var sut = new ConfigLoader();
 
         // Act
@@ -56,7 +56,7 @@ class ConfigLoaderTest {
         assertEquals(expected, actual);
     }
 
-    private @NonNull YamlConfiguration buildTestConfig() throws InvalidConfigurationException {
+    private @NonNull YamlConfiguration buildTestYamlConfig() throws InvalidConfigurationException {
         var config = new YamlConfiguration();
         config.loadFromString("""
             jobs:
