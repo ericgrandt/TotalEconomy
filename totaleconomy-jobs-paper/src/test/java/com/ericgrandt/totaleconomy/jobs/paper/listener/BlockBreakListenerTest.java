@@ -60,7 +60,8 @@ public class BlockBreakListenerTest {
             transactionUtil,
             jobExperienceData,
             economyServiceMock,
-            jobCalculator
+            jobCalculator,
+            config
         );
 
         var event = mock(BlockBreakEvent.class, Answers.RETURNS_DEEP_STUBS);

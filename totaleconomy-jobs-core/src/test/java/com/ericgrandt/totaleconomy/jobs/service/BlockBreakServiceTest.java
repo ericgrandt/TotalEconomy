@@ -47,6 +47,9 @@ public class BlockBreakServiceTest {
     @Mock
     private JobCalculator jobCalculatorMock;
 
+    @Mock
+    private Config configMock;
+
     private final Config.Job.Action.Entry entry = new Config.Job.Action.Entry("material", 1, BigDecimal.ONE);
 
     private BlockBreakService sut;
@@ -57,7 +60,13 @@ public class BlockBreakServiceTest {
             TransactionUtil.Transaction<?> tx = invocation.getArgument(0);
             return tx.execute(mock(Connection.class));
         });
-        sut = new BlockBreakService(transactionUtilMock, jobExperienceDataMock, economyServiceMock, jobCalculatorMock);
+        sut = new BlockBreakService(
+            transactionUtilMock,
+            jobExperienceDataMock,
+            economyServiceMock,
+            jobCalculatorMock,
+            configMock
+        );
     }
 
     @Test
@@ -68,7 +77,7 @@ public class BlockBreakServiceTest {
         var jobName = "testJob";
         var blockName = "testBlock";
 
-        when(jobCalculatorMock.getEntry(
+        when(configMock.getEntry(
             jobName,
             JobEnums.ActionType.BLOCK_BREAK,
             blockName
@@ -101,7 +110,7 @@ public class BlockBreakServiceTest {
         var jobName = "testJob";
         var blockName = "testBlock";
 
-        when(jobCalculatorMock.getEntry(
+        when(configMock.getEntry(
             jobName,
             JobEnums.ActionType.BLOCK_BREAK,
             blockName
@@ -123,7 +132,7 @@ public class BlockBreakServiceTest {
         var jobName = "testJob";
         var blockName = "testBlock";
 
-        when(jobCalculatorMock.getEntry(
+        when(configMock.getEntry(
             jobName,
             JobEnums.ActionType.BLOCK_BREAK,
             blockName
@@ -152,7 +161,7 @@ public class BlockBreakServiceTest {
         var jobName = "testJob";
         var blockName = "testBlock";
 
-        when(jobCalculatorMock.getEntry(
+        when(configMock.getEntry(
             jobName,
             JobEnums.ActionType.BLOCK_BREAK,
             blockName
@@ -185,7 +194,7 @@ public class BlockBreakServiceTest {
         var jobName = "testJob";
         var blockName = "testBlock";
 
-        when(jobCalculatorMock.getEntry(
+        when(configMock.getEntry(
             jobName,
             JobEnums.ActionType.BLOCK_BREAK,
             blockName

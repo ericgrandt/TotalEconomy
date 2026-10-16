@@ -32,6 +32,9 @@ public class BlockBreakListener implements Listener {
         var activeJob = jobService.getActiveJob(player.getUniqueId());
         var blockName = event.getBlock().getState().getBlock().getType().name();
 
+        // TODO: Maybe before executing runAsync, we do a quick action + block existence check against
+        //  the config file instead of waiting until we call handleAction. That should be safe to run
+        //  in the same thread?
         taskRunner.runAsync(() -> {
             try {
                 blockBreakService.handleAction(player.getUniqueId(), activeJob.jobId(), blockName);
@@ -39,6 +42,5 @@ public class BlockBreakListener implements Listener {
                 player.sendMessage(exceptionMapper.handleException(e));
             }
         });
-
     }
 }

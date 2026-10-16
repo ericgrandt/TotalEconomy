@@ -3,6 +3,7 @@ package com.ericgrandt.totaleconomy.jobs.service;
 import com.ericgrandt.totaleconomy.api.exception.DatabaseException;
 import com.ericgrandt.totaleconomy.api.service.EconomyService;
 import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
+import com.ericgrandt.totaleconomy.jobs.config.Config;
 import com.ericgrandt.totaleconomy.jobs.config.JobEnums;
 import com.ericgrandt.totaleconomy.jobs.data.JobExperienceData;
 import com.ericgrandt.totaleconomy.jobs.dto.GetJobExperienceDto;
@@ -21,22 +22,25 @@ public class BlockBreakService implements ActionService {
     private final JobExperienceData jobExperienceData;
     private final EconomyService<?> economyService;
     private final JobCalculator jobCalculator;
+    private final Config config;
 
     public BlockBreakService(
         TransactionUtil transactionUtil,
         JobExperienceData jobExperienceData,
         EconomyService<?> economyService,
-        JobCalculator jobCalculator
+        JobCalculator jobCalculator,
+        Config config
     ) {
         this.transactionUtil = transactionUtil;
         this.jobExperienceData = jobExperienceData;
         this.economyService = economyService;
         this.jobCalculator = jobCalculator;
+        this.config = config;
     }
 
     @Override
     public HandleActionDto handleAction(UUID playerId, String jobName, String blockName) {
-        var entryOpt = jobCalculator.getEntry(jobName, JobEnums.ActionType.BLOCK_BREAK, blockName);
+        var entryOpt = config.getEntry(jobName, JobEnums.ActionType.BLOCK_BREAK, blockName);
         if (entryOpt.isEmpty()) {
             return new HandleActionDto(Status.NOENTRY, 0, BigDecimal.ZERO, false);
         }

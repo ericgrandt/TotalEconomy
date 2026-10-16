@@ -59,7 +59,8 @@ public class TotalEconomyJobs extends JavaPlugin {
             transactionUtil,
             jobExperienceData,
             economyService,
-            rewardsCalculator
+            rewardsCalculator,
+            config
         );
         getServer().getPluginManager()
             .registerEvents(new BlockBreakListener(taskRunner, exceptionMapper, blockBreakService, jobService), this);
