@@ -60,11 +60,12 @@ public class BlockBreakService implements ActionService {
                 economyService.deposit(playerId, entry.payout());
                 var postRewardLevel = jobCalculator.calculateLevelFromExp(updatedJobExperience.experience());
 
-                if (postRewardLevel > preRewardLevel) {
-                    return new HandleActionDto(Status.SUCCESS, entry.xp(), entry.payout(), true);
-                }
-
-                return new HandleActionDto(Status.SUCCESS, entry.xp(), entry.payout(), false);
+                return new HandleActionDto(
+                    Status.SUCCESS,
+                    entry.xp(),
+                    entry.payout(),
+                    postRewardLevel > preRewardLevel
+                );
             });
         } catch (SQLException e) {
             throw new DatabaseException("database exception while handling block break event", e);
