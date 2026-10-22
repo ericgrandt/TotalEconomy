@@ -15,9 +15,9 @@ val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     compileOnly(libs.paper)
 
-    implementation(project(":totaleconomy-api"))
+    implementation(project(":api"))
     implementation(project(":common"))
-    implementation(project(":totaleconomy-jobs-core"))
+    implementation(project(":jobs:totaleconomy-jobs"))
 
     testImplementation(libs.h2)
     testImplementation(libs.hikari)
@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation(project(":totaleconomy-core"))
+    testImplementation(project(":totaleconomy"))
 
     mockitoAgent(libs.mockito.core) { isTransitive = false }
 
@@ -49,8 +49,12 @@ tasks {
         exclude("com/ericgrandt/totaleconomy/api/**")
 
         minimize {
-            exclude(project(":totaleconomy-jobs-core"))
+            exclude(project(":jobs:totaleconomy-jobs"))
         }
+    }
+
+    jar {
+        enabled = false
     }
 
     test {

@@ -1,8 +1,10 @@
 rootProject.name = "TotalEconomy"
 
-include("totaleconomy-paper")
-include("totaleconomy-api")
-include("totaleconomy-core")
-include("totaleconomy-jobs-paper")
-include("totaleconomy-jobs-core")
+include("api")
 include("common")
+
+include("totaleconomy")
+include("totaleconomy-paper")
+
+include(":jobs:totaleconomy-jobs")
+include(":jobs:totaleconomy-jobs-paper")

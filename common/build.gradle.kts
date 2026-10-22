@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":totaleconomy-api"))
+    implementation(project(":api"))
     implementation(libs.hikari)
 
     testImplementation(libs.junit.jupiter.api)

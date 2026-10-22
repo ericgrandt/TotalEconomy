@@ -20,9 +20,9 @@ dependencies {
     compileOnly(libs.paper)
     compileOnly(libs.vault)
 
-    implementation(project(":totaleconomy-api"))
+    implementation(project(":api"))
     implementation(project(":common"))
-    implementation(project(":totaleconomy-core"))
+    implementation(project(":totaleconomy"))
 
     testImplementation(libs.h2)
     testImplementation(libs.hikari)
@@ -56,8 +56,8 @@ tasks {
         exclude("net/kyori/**/*")
 
         minimize {
-            exclude(project(":totaleconomy-core"))
-            exclude(project(":totaleconomy-api"))
+            exclude(project(":totaleconomy"))
+            exclude(project(":api"))
         }
     }
 

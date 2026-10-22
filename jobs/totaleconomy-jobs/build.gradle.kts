@@ -1,21 +1,23 @@
 plugins {
-    java
-    alias(libs.plugins.shadow)
+    id("java")
+}
+
+repositories {
+    mavenCentral()
 }
 
 val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
-    implementation(project(":totaleconomy-api"))
+    implementation(project(":api"))
     implementation(project(":common"))
-    implementation(libs.adventure)
+
     implementation(libs.hikari)
 
-    testImplementation(libs.assertj)
     testImplementation(libs.h2)
+    testImplementation(libs.hikari)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.junit.jupiter)
-    testImplementation(libs.adventure)
 
     mockitoAgent(libs.mockito.core) { isTransitive = false }
 
