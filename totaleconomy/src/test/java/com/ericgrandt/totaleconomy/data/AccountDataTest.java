@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AccountDataTest {
     @Test
     @Tag("Integration")
-    void createAccount_WithSuccess_ShouldReturnCreatedAccount() throws SQLException {
+    public void createAccount_WithSuccess_ShouldReturnCreatedAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -57,7 +57,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void getAccount_WithSuccess_ShouldReturnAccount() throws SQLException {
+    public void getAccount_WithSuccess_ShouldReturnAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -86,7 +86,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void getAccount_WithAccountNotFound_ShouldReturnEmptyOptional() throws SQLException {
+    public void getAccount_WithAccountNotFound_ShouldReturnEmptyOptional() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -107,7 +107,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void withdraw_WithSuccess_ShouldReturnAnAffectedRowCountOfOneAndWithdrawFromAccount() throws SQLException {
+    public void withdraw_WithSuccess_ShouldReturnTrueAndWithdrawFromAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -141,7 +141,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void withdraw_WithEnforceMinimumBalanceOfFalse_ShouldReturnAnAffectedRowCountOfOneAndWithdrawFromAccount() throws SQLException {
+    public void withdraw_WithEnforceMinimumBalanceOfFalse_ShouldReturnTrueAndWithdrawFromAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -175,7 +175,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void withdraw_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
+    public void withdraw_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -195,7 +195,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void deposit_WithSuccess_ShouldReturnAnAffectedRowCountOfOneAndDepositIntoAccount() throws SQLException {
+    public void deposit_WithSuccess_ShouldReturnTrueAndDepositIntoAccount() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -228,7 +228,7 @@ public class AccountDataTest {
 
     @Test
     @Tag("Integration")
-    void deposit_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
+    public void deposit_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
         // Arrange
         var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
         var currency = TestSeeder.seedDefaultCurrency(dataSource);
@@ -239,6 +239,59 @@ public class AccountDataTest {
         // Act/Assert
         util.runInTransaction(conn -> {
             var actual = sut.deposit(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO);
+
+            assertFalse(actual);
+
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    public void setBalance_WithSuccess_ShouldReturnTrueAndSetBalance() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
+        var account = TestSeeder.seedAccount(dataSource, null);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.setBalance(
+                    conn,
+                    UUID.fromString(account.playerId()),
+                    currency.code(),
+                    BigDecimal.valueOf(100)
+            );
+
+            var actualAccount = sut.getAccount(conn, UUID.fromString(account.playerId()), currency.code())
+                    .orElseThrow();
+            var expectedBalance = BigDecimal.valueOf(100).setScale(2, RoundingMode.DOWN);
+
+            assertTrue(actual);
+            assertEquals(
+                    expectedBalance,
+                    actualAccount.balance().setScale(currency.fractionalDigits(), RoundingMode.DOWN)
+            );
+            return null;
+        });
+    }
+
+    @Test
+    @Tag("Integration")
+    public void setBalance_WithNoRowsUpdated_ShouldReturnFalse() throws SQLException {
+        // Arrange
+        var dataSource = TestUtils.startTestDb(true, DatabaseBootstrapper::initSchema);
+        var currency = TestSeeder.seedDefaultCurrency(dataSource);
+        var util = new TransactionUtil(dataSource);
+
+        var sut = new AccountData();
+
+        // Act/Assert
+        util.runInTransaction(conn -> {
+            var actual = sut.setBalance(conn, UUID.randomUUID(), currency.code(), BigDecimal.TWO);
 
             assertFalse(actual);
 

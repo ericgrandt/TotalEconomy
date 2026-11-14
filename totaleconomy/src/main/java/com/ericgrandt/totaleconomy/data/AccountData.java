@@ -85,4 +85,15 @@ public class AccountData {
             return stmt.executeUpdate() > 0;
         }
     }
+
+    public boolean setBalance(Connection conn, UUID playerId, String currencyCode, BigDecimal amount) throws SQLException {
+        var query = "UPDATE te_account SET balance = ? WHERE player_id = ? AND currency_code = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setBigDecimal(1, amount);
+            stmt.setString(2, playerId.toString());
+            stmt.setString(3, currencyCode);
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
 }
