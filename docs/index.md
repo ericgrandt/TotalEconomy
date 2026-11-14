@@ -1,17 +1,32 @@
 ---
 layout: default
+title: Home
 nav_order: 1
 ---
 
 # Total Economy
 
-Total Economy is a Minecraft plugin that aims to provide a full-fledged economy for your server. Each feature can be enabled/disabled and configured to your liking. This allows you to continue using your favorite plugins alongside Total Economy without any issue.
+Total Economy is an economy plugin for [Paper](https://papermc.io/) servers. A lightweight core handles the essentials:
+currencies, player accounts, balances and payments. Additional features ship as separate add-on plugins that hook into
+the core API, so you install only what your server needs.
 
-## Enable/Disable Features
+## Features
 
-Each feature of Total Economy can be enabled or disabled to tailor to the needs of your server. To do so, in the `config.yml` file for Total Economy in the `features` section, set either `true` or `false` for each feature shown. For example, if you wanted to disable the jobs feature:
+- **Multiple currencies**, each with its own name, symbol, decimal places and starting balance
+- **Automatic player accounts**, created for every currency when a player joins
+- **Payments between players** in any currency
+- **Vault integration**, so plugins that use Vault work with Total Economy
+- **An API** that add-on plugins use to read and change balances
 
-```yml
-features:
-    jobs: true # <- Change true to false
-```
+## Getting started
+
+1. [Install the plugin](installation.md) and connect it to a MySQL database.
+2. [Configure](configuration.md) your default currency.
+3. Learn the [commands](commands.md) available to players.
+
+## Links
+
+- [Download on Modrinth](https://modrinth.com/plugin/total-economy/versions)
+- [Source code on GitHub](https://github.com/ericgrandt/TotalEconomy)
+- [Report a bug or request a feature](https://github.com/ericgrandt/TotalEconomy/issues)
+- [Ask a question](https://github.com/ericgrandt/TotalEconomy/discussions)
