@@ -46,7 +46,7 @@ public class BalanceCommand {
     }
 
     // TODO: These two execute functions need to be deduped
-    int executeWithCurrency(CommandContext<CommandSourceStack> ctx) {
+    public int executeWithCurrency(CommandContext<CommandSourceStack> ctx) {
         var player = (Player) ctx.getSource().getSender();
         var currencyCode = ctx.getArgument("currency", String.class);
 
@@ -66,7 +66,7 @@ public class BalanceCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    int executeWithDefault(CommandContext<CommandSourceStack> ctx) {
+    public int executeWithDefault(CommandContext<CommandSourceStack> ctx) {
         var player = (Player) ctx.getSource().getSender();
 
         taskRunner.runAsync(

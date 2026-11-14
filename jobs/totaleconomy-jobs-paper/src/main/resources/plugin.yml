@@ -3,6 +3,11 @@ version: 0.0.1
 main: com.ericgrandt.totaleconomy.jobs.paper.TotalEconomyJobs
 description: Jobs addon for Total Economy
 author: Eric
-api-version: 26.1.2
+api-version: 26.2
 depend:
   - TotalEconomy
+commands:
+  job:
+    description: Retrieve the player's active job
+    usage: /<command> [apply] [job]
+    permission: totaleconomy.job

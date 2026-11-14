@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.common.data.TransactionUtil;
 import com.ericgrandt.totaleconomy.jobs.data.ActiveJobData;
 import com.ericgrandt.totaleconomy.jobs.data.JobExperienceData;
 import com.ericgrandt.totaleconomy.jobs.dto.GetJobExperienceDto;
+import com.ericgrandt.totaleconomy.jobs.dto.UpsertActiveJobDto;
 import com.ericgrandt.totaleconomy.jobs.exception.ActiveJobNotFoundException;
 import com.ericgrandt.totaleconomy.jobs.exception.JobExperienceNotFoundException;
 import com.ericgrandt.totaleconomy.jobs.model.ActiveJob;
@@ -26,6 +27,16 @@ public class JobService {
         this.transactionUtil = transactionUtil;
         this.activeJobData = activeJobData;
         this.jobExperienceData = jobExperienceData;
+    }
+
+    // TODO: Test
+    // TODO: Verify the requested job actually exists in the configuration
+    public ActiveJob setActiveJob(UpsertActiveJobDto req) {
+        try {
+            return transactionUtil.runInTransaction(conn -> activeJobData.upsertActiveJob(conn, req));
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while setting active job", e);
+        }
     }
 
     // TODO: Think about caching? Over-optimization?

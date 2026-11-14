@@ -42,6 +42,7 @@ public class PayCommand {
             .then(Commands.argument("toPlayer", ArgumentTypes.player())
                 .then(Commands.argument("amount", DoubleArgumentType.doubleArg(0.01))
                     .then(Commands.argument("currency", StringArgumentType.string())
+                        // TODO: List currencies
                         .executes(this::executeWithCurrency)
                     )
                     .executes(this::executeWithDefault)))

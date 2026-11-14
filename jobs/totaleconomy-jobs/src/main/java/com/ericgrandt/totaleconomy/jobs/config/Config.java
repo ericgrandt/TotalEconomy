@@ -5,6 +5,7 @@ import com.ericgrandt.totaleconomy.jobs.config.JobEnums.PayoutMultiplierType;
 import com.ericgrandt.totaleconomy.jobs.config.JobEnums.XPCurveType;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +64,14 @@ public record Config(List<Job> jobs, Settings settings) {
 
         var action = getAction(job.get(), actionType);
         return action.map(value -> value.entryMap().get(materialName));
+    }
+
+    public List<String> getJobIds() {
+        var jobNames =  new ArrayList<String>();
+        for (Job job : jobs) {
+            jobNames.add(job.id());
+        }
+        return jobNames;
     }
 
     private Optional<Config.Job> getJob(String jobName) {

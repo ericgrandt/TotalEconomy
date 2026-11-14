@@ -24,6 +24,12 @@ public class ConfigTest {
                         Map.of("coal_ore", new Config.Job.Action.Entry("COAL_ORE", 10, BigDecimal.ONE))
                     )
                 )
+            ),
+            new Config.Job(
+                    "lumberjack",
+                    "Lumberjack",
+                    "Chop logs",
+                    Map.of()
             )
         ),
         new Config.Settings(
@@ -81,6 +87,17 @@ public class ConfigTest {
 
         // Assert
         assertTrue(actual.isEmpty());
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    void getJobNames_ShouldReturnCorrectJobNames() {
+        // Act
+        var actual = sut.getJobIds();
+        var expected = List.of("miner", "lumberjack");
+
+        // Assert
         assertEquals(expected, actual);
     }
 }
