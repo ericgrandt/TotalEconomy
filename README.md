@@ -50,12 +50,12 @@ Additional features are being developed as separate plugins that extend the core
 
 These are the current versions that the latest release was tested against. Older/Newer versions may still work.
 
-| Requirement | Version      |
-|-------------|--------------|
-| Minecraft   | 26.1.2       |
-| Java        | 25+          |
-| Server      | Paper 26.1.2 |
-| MySQL       | 8.0+         |
+| Requirement | Version     |
+|-------------|-------------|
+| Minecraft   | 26.2        |
+| Java        | 25+         |
+| Server      | Paper 26.2  |
+| MySQL       | 8.0+        |
 
 ## Building from Source
 
