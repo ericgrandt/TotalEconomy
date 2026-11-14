@@ -4,8 +4,13 @@ main: com.ericgrandt.totaleconomy.paper.TotalEconomy
 description: All in one economy plugin for Minecraft
 author: Eric
 api-version: 26.2
+softdepend: [Vault]
 commands:
   balance:
     description: Retrieve the player's balance
     usage: /<command> [currencyCode]
     permission: totaleconomy.balance
+  pay:
+    description: Pay another player
+    usage: /<command> <player> <amount> [currencyCode]
+    permission: totaleconomy.pay

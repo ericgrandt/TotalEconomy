@@ -8,31 +8,30 @@ nav_order: 2
 
 ## Requirements
 
-### Bukkit
+| Requirement | Version                                                        |
+|-------------|----------------------------------------------------------------|
+| Server      | [Paper](https://papermc.io/) 26.2 or newer                     |
+| Java        | 25 or newer                                                    |
+| Database    | MySQL 8.0 or newer                                             |
 
-- [Spigot](https://www.spigotmc.org/)/[Paper](https://papermc.io/)
-- [Vault](https://dev.bukkit.org/projects/vault)
-- MySQL (>= 8) database
+## Steps
 
-### Sponge
+1. Download the latest `TotalEconomyPaper-x.y.z.jar` from
+   [Modrinth](https://modrinth.com/plugin/total-economy/versions).
+2. Put the JAR in your server's `plugins/` folder. If you use Vault, put Vault there too.
+3. Create an empty MySQL database for Total Economy, for example `totaleconomy`. The plugin creates its own tables.
+4. Start the server once. This generates `plugins/TotalEconomy/config.yml`. Total Economy can't connect to the database
+   yet, so it disables itself; that's expected.
+5. Stop the server and edit `plugins/TotalEconomy/config.yml`:
+   - Set `database.url`, `database.user` and `database.password` for your MySQL database. The URL looks like
+     `jdbc:mysql://[host]:[port]/[database_name]`.
+   - Set up your default currency. See [Configuration](configuration.md) for each option.
+6. Start the server again.
 
-- [Sponge](https://spongepowered.org/)
-- MySQL (>= 8) database
+{: .important }
+Set up the default currency **before** the second start. It's saved to the database the first time the plugin connects,
+and later changes to `defaultCurrency` in `config.yml` aren't applied.
 
-## Step-by-step (Bukkit)
+## Checking it works
 
-1. Move the `TotalEconomy-x.y.z.jar` into the `plugins` folder
-2. Start the server to generate the configuration file
-   - Optionally, create the configuration beforehand using [config.yml](https://github.com/ericgrandt/TotalEconomy/blob/master/totaleconomy-bukkit/src/main/resources/config.yml) as a reference
-3. Update the configuration file with your database information
-   - For the database url, follow this structure: `jdbc:mysql://[host]:[port]/[database_name]`
-4. Restart the server
-
-## Step-by-step (Sponge)
-
-1. Move the `TotalEconomy-x.y.z.jar` into the `mods` folder
-2. Start the server to generate the configuration file
-   - Optionally, create the configuration beforehand (`config/totaleconomy/totaleconomy.conf`) using [totaleconomy.conf](https://github.com/ericgrandt/TotalEconomy/blob/master/totaleconomy-sponge/src/main/resources/totaleconomy.conf) as a reference
-3. Update the configuration file with your database information
-   - For the database url, follow this structure: `jdbc:mysql://[host]:[port]/[database_name]`
-4. Restart the server
+Join the server and run `/balance`. You should see the starting balance of your default currency.
