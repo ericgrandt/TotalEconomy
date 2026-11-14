@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.service;
 
 import com.ericgrandt.totaleconomy.api.dto.DepositResult;
 import com.ericgrandt.totaleconomy.api.dto.GetAccountBalanceResult;
+import com.ericgrandt.totaleconomy.api.dto.SetBalanceResult;
 import com.ericgrandt.totaleconomy.api.dto.TransferResult;
 import com.ericgrandt.totaleconomy.api.dto.WithdrawResult;
 import com.ericgrandt.totaleconomy.api.exception.AccountNotFoundException;
@@ -22,6 +23,8 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 
+// TODO: For withdraw, deposit, transfer, and setBalance we'll need to round the amount using the
+//  currency.fractionalDigits. Otherwise we end up with some unintended rounding issues.
 public class TEEconomyService implements EconomyService<TECurrency> {
     private final TransactionUtil transactionUtil;
     private final CacheService cacheService;
@@ -189,6 +192,36 @@ public class TEEconomyService implements EconomyService<TECurrency> {
             return transfer(fromPlayerId, toPlayerId, currency.code(), amount);
         } catch (SQLException e) {
             throw new DatabaseException("database exception while performing transfer", e);
+        }
+    }
+
+    @Override
+    public SetBalanceResult setBalance(UUID playerId, String currencyCode, BigDecimal amount) {
+        try {
+            return transactionUtil.runInTransaction(conn -> {
+                var currency = currencyData.getCurrency(conn, currencyCode).orElseThrow(CurrencyNotFoundException::new);
+
+                var account = accountData.getAccount(conn, playerId, currency.code())
+                    .orElseThrow(AccountNotFoundException::new);
+                var success = accountData.setBalance(conn, playerId, currency.code(), amount);
+                if (!success) {
+                    return new SetBalanceResult(currency, account.balance());
+                }
+
+                return new SetBalanceResult(currency, amount);
+            });
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while setting account balance", e);
+        }
+    }
+
+    @Override
+    public SetBalanceResult setBalance(UUID playerId, BigDecimal amount) {
+        try {
+            var currency = transactionUtil.runInTransaction(currencyData::getDefaultCurrency);
+            return setBalance(playerId, currency.code(), amount);
+        } catch (SQLException e) {
+            throw new DatabaseException("database exception while setting account balance", e);
         }
     }
 }

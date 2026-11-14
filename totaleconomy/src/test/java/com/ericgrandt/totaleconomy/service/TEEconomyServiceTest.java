@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.service;
 
 import com.ericgrandt.totaleconomy.api.dto.DepositResult;
 import com.ericgrandt.totaleconomy.api.dto.GetAccountBalanceResult;
+import com.ericgrandt.totaleconomy.api.dto.SetBalanceResult;
 import com.ericgrandt.totaleconomy.api.dto.TransferResult;
 import com.ericgrandt.totaleconomy.api.dto.WithdrawResult;
 import com.ericgrandt.totaleconomy.api.exception.AccountNotFoundException;
@@ -699,6 +700,150 @@ public class TEEconomyServiceTest {
                 toAccount.playerId(),
                 BigDecimal.TEN
             )
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithCurrencyCodeAndSuccess_ShouldReturnSetBalanceResult() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ZERO);
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(Optional.of(currency));
+        when(accountDataMock.getAccount(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code())
+        )).thenReturn(Optional.of(account));
+        when(accountDataMock.setBalance(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code()),
+            eq(BigDecimal.TEN)
+        )).thenReturn(true);
+
+        // Act
+        var actual = sut.setBalance(account.playerId(), currency.code(), BigDecimal.TEN);
+        var expected = new SetBalanceResult(currency, BigDecimal.TEN);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithCurrencyCodeAndUnsuccessfulSetBalance_ShouldReturnCurrentBalance() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ZERO);
+        when(currencyDataMock.getCurrency(any(), eq(currency.code()))).thenReturn(Optional.of(currency));
+        when(accountDataMock.getAccount(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code())
+        )).thenReturn(Optional.of(account));
+        when(accountDataMock.setBalance(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code()),
+            any()
+        )).thenReturn(false);
+
+        // Act
+        var actual = sut.setBalance(account.playerId(), currency.code(), BigDecimal.TEN);
+        var expected = new SetBalanceResult(currency, BigDecimal.ZERO);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithCurrencyCodeAndEmptyCurrency_ShouldReturnCurrencyNotFoundException() throws SQLException {
+        // Arrange
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(Optional.empty());
+
+        // Act/Assert
+        assertThrows(
+            CurrencyNotFoundException.class,
+            () -> sut.setBalance(UUID.randomUUID(), "USD", BigDecimal.ONE)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithCurrencyCodeAndNoAccountFound_ShouldThrowAccountNotFoundException() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        when(currencyDataMock.getCurrency(any(), any())).thenReturn(Optional.of(currency));
+        when(accountDataMock.getAccount(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code())
+        )).thenReturn(Optional.empty());
+
+        // Act/Assert
+        assertThrows(
+            AccountNotFoundException.class,
+            () -> sut.setBalance(account.playerId(), currency.code(), BigDecimal.TEN)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithCurrencyCodeAndSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        when(currencyDataMock.getCurrency(any(), eq(currency.code()))).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(
+            DatabaseException.class,
+            () -> sut.setBalance(account.playerId(), currency.code(), BigDecimal.TEN)
+        );
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithDefaultCurrencyCodeAndSuccess_ShouldReturnSetBalanceResult() throws SQLException {
+        // Arrange
+        var currency = new TECurrency("USD", "Dollar", "Dollars", "$", 2, BigDecimal.TEN, true);
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.ZERO);
+        when(currencyDataMock.getDefaultCurrency(any())).thenReturn(currency);
+        when(currencyDataMock.getCurrency(any(), eq(currency.code()))).thenReturn(Optional.of(currency));
+        when(accountDataMock.getAccount(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code())
+        )).thenReturn(Optional.of(account));
+        when(accountDataMock.setBalance(
+            any(),
+            eq(account.playerId()),
+            eq(currency.code()),
+            eq(BigDecimal.TEN)
+        )).thenReturn(true);
+
+        // Act
+        var actual = sut.setBalance(account.playerId(), BigDecimal.TEN);
+        var expected = new SetBalanceResult(currency, BigDecimal.TEN);
+
+        // Assert
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @Tag("Unit")
+    public void setBalance_WithDefaultCurrencyCodeAndSQLException_ShouldThrowDatabaseException() throws SQLException {
+        // Arrange
+        var account = new TEAccount(UUID.randomUUID(), "USD", BigDecimal.TEN);
+        when(currencyDataMock.getDefaultCurrency(any())).thenThrow(SQLException.class);
+
+        // Act/Assert
+        assertThrows(
+            DatabaseException.class,
+            () -> sut.setBalance(account.playerId(), BigDecimal.TEN)
         );
     }
 }

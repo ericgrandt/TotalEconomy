@@ -2,6 +2,7 @@ package com.ericgrandt.totaleconomy.api.service;
 
 import com.ericgrandt.totaleconomy.api.dto.DepositResult;
 import com.ericgrandt.totaleconomy.api.dto.GetAccountBalanceResult;
+import com.ericgrandt.totaleconomy.api.dto.SetBalanceResult;
 import com.ericgrandt.totaleconomy.api.dto.TransferResult;
 import com.ericgrandt.totaleconomy.api.dto.WithdrawResult;
 import com.ericgrandt.totaleconomy.api.exception.AccountNotFoundException;
@@ -23,7 +24,7 @@ public interface EconomyService<T extends Currency> {
     /// @throws MissingDefaultCurrencyException if the default currency is not found
     T getDefaultCurrency();
 
-    /// Retrieves a list of all supported currencies.
+    /// Retrieves a map of all supported currencies.
     ///
     /// @return the map of [Currency]
     Map<String, T> getSupportedCurrencies();
@@ -49,14 +50,15 @@ public interface EconomyService<T extends Currency> {
     ///
     /// @param playerId the unique identifier of the player
     /// @return the [GetAccountBalanceResult] containing the account balance
-    /// @throws CurrencyNotFoundException if the currency is not found
-    /// @throws AccountNotFoundException  if no account exists for the given playerId
+    /// @throws MissingDefaultCurrencyException if the default currency is not found
+    /// @throws CurrencyNotFoundException       if the currency is not found
+    /// @throws AccountNotFoundException        if no account exists for the given playerId
     GetAccountBalanceResult getAccountBalance(UUID playerId);
 
     /// Withdraws an amount from a player's account in the specified currency.
     ///
     /// @param playerId     the unique identifier of the player
-    /// @param currencyCode the currency code of the accounts to transfer between
+    /// @param currencyCode the currency code of the account to withdraw from
     /// @param amount       the amount to withdraw
     /// @return the [WithdrawResult] describing the outcome of the withdrawal
     /// @throws CurrencyNotFoundException  if the currency is not found
@@ -69,15 +71,16 @@ public interface EconomyService<T extends Currency> {
     /// @param playerId the unique identifier of the player
     /// @param amount   the amount to withdraw
     /// @return the [WithdrawResult] describing the outcome of the withdrawal
-    /// @throws CurrencyNotFoundException  if the currency is not found
-    /// @throws AccountNotFoundException   if account is not found
-    /// @throws InsufficientFundsException if account has an insufficient balance to cover the withdrawal
+    /// @throws MissingDefaultCurrencyException if the default currency is not found
+    /// @throws CurrencyNotFoundException       if the currency is not found
+    /// @throws AccountNotFoundException         if account is not found
+    /// @throws InsufficientFundsException       if account has an insufficient balance to cover the withdrawal
     WithdrawResult withdraw(UUID playerId, BigDecimal amount);
 
     /// Deposits an amount into a player's account in the specified currency.
     ///
     /// @param playerId     the unique identifier of the player
-    /// @param currencyCode the currency code of the accounts to transfer between
+    /// @param currencyCode the currency code of the account to deposit into
     /// @param amount       the amount to deposit
     /// @return the [DepositResult] describing the outcome of the deposit
     /// @throws CurrencyNotFoundException if the currency is not found
@@ -87,10 +90,11 @@ public interface EconomyService<T extends Currency> {
     /// Deposits an amount into a player's account in the default currency.
     ///
     /// @param playerId the unique identifier of the player
-    /// @param amount   the amount to withdraw
+    /// @param amount   the amount to deposit
     /// @return the [DepositResult] describing the outcome of the deposit
-    /// @throws CurrencyNotFoundException if the currency is not found
-    /// @throws AccountNotFoundException  if account is not found
+    /// @throws MissingDefaultCurrencyException if the default currency is not found
+    /// @throws CurrencyNotFoundException       if the currency is not found
+    /// @throws AccountNotFoundException        if account is not found
     DepositResult deposit(UUID playerId, BigDecimal amount);
 
     /// Transfers an amount from one player to another in the specified currency.
@@ -112,9 +116,30 @@ public interface EconomyService<T extends Currency> {
     /// @param toPlayerId   the unique identifier of the receiving player
     /// @param amount       the amount to transfer
     /// @return the [TransferResult] describing the outcome of the transfer
-    /// @throws SelfTransferException      if sender and receiver are the same
-    /// @throws CurrencyNotFoundException  if the currency is not found
-    /// @throws AccountNotFoundException   if sender or receiver are not found
-    /// @throws InsufficientFundsException if sender has an insufficient balance to cover the transfer
+    /// @throws SelfTransferException           if sender and receiver are the same
+    /// @throws MissingDefaultCurrencyException if the default currency is not found
+    /// @throws CurrencyNotFoundException       if the currency is not found
+    /// @throws AccountNotFoundException        if sender or receiver are not found
+    /// @throws InsufficientFundsException      if sender has an insufficient balance to cover the transfer
     TransferResult transfer(UUID fromPlayerId, UUID toPlayerId, BigDecimal amount);
+
+    /// Sets the balance of a player's account in the specified currency, replacing the current balance.
+    ///
+    /// @param playerId     the unique identifier of the player
+    /// @param currencyCode the currency code of the account to set the balance for
+    /// @param amount       the new balance for the account
+    /// @return the [SetBalanceResult] describing the outcome of the balance change
+    /// @throws CurrencyNotFoundException if the currency is not found
+    /// @throws AccountNotFoundException  if account is not found
+    SetBalanceResult setBalance(UUID playerId, String currencyCode, BigDecimal amount);
+
+    /// Sets the balance of a player's account in the default currency, replacing the current balance.
+    ///
+    /// @param playerId the unique identifier of the player
+    /// @param amount   the new balance for the account
+    /// @return the [SetBalanceResult] describing the outcome of the balance change
+    /// @throws MissingDefaultCurrencyException if the default currency is not found
+    /// @throws CurrencyNotFoundException       if the currency is not found
+    /// @throws AccountNotFoundException  if account is not found
+    SetBalanceResult setBalance(UUID playerId, BigDecimal amount);
 }
